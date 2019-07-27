@@ -4,11 +4,13 @@ namespace KupoNutsBot.Events
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNutsBot.Extensions;
 	using KupoNutsBot.Utils;
 
 	[Serializable]
@@ -138,14 +140,14 @@ namespace KupoNutsBot.Events
 			return builder.ToString();
 		}
 
-		protected string GetAttendeeString(bool going)
+		protected string GetAttendeeString(Attendee.Statuses status)
 		{
 			StringBuilder builder = new StringBuilder();
 
 			int count = 0;
 			foreach (Attendee attendee in this.Attendees)
 			{
-				if ((attendee.RespondedYes && going) || (attendee.RespondedNo && !going))
+				if (attendee.Status == status)
 				{
 					count++;
 					builder.AppendLine(attendee.GetMention());
@@ -202,8 +204,14 @@ namespace KupoNutsBot.Events
 		public class Attendee
 		{
 			public ulong UserId;
-			public bool RespondedYes = false;
-			public bool RespondedNo = false;
+			public Statuses Status;
+
+			public enum Statuses
+			{
+				Unknown,
+				Attending,
+				NotAttending,
+			}
 
 			public string GetMention()
 			{
@@ -259,9 +267,9 @@ namespace KupoNutsBot.Events
 
 				builder.AddField("When", timeBuilder.ToString(), false);
 
-				builder.AddField("Going", evt.GetAttendeeString(true), true);
+				builder.AddField("Going", evt.GetAttendeeString(Attendee.Statuses.Attending), true);
 
-				string notGoingString = evt.GetAttendeeString(false);
+				string notGoingString = evt.GetAttendeeString(Attendee.Statuses.NotAttending);
 				if (notGoingString != "No one yet")
 					builder.AddField("Not Going", notGoingString, true);
 
@@ -296,30 +304,24 @@ namespace KupoNutsBot.Events
 				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(evt.ChannelId);
 				RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(this.MessageId);
 
-				IEnumerable<IUser> checkedUsers = await message.GetReactionUsersAsync(EventsService.EmoteCheck, 99).FlattenAsync();
+				await this.CheckReactions(evt, channel, message, EventsService.EmoteCheck, Attendee.Statuses.Attending);
+				await this.CheckReactions(evt, channel, message, EventsService.EmoteCross, Attendee.Statuses.NotAttending);
+			}
+
+			private async Task CheckReactions(Event evt, SocketTextChannel channel, RestUserMessage message, IEmote emote, Attendee.Statuses status)
+			{
+				IEnumerable<IUser> checkedUsers = await message.GetReactionUsersAsync(emote, 99).FlattenAsync();
 				foreach (IUser user in checkedUsers)
 				{
 					if (user.Id == Program.DiscordClient.CurrentUser.Id)
 						continue;
 
 					Attendee attendee = evt.GetAttendee(user.Id);
-					if (attendee.RespondedYes)
+					if (attendee.Status == status)
 						continue;
 
-					attendee.RespondedYes = true;
-				}
-
-				IEnumerable<IUser> crossedUsers = await message.GetReactionUsersAsync(EventsService.EmoteCross, 99).FlattenAsync();
-				foreach (IUser user in crossedUsers)
-				{
-					if (user.Id == Program.DiscordClient.CurrentUser.Id)
-						continue;
-
-					Attendee attendee = evt.GetAttendee(user.Id);
-					if (attendee.RespondedNo)
-						continue;
-
-					attendee.RespondedNo = true;
+					SocketUser socketUser = Program.DiscordClient.GetUser(user.Id);
+					await message.RemoveReactionAsync(emote, socketUser);
 				}
 			}
 		}

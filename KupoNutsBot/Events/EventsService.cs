@@ -64,6 +64,8 @@ namespace KupoNutsBot.Events
 		{
 			Instance = this;
 
+			CommandsService.BindCommand("notify", this.Notify);
+
 			foreach (Event evt in Database.Instance.Events)
 			{
 				foreach (Event.Notification notification in evt.Notifications)
@@ -83,13 +85,13 @@ namespace KupoNutsBot.Events
 			}
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
-			Program.DiscordClient.ReactionRemoved += this.ReactionRemoved;
 		}
 
 		public override Task Shutdown()
 		{
+			CommandsService.ClearCommand("notify");
+
 			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
-			Program.DiscordClient.ReactionRemoved -= this.ReactionRemoved;
 
 			return Task.CompletedTask;
 		}
@@ -102,64 +104,48 @@ namespace KupoNutsBot.Events
 			this.messageLookup.Add(messageId, evt);
 		}
 
-		private Task ReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task Notify(string[] args, SocketMessage message)
 		{
-			return this.React(message.Id, reaction.Emote, reaction.UserId, false);
+			if (args.Length <= 0)
+			{
+				foreach (Event evt in Database.Instance.Events)
+				{
+					await evt.Post();
+				}
+			}
+			else
+			{
+				await message.Channel.SendMessageAsync("I'm sorry, I cant notify specific events yet.");
+			}
 		}
 
-		private Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			return this.React(message.Id, reaction.Emote, reaction.UserId, true);
-		}
-
-		private async Task React(ulong messageId, IEmote emote, ulong userId, bool added)
-		{
-			if (!this.messageLookup.ContainsKey(messageId))
+			if (!this.messageLookup.ContainsKey(message.Id))
 				return;
 
 			// dont mark yourself as attending!
-			if (userId == Program.DiscordClient.CurrentUser.Id)
+			if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
 				return;
 
-			Event evt = this.messageLookup[messageId];
+			Event evt = this.messageLookup[message.Id];
+			Event.Attendee attendee = evt.GetAttendee(reaction.UserId);
 
-			Event.Attendee attendee = evt.GetAttendee(userId);
-
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(evt.ChannelId);
-			RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(messageId);
-			SocketUser user = Program.DiscordClient.GetUser(userId);
-
-			bool changed = false;
-
-			if (IsEmoteCross(emote))
+			if (IsEmoteCheck(reaction.Emote))
 			{
-				changed = attendee.RespondedNo != added;
-				attendee.RespondedNo = added;
-
-				if (attendee.RespondedYes && added)
-				{
-					await message.RemoveReactionAsync(EmoteCheck, user);
-					changed = false;
-				}
+				attendee.Status = Event.Attendee.Statuses.Attending;
 			}
-
-			if (IsEmoteCheck(emote))
+			else if (IsEmoteCross(reaction.Emote))
 			{
-				changed = attendee.RespondedYes != added;
-				attendee.RespondedYes = added;
-
-				if (attendee.RespondedNo && added)
-				{
-					await message.RemoveReactionAsync(EmoteCross, user);
-					changed = false;
-				}
+				attendee.Status = Event.Attendee.Statuses.NotAttending;
 			}
-
-			if (!changed)
-				return;
 
 			Database.Instance.Save();
 			await evt.UpdateNotifications();
+
+			RestUserMessage userMessage = (RestUserMessage)await channel.GetMessageAsync(message.Id);
+			SocketUser user = Program.DiscordClient.GetUser(reaction.UserId);
+			await userMessage.RemoveReactionAsync(reaction.Emote, user);
 		}
 	}
 }
