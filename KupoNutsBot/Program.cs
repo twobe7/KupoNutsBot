@@ -41,20 +41,19 @@ namespace KupoNutsBot
 			try
 			{
 				await AddService<StatusService>();
+				await AddService<CommandsService>();
 				await AddService<EventsService>();
+				await AddService<EchoService>();
 			}
 			catch (Exception ex)
 			{
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine(ex.Message);
-				Console.WriteLine(ex.StackTrace);
-				Console.ForegroundColor = ConsoleColor.White;
+				Log.Write(ex);
 			}
 		}
 
 		private async Task Run()
 		{
-			Console.WriteLine("Kupo Nuts Bot booting.. Press [ESC] to shutdown");
+			Log.Write("Kupo Nuts Bot booting.. Press [ESC] to shutdown");
 
 			Database.Load();
 
@@ -62,7 +61,6 @@ namespace KupoNutsBot
 
 			bool ready = false;
 			DiscordClient.Log += this.LogAsync;
-			DiscordClient.MessageReceived += this.MessageReceivedAsync;
 
 			DiscordClient.Ready += () =>
 			{
@@ -80,15 +78,15 @@ namespace KupoNutsBot
 
 			// now we are ready to go
 			await Task.Delay(100);
-			Console.WriteLine("Connected:");
+			Log.Write("Connected:");
 			foreach (SocketGuild guild in DiscordClient.Guilds)
 			{
-				Console.WriteLine("    " + guild.Name);
+				Log.Write("    " + guild.Name);
 				foreach (SocketGuildChannel channel in guild.Channels)
 				{
 					if (channel is SocketTextChannel textChannel)
 					{
-						Console.WriteLine("         " + channel.Name + ":" + channel.Id);
+						Log.Write("         " + channel.Name + ":" + channel.Id);
 					}
 				}
 			}
@@ -100,7 +98,7 @@ namespace KupoNutsBot
 
 				if (Console.ReadKey(true).Key == ConsoleKey.Escape)
 				{
-					Console.WriteLine("Kupo Nuts Bot is shutting down");
+					Log.Write("Kupo Nuts Bot is shutting down");
 					quit = true;
 				}
 			}
@@ -115,27 +113,8 @@ namespace KupoNutsBot
 
 		private Task LogAsync(LogMessage log)
 		{
-			Console.WriteLine(log.ToString());
+			Log.Write(log.ToString());
 			return Task.CompletedTask;
-		}
-
-		// This is not the recommended way to write a bot - consider
-		// reading over the Commands Framework sample.
-		private async Task MessageReceivedAsync(SocketMessage message)
-		{
-			// Ignore messages that did not come from users
-			if (!(message is SocketUserMessage))
-				return;
-
-			// The bot should never respond to itself.
-			if (message.Author.Id == DiscordClient.CurrentUser.Id)
-				return;
-
-			if (message.Content == "*kupo bind")
-			{
-				Console.WriteLine("Binding Chanel: " + message.Channel.Id);
-				await message.Channel.SendMessageAsync("pong!");
-			}
 		}
 	}
 }

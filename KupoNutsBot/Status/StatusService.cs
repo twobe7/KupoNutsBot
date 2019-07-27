@@ -35,7 +35,7 @@ namespace KupoNutsBot.Status
 		{
 			if (Database.Instance.LogChannel <= 0)
 			{
-				Console.WriteLine("No Log Channel set. Kupo Nuts will not post logs to discord");
+				Log.Write("No Status Channel set. Kupo Nuts will not post logs to discord");
 				return;
 			}
 
@@ -74,7 +74,7 @@ namespace KupoNutsBot.Status
 				while (delay < 0)
 					delay += 15;
 
-				Console.WriteLine("Waiting " + delay + " minutes before status update");
+				Log.Write("Waiting " + delay + " minutes before status update");
 
 				await Task.Delay(new TimeSpan(0, delay, 0));
 
