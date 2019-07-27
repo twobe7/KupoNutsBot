@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNutsBot.Data
+namespace KupoNutsBot.Events
 {
 	using System;
 	using System.Collections.Generic;
@@ -143,10 +143,10 @@ namespace KupoNutsBot.Data
 					message = await channel.SendMessageAsync(null, false, builder.Build());
 					this.MessageId = message.Id;
 
-					await message.AddReactionAsync(new Emoji(Events.EmojiCheck));
-					await message.AddReactionAsync(new Emoji(Events.EmojiCross));
+					await message.AddReactionAsync(new Emoji(EventsService.EmojiCheck));
+					await message.AddReactionAsync(new Emoji(EventsService.EmojiCross));
 
-					Events.Instance.Watch(this.MessageId, evt);
+					EventsService.Instance.Watch(this.MessageId, evt);
 				}
 				else
 				{
@@ -166,7 +166,7 @@ namespace KupoNutsBot.Data
 				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(evt.ChannelId);
 				RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(this.MessageId);
 
-				IEnumerable<IUser> checkedUsers = await message.GetReactionUsersAsync(Events.EmoteCheck, 99).FlattenAsync();
+				IEnumerable<IUser> checkedUsers = await message.GetReactionUsersAsync(EventsService.EmoteCheck, 99).FlattenAsync();
 				foreach (IUser user in checkedUsers)
 				{
 					if (user.Id == Program.DiscordClient.CurrentUser.Id)
@@ -179,7 +179,7 @@ namespace KupoNutsBot.Data
 					attendee.RespondedYes = true;
 				}
 
-				IEnumerable<IUser> crossedUsers = await message.GetReactionUsersAsync(Events.EmoteCross, 99).FlattenAsync();
+				IEnumerable<IUser> crossedUsers = await message.GetReactionUsersAsync(EventsService.EmoteCross, 99).FlattenAsync();
 				foreach (IUser user in crossedUsers)
 				{
 					if (user.Id == Program.DiscordClient.CurrentUser.Id)

@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNutsBot
+namespace KupoNutsBot.Events
 {
 	using System;
 	using System.Collections.Generic;
@@ -9,16 +9,16 @@ namespace KupoNutsBot
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
-	using KupoNutsBot.Data;
+	using KupoNutsBot.Services;
 
-	public class Events
+	public class EventsService : ServiceBase
 	{
 		public const string EmojiCheck = "\u2705";
 		public const string EmojiCross = "\u274C";
 
 		private Dictionary<ulong, Event> messageLookup = new Dictionary<ulong, Event>();
 
-		public static Events Instance
+		public static EventsService Instance
 		{
 			get;
 			private set;
@@ -60,7 +60,7 @@ namespace KupoNutsBot
 			return false;
 		}
 
-		public async Task Initialize()
+		public override async Task Initialize()
 		{
 			Instance = this;
 
@@ -84,6 +84,14 @@ namespace KupoNutsBot
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
 			Program.DiscordClient.ReactionRemoved += this.ReactionRemoved;
+		}
+
+		public override Task Shutdown()
+		{
+			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
+			Program.DiscordClient.ReactionRemoved -= this.ReactionRemoved;
+
+			return Task.CompletedTask;
 		}
 
 		public void Watch(ulong messageId, Event evt)

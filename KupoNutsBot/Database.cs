@@ -5,8 +5,7 @@ namespace KupoNutsBot
 	using System;
 	using System.Collections.Generic;
 	using System.IO;
-	using System.Text;
-	using KupoNutsBot.Data;
+	using KupoNutsBot.Events;
 	using Newtonsoft.Json;
 
 	[Serializable]
@@ -15,6 +14,10 @@ namespace KupoNutsBot
 		public const string Location = "data.json";
 
 		public string Token;
+
+		public ulong LogChannel;
+		public ulong StatusMessage;
+
 		public List<Event> Events = new List<Event>();
 
 		public static Database Instance

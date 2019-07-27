@@ -3,16 +3,18 @@
 namespace KupoNutsBot
 {
 	using System;
-	using System.Diagnostics;
+	using System.Collections.Generic;
 	using System.Threading.Tasks;
 	using Discord;
-	using Discord.Audio;
 	using Discord.WebSocket;
-	using KupoNutsBot.Data;
-	using MP3Sharp;
+	using KupoNutsBot.Events;
+	using KupoNutsBot.Services;
+	using KupoNutsBot.Status;
 
 	public class Program
 	{
+		private static List<ServiceBase> services = new List<ServiceBase>();
+
 		public static DiscordSocketClient DiscordClient
 		{
 			get;
@@ -24,6 +26,20 @@ namespace KupoNutsBot
 			Program prog = new Program();
 			Task task = Task.Run(prog.Run);
 			task.Wait();
+		}
+
+		public static async Task AddService<T>()
+			where T : ServiceBase
+		{
+			T service = Activator.CreateInstance<T>();
+			await service.Initialize();
+			services.Add(service);
+		}
+
+		protected virtual async Task AddServices()
+		{
+			await AddService<StatusService>();
+			await AddService<EventsService>();
 		}
 
 		private async Task Run()
@@ -50,8 +66,7 @@ namespace KupoNutsBot
 			while (!ready)
 				await Task.Yield();
 
-			Events events = new Events();
-			await events.Initialize();
+			await this.AddServices();
 
 			// now we are ready to go
 			await Task.Delay(100);
@@ -78,6 +93,11 @@ namespace KupoNutsBot
 					Console.WriteLine("Kupo Nuts Bot is shutting down");
 					quit = true;
 				}
+			}
+
+			foreach (ServiceBase service in services)
+			{
+				await service.Shutdown();
 			}
 
 			DiscordClient.Dispose();
