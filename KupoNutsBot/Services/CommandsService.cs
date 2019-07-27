@@ -16,10 +16,22 @@ namespace KupoNutsBot.Services
 
 		public static void BindCommand(string command, Func<string[], SocketMessage, Task> handler)
 		{
+			command = command.ToLower();
+
 			if (commandHandlers.ContainsKey(command))
 				throw new Exception("Attempt to bind multiple commands with the same name");
 
 			commandHandlers.Add(command, handler);
+		}
+
+		public static void ClearCommand(string command)
+		{
+			command = command.ToLower();
+
+			if (!commandHandlers.ContainsKey(command))
+				return;
+
+			commandHandlers.Remove(command);
 		}
 
 		public override Task Initialize()
@@ -63,6 +75,8 @@ namespace KupoNutsBot.Services
 				}
 			}
 
+			command = command.ToLower();
+
 			Log.Write("Recieved command: " + command + " with " + args.Length + " arguments");
 
 			if (commandHandlers.ContainsKey(command))
@@ -70,6 +84,10 @@ namespace KupoNutsBot.Services
 				try
 				{
 					await commandHandlers[command].Invoke(args, message);
+				}
+				catch (NotImplementedException)
+				{
+					await message.Channel.SendMessageAsync("I'm sorry, seems like I dont quite know how to do that yet.");
 				}
 				catch (Exception ex)
 				{

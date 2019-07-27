@@ -2,11 +2,8 @@
 
 namespace KupoNutsBot.Services
 {
-	using System;
 	using System.Collections.Generic;
 	using System.IO;
-	using System.Net;
-	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
@@ -23,6 +20,7 @@ namespace KupoNutsBot.Services
 
 		public override Task Shutdown()
 		{
+			CommandsService.ClearCommand("echo");
 			return Task.CompletedTask;
 		}
 
