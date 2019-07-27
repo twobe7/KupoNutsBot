@@ -13,51 +13,12 @@ namespace KupoNutsBot.Events
 
 	public class EventsService : ServiceBase
 	{
-		public const string EmojiCheck = "\u2705";
-		public const string EmojiCross = "\u274C";
-
 		private Dictionary<ulong, Event> messageLookup = new Dictionary<ulong, Event>();
 
 		public static EventsService Instance
 		{
 			get;
 			private set;
-		}
-
-		public static IEmote EmoteCheck
-		{
-			get
-			{
-				return new Emoji(EmojiCheck);
-			}
-		}
-
-		public static IEmote EmoteCross
-		{
-			get
-			{
-				return new Emoji(EmojiCross);
-			}
-		}
-
-		public static bool IsEmoteCheck(IEmote emote)
-		{
-			if (emote is Emoji emoji)
-			{
-				return emoji.Name == EmojiCheck;
-			}
-
-			return false;
-		}
-
-		public static bool IsEmoteCross(IEmote emote)
-		{
-			if (emote is Emoji emoji)
-			{
-				return emoji.Name == EmojiCross;
-			}
-
-			return false;
 		}
 
 		public override async Task Initialize()
@@ -131,13 +92,14 @@ namespace KupoNutsBot.Events
 			Event evt = this.messageLookup[message.Id];
 			Event.Attendee attendee = evt.GetAttendee(reaction.UserId);
 
-			if (IsEmoteCheck(reaction.Emote))
+			for (int i = 0; i < evt.Statuses.Count; i++)
 			{
-				attendee.Status = Event.Attendee.Statuses.Attending;
-			}
-			else if (IsEmoteCross(reaction.Emote))
-			{
-				attendee.Status = Event.Attendee.Statuses.NotAttending;
+				Event.Status status = evt.Statuses[i];
+
+				if (reaction.Emote.Name == status.GetEmote().Name)
+				{
+					attendee.Status = i;
+				}
 			}
 
 			Database.Instance.Save();
