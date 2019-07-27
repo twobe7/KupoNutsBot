@@ -144,7 +144,7 @@ namespace KupoNutsBot.Events
 			int count = 0;
 			foreach (Attendee attendee in this.Attendees)
 			{
-				if ((attendee.RespondedYes && going) || (attendee.RespondedNo && going))
+				if ((attendee.RespondedYes && going) || (attendee.RespondedNo && !going))
 				{
 					count++;
 					builder.AppendLine(attendee.GetMention());
