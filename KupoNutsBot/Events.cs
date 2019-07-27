@@ -24,6 +24,42 @@ namespace KupoNutsBot
 			private set;
 		}
 
+		public static IEmote EmoteCheck
+		{
+			get
+			{
+				return new Emoji(EmojiCheck);
+			}
+		}
+
+		public static IEmote EmoteCross
+		{
+			get
+			{
+				return new Emoji(EmojiCross);
+			}
+		}
+
+		public static bool IsEmoteCheck(IEmote emote)
+		{
+			if (emote is Emoji emoji)
+			{
+				return emoji.Name == EmojiCheck;
+			}
+
+			return false;
+		}
+
+		public static bool IsEmoteCross(IEmote emote)
+		{
+			if (emote is Emoji emoji)
+			{
+				return emoji.Name == EmojiCross;
+			}
+
+			return false;
+		}
+
 		public async Task Initialize()
 		{
 			Instance = this;
@@ -42,6 +78,8 @@ namespace KupoNutsBot
 				{
 					await evt.Post();
 				}
+
+				await evt.CheckReactions();
 			}
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
@@ -58,25 +96,15 @@ namespace KupoNutsBot
 
 		private Task ReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (reaction.Emote is Emoji emoji)
-			{
-				return this.React(message.Id, emoji.Name, reaction.UserId, false);
-			}
-
-			return Task.CompletedTask;
+			return this.React(message.Id, reaction.Emote, reaction.UserId, false);
 		}
 
 		private Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (reaction.Emote is Emoji emoji)
-			{
-				return this.React(message.Id, emoji.Name, reaction.UserId, true);
-			}
-
-			return Task.CompletedTask;
+			return this.React(message.Id, reaction.Emote, reaction.UserId, true);
 		}
 
-		private async Task React(ulong messageId, string emoji, ulong userId, bool added)
+		private async Task React(ulong messageId, IEmote emote, ulong userId, bool added)
 		{
 			if (!this.messageLookup.ContainsKey(messageId))
 				return;
@@ -95,26 +123,26 @@ namespace KupoNutsBot
 
 			bool changed = false;
 
-			if (emoji == EmojiCross)
+			if (IsEmoteCross(emote))
 			{
 				changed = attendee.RespondedNo != added;
 				attendee.RespondedNo = added;
 
 				if (attendee.RespondedYes && added)
 				{
-					await message.RemoveReactionAsync(new Emoji(EmojiCheck), user);
+					await message.RemoveReactionAsync(EmoteCheck, user);
 					changed = false;
 				}
 			}
 
-			if (emoji == EmojiCheck)
+			if (IsEmoteCheck(emote))
 			{
 				changed = attendee.RespondedYes != added;
 				attendee.RespondedYes = added;
 
 				if (attendee.RespondedNo && added)
 				{
-					await message.RemoveReactionAsync(new Emoji(EmojiCross), user);
+					await message.RemoveReactionAsync(EmoteCross, user);
 					changed = false;
 				}
 			}

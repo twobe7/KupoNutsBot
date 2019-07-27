@@ -51,6 +51,17 @@ namespace KupoNutsBot.Data
 			return newAttendee;
 		}
 
+		public async Task CheckReactions()
+		{
+			this.Attendees.Clear();
+			foreach (Notification notify in this.Notifications)
+			{
+				await notify.CheckReactions(this);
+			}
+
+			await this.UpdateNotifications();
+		}
+
 		public class Attendee
 		{
 			public ulong UserId;
@@ -144,6 +155,41 @@ namespace KupoNutsBot.Data
 					{
 						x.Embed = builder.Build();
 					});
+				}
+			}
+
+			public async Task CheckReactions(Event evt)
+			{
+				if (this.MessageId == 0)
+					return;
+
+				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(evt.ChannelId);
+				RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(this.MessageId);
+
+				IEnumerable<IUser> checkedUsers = await message.GetReactionUsersAsync(Events.EmoteCheck, 99).FlattenAsync();
+				foreach (IUser user in checkedUsers)
+				{
+					if (user.Id == Program.DiscordClient.CurrentUser.Id)
+						continue;
+
+					Attendee attendee = evt.GetAttendee(user.Id);
+					if (attendee.RespondedYes)
+						continue;
+
+					attendee.RespondedYes = true;
+				}
+
+				IEnumerable<IUser> crossedUsers = await message.GetReactionUsersAsync(Events.EmoteCross, 99).FlattenAsync();
+				foreach (IUser user in crossedUsers)
+				{
+					if (user.Id == Program.DiscordClient.CurrentUser.Id)
+						continue;
+
+					Attendee attendee = evt.GetAttendee(user.Id);
+					if (attendee.RespondedNo)
+						continue;
+
+					attendee.RespondedNo = true;
 				}
 			}
 		}
