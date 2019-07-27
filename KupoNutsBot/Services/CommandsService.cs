@@ -74,7 +74,7 @@ namespace KupoNutsBot.Services
 				catch (Exception ex)
 				{
 					Log.Write(ex);
-					await message.Channel.SendMessageAsync("I'm sorry, Something went wrong while handling that.");
+					await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
 				}
 			}
 			else
