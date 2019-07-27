@@ -20,16 +20,20 @@ namespace KupoNutsBot.Utils
 		{
 			StringBuilder builder = new StringBuilder();
 			TimeZoneInfo nzst = TimeZoneInfo.FindSystemTimeZoneById("New Zealand Standard Time");
-			builder.Append(dt.ToOffset(nzst.BaseUtcOffset).ToString("  H:mm NZST"));
-			builder.Append(" / ");
+			builder.Append(dt.ToOffset(nzst.BaseUtcOffset).ToString("h:mm tt"));
+			builder.Append(" nzst");
+			builder.Append(" - ");
 			TimeZoneInfo awst = TimeZoneInfo.FindSystemTimeZoneById("W. Australia Standard Time");
-			builder.Append(dt.ToOffset(awst.BaseUtcOffset).ToString("  H:mm AWST"));
-			builder.Append(" / ");
+			builder.Append(dt.ToOffset(awst.BaseUtcOffset).ToString("h:mm tt"));
+			builder.Append(" awst");
+			builder.Append(" - ");
 			TimeZoneInfo acst = TimeZoneInfo.FindSystemTimeZoneById("AUS Central Standard Time");
-			builder.Append(dt.ToOffset(acst.BaseUtcOffset).ToString("  H:mm ACST"));
-			builder.Append(" / ");
+			builder.Append(dt.ToOffset(acst.BaseUtcOffset).ToString("h:mm tt"));
+			builder.Append(" acst");
+			builder.Append(" - ");
 			TimeZoneInfo aest = TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time");
-			builder.Append(dt.ToOffset(aest.BaseUtcOffset).ToString("  H:mm AEST"));
+			builder.Append(dt.ToOffset(aest.BaseUtcOffset).ToString("h:mm tt"));
+			builder.Append(" aest");
 			return builder.ToString();
 		}
 

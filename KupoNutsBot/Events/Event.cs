@@ -17,6 +17,7 @@ namespace KupoNutsBot.Events
 		public ulong ChannelId;
 		public string Name;
 		public string Description;
+		public string Image;
 		public Colors Color;
 		public DateTime DateTime;
 		public Days Repeats;
@@ -193,6 +194,11 @@ namespace KupoNutsBot.Events
 			throw new Exception("Unknown discord color: " + this.Color);
 		}
 
+		protected DateTimeOffset NextOccurance()
+		{
+			return new DateTimeOffset(this.DateTime);
+		}
+
 		public class Attendee
 		{
 			public ulong UserId;
@@ -217,21 +223,42 @@ namespace KupoNutsBot.Events
 				builder.Color = evt.GetColor();
 				builder.Title = evt.Name;
 				builder.Description = evt.Description;
+				builder.ImageUrl = evt.Image;
 
-				////builder.ImageUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/03/cropped-BG2-1.jpg";
+				/*
+				 * Due to a bug on Android, we cannot use the Timestamp field for dates in teh future.
+				 * If discord ever fixes this, we should use timestamps as thay automatically adjust to the clients
+				 * time zone.
+				 * https://trello.com/c/RO4zrt25
+				 */
+				/*StringBuilder footerBuilder = new StringBuilder();
+				footerBuilder.Append(TimeUtils.GetDurationString(evt.Duration));
+				footerBuilder.Append(" ");
+				footerBuilder.Append(evt.GetRepeatsString());
+
+				builder.Footer = new EmbedFooterBuilder();
+				builder.Footer.Text = footerBuilder.ToString();
+				builder.Timestamp = evt.NextOccurance();*/
+
+				StringBuilder timeBuilder = new StringBuilder();
+				timeBuilder.Append(TimeUtils.GetDurationString(evt.Duration));
+				timeBuilder.Append(" ");
 
 				string repeat = evt.GetRepeatsString();
 				if (repeat != null)
 				{
-					builder.AddField("Repeats", repeat);
-					builder.AddField("Time", TimeUtils.GetTimeString(evt.DateTime), true);
+					timeBuilder.Append(repeat);
+					timeBuilder.AppendLine(" at ");
+					timeBuilder.Append(TimeUtils.GetTimeString(evt.DateTime));
 				}
 				else
 				{
-					builder.AddField("Time", TimeUtils.GetDateTimeString(evt.DateTime), true);
+					timeBuilder.Append(" on ");
+					timeBuilder.Append(TimeUtils.GetDateTimeString(evt.DateTime));
 				}
 
-				builder.AddField("Duration", TimeUtils.GetDurationString(evt.Duration), true);
+				builder.AddField("When", timeBuilder.ToString(), false);
+
 				builder.AddField("Going", evt.GetAttendeeString(true), true);
 				builder.AddField("Not Going", evt.GetAttendeeString(false), true);
 

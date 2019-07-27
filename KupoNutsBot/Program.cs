@@ -38,8 +38,18 @@ namespace KupoNutsBot
 
 		protected virtual async Task AddServices()
 		{
-			await AddService<StatusService>();
-			await AddService<EventsService>();
+			try
+			{
+				await AddService<StatusService>();
+				await AddService<EventsService>();
+			}
+			catch (Exception ex)
+			{
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine(ex.Message);
+				Console.WriteLine(ex.StackTrace);
+				Console.ForegroundColor = ConsoleColor.White;
+			}
 		}
 
 		private async Task Run()
