@@ -13,8 +13,6 @@ namespace KupoNutsBot
 
 	public class Program
 	{
-		private string token = "NjA0Mjg4NjMwNTc5NTI3Njk4.XTryeg.kVH4MJ2D3b3wVh8L0EDBhmyOflI";
-
 		public static DiscordSocketClient DiscordClient
 		{
 			get;
@@ -46,7 +44,7 @@ namespace KupoNutsBot
 				return Task.CompletedTask;
 			};
 
-			await DiscordClient.LoginAsync(TokenType.Bot, this.token);
+			await DiscordClient.LoginAsync(TokenType.Bot, Database.Instance.Token);
 			await DiscordClient.StartAsync();
 
 			while (!ready)

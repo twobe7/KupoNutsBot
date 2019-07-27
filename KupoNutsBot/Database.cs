@@ -14,6 +14,7 @@ namespace KupoNutsBot
 	{
 		public const string Location = "data.json";
 
+		public string Token;
 		public List<Event> Events = new List<Event>();
 
 		public static Database Instance
