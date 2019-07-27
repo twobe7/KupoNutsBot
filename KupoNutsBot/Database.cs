@@ -37,6 +37,7 @@ namespace KupoNutsBot
 			{
 				string json = File.ReadAllText(Location);
 				Instance = JsonConvert.DeserializeObject<Database>(json);
+				Instance.Save();
 			}
 		}
 

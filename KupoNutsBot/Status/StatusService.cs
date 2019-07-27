@@ -40,11 +40,11 @@ namespace KupoNutsBot.Status
 			}
 
 			EmbedBuilder builder = new EmbedBuilder();
-			builder.Color = Color.DarkRed;
+			builder.Color = this.online ? Color.Green : Color.Red;
 			builder.Title = "Kupo Nuts Bot Status";
 
 			builder.AddField("Status", this.online ? "Online" : "Offline", true);
-			builder.AddField("Last Online", TimeUtils.GetTimeString(DateTimeOffset.Now), true);
+			builder.AddField("Last Online", TimeUtils.GetDateTimeString(DateTimeOffset.Now), true);
 
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.LogChannel);
 

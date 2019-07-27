@@ -9,15 +9,60 @@ namespace KupoNutsBot.Events
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNutsBot.Utils;
 
 	[Serializable]
 	public class Event
 	{
 		public ulong ChannelId;
 		public string Name;
+		public string Description;
+		public Colors Color;
+		public DateTime DateTime;
+		public Days Repeats;
+		public TimeSpan Duration;
 
 		public List<Attendee> Attendees = new List<Attendee>();
 		public List<Notification> Notifications = new List<Notification>();
+
+		[Flags]
+		public enum Days
+		{
+			None = 0,
+
+			Monday = 1,
+			Tuesday = 2,
+			Wednesday = 4,
+			Thursday = 8,
+			Friday = 16,
+			Saturday = 32,
+			Sunday = 64,
+		}
+
+		public enum Colors
+		{
+			Default,
+			DarkerGrey,
+			DarkGrey,
+			LighterGrey,
+			DarkRed,
+			Red,
+			DarkOrange,
+			Orange,
+			LightOrange,
+			Gold,
+			LightGrey,
+			Magenta,
+			DarkPurple,
+			Purple,
+			DarkBlue,
+			Blue,
+			DarkGreen,
+			Green,
+			DarkTeal,
+			Teal,
+			DarkMagenta,
+		}
 
 		public async Task Post()
 		{
@@ -62,19 +107,102 @@ namespace KupoNutsBot.Events
 			await this.UpdateNotifications();
 		}
 
+		protected string GetRepeatsString()
+		{
+			if (this.Repeats == Days.None)
+				return null;
+
+			StringBuilder builder = new StringBuilder();
+			builder.Append("Every ");
+
+			int count = 0;
+			foreach (Days day in Enum.GetValues(typeof(Days)))
+			{
+				if (FlagsUtils.IsSet(this.Repeats, day))
+				{
+					if (count > 0)
+						builder.Append(", ");
+
+					count++;
+					builder.Append(day);
+				}
+			}
+
+			if (count == 7)
+			{
+				builder.Clear();
+				builder.Append("Every day");
+			}
+
+			return builder.ToString();
+		}
+
+		protected string GetAttendeeString(bool going)
+		{
+			StringBuilder builder = new StringBuilder();
+
+			int count = 0;
+			foreach (Attendee attendee in this.Attendees)
+			{
+				if ((attendee.RespondedYes && going) || (attendee.RespondedNo && going))
+				{
+					count++;
+					builder.AppendLine(attendee.GetMention());
+				}
+			}
+
+			if (count <= 0)
+				builder.Append("No one yet");
+
+			if (count > 8)
+			{
+				builder.Clear();
+				builder.Append(count + " people");
+			}
+
+			return builder.ToString();
+		}
+
+		protected Color GetColor()
+		{
+			switch (this.Color)
+			{
+				case Colors.Default: return Discord.Color.Default;
+				case Colors.DarkerGrey: return Discord.Color.DarkerGrey;
+				case Colors.DarkGrey: return Discord.Color.DarkGrey;
+				case Colors.LighterGrey: return Discord.Color.LighterGrey;
+				case Colors.DarkRed: return Discord.Color.DarkRed;
+				case Colors.Red: return Discord.Color.Red;
+				case Colors.DarkOrange: return Discord.Color.DarkOrange;
+				case Colors.Orange: return Discord.Color.Orange;
+				case Colors.LightOrange: return Discord.Color.LightOrange;
+				case Colors.Gold: return Discord.Color.Gold;
+				case Colors.LightGrey: return Discord.Color.LightGrey;
+				case Colors.Magenta: return Discord.Color.Magenta;
+				case Colors.DarkPurple: return Discord.Color.DarkPurple;
+				case Colors.Purple: return Discord.Color.Purple;
+				case Colors.DarkBlue: return Discord.Color.DarkBlue;
+				case Colors.Blue: return Discord.Color.Blue;
+				case Colors.DarkGreen: return Discord.Color.DarkGreen;
+				case Colors.Green: return Discord.Color.Green;
+				case Colors.DarkTeal: return Discord.Color.DarkTeal;
+				case Colors.Teal: return Discord.Color.Teal;
+				case Colors.DarkMagenta: return Discord.Color.DarkMagenta;
+			}
+
+			throw new Exception("Unknown discord color: " + this.Color);
+		}
+
 		public class Attendee
 		{
 			public ulong UserId;
 			public bool RespondedYes = false;
 			public bool RespondedNo = false;
 
-			public string Mention
+			public string GetMention()
 			{
-				get
-				{
-					SocketUser user = Program.DiscordClient.GetUser(this.UserId);
-					return user.Mention;
-				}
+				SocketUser user = Program.DiscordClient.GetUser(this.UserId);
+				return user.Mention;
 			}
 		}
 
@@ -86,54 +214,26 @@ namespace KupoNutsBot.Events
 			public async Task Post(Event evt)
 			{
 				EmbedBuilder builder = new EmbedBuilder();
-				builder.Color = Color.DarkRed;
+				builder.Color = evt.GetColor();
 				builder.Title = evt.Name;
-				builder.Description = "A description goes here";
+				builder.Description = evt.Description;
 
-				builder.ImageUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/03/cropped-BG2-1.jpg";
+				////builder.ImageUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/03/cropped-BG2-1.jpg";
 
-				StringBuilder goingBuilder = new StringBuilder();
-				StringBuilder notGoingBuilder = new StringBuilder();
-
-				int goingCount = 0;
-				int notGoingCount = 0;
-				foreach (Attendee attendee in evt.Attendees)
+				string repeat = evt.GetRepeatsString();
+				if (repeat != null)
 				{
-					if (attendee.RespondedYes)
-					{
-						goingCount++;
-						goingBuilder.AppendLine(attendee.Mention);
-					}
-
-					if (attendee.RespondedNo)
-					{
-						notGoingCount++;
-						notGoingBuilder.AppendLine(attendee.Mention);
-					}
+					builder.AddField("Repeats", repeat);
+					builder.AddField("Time", TimeUtils.GetTimeString(evt.DateTime), true);
+				}
+				else
+				{
+					builder.AddField("Time", TimeUtils.GetDateTimeString(evt.DateTime), true);
 				}
 
-				if (goingCount <= 0)
-					goingBuilder.Append("No one yet");
-
-				if (notGoingCount <= 0)
-					notGoingBuilder.Append("No one yet");
-
-				if (goingCount > 8)
-				{
-					goingBuilder.Clear();
-					goingBuilder.Append(goingCount + " people");
-				}
-
-				if (notGoingCount > 8)
-				{
-					notGoingBuilder.Clear();
-					notGoingBuilder.Append(notGoingCount + " people");
-				}
-
-				builder.AddField("Date", "Jul 27 at 8:00 PM AEST", true);
-				builder.AddField("Duration", "2 Hours", true);
-				builder.AddField("Going", goingBuilder.ToString(), true);
-				builder.AddField("Not Going", notGoingBuilder.ToString(), true);
+				builder.AddField("Duration", TimeUtils.GetDurationString(evt.Duration), true);
+				builder.AddField("Going", evt.GetAttendeeString(true), true);
+				builder.AddField("Not Going", evt.GetAttendeeString(false), true);
 
 				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(evt.ChannelId);
 
