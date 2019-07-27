@@ -10,6 +10,7 @@ namespace KupoNutsBot.Status
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNutsBot.Services;
+	using KupoNutsBot.Utils;
 
 	public class StatusService : ServiceBase
 	{
@@ -43,8 +44,7 @@ namespace KupoNutsBot.Status
 			builder.Title = "Kupo Nuts Bot Status";
 
 			builder.AddField("Status", this.online ? "Online" : "Offline", true);
-			string dateTime = DateTime.UtcNow.ToShortDateString() + " " + DateTime.Now.ToShortTimeString();
-			builder.AddField("Last Online", dateTime, true);
+			builder.AddField("Last Online", TimeUtils.GetTimeString(DateTimeOffset.Now), true);
 
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.LogChannel);
 
@@ -67,16 +67,19 @@ namespace KupoNutsBot.Status
 
 		private async Task UpdateStatus()
 		{
-			int minutes = DateTime.UtcNow.Minute;
-			int delay = minutes % 15;
-			Console.WriteLine("Waiting " + delay + " minutes before status update");
-
-			await Task.Delay(new TimeSpan(0, delay, 0));
-
 			while (this.online)
 			{
-				await Task.Delay(new TimeSpan(0, 15, 0));
+				int minutes = DateTime.UtcNow.Minute;
+				int delay = 15 - minutes;
+				while (delay < 0)
+					delay += 15;
+
+				Console.WriteLine("Waiting " + delay + " minutes before status update");
+
+				await Task.Delay(new TimeSpan(0, delay, 0));
+
 				await this.PostStatus();
+				await Task.Delay(new TimeSpan(0, 2, 0));
 			}
 		}
 	}
