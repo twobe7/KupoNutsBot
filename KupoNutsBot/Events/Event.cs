@@ -260,7 +260,10 @@ namespace KupoNutsBot.Events
 				builder.AddField("When", timeBuilder.ToString(), false);
 
 				builder.AddField("Going", evt.GetAttendeeString(true), true);
-				builder.AddField("Not Going", evt.GetAttendeeString(false), true);
+
+				string notGoingString = evt.GetAttendeeString(false);
+				if (notGoingString != "No one yet")
+					builder.AddField("Not Going", notGoingString, true);
 
 				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(evt.ChannelId);
 
