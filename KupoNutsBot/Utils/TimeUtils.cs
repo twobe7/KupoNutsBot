@@ -41,19 +41,37 @@ namespace KupoNutsBot.Utils
 		{
 			StringBuilder builder = new StringBuilder();
 
-			if (time.Hours > 0)
+			if (time.Days == 1)
 			{
-				builder.Append(time.Hours);
-				builder.Append(" hours");
+				builder.Append(time.Days);
+				builder.Append(" day ");
+			}
+			else if (time.Days > 1)
+			{
+				builder.Append(time.Days);
+				builder.Append(" days ");
 			}
 
-			if (time.Hours > 0 && time.Minutes > 0)
-				builder.Append(", ");
+			if (time.Hours == 1)
+			{
+				builder.Append(time.Hours);
+				builder.Append(" hour ");
+			}
+			else if (time.Hours > 1)
+			{
+				builder.Append(time.Hours);
+				builder.Append(" hours ");
+			}
 
-			if (time.Minutes > 0)
+			if (time.Minutes == 1)
 			{
 				builder.Append(time.Minutes);
-				builder.Append(" minutes");
+				builder.Append(" minute ");
+			}
+			else if (time.Minutes > 1)
+			{
+				builder.Append(time.Minutes);
+				builder.Append(" minutes ");
 			}
 
 			return builder.ToString();

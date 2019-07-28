@@ -92,13 +92,23 @@ namespace KupoNutsBot.Events
 			Event evt = this.messageLookup[message.Id];
 			Event.Attendee attendee = evt.GetAttendee(reaction.UserId);
 
-			for (int i = 0; i < evt.Statuses.Count; i++)
+			if (!string.IsNullOrEmpty(evt.RemindMeEmote))
 			{
-				Event.Status status = evt.Statuses[i];
-
-				if (reaction.Emote.Name == status.GetEmote().Name)
+				if (reaction.Emote.Name == evt.GetRemindMeEmote().Name)
 				{
-					attendee.Status = i;
+					ReminderService.SetReminder(attendee, "I'll remind you before the event: \"" + evt.Name + "\".");
+				}
+			}
+			else
+			{
+				for (int i = 0; i < evt.Statuses.Count; i++)
+				{
+					Event.Status status = evt.Statuses[i];
+
+					if (reaction.Emote.Name == status.GetEmote().Name)
+					{
+						attendee.Status = i;
+					}
 				}
 			}
 

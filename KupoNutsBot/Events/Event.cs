@@ -24,6 +24,7 @@ namespace KupoNutsBot.Events
 		public DateTime DateTime;
 		public Days Repeats;
 		public TimeSpan Duration;
+		public string RemindMeEmote;
 
 		public List<Status> Statuses = new List<Status>();
 		public List<Attendee> Attendees = new List<Attendee>();
@@ -108,6 +109,11 @@ namespace KupoNutsBot.Events
 			}
 
 			await this.UpdateNotifications();
+		}
+
+		public IEmote GetRemindMeEmote()
+		{
+			return Emote.Parse(this.RemindMeEmote);
 		}
 
 		protected string GetRepeatsString()
@@ -226,6 +232,7 @@ namespace KupoNutsBot.Events
 		{
 			public ulong UserId;
 			public int Status;
+			public TimeSpan? RemindTime;
 
 			public string GetMention()
 			{
@@ -302,12 +309,17 @@ namespace KupoNutsBot.Events
 					message = await channel.SendMessageAsync(null, false, builder.Build());
 					this.MessageId = message.Id;
 
+					List<IEmote> reactions = new List<IEmote>();
+
+					if (!string.IsNullOrEmpty(evt.RemindMeEmote))
+						reactions.Add(evt.GetRemindMeEmote());
+
 					foreach (Status status in evt.Statuses)
 					{
-						await message.AddReactionAsync(status.GetEmote());
-						await message.AddReactionAsync(status.GetEmote());
-						await message.AddReactionAsync(status.GetEmote());
+						reactions.Add(status.GetEmote());
 					}
+
+					await message.AddReactionsAsync(reactions.ToArray());
 
 					EventsService.Instance.Watch(this.MessageId, evt);
 				}
