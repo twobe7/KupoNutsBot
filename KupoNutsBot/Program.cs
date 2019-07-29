@@ -60,6 +60,12 @@ namespace KupoNutsBot
 
 			Database.Load();
 
+			if (string.IsNullOrEmpty(Database.Instance.Token))
+			{
+				Log.Write("No token set. Please set a token in the Database file");
+				return;
+			}
+
 			DiscordClient = new DiscordSocketClient();
 
 			bool ready = false;
