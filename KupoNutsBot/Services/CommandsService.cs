@@ -21,6 +21,7 @@ namespace KupoNutsBot.Services
 			if (commandHandlers.ContainsKey(command))
 				throw new Exception("Attempt to bind multiple commands with the same name");
 
+			Log.Write("Bind command: " + command);
 			commandHandlers.Add(command, handler);
 		}
 
@@ -77,7 +78,7 @@ namespace KupoNutsBot.Services
 
 			command = command.ToLower();
 
-			Log.Write("Recieved command: " + command + " with " + args.Length + " arguments");
+			Log.Write("Recieved command: " + command + " with " + message.Content);
 
 			if (commandHandlers.ContainsKey(command))
 			{
