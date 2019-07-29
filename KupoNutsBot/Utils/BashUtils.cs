@@ -8,7 +8,7 @@ namespace KupoNutsBot.Utils
 
 	public static class BashUtils
 	{
-		public static async Task<string> Run(string cmd)
+		public static async Task<string> Run(string cmd, bool waitforExit = true)
 		{
 			Log.Write("> " + cmd);
 
@@ -24,6 +24,9 @@ namespace KupoNutsBot.Utils
 			Process process = new Process();
 			process.StartInfo = info;
 			process.Start();
+
+			if (!waitforExit)
+				return null;
 
 			string result = process.StandardOutput.ReadToEnd();
 

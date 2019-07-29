@@ -3,6 +3,7 @@
 namespace KupoNutsBot.Services
 {
 	using System;
+	using System.IO;
 	using System.Threading.Tasks;
 	using Discord.WebSocket;
 	using KupoNutsBot.Utils;
@@ -21,18 +22,19 @@ namespace KupoNutsBot.Services
 			return Task.CompletedTask;
 		}
 
-		private Task Update(string[] args, SocketMessage message)
+		private async Task Update(string[] args, SocketMessage message)
 		{
-			_ = Task.Run(async () =>
-			{
-				await Program.Exit();
+			string content = "echo Kupo Nuts Bot Update Script";
+			content += @"sleep 5s";
+			content += @"git -C KupoNutsBot/ pull origin master";
+			content += @"dotnet build KupoNutsBot/KupoNutsBot.sln";
+			content += @"dotnet KupoNutsBot/KupoNutsBot/bin/KupoNutsBot.dll";
 
-				await BashUtils.Run("git -C KupoNutsBot/ pull origin master");
-				await BashUtils.Run("dotnet build KupoNutsBot/KupoNutsBot.sln");
-				await BashUtils.Run("dotnet KupoNutsBot/KupoNutsBot/bin/KupoNutsBot.dll");
-			});
+			File.WriteAllText("update.sh", content);
 
-			return Task.CompletedTask;
+			await BashUtils.Run("chmod +x update.sh");
+			await BashUtils.Run("sh update.sh", false);
+			await Program.Exit();
 		}
 	}
 }
