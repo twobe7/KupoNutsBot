@@ -40,12 +40,13 @@ namespace KupoNutsBot
 		{
 			try
 			{
-				await AddService<StatusService>();
 				await AddService<CommandsService>();
+				await AddService<UpdateService>();
 				await AddService<DebugService>();
-				await AddService<EventsService>();
-				await AddService<ReminderService>();
-				await AddService<EchoService>();
+				////await AddService<StatusService>();
+				////await AddService<EventsService>();
+				////await AddService<ReminderService>();
+				////await AddService<EchoService>();
 			}
 			catch (Exception ex)
 			{
