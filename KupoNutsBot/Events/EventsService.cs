@@ -9,6 +9,7 @@ namespace KupoNutsBot.Events
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNutsBot.Commands;
 	using KupoNutsBot.Services;
 
 	public class EventsService : ServiceBase
@@ -25,7 +26,7 @@ namespace KupoNutsBot.Events
 		{
 			Instance = this;
 
-			CommandsService.BindCommand("notify", this.Notify);
+			CommandsService.BindCommand("notify", this.Notify, Permissions.Administrators);
 
 			foreach (Event evt in Database.Instance.Events)
 			{

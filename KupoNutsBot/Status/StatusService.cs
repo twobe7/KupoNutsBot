@@ -9,6 +9,7 @@ namespace KupoNutsBot.Status
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNutsBot.Commands;
 	using KupoNutsBot.Services;
 	using KupoNutsBot.Utils;
 
@@ -20,7 +21,7 @@ namespace KupoNutsBot.Status
 		{
 			this.online = true;
 
-			CommandsService.BindCommand("SetStatusChannel", this.SetStatusChannel);
+			CommandsService.BindCommand("SetStatusChannel", this.SetStatusChannel, Permissions.Administrators);
 
 			_ = Task.Factory.StartNew(() => this.UpdateStatus(), TaskCreationOptions.LongRunning);
 

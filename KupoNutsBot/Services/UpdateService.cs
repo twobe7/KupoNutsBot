@@ -7,6 +7,7 @@ namespace KupoNutsBot.Services
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord.WebSocket;
+	using KupoNutsBot.Commands;
 	using KupoNutsBot.Utils;
 
 	public class UpdateService : ServiceBase
@@ -15,7 +16,7 @@ namespace KupoNutsBot.Services
 
 		public override async Task Initialize()
 		{
-			CommandsService.BindCommand("update", this.Update);
+			CommandsService.BindCommand("update", this.Update, Permissions.Administrators);
 
 			if (Database.Instance.StatusChannel != 0)
 			{

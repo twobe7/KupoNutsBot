@@ -7,6 +7,7 @@ namespace KupoNutsBot.Services
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
+	using KupoNutsBot.Commands;
 	using KupoNutsBot.Extensions;
 	using KupoNutsBot.Utils;
 
@@ -14,7 +15,7 @@ namespace KupoNutsBot.Services
 	{
 		public override Task Initialize()
 		{
-			CommandsService.BindCommand("echo", this.Echo);
+			CommandsService.BindCommand("echo", this.Echo, Permissions.Administrators);
 			return Task.CompletedTask;
 		}
 

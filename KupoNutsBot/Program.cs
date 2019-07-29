@@ -7,6 +7,7 @@ namespace KupoNutsBot
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
+	using KupoNutsBot.Commands;
 	using KupoNutsBot.Events;
 	using KupoNutsBot.Services;
 	using KupoNutsBot.Status;

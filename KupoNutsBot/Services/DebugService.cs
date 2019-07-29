@@ -5,6 +5,7 @@ namespace KupoNutsBot.Services
 	using System;
 	using System.Threading.Tasks;
 	using Discord.WebSocket;
+	using KupoNutsBot.Commands;
 	using KupoNutsBot.Utils;
 	using NodaTime;
 
@@ -12,9 +13,9 @@ namespace KupoNutsBot.Services
 	{
 		public override Task Initialize()
 		{
-			CommandsService.BindCommand("time", this.Time);
-			CommandsService.BindCommand("notImplemented", this.Test);
-			CommandsService.BindCommand("error", this.Error);
+			CommandsService.BindCommand("time", this.Time, Permissions.Everyone);
+			CommandsService.BindCommand("notImplemented", this.Test, Permissions.Administrators);
+			CommandsService.BindCommand("error", this.Error, Permissions.Administrators);
 			return Task.CompletedTask;
 		}
 

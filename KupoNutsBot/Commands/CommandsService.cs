@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNutsBot.Services
+namespace KupoNutsBot.Commands
 {
 	using System;
 	using System.Collections.Generic;
@@ -8,22 +8,22 @@ namespace KupoNutsBot.Services
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
+	using KupoNutsBot.Services;
 
 	public class CommandsService : ServiceBase
 	{
 		private const string CommandCharacter = "\\";
 
-		private static Dictionary<string, Func<string[], SocketMessage, Task>> commandHandlers = new Dictionary<string, Func<string[], SocketMessage, Task>>();
+		private static Dictionary<string, Command> commandHandlers = new Dictionary<string, Command>();
 
-		public static void BindCommand(string command, Func<string[], SocketMessage, Task> handler)
+		public static void BindCommand(string command, Func<string[], SocketMessage, Task> handler, Permissions permissions)
 		{
 			command = command.ToLower();
 
 			if (commandHandlers.ContainsKey(command))
 				throw new Exception("Attempt to bind multiple commands with the same name");
 
-			Log.Write("Bind command: " + command);
-			commandHandlers.Add(command, handler);
+			commandHandlers.Add(command, new Command(handler, permissions));
 		}
 
 		public static void ClearCommand(string command)
@@ -48,7 +48,7 @@ namespace KupoNutsBot.Services
 			return Task.CompletedTask;
 		}
 
-		private bool HasPermission(SocketUser user, string command)
+		private static Permissions GetPermissions(SocketUser user)
 		{
 			if (user is SocketGuildUser guildUser)
 			{
@@ -56,16 +56,24 @@ namespace KupoNutsBot.Services
 				{
 					if (role.Permissions.Administrator)
 					{
-						return true;
+						return Permissions.Administrators;
 					}
 				}
+			}
 
-				return false;
-			}
-			else
+			return Permissions.Everyone;
+		}
+
+		private bool HasPermission(SocketUser user, string command)
+		{
+			if (commandHandlers.ContainsKey(command))
 			{
-				return false;
+				Permissions requiredPermissions = commandHandlers[command].Permission;
+				return requiredPermissions <= GetPermissions(user);
 			}
+
+			// not a command, so they _do_ have permission to try.
+			return true;
 		}
 
 		private async Task OnMessageReceived(SocketMessage message)
@@ -113,7 +121,7 @@ namespace KupoNutsBot.Services
 			{
 				try
 				{
-					await commandHandlers[command].Invoke(args, message);
+					await commandHandlers[command].Method.Invoke(args, message);
 				}
 				catch (NotImplementedException)
 				{
@@ -131,6 +139,18 @@ namespace KupoNutsBot.Services
 			}
 
 			await Task.Delay(0);
+		}
+
+		private class Command
+		{
+			public readonly Func<string[], SocketMessage, Task> Method;
+			public readonly Permissions Permission;
+
+			public Command(Func<string[], SocketMessage, Task> method, Permissions permissions)
+			{
+				this.Method = method;
+				this.Permission = permissions;
+			}
 		}
 	}
 }
