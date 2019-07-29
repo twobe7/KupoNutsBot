@@ -18,7 +18,7 @@ namespace KupoNutsBot.Utils
 			info.FileName = "/bin/bash";
 			info.Arguments = $"-c \"{escapedArgs}\"";
 			info.RedirectStandardOutput = waitforExit;
-			info.UseShellExecute = !waitforExit;
+			info.UseShellExecute = false;
 			info.CreateNoWindow = true;
 
 			Process process = new Process();
