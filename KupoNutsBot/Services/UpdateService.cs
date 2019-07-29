@@ -21,13 +21,18 @@ namespace KupoNutsBot.Services
 			return Task.CompletedTask;
 		}
 
-		private async Task Update(string[] args, SocketMessage message)
+		private Task Update(string[] args, SocketMessage message)
 		{
-			await Program.Exit();
+			_ = Task.Run(async () =>
+			{
+				await Program.Exit();
 
-			await BashUtils.Run("git -C KupoNutsBot/ pull origin master");
-			await BashUtils.Run("dotnet build KupoNutsBot/KupoNutsBot.sln");
-			await BashUtils.Run("dotnet KupoNutsBot/KupoNutsBot/bin/KupoNutsBot.dll");
+				await BashUtils.Run("git -C KupoNutsBot/ pull origin master");
+				await BashUtils.Run("dotnet build KupoNutsBot/KupoNutsBot.sln");
+				await BashUtils.Run("dotnet KupoNutsBot/KupoNutsBot/bin/KupoNutsBot.dll");
+			});
+
+			return Task.CompletedTask;
 		}
 	}
 }
