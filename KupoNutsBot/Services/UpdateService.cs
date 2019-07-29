@@ -45,6 +45,9 @@ namespace KupoNutsBot.Services
 
 			await BashUtils.Run("chmod +x " + updateFile);
 			await BashUtils.Run("sh " + updateFile, false);
+
+			Log.Write("Exiting Program");
+
 			await Program.Exit();
 		}
 	}
