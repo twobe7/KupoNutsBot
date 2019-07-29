@@ -27,6 +27,7 @@ namespace KupoNutsBot.Services
 
 		private async Task Update(string[] args, SocketMessage message)
 		{
+			await message.Channel.SendMessageAsync("I'll be right back!");
 			Log.Write("Begining Update");
 
 			StringBuilder builder = new StringBuilder();
@@ -50,7 +51,7 @@ namespace KupoNutsBot.Services
 
 			Log.Write("Exiting Program");
 
-			await Program.Exit();
+			Program.Exit();
 		}
 	}
 }

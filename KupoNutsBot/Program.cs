@@ -43,14 +43,9 @@ namespace KupoNutsBot
 			services.Add(service);
 		}
 
-		public static async Task Exit()
+		public static void Exit()
 		{
 			exiting = true;
-
-			while (Running)
-			{
-				await Task.Yield();
-			}
 		}
 
 		protected virtual async Task AddServices()
@@ -137,6 +132,7 @@ namespace KupoNutsBot
 
 			DiscordClient.Dispose();
 			Running = false;
+			Log.Write("Kupo Nuts Bot has shut down");
 		}
 
 		private Task LogAsync(LogMessage log)
