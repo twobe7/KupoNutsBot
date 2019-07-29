@@ -20,6 +20,8 @@ namespace KupoNutsBot.Status
 		{
 			this.online = true;
 
+			CommandsService.BindCommand("SetStatusChannel", this.SetStatusChannel);
+
 			_ = Task.Factory.StartNew(() => this.UpdateStatus(), TaskCreationOptions.LongRunning);
 
 			await this.PostStatus();
@@ -27,7 +29,23 @@ namespace KupoNutsBot.Status
 
 		public override async Task Shutdown()
 		{
+			CommandsService.ClearCommand("SetStatusChannel");
+
 			this.online = false;
+			await this.PostStatus();
+		}
+
+		private async Task SetStatusChannel(string[] args, SocketMessage message)
+		{
+			if (Database.Instance.StatusChannel == message.Channel.Id)
+				return;
+
+			Database.Instance.StatusChannel = message.Channel.Id;
+			Database.Instance.StatusMessage = 0;
+			Database.Instance.Save();
+
+			await message.Channel.SendMessageAsync("Got it. I'll post the status to this chanel");
+
 			await this.PostStatus();
 		}
 

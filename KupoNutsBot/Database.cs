@@ -19,7 +19,7 @@ namespace KupoNutsBot
 		public ulong StatusMessage;
 
 		// Used to notify when the update process is finished
-		public ulong UpdateChannel;
+		public ulong StatusChannel;
 
 		public List<Event> Events = new List<Event>();
 

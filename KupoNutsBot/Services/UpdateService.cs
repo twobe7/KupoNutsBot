@@ -17,12 +17,12 @@ namespace KupoNutsBot.Services
 		{
 			CommandsService.BindCommand("update", this.Update);
 
-			if (Database.Instance.UpdateChannel != 0)
+			if (Database.Instance.StatusChannel != 0)
 			{
-				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.UpdateChannel);
+				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.StatusChannel);
 				await channel.SendMessageAsync("I'm back! Updated successfully.");
 
-				Database.Instance.UpdateChannel = 0;
+				Database.Instance.StatusChannel = 0;
 				Database.Instance.Save();
 			}
 		}
@@ -35,7 +35,7 @@ namespace KupoNutsBot.Services
 
 		private async Task Update(string[] args, SocketMessage message)
 		{
-			Database.Instance.UpdateChannel = message.Channel.Id;
+			Database.Instance.StatusChannel = message.Channel.Id;
 			Database.Instance.Save();
 			await message.Channel.SendMessageAsync("I'll be right back!");
 			Log.Write("Begining Update");
