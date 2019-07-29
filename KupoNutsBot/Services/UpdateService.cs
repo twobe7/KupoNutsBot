@@ -4,6 +4,7 @@ namespace KupoNutsBot.Services
 {
 	using System;
 	using System.IO;
+	using System.Text;
 	using System.Threading.Tasks;
 	using Discord.WebSocket;
 	using KupoNutsBot.Utils;
@@ -28,18 +29,19 @@ namespace KupoNutsBot.Services
 		{
 			Log.Write("Begining Update");
 
-			string content = "echo Kupo Nuts Bot Update Script";
-			content += @"sleep 5s";
-			content += @"git -C KupoNutsBot/ pull origin master";
-			content += @"dotnet build KupoNutsBot/KupoNutsBot.sln";
-			content += @"dotnet KupoNutsBot/KupoNutsBot/bin/KupoNutsBot.dll";
+			StringBuilder builder = new StringBuilder();
+			builder.AppendLine("echo Kupo Nuts Bot Update Script");
+			builder.AppendLine(@"sleep 5s");
+			builder.AppendLine(@"git -C KupoNutsBot/ pull origin master");
+			builder.AppendLine(@"dotnet build KupoNutsBot/KupoNutsBot.sln");
+			builder.AppendLine(@"dotnet KupoNutsBot/KupoNutsBot/bin/KupoNutsBot.dll");
 
 			Log.Write("Writing update script");
 
 			if (File.Exists(updateFile))
 				File.Delete(updateFile);
 
-			File.WriteAllText(updateFile, content);
+			File.WriteAllText(updateFile, builder.ToString());
 
 			Log.Write("Running update script");
 
