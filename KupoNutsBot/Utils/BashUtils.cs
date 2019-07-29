@@ -9,6 +9,8 @@ namespace KupoNutsBot.Utils
 	{
 		public static async Task<string> Run(string cmd)
 		{
+			Log.Write("> " + cmd);
+
 			string escapedArgs = cmd.Replace("\"", "\\\"");
 
 			ProcessStartInfo info = new ProcessStartInfo();
@@ -28,6 +30,8 @@ namespace KupoNutsBot.Utils
 				await Task.Yield();
 
 			process.WaitForExit();
+
+			Log.Write("< " + result);
 
 			return result;
 		}
