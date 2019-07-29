@@ -46,7 +46,6 @@ namespace KupoNutsBot
 
 		public static async Task Exit()
 		{
-			Log.Write("Kupo Nuts Bot is shutting down");
 			exiting = true;
 
 			while (Running)
@@ -120,17 +119,17 @@ namespace KupoNutsBot
 				}
 			}
 
-			bool quit = false;
-			while (!quit)
+			while (!exiting)
 			{
 				await Task.Yield();
 
 				if (Console.ReadKey(true).Key == ConsoleKey.Escape)
 				{
-					Log.Write("Kupo Nuts Bot is shutting down");
-					quit = true;
+					exiting = true;
 				}
 			}
+
+			Log.Write("Kupo Nuts Bot is shutting down");
 
 			foreach (ServiceBase service in services)
 			{
