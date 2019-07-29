@@ -18,6 +18,9 @@ namespace KupoNutsBot
 		public ulong LogChannel;
 		public ulong StatusMessage;
 
+		// Used to notify when the update process is finished
+		public ulong UpdateChannel;
+
 		public List<Event> Events = new List<Event>();
 
 		public static Database Instance

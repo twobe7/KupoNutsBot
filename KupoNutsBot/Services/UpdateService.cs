@@ -13,10 +13,18 @@ namespace KupoNutsBot.Services
 	{
 		private static string updateFile = "update.sh";
 
-		public override Task Initialize()
+		public override async Task Initialize()
 		{
 			CommandsService.BindCommand("update", this.Update);
-			return Task.CompletedTask;
+
+			if (Database.Instance.UpdateChannel != 0)
+			{
+				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.UpdateChannel);
+				await channel.SendMessageAsync("I'm back! Updated succesfully.");
+
+				Database.Instance.UpdateChannel = 0;
+				Database.Instance.Save();
+			}
 		}
 
 		public override Task Shutdown()
@@ -27,6 +35,8 @@ namespace KupoNutsBot.Services
 
 		private async Task Update(string[] args, SocketMessage message)
 		{
+			Database.Instance.UpdateChannel = message.Channel.Id;
+			Database.Instance.Save();
 			await message.Channel.SendMessageAsync("I'll be right back!");
 			Log.Write("Begining Update");
 
