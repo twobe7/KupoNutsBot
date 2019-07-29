@@ -64,8 +64,7 @@ namespace KupoNutsBot.Services
 			}
 			else
 			{
-				Console.WriteLine("NOPE");
-				return true;
+				return false;
 			}
 		}
 
