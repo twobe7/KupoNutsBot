@@ -21,6 +21,14 @@ namespace KupoNutsBot
 			private set;
 		}
 
+		public static bool Running
+		{
+			get;
+			private set;
+		}
+
+		private static bool exiting = false;
+
 		public static void Main(string[] args)
 		{
 			Program prog = new Program();
@@ -34,6 +42,17 @@ namespace KupoNutsBot
 			T service = Activator.CreateInstance<T>();
 			await service.Initialize();
 			services.Add(service);
+		}
+
+		public static async Task Exit()
+		{
+			Log.Write("Kupo Nuts Bot is shutting down");
+			exiting = true;
+
+			while (Running)
+			{
+				await Task.Yield();
+			}
 		}
 
 		protected virtual async Task AddServices()
@@ -56,6 +75,7 @@ namespace KupoNutsBot
 
 		private async Task Run()
 		{
+			Running = true;
 			Log.Write("Kupo Nuts Bot booting.. Press [ESC] to shutdown");
 
 			Database.Load();
@@ -118,6 +138,7 @@ namespace KupoNutsBot
 			}
 
 			DiscordClient.Dispose();
+			Running = false;
 		}
 
 		private Task LogAsync(LogMessage log)

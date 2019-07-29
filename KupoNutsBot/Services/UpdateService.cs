@@ -23,9 +23,11 @@ namespace KupoNutsBot.Services
 
 		private async Task Update(string[] args, SocketMessage message)
 		{
-			////> /home/ect2-user
+			await Program.Exit();
+
 			await BashUtils.Run("git -C KupoNutsBot/ pull origin master");
 			await BashUtils.Run("dotnet build KupoNutsBot/KupoNutsBot.sln");
+			await BashUtils.Run("dotnet KupoNutsBot/KupoNutsBot/bin/KupoNutsBot.dll");
 		}
 	}
 }
