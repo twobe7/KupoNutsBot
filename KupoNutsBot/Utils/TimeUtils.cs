@@ -61,9 +61,6 @@ namespace KupoNutsBot.Utils
 		public static string GetTimeString(Instant dt)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append(dt.InZone(NZST).ToString("h:mm tt", CultureInfo.InvariantCulture));
-			builder.Append(" nzst");
-			builder.Append(" - ");
 			builder.Append(dt.InZone(AWST).ToString("h:mm tt", CultureInfo.InvariantCulture));
 			builder.Append(" awst");
 			builder.Append(" - ");
@@ -72,6 +69,9 @@ namespace KupoNutsBot.Utils
 			builder.Append(" - ");
 			builder.Append(dt.InZone(AEST).ToString("h:mm tt", CultureInfo.InvariantCulture));
 			builder.Append(" aest");
+			builder.Append(" - ");
+			builder.Append(dt.InZone(NZST).ToString("h:mm tt", CultureInfo.InvariantCulture));
+			builder.Append(" nzst");
 			return builder.ToString();
 		}
 
