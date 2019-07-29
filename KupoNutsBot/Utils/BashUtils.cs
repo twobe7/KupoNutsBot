@@ -2,6 +2,7 @@
 
 namespace KupoNutsBot.Utils
 {
+	using System;
 	using System.Diagnostics;
 	using System.Threading.Tasks;
 
@@ -30,6 +31,9 @@ namespace KupoNutsBot.Utils
 				await Task.Yield();
 
 			process.WaitForExit();
+
+			if (process.ExitCode != 0)
+				throw new Exception(result);
 
 			Log.Write("< " + result);
 
