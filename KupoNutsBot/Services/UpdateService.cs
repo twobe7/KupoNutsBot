@@ -23,6 +23,7 @@ namespace KupoNutsBot.Services
 
 		private async Task Update(string[] args, SocketMessage message)
 		{
+			await BashUtils.Run("echo $PWD");
 			await BashUtils.Run("git pull origin master");
 			await BashUtils.Run("dotnet build KupoNutsBot.sln");
 		}
