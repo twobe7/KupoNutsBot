@@ -5,11 +5,14 @@ namespace KupoNutsBot.Services
 	using System;
 	using System.Threading.Tasks;
 	using Discord.WebSocket;
+	using KupoNutsBot.Utils;
+	using NodaTime;
 
 	public class DebugService : ServiceBase
 	{
 		public override Task Initialize()
 		{
+			CommandsService.BindCommand("time", this.Time);
 			CommandsService.BindCommand("notImplemented", this.Test);
 			CommandsService.BindCommand("error", this.Error);
 			return Task.CompletedTask;
@@ -17,9 +20,16 @@ namespace KupoNutsBot.Services
 
 		public override Task Shutdown()
 		{
+			CommandsService.ClearCommand("time");
 			CommandsService.ClearCommand("notImplemented");
 			CommandsService.ClearCommand("error");
 			return Task.CompletedTask;
+		}
+
+		private async Task Time(string[] args, SocketMessage message)
+		{
+			Instant now = SystemClock.Instance.GetCurrentInstant();
+			await message.Channel.SendMessageAsync("The time is: " + TimeUtils.GetDateTimeString(now));
 		}
 
 		private Task Test(string[] args, SocketMessage message)

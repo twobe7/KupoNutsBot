@@ -10,6 +10,7 @@ namespace KupoNutsBot.Services
 	using Discord.WebSocket;
 	using KupoNutsBot.Events;
 	using KupoNutsBot.Utils;
+	using NodaTime;
 
 	public class ReminderService : ServiceBase
 	{
@@ -44,19 +45,19 @@ namespace KupoNutsBot.Services
 			return Task.CompletedTask;
 		}
 
-		private static TimeSpan? GetDelaytime(IEmote emote)
+		private static Duration? GetDelaytime(IEmote emote)
 		{
 			if (emote.Name == emote15mins.Name)
-				return new TimeSpan(0, 15, 0);
+				return Duration.FromMinutes(15);
 
 			if (emote.Name == emote30mins.Name)
-				return new TimeSpan(0, 30, 0);
+				return Duration.FromMinutes(30);
 
 			if (emote.Name == emote1hour.Name)
-				return new TimeSpan(1, 0, 0);
+				return Duration.FromHours(1);
 
 			if (emote.Name == emote1day.Name)
-				return new TimeSpan(1, 0, 0, 0);
+				return Duration.FromDays(1);
 
 			return null;
 		}
@@ -67,7 +68,7 @@ namespace KupoNutsBot.Services
 
 			string remindString = null;
 			if (attendee.RemindTime != null)
-				remindString = "\nYou're already set to recieve a reminder " + TimeUtils.GetDurationString((TimeSpan)attendee.RemindTime) + " before the event";
+				remindString = "\nYou're already set to recieve a reminder " + TimeUtils.GetDurationString((Duration)attendee.RemindTime) + " before the event";
 
 			IUserMessage message = await user.SendMessageAsync(messageString + remindString + "\nHow much of a heads up would you like?");
 
@@ -111,7 +112,7 @@ namespace KupoNutsBot.Services
 				return;
 
 			PendingReminder reminder = this.messageLookup[message.Id];
-			TimeSpan? time = GetDelaytime(emote);
+			Duration? time = GetDelaytime(emote);
 			reminder.SetDelay(time);
 
 			SocketUser user = Program.DiscordClient.GetUser(userId);
@@ -122,7 +123,7 @@ namespace KupoNutsBot.Services
 			}
 			else
 			{
-				replyMessage = await user.SendMessageAsync("Got it, I'll let you know " + TimeUtils.GetDurationString((TimeSpan)time) + "before the event starts!\n\n(this message will self-destruct in 5 seconds)");
+				replyMessage = await user.SendMessageAsync("Got it, I'll let you know " + TimeUtils.GetDurationString((Duration)time) + "before the event starts!\n\n(this message will self-destruct in 5 seconds)");
 			}
 
 			await Task.Delay(5000);
@@ -144,7 +145,7 @@ namespace KupoNutsBot.Services
 				this.Attendee = attendee;
 			}
 
-			public void SetDelay(TimeSpan? time)
+			public void SetDelay(Duration? time)
 			{
 				this.Attendee.RemindTime = time;
 			}

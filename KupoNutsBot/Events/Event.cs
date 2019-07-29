@@ -12,6 +12,7 @@ namespace KupoNutsBot.Events
 	using Discord.WebSocket;
 	using KupoNutsBot.Extensions;
 	using KupoNutsBot.Utils;
+	using NodaTime;
 
 	[Serializable]
 	public class Event
@@ -21,9 +22,9 @@ namespace KupoNutsBot.Events
 		public string Description;
 		public string Image;
 		public Colors Color;
-		public DateTime DateTime;
+		public Instant DateTime;
 		public Days Repeats;
-		public TimeSpan Duration;
+		public Duration Duration;
 		public string RemindMeEmote;
 
 		public List<Status> Statuses = new List<Status>();
@@ -202,9 +203,16 @@ namespace KupoNutsBot.Events
 			throw new Exception("Unknown discord color: " + this.Color);
 		}
 
-		protected DateTimeOffset NextOccurance()
+		protected Instant NextOccurance()
 		{
-			return new DateTimeOffset(this.DateTime);
+			Instant now = SystemClock.Instance.GetCurrentInstant();
+			if (this.DateTime < now)
+			{
+				// TODO: Repeats in the future?
+				return this.DateTime;
+			}
+
+			return this.DateTime;
 		}
 
 		public class Status
@@ -232,7 +240,7 @@ namespace KupoNutsBot.Events
 		{
 			public ulong UserId;
 			public int Status;
-			public TimeSpan? RemindTime;
+			public Duration? RemindTime;
 
 			public string GetMention()
 			{

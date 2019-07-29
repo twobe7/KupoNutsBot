@@ -62,7 +62,8 @@ namespace KupoNutsBot.Status
 			builder.Title = "Kupo Nuts Bot Status";
 
 			builder.AddField("Status", this.online ? "Online" : "Offline", true);
-			builder.AddField("Last Online", TimeUtils.GetDateTimeString(DateTimeOffset.Now), true);
+
+			builder.AddField("Last Online", TimeUtils.GetDateTimeString(TimeUtils.Now), true);
 
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.LogChannel);
 

@@ -29,6 +29,7 @@
 	<PackageReference Include="Discord.Net" Version="2.1.1" />
 	<PackageReference Include="MP3Sharp" Version="1.0.4" />
 	<PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+	<PackageReference Include="NodaTime" Version="2.4.6" />
 	<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 	  <PrivateAssets>all</PrivateAssets>
 	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

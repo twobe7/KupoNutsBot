@@ -114,7 +114,14 @@ namespace KupoNutsBot
 			}
 
 			while (!exiting)
+			{
 				await Task.Yield();
+
+				if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+				{
+					exiting = true;
+				}
+			}
 
 			Log.Write("Kupo Nuts Bot is shutting down");
 
@@ -126,22 +133,6 @@ namespace KupoNutsBot
 			DiscordClient.Dispose();
 			Running = false;
 			Log.Write("Kupo Nuts Bot has shut down");
-		}
-
-		private void WatchEscape()
-		{
-			Task.Run(async () =>
-			{
-				while (Running)
-				{
-					await Task.Yield();
-
-					if (Console.ReadKey(true).Key == ConsoleKey.Escape)
-					{
-						exiting = true;
-					}
-				}
-			});
 		}
 
 		private Task LogAsync(LogMessage log)
