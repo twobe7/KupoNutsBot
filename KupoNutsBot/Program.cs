@@ -14,6 +14,7 @@ namespace KupoNutsBot
 	public class Program
 	{
 		private static List<ServiceBase> services = new List<ServiceBase>();
+		private static bool exiting = false;
 
 		public static DiscordSocketClient DiscordClient
 		{
@@ -26,8 +27,6 @@ namespace KupoNutsBot
 			get;
 			private set;
 		}
-
-		private static bool exiting = false;
 
 		public static void Main(string[] args)
 		{
