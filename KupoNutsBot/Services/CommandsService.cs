@@ -6,6 +6,7 @@ namespace KupoNutsBot.Services
 	using System.Collections.Generic;
 	using System.Text;
 	using System.Threading.Tasks;
+	using Discord;
 	using Discord.WebSocket;
 
 	public class CommandsService : ServiceBase
@@ -47,6 +48,27 @@ namespace KupoNutsBot.Services
 			return Task.CompletedTask;
 		}
 
+		private bool HasPermission(SocketUser user, string command)
+		{
+			if (user is SocketGuildUser guildUser)
+			{
+				foreach (SocketRole role in guildUser.Roles)
+				{
+					if (role.Permissions.Administrator)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
+			else
+			{
+				Console.WriteLine("NOPE");
+				return true;
+			}
+		}
+
 		private async Task OnMessageReceived(SocketMessage message)
 		{
 			// Ignore messages that did not come from users
@@ -78,7 +100,15 @@ namespace KupoNutsBot.Services
 
 			command = command.ToLower();
 
-			Log.Write("Recieved command: " + command + " with " + message.Content);
+			bool persmission = this.HasPermission(message.Author, command);
+
+			Log.Write("Recieved command: " + command + " with " + message.Content + " Permission: " + persmission);
+
+			if (!persmission)
+			{
+				await message.Channel.SendMessageAsync("I'm sorry, you don't have permission to do that~");
+				return;
+			}
 
 			if (commandHandlers.ContainsKey(command))
 			{
