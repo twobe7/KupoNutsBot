@@ -16,7 +16,7 @@ namespace KupoNutsBot.Services
 
 		public override async Task Initialize()
 		{
-			CommandsService.BindCommand("update", this.Update, Permissions.Administrators);
+			CommandsService.BindCommand("update", this.Update, Permissions.Administrators, "Updates the bot from GitHUB source and reboots.");
 
 			if (Database.Instance.StatusChannel != 0)
 			{

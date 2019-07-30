@@ -15,7 +15,7 @@ namespace KupoNutsBot.Services
 	{
 		public override Task Initialize()
 		{
-			CommandsService.BindCommand("echo", this.Echo, Permissions.Administrators);
+			CommandsService.BindCommand("echo", this.Echo, Permissions.Administrators, "Copies a range of messages to a new channel.");
 			return Task.CompletedTask;
 		}
 

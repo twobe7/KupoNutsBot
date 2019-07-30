@@ -13,9 +13,9 @@ namespace KupoNutsBot.Services
 	{
 		public override Task Initialize()
 		{
-			CommandsService.BindCommand("time", this.Time, Permissions.Everyone);
-			CommandsService.BindCommand("notImplemented", this.Test, Permissions.Administrators);
-			CommandsService.BindCommand("error", this.Error, Permissions.Administrators);
+			CommandsService.BindCommand("time", this.Time, Permissions.Everyone, "Shows the current time in multiple time zones.");
+			CommandsService.BindCommand("notImplemented", this.Test, Permissions.Administrators, "Demonstrates the NotImplementedException handler.");
+			CommandsService.BindCommand("error", this.Error, Permissions.Administrators, "Demonstrates the generic Exception handler.");
 			return Task.CompletedTask;
 		}
 

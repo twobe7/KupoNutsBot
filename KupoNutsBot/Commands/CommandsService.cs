@@ -16,14 +16,14 @@ namespace KupoNutsBot.Commands
 
 		private static Dictionary<string, Command> commandHandlers = new Dictionary<string, Command>();
 
-		public static void BindCommand(string command, Func<string[], SocketMessage, Task> handler, Permissions permissions)
+		public static void BindCommand(string command, Func<string[], SocketMessage, Task> handler, Permissions permissions, string help)
 		{
 			command = command.ToLower();
 
 			if (commandHandlers.ContainsKey(command))
 				throw new Exception("Attempt to bind multiple commands with the same name");
 
-			commandHandlers.Add(command, new Command(handler, permissions));
+			commandHandlers.Add(command, new Command(handler, permissions, help));
 		}
 
 		public static void ClearCommand(string command)
@@ -39,12 +39,18 @@ namespace KupoNutsBot.Commands
 		public override Task Initialize()
 		{
 			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
+
+			BindCommand("help", this.Help, Permissions.Everyone, "Shows a list of available commands.");
+
 			return Task.CompletedTask;
 		}
 
 		public override Task Shutdown()
 		{
 			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
+
+			ClearCommand("help");
+
 			return Task.CompletedTask;
 		}
 
@@ -62,6 +68,36 @@ namespace KupoNutsBot.Commands
 			}
 
 			return Permissions.Everyone;
+		}
+
+		private async Task Help(string[] args, SocketMessage message)
+		{
+			StringBuilder builder = new StringBuilder();
+
+			Permissions permissions = GetPermissions(message.Author);
+
+			List<string> commandStrings = new List<string>(commandHandlers.Keys);
+			commandStrings.Sort();
+
+			foreach (string commandString in commandStrings)
+			{
+				Command command = commandHandlers[commandString];
+
+				// Don't show commands users cannot access
+				if (command.Permission > permissions)
+					continue;
+
+				builder.Append("\\");
+				builder.Append(commandString);
+				builder.Append(" - ");
+				builder.Append(command.Permission);
+				builder.Append(" - ");
+				builder.AppendLine(command.Help);
+			}
+
+			EmbedBuilder embedBuilder = new EmbedBuilder();
+			embedBuilder.Description = builder.ToString();
+			await message.Channel.SendMessageAsync(null, false, embedBuilder.Build());
 		}
 
 		private bool HasPermission(SocketUser user, string command)
@@ -145,11 +181,13 @@ namespace KupoNutsBot.Commands
 		{
 			public readonly Func<string[], SocketMessage, Task> Method;
 			public readonly Permissions Permission;
+			public readonly string Help;
 
-			public Command(Func<string[], SocketMessage, Task> method, Permissions permissions)
+			public Command(Func<string[], SocketMessage, Task> method, Permissions permissions, string help)
 			{
 				this.Method = method;
 				this.Permission = permissions;
+				this.Help = help;
 			}
 		}
 	}
