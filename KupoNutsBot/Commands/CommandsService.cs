@@ -72,8 +72,7 @@ namespace KupoNutsBot.Commands
 
 		private async Task Help(string[] args, SocketMessage message)
 		{
-			StringBuilder builder = new StringBuilder();
-
+			EmbedBuilder embedBuilder = new EmbedBuilder();
 			Permissions permissions = GetPermissions(message.Author);
 
 			List<string> commandStrings = new List<string>(commandHandlers.Keys);
@@ -87,16 +86,9 @@ namespace KupoNutsBot.Commands
 				if (command.Permission > permissions)
 					continue;
 
-				builder.Append("\\");
-				builder.Append(commandString);
-				builder.Append(" - ");
-				builder.Append(command.Permission);
-				builder.Append(" - ");
-				builder.AppendLine(command.Help);
+				embedBuilder.AddField(commandString, command.Permission + " - " + command.Help);
 			}
 
-			EmbedBuilder embedBuilder = new EmbedBuilder();
-			embedBuilder.Description = builder.ToString();
 			await message.Channel.SendMessageAsync(null, false, embedBuilder.Build());
 		}
 
