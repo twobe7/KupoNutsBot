@@ -21,10 +21,14 @@ namespace KupoNutsBot.Services
 			if (Database.Instance.StatusChannel != 0)
 			{
 				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.StatusChannel);
-				await channel.SendMessageAsync("I'm back! Updated successfully.");
 
-				Database.Instance.StatusChannel = 0;
-				Database.Instance.Save();
+				if (channel != null)
+				{
+					await channel.SendMessageAsync("I'm back! Updated successfully.");
+
+					Database.Instance.StatusChannel = 0;
+					Database.Instance.Save();
+				}
 			}
 		}
 
