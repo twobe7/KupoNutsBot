@@ -26,7 +26,7 @@ namespace KupoNutsBot.Events
 		{
 			Instance = this;
 
-			CommandsService.BindCommand("notify", this.Notify, Permissions.Administrators, "Generates notifications for all pending events, regardless of schedule.");
+			CommandsService.BindCommand("notify", this.Notify, Permissions.Administrators, "Posts notifications for all events, regardless of schedule.");
 
 			foreach (Event evt in Database.Instance.Events)
 			{

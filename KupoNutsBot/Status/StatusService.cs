@@ -21,7 +21,7 @@ namespace KupoNutsBot.Status
 		{
 			this.online = true;
 
-			CommandsService.BindCommand("SetStatusChannel", this.SetStatusChannel, Permissions.Administrators, "Sets the channel the bot will use for posting its status.");
+			CommandsService.BindCommand("SetStatusChannel", this.SetStatusChannel, Permissions.Administrators, "Sets the channel for posting status.");
 
 			_ = Task.Factory.StartNew(() => this.UpdateStatus(), TaskCreationOptions.LongRunning);
 
