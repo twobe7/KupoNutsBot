@@ -117,6 +117,7 @@ namespace KupoNutsBot
 			while (!exiting)
 			{
 				await Task.Yield();
+				Thread.Sleep(100);
 
 				if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
 				{
