@@ -94,11 +94,18 @@ namespace KupoNutsBot.Status
 				while (delay < 0)
 					delay += 15;
 
-				Log.Write("Waiting " + delay + " minutes before status update");
-
 				await Task.Delay(new TimeSpan(0, delay, 0));
 
-				await this.PostStatus();
+				try
+				{
+					Log.Write("Updating status");
+					await this.PostStatus();
+				}
+				catch (Exception ex)
+				{
+					Log.Write(ex);
+				}
+
 				await Task.Delay(new TimeSpan(0, 2, 0));
 			}
 		}
