@@ -61,13 +61,17 @@ namespace KupoNutsBot.Services
 			try
 			{
 				managerProcess = BashUtils.RunProc("dotnet " + ManagerLocation);
+				Thread.Sleep(100);
 
 				while (!managerProcess.HasExited)
 				{
 					await Task.Yield();
 					Thread.Sleep(100);
 
-					Log.Write("[Manager] " + managerProcess.StandardOutput.ReadToEnd());
+					string output = managerProcess.StandardOutput.ReadToEnd();
+
+					if (!string.IsNullOrEmpty(output))
+						Log.Write("[Manager] " + output);
 
 					if (this.shutdown)
 					{
@@ -75,6 +79,8 @@ namespace KupoNutsBot.Services
 						break;
 					}
 				}
+
+				Log.Write("Manager shutting down");
 
 				// sanity check
 				managerProcess.WaitForExit();
