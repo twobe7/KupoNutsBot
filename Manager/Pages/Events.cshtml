@@ -1,15 +1,41 @@
 ﻿@page
-@model IndexModel
+@model EventsModel
 @{
-    ViewData["Title"] = "Home page";
+	ViewData["Title"] = "Home page";
 }
 
 <div class="row">
-    <div class="col-md-3">
-        <h2>Events</h2>
-        <ul>
-            <li>Sample pages using ASP.NET Core Razor Pages</li>
-            <li>Theming using <a href="https://go.microsoft.com/fwlink/?LinkID=398939">Bootstrap</a></li>
-        </ul>
-    </div>
+	<div class="col-md-3">
+		<h2>Events</h2>
+
+		<form asp-page-handler="event" method="post">
+
+			<!--  Channel -->
+			<div class="form-group">
+				<label for="channelSelect">Discord Channel</label>
+				<select class="form-control" id="channelSelect" asp-items="@Model.ChannelList"></select>
+			</div>
+
+			<!-- Name -->
+			<div class="form-group">
+				<label for="eventName">Name</label>
+				<input type="text" class="form-control" id="eventName" placeholder="Enter event name">
+			</div>
+
+			<!--  Description -->
+			<div class="form-group">
+				<label for="eventDesc">Description</label>
+				<textarea class="form-control" id="eventDesc" rows="5"></textarea>
+			</div>
+
+			<!--  Color -->
+			<!--  DateTime -->
+			<!--  Repeat Days -->
+			<!--  Duration -->
+			<!--  Emote for remindMe -->
+
+			<button class="btn btn-primary">Schedule</button>
+		</form>
+
+	</div>
 </div>
