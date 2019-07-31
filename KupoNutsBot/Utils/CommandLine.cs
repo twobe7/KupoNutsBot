@@ -46,11 +46,11 @@ namespace KupoNutsBot.Utils
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					this.process = Command.Run("CMd.exe", $"/C " + escapedArgs);
+					this.process = Command.Run("CMD.exe", $"/C " + cmd);
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					this.process = Command.Run("/bin/bash", $"-c " + escapedArgs);
+					this.process = Command.Run("/bin/bash", "-c", escapedArgs);
 				}
 
 				if (this.process == null)
