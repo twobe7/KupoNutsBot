@@ -90,7 +90,7 @@ namespace KupoNutsBot.Utils
 			{
 				try
 				{
-					while (!this.process.Task.IsCompleted)
+					while (this.process != null && this.process.Task != null && !this.process.Task.IsCompleted)
 					{
 						await Task.Yield();
 						Thread.Sleep(100);
