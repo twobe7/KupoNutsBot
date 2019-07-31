@@ -50,7 +50,7 @@ namespace KupoNutsBot.Services
 			builder.AppendLine(@"sleep 5s");
 			builder.AppendLine(@"git -C KupoNutsBot/ pull origin master");
 			builder.AppendLine(@"dotnet build KupoNutsBot/KupoNutsBot.sln");
-			builder.AppendLine(@"dotnet KupoNutsBot/KupoNutsBot/bin/KupoNutsBot.dll");
+			builder.AppendLine(@"dotnet KupoNutsBot/bin/KupoNutsBot.dll");
 
 			Log.Write("Writing update script");
 

@@ -54,6 +54,7 @@ namespace KupoNutsBot
 		{
 			try
 			{
+				await AddService<ManagerService>();
 				await AddService<CommandsService>();
 				await AddService<UpdateService>();
 				await AddService<DebugService>();

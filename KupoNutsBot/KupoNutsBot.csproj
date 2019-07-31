@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
 	<OutputType>Exe</OutputType>
 	<TargetFramework>netcoreapp2.1</TargetFramework>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -8,38 +8,38 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<WarningsAsErrors />
 	<NoWarn>1701;1702;SA1503;CS1591;SA1401;</NoWarn>
-	<OutputPath>.\bin\</OutputPath>
-  </PropertyGroup>
+	<OutputPath>..\bin\</OutputPath>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	</PropertyGroup>
 
-  <ItemGroup>
+	<ItemGroup>
 	<None Remove="stylecop.json" />
-  </ItemGroup>
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
 	<AdditionalFiles Include="stylecop.json" />
-  </ItemGroup>
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
 	<PackageReference Include="Discord.Net" Version="2.1.1" />
 	<PackageReference Include="MP3Sharp" Version="1.0.4" />
 	<PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
 	<PackageReference Include="NodaTime" Version="2.4.6" />
 	<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	</PackageReference>
-  </ItemGroup>
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
 	<None Update="Libs\opus.dll">
-	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-  </ItemGroup>
+	</ItemGroup>
 
 </Project>
