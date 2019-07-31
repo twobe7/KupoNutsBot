@@ -12,7 +12,7 @@ namespace KupoNutsBot.Services
 
 	public class ManagerService : ServiceBase
 	{
-		private const string ManagerLocation = "KupoNutsBot/bin/manager/manager.dll";
+		private const string ManagerLocation = "KupoNutsBot/bin/manager/Manager.dll";
 
 		private bool shutdown = false;
 		private bool hasShutdown = false;
