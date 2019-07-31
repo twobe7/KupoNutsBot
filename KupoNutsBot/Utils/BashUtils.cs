@@ -4,6 +4,7 @@ namespace KupoNutsBot.Utils
 {
 	using System;
 	using System.Diagnostics;
+	using System.IO;
 	using System.Threading.Tasks;
 
 	public static class BashUtils
@@ -41,6 +42,26 @@ namespace KupoNutsBot.Utils
 			Log.Write("< " + result);
 
 			return result;
+		}
+
+		public static Process RunProc(string cmd)
+		{
+			Log.Write("> " + cmd);
+
+			string escapedArgs = cmd.Replace("\"", "\\\"");
+
+			ProcessStartInfo info = new ProcessStartInfo();
+			info.FileName = "/bin/bash";
+			info.Arguments = $"-c \"{escapedArgs}\"";
+			info.RedirectStandardOutput = true;
+			info.UseShellExecute = false;
+			info.CreateNoWindow = true;
+
+			Process process = new Process();
+			process.StartInfo = info;
+			process.Start();
+
+			return process;
 		}
 	}
 }
