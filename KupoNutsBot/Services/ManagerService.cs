@@ -8,6 +8,8 @@ namespace KupoNutsBot.Services
 	using System.Text;
 	using System.Threading;
 	using System.Threading.Tasks;
+	using Discord.WebSocket;
+	using KupoNutsBot.Commands;
 	using KupoNutsBot.Utils;
 
 	public class ManagerService : ServiceBase
@@ -17,12 +19,14 @@ namespace KupoNutsBot.Services
 		private bool shutdown = false;
 		private bool hasShutdown = false;
 
-		public override async Task Initialize()
+		public override Task Initialize()
 		{
-			await BashUtils.Run("echo $PWD");
+			CommandsService.BindCommand("restartManager", this.Restart, Permissions.Administrators, "Restarts the management interface.");
 
 			Task task3 = new Task(async () => await this.RunManager(), TaskCreationOptions.LongRunning);
 			task3.Start();
+
+			return Task.CompletedTask;
 		}
 
 		public override async Task Shutdown()
@@ -33,6 +37,19 @@ namespace KupoNutsBot.Services
 			{
 				await Task.Yield();
 			}
+		}
+
+		private async Task Restart(string[] args, SocketMessage message)
+		{
+			this.shutdown = true;
+
+			while (!this.hasShutdown)
+			{
+				await Task.Yield();
+			}
+
+			Task task3 = new Task(async () => await this.RunManager(), TaskCreationOptions.LongRunning);
+			task3.Start();
 		}
 
 		private async Task RunManager()
