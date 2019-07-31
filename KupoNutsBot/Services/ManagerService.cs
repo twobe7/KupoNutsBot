@@ -16,85 +16,27 @@ namespace KupoNutsBot.Services
 	{
 		private const string ManagerLocation = "KupoNutsBot/bin/manager/Manager.dll";
 
-		private bool shutdown = false;
-		private bool hasShutdown = false;
+		private CommandLine.CommandProcess managerProcess;
 
 		public override Task Initialize()
 		{
 			CommandsService.BindCommand("restartManager", this.Restart, Permissions.Administrators, "Restarts the management interface.");
 
-			Task task3 = new Task(async () => await this.RunManager(), TaskCreationOptions.LongRunning);
-			task3.Start();
+			this.managerProcess = CommandLine.DotNetRun(ManagerLocation);
 
 			return Task.CompletedTask;
 		}
 
 		public override async Task Shutdown()
 		{
-			this.shutdown = true;
-
-			while (!this.hasShutdown)
-			{
-				await Task.Yield();
-			}
+			CommandsService.ClearCommand("restartManager");
+			await this.managerProcess.Kill();
 		}
 
 		private async Task Restart(string[] args, SocketMessage message)
 		{
-			this.shutdown = true;
-
-			while (!this.hasShutdown)
-			{
-				await Task.Yield();
-			}
-
-			Task task3 = new Task(async () => await this.RunManager(), TaskCreationOptions.LongRunning);
-			task3.Start();
-		}
-
-		private async Task RunManager()
-		{
-			Log.Write("Booting Manager...");
-			Process managerProcess = null;
-			this.hasShutdown = false;
-
-			try
-			{
-				managerProcess = BashUtils.RunProc("dotnet " + ManagerLocation);
-				Thread.Sleep(100);
-
-				while (!managerProcess.HasExited)
-				{
-					await Task.Yield();
-					Thread.Sleep(100);
-
-					string output = managerProcess.StandardOutput.ReadToEnd();
-
-					if (!string.IsNullOrEmpty(output))
-						Log.Write("[Manager] " + output);
-
-					if (this.shutdown)
-					{
-						managerProcess.Kill();
-						break;
-					}
-				}
-
-				Log.Write("Manager shutting down");
-
-				// sanity check
-				managerProcess.WaitForExit();
-			}
-			catch (Exception ex)
-			{
-				if (managerProcess != null)
-					managerProcess.Kill();
-
-				Log.Write(ex);
-			}
-
-			Log.Write("Manager shutdown");
-			this.hasShutdown = true;
+			await this.Shutdown();
+			await this.Initialize();
 		}
 	}
 }

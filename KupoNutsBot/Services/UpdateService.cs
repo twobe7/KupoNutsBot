@@ -61,8 +61,8 @@ namespace KupoNutsBot.Services
 
 			Log.Write("Running update script");
 
-			await BashUtils.Run("chmod +x " + updateFile);
-			await BashUtils.Run("sh " + updateFile, false);
+			await CommandLine.RunAsync("chmod +x " + updateFile);
+			CommandLine.Run("sh " + updateFile);
 
 			Log.Write("Exiting Program");
 

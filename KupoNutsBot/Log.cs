@@ -3,7 +3,6 @@
 namespace KupoNutsBot
 {
 	using System;
-	using System.Collections.Generic;
 	using System.Text;
 	using Discord;
 	using Discord.WebSocket;
@@ -17,9 +16,20 @@ namespace KupoNutsBot
 
 		public static void Write(Exception ex)
 		{
+			StringBuilder builder = new StringBuilder();
+			while (ex != null)
+			{
+				builder.Append(ex.GetType());
+				builder.Append(" - ");
+				builder.AppendLine(ex.Message);
+				builder.AppendLine(ex.StackTrace);
+				builder.AppendLine();
+
+				ex = ex.InnerException;
+			}
+
 			Console.ForegroundColor = ConsoleColor.Red;
-			Console.WriteLine(ex.Message);
-			Console.WriteLine(ex.StackTrace);
+			Console.WriteLine(builder.ToString());
 			Console.ForegroundColor = ConsoleColor.White;
 
 			if (Program.DiscordClient != null)
@@ -27,13 +37,12 @@ namespace KupoNutsBot
 				try
 				{
 					SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.LogChannel);
-					EmbedBuilder builder = new EmbedBuilder();
-					builder.Color = Color.Red;
-					builder.Title = "Kupo Nut Bot encountered an error";
-					builder.Description = ex.Message;
-					builder.AddField("Stack", ex.StackTrace);
-					builder.Timestamp = DateTimeOffset.UtcNow;
-					channel.SendMessageAsync(null, false, builder.Build());
+					EmbedBuilder enbedBuilder = new EmbedBuilder();
+					enbedBuilder.Color = Color.Red;
+					enbedBuilder.Title = "Kupo Nut Bot encountered an error";
+					enbedBuilder.Description = builder.ToString();
+					enbedBuilder.Timestamp = DateTimeOffset.UtcNow;
+					channel.SendMessageAsync(null, false, enbedBuilder.Build());
 				}
 				catch (Exception)
 				{
