@@ -45,4 +45,8 @@
 		<Folder Include="wwwroot\images\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\KupoNutsBot\KupoNutsBot.csproj" />
+	</ItemGroup>
+
 </Project>
