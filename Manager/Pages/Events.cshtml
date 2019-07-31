@@ -1,5 +1,6 @@
 ﻿@page
 @model EventsModel
+@using KupoNutsBot.Events;
 @{
 	ViewData["Title"] = "Home page";
 }
@@ -9,8 +10,39 @@
 	Launch demo modal
 </button>
 
+<table class="table table-striped table-dark">
+	<thead>
+		<tr>
+			<th scope="col">Name</th>
+			<th scope="col">Description</th>
+			<th scope="col">Next Occurance</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (Event item in Model.Events)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.Name)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Description)
+				</td>
+				<td>
+					@Model.GetNextOccurance(item)
+				</td>
+				<td>
+					<form asp-page-handler="editEvent" method="post">
+						<button class="btn btn-secondary">Edit</button>
+					</form>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
 <form asp-page-handler="event" method="post">
-	<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="@Model.ShowPopup">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">

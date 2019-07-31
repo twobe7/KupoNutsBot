@@ -6,6 +6,7 @@ namespace KupoNutsBot.Utils
 	using System.Collections.Generic;
 	using System.Globalization;
 	using System.Text;
+	using KupoNutsBot.Events;
 	using NodaTime;
 
 	public static class TimeUtils
@@ -18,7 +19,7 @@ namespace KupoNutsBot.Utils
 			}
 		}
 
-		private static DateTimeZone NZST
+		public static DateTimeZone NZST
 		{
 			get
 			{
@@ -26,7 +27,7 @@ namespace KupoNutsBot.Utils
 			}
 		}
 
-		private static DateTimeZone AWST
+		public static DateTimeZone AWST
 		{
 			get
 			{
@@ -34,7 +35,7 @@ namespace KupoNutsBot.Utils
 			}
 		}
 
-		private static DateTimeZone ACST
+		public static DateTimeZone ACST
 		{
 			get
 			{
@@ -42,12 +43,28 @@ namespace KupoNutsBot.Utils
 			}
 		}
 
-		private static DateTimeZone AEST
+		public static DateTimeZone AEST
 		{
 			get
 			{
 				return GetTimeZone("Australia/Sydney");
 			}
+		}
+
+		public static IsoDayOfWeek ToIsoDay(Event.Days day)
+		{
+			switch (day)
+			{
+				case Event.Days.Monday: return IsoDayOfWeek.Monday;
+				case Event.Days.Tuesday: return IsoDayOfWeek.Tuesday;
+				case Event.Days.Wednesday: return IsoDayOfWeek.Wednesday;
+				case Event.Days.Thursday: return IsoDayOfWeek.Thursday;
+				case Event.Days.Friday: return IsoDayOfWeek.Friday;
+				case Event.Days.Saturday: return IsoDayOfWeek.Saturday;
+				case Event.Days.Sunday: return IsoDayOfWeek.Sunday;
+			}
+
+			throw new Exception("Unknown day: " + day);
 		}
 
 		public static string GetDateTimeString(Instant dt)

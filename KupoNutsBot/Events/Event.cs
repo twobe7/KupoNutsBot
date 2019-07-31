@@ -117,6 +117,43 @@ namespace KupoNutsBot.Events
 			return Emote.Parse(this.RemindMeEmote);
 		}
 
+		public Instant NextOccurance(DateTimeZone zone)
+		{
+			Instant now = SystemClock.Instance.GetCurrentInstant();
+			if (this.DateTime < now && this.Repeats != 0)
+			{
+				LocalDate nextDate;
+				LocalDateTime dateTime = this.DateTime.InZone(zone).LocalDateTime;
+
+				LocalDate date = dateTime.Date;
+				LocalDate todaysDate = TimeUtils.Now.InZone(zone).LocalDateTime.Date;
+
+				List<LocalDate> dates = new List<LocalDate>();
+				foreach (Days day in Enum.GetValues(typeof(Days)))
+				{
+					if (!FlagsUtils.IsSet(this.Repeats, day))
+						continue;
+
+					nextDate = todaysDate.Next(TimeUtils.ToIsoDay(day));
+					dates.Add(nextDate);
+				}
+
+				if (dates.Count <= 0)
+					return this.DateTime;
+
+				dates.Sort();
+				nextDate = dates[0];
+
+				Period dateOffset = nextDate - date;
+				dateTime = dateTime + dateOffset;
+
+				Instant nextInstant = dateTime.InZoneLeniently(zone).ToInstant();
+				return nextInstant;
+			}
+
+			return this.DateTime;
+		}
+
 		protected string GetRepeatsString()
 		{
 			if (this.Repeats == Days.None)
@@ -201,18 +238,6 @@ namespace KupoNutsBot.Events
 			}
 
 			throw new Exception("Unknown discord color: " + this.Color);
-		}
-
-		protected Instant NextOccurance()
-		{
-			Instant now = SystemClock.Instance.GetCurrentInstant();
-			if (this.DateTime < now)
-			{
-				// TODO: Repeats in the future?
-				return this.DateTime;
-			}
-
-			return this.DateTime;
 		}
 
 		public class Status
