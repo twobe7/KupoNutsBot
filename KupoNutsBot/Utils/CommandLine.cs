@@ -48,10 +48,13 @@ namespace KupoNutsBot.Utils
 				{
 					this.process = Command.Run("CMd.exe", $"/C " + cmd);
 				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
 					this.process = Command.Run("/bin/bash", $"-c \"{escapedArgs}\"");
 				}
+
+				if (this.process == null)
+					throw new Exception("Failed to start command line process");
 
 				this.output = new StringBuilder();
 
