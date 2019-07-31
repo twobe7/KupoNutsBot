@@ -68,6 +68,9 @@ namespace KupoNutsBot.Utils
 
 			public async Task Kill()
 			{
+				if (this.process == null)
+					return;
+
 				await this.process.TrySignalAsync(CommandSignal.ControlC);
 				this.process.Kill();
 
