@@ -67,10 +67,13 @@ namespace KupoNutsBot.Services
 					await Task.Yield();
 					Thread.Sleep(100);
 
-					if (this.shutdown)
-						managerProcess.Kill();
-
 					Log.Write("[Manager] " + managerProcess.StandardOutput.ReadToEnd());
+
+					if (this.shutdown)
+					{
+						managerProcess.Kill();
+						break;
+					}
 				}
 
 				// sanity check
