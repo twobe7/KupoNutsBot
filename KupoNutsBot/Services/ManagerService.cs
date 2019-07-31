@@ -17,11 +17,12 @@ namespace KupoNutsBot.Services
 		private bool shutdown = false;
 		private bool hasShutdown = false;
 
-		public override Task Initialize()
+		public override async Task Initialize()
 		{
+			await BashUtils.Run("echo $PWD");
+
 			Task task3 = new Task(async () => await this.RunManager(), TaskCreationOptions.LongRunning);
 			task3.Start();
-			return Task.CompletedTask;
 		}
 
 		public override async Task Shutdown()
