@@ -101,21 +101,6 @@ namespace KupoNutsBot
 
 			await this.AddServices();
 
-			// now we are ready to go
-			await Task.Delay(100);
-			Log.Write("Connected:");
-			foreach (SocketGuild guild in DiscordClient.Guilds)
-			{
-				Log.Write("    " + guild.Name);
-				foreach (SocketGuildChannel channel in guild.Channels)
-				{
-					if (channel is SocketTextChannel textChannel)
-					{
-						Log.Write("         " + channel.Name + ":" + channel.Id);
-					}
-				}
-			}
-
 			while (!exiting)
 			{
 				await Task.Yield();
