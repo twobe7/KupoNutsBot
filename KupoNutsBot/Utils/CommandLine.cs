@@ -27,8 +27,8 @@ namespace KupoNutsBot.Utils
 
 		public static CommandProcess DotNetRun(string file)
 		{
-			////if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			////	file = "../../" + file;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				file = "../../" + file;
 
 			return Run("dotnet " + file);
 		}
