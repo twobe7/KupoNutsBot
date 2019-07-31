@@ -88,6 +88,10 @@ namespace KupoNutsBot.Utils
 
 				if (!result.Success)
 				{
+					// ASP.NET abort code
+					if (result.ExitCode == 137)
+						return;
+
 					throw new Exception("Command exited with code " + result.ExitCode, new Exception(result.StandardError));
 				}
 			}
