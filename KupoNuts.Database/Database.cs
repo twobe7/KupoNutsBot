@@ -8,6 +8,11 @@ namespace KupoNuts
 	using KupoNuts.Events;
 	using Newtonsoft.Json;
 
+	// This is a terrible database, it just stores data in a json file, and re-loads it every time
+	// the instance is accessed. It has 0 support for concurrency or merging changes.
+	// We should strongly consider a real database solution like Amazon Dynamo DB
+
+	// May god have mercy on my soul for using this live.
 	[Serializable]
 	public class Database
 	{
