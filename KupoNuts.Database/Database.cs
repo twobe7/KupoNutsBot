@@ -14,6 +14,7 @@ namespace KupoNuts
 		public const string Location = "data.json";
 
 		public string Token;
+		public int Karma = 0;
 
 		public ulong LogChannel;
 		public ulong StatusMessage;
