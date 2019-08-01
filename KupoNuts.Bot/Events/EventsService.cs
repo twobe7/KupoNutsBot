@@ -29,7 +29,7 @@ namespace KupoNuts.Bot.Events
 
 			CommandsService.BindCommand("notify", this.Notify, Permissions.Administrators, "Posts notifications for all events, regardless of schedule.");
 
-			foreach (Event evt in Database.Instance.Events)
+			foreach (Event evt in Database.Load().Events)
 			{
 				foreach (Event.Notification notification in evt.Notifications)
 				{
@@ -71,7 +71,7 @@ namespace KupoNuts.Bot.Events
 		{
 			if (args.Length <= 0)
 			{
-				foreach (Event evt in Database.Instance.Events)
+				foreach (Event evt in Database.Load().Events)
 				{
 					await evt.Post();
 				}
@@ -114,8 +114,9 @@ namespace KupoNuts.Bot.Events
 				}
 			}
 
-			Database.Save();
 			await evt.UpdateNotifications();
+
+			Database.UpdateOrInsert(evt);
 
 			RestUserMessage userMessage = (RestUserMessage)await channel.GetMessageAsync(message.Id);
 			SocketUser user = Program.DiscordClient.GetUser(reaction.UserId);

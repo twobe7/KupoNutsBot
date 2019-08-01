@@ -24,18 +24,20 @@ namespace KupoNuts.Bot.Services
 
 		private async Task GoodBot(string[] args, SocketMessage message)
 		{
-			Database.Instance.Karma++;
-			Database.Save();
+			Database db = Database.Load();
+			db.Karma++;
+			db.Save();
 
-			await message.Channel.SendMessageAsync("Thanks!\nMy karma is " + Database.Instance.Karma);
+			await message.Channel.SendMessageAsync("Thanks!\nMy karma is " + db.Karma);
 		}
 
 		private async Task BadBot(string[] args, SocketMessage message)
 		{
-			Database.Instance.Karma--;
-			Database.Save();
+			Database db = Database.Load();
+			db.Karma--;
+			db.Save();
 
-			await message.Channel.SendMessageAsync("Aww!\nMy karma is " + Database.Instance.Karma);
+			await message.Channel.SendMessageAsync("Aww!\nMy karma is " + db.Karma);
 		}
 	}
 }

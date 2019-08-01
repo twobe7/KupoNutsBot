@@ -16,6 +16,9 @@ namespace KupoNuts.Bot.Events
 	{
 		public static async Task Post(this Event.Notification self, Event evt)
 		{
+			if (evt.ChannelId == 0)
+				return;
+
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Color = evt.Color.ToDiscordColor();
 			builder.Title = evt.Name;

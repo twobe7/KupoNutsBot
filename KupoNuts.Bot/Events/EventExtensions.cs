@@ -21,7 +21,8 @@ namespace KupoNuts.Bot.Events
 			Event.Notification notify = new Event.Notification();
 			await notify.Post(self);
 			self.Notifications.Add(notify);
-			Database.Save();
+
+			Database.UpdateOrInsert(self);
 		}
 
 		public static async Task UpdateNotifications(this Event self)

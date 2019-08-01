@@ -28,7 +28,7 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpGet]
 		public IEnumerable<Event> Get()
 		{
-			return Database.Instance.Events;
+			return Database.Load().Events;
 		}
 
 		[HttpPost]

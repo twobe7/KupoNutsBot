@@ -38,12 +38,14 @@ namespace KupoNuts.Bot.Status
 
 		private async Task SetStatusChannel(string[] args, SocketMessage message)
 		{
-			if (Database.Instance.StatusChannel == message.Channel.Id)
+			Database db = Database.Load();
+
+			if (db.StatusChannel == message.Channel.Id)
 				return;
 
-			Database.Instance.StatusChannel = message.Channel.Id;
-			Database.Instance.StatusMessage = 0;
-			Database.Save();
+			db.StatusChannel = message.Channel.Id;
+			db.StatusMessage = 0;
+			db.Save();
 
 			await message.Channel.SendMessageAsync("Got it. I'll post the status to this chanel");
 
@@ -52,7 +54,9 @@ namespace KupoNuts.Bot.Status
 
 		private async Task PostStatus()
 		{
-			if (Database.Instance.LogChannel <= 0)
+			Database db = Database.Load();
+
+			if (db.LogChannel <= 0)
 			{
 				Log.Write("No Status Channel set. Kupo Nuts will not post logs to discord");
 				return;
@@ -66,18 +70,20 @@ namespace KupoNuts.Bot.Status
 
 			builder.AddField("Last Online", TimeUtils.GetDateTimeString(TimeUtils.Now), true);
 
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Instance.LogChannel);
+			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(db.LogChannel);
 
 			RestUserMessage message;
-			if (Database.Instance.StatusMessage == 0)
+			if (db.StatusMessage == 0)
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
-				Database.Instance.StatusMessage = message.Id;
-				Database.Save();
+
+				db = Database.Load();
+				db.StatusMessage = message.Id;
+				db.Save();
 			}
 			else
 			{
-				message = (RestUserMessage)await channel.GetMessageAsync(Database.Instance.StatusMessage);
+				message = (RestUserMessage)await channel.GetMessageAsync(db.StatusMessage);
 				await message.ModifyAsync(x =>
 				{
 					x.Embed = builder.Build();

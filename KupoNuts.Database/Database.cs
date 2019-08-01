@@ -29,34 +29,40 @@ namespace KupoNuts
 
 		public List<Event> Events = new List<Event>();
 
-		private static Database instance;
-
-		public static Database Instance
+		public static Database Load()
 		{
-			get
+			if (!File.Exists(Location))
 			{
-				////if (instance == null)
-				Load();
-
+				Database instance = new Database();
+				instance.Save();
 				return instance;
+			}
+			else
+			{
+				string json = File.ReadAllText(Location);
+				return JsonConvert.DeserializeObject<Database>(json);
 			}
 		}
 
-		public static void Save()
+		public static void UpdateOrInsert(Event evt)
 		{
-			if (instance == null)
-				throw new Exception("Database not loaded");
+			Database instance = Load();
 
-			string json = JsonConvert.SerializeObject(instance, Formatting.Indented);
-			File.WriteAllText(Location, json);
+			Event evt2 = instance.GetEvent(evt.Id);
+
+			if (evt2 != null)
+			{
+				if (!instance.Events.Remove(evt2))
+					throw new Exception("Failed remove event");
+			}
+
+			instance.Events.Add(evt);
+			instance.Save();
 		}
 
-		public static Event GetEvent(string id)
+		public Event GetEvent(string id)
 		{
-			if (Instance == null)
-				throw new Exception("Database not loaded");
-
-			foreach (Event evt in Instance.Events)
+			foreach (Event evt in this.Events)
 			{
 				if (evt.Id == id)
 				{
@@ -67,32 +73,10 @@ namespace KupoNuts
 			return null;
 		}
 
-		public static void UpdateOrInsert(Event evt)
+		public void Save()
 		{
-			if (Instance == null)
-				throw new Exception("Database not loaded");
-
-			Event evt2 = GetEvent(evt.Id);
-
-			if (evt2 != null)
-				Instance.Events.Remove(evt2);
-
-			Instance.Events.Add(evt);
-		}
-
-		private static void Load()
-		{
-			if (!File.Exists(Location))
-			{
-				instance = new Database();
-				Save();
-			}
-			else
-			{
-				string json = File.ReadAllText(Location);
-				instance = JsonConvert.DeserializeObject<Database>(json);
-				Save();
-			}
+			string json = JsonConvert.SerializeObject(this, Formatting.Indented);
+			File.WriteAllText(Location, json);
 		}
 	}
 }
