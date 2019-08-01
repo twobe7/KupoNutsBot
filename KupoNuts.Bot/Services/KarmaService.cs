@@ -25,7 +25,7 @@ namespace KupoNuts.Bot.Services
 		private async Task GoodBot(string[] args, SocketMessage message)
 		{
 			Database.Instance.Karma++;
-			Database.Instance.Save();
+			Database.Save();
 
 			await message.Channel.SendMessageAsync("Thanks!\nMy karma is " + Database.Instance.Karma);
 		}
@@ -33,7 +33,7 @@ namespace KupoNuts.Bot.Services
 		private async Task BadBot(string[] args, SocketMessage message)
 		{
 			Database.Instance.Karma--;
-			Database.Instance.Save();
+			Database.Save();
 
 			await message.Channel.SendMessageAsync("Aww!\nMy karma is " + Database.Instance.Karma);
 		}

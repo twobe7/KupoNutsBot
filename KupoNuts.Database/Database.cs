@@ -24,31 +24,70 @@ namespace KupoNuts
 
 		public List<Event> Events = new List<Event>();
 
+		private static Database instance;
+
 		public static Database Instance
 		{
-			get;
-			private set;
+			get
+			{
+				////if (instance == null)
+				Load();
+
+				return instance;
+			}
 		}
 
-		public static void Load()
+		public static void Save()
+		{
+			if (instance == null)
+				throw new Exception("Database not loaded");
+
+			string json = JsonConvert.SerializeObject(instance, Formatting.Indented);
+			File.WriteAllText(Location, json);
+		}
+
+		public static Event GetEvent(string id)
+		{
+			if (Instance == null)
+				throw new Exception("Database not loaded");
+
+			foreach (Event evt in Instance.Events)
+			{
+				if (evt.Id == id)
+				{
+					return evt;
+				}
+			}
+
+			return null;
+		}
+
+		public static void UpdateOrInsert(Event evt)
+		{
+			if (Instance == null)
+				throw new Exception("Database not loaded");
+
+			Event evt2 = GetEvent(evt.Id);
+
+			if (evt2 != null)
+				Instance.Events.Remove(evt2);
+
+			Instance.Events.Add(evt);
+		}
+
+		private static void Load()
 		{
 			if (!File.Exists(Location))
 			{
-				Instance = new Database();
-				Instance.Save();
+				instance = new Database();
+				Save();
 			}
 			else
 			{
 				string json = File.ReadAllText(Location);
-				Instance = JsonConvert.DeserializeObject<Database>(json);
-				Instance.Save();
+				instance = JsonConvert.DeserializeObject<Database>(json);
+				Save();
 			}
-		}
-
-		public void Save()
-		{
-			string json = JsonConvert.SerializeObject(this, Formatting.Indented);
-			File.WriteAllText(Location, json);
 		}
 	}
 }

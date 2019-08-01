@@ -114,7 +114,7 @@ namespace KupoNuts.Bot.Events
 				}
 			}
 
-			Database.Instance.Save();
+			Database.Save();
 			await evt.UpdateNotifications();
 
 			RestUserMessage userMessage = (RestUserMessage)await channel.GetMessageAsync(message.Id);

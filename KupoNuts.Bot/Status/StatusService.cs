@@ -43,7 +43,7 @@ namespace KupoNuts.Bot.Status
 
 			Database.Instance.StatusChannel = message.Channel.Id;
 			Database.Instance.StatusMessage = 0;
-			Database.Instance.Save();
+			Database.Save();
 
 			await message.Channel.SendMessageAsync("Got it. I'll post the status to this chanel");
 
@@ -73,7 +73,7 @@ namespace KupoNuts.Bot.Status
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
 				Database.Instance.StatusMessage = message.Id;
-				Database.Instance.Save();
+				Database.Save();
 			}
 			else
 			{

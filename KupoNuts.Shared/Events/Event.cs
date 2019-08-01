@@ -52,6 +52,8 @@ namespace KupoNuts.Events
 			DarkMagenta,
 		}
 
+		public string Id { get; set; }
+
 		public ulong ChannelId { get; set; }
 
 		public string Name { get; set; }

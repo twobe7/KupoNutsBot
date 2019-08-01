@@ -15,24 +15,26 @@ namespace KupoNuts.Manager.Server.Controllers
 	[Route("[controller]")]
 	public class EventsController : ControllerBase
 	{
+		/*
+		Event evt = new Event();
+		evt.Id = Guid.NewGuid().ToString();
+		evt.Name = "Admin Meeting";
+		evt.Description = "A meeting of the glorious Kupo Nut Brigade overlords!";
+		evt.Repeats = Event.Days.Sunday;
+		evt.Duration = Duration.FromHours(2);
+		evt.DateTime = Instant.FromUtc(2019, 1, 6, 8, 0);
+		*/
+
 		[HttpGet]
 		public IEnumerable<Event> Get()
 		{
-			List<Event> events = new List<Event>();
+			return Database.Instance.Events;
+		}
 
-			Event evt = new Event();
-			evt.Name = "Admin Meeting";
-			evt.Description = "A meeting of the glorious Kupo Nut Brigade overlords!";
-			evt.Repeats = Event.Days.Sunday;
-			evt.Duration = Duration.FromHours(2);
-			evt.DateTime = Instant.FromUtc(2019, 1, 6, 8, 0);
-
-			events.Add(evt);
-			events.Add(evt);
-			events.Add(evt);
-			events.Add(evt);
-
-			return events;
+		[HttpPost]
+		public void Post(Event evt)
+		{
+			Database.UpdateOrInsert(evt);
 		}
 	}
 }

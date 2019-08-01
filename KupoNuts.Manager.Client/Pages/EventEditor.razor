@@ -1,12 +1,158 @@
 ﻿@using KupoNuts.Events;
+@inject IModalService Modal
 
-<h3>EventEditor</h3>
+<div class="form-row">
+	<!-- Name -->
+	<div class="form-group col-md-12">
+		<label for="eventName">Name</label>
+		<input type="text" class="form-control" id="eventName" name="eventName" placeholder="Enter event name" @bind="Name"/>
+	</div>
+</div>
+
+<div class="form-row">
+	<!--  Description -->
+	<div class="form-group col-md-12">
+		<label for="eventDesc">Description</label>
+		<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="Description"></textarea>
+	</div>
+</div>
+
+<div class="form-row">
+	<!--  Channel -->
+	<div class="form-group col-md-6">
+		<label for="channelSelect">Discord Channel</label>
+		<select class="form-control" id="channelSelect" name="channelSelect" @bind="Channel">
+			@foreach (KeyValuePair<string, int> keyVal in this.ChannelList)
+			{
+				<option value=@keyVal.Value>@keyVal.Key</option>
+			}
+		</select>
+	</div>
+
+	<!--  Color -->
+	<div class="form-group col-md-6">
+		<label for="colorSelect">Color</label>
+		<select class="form-control" id="colorSelect" name="colorSelect" @bind="Color">
+			@foreach (string color in this.ColorList)
+			{
+				<option value=@color>@color</option>
+			}
+		</select>
+	</div>
+</div>
+
+<div class="form-row">
+	<!--  Date -->
+	<div class="form-group col-md-4">
+		<label for="eventDate">Date</label>
+		<input type="date" class="form-control dateTime" id="eventDate" name="eventDate" @bind="Date"/>
+	</div>
+
+	<!--  time -->
+	<div class="form-group col-md-4">
+		<label for="eventTime">Time</label>
+		<input type="time" class="form-control dateTime" id="eventTime" name="eventTime" @bind="Time"/>
+	</div>
+
+	<!--  Duration -->
+	<div class="form-group col-md-4">
+		<label for="eventDuration">Duration</label>
+		<input type="time" class="form-control dateTime" id="eventDuration" name="eventDuration" @bind="Duration"/>
+	</div>
+</div>
+
+<div class="form-row">
+	<!--  Repeat Days -->
+	<div class="form-group col-md-12">
+		<div class="form-check form-check-inline inline">
+			<input class="form-check-input" type="checkbox" id="monCheckbox" name="repeatMonday" value="true">
+			<label class="form-check-label" for="monCheckbox">Mon</label>
+		</div>
+		<div class="form-check form-check-inline inline">
+			<input class="form-check-input" type="checkbox" id="tueCheckbox" name="repeatTuesday" value="true">
+			<label class="form-check-label" for="tueCheckbox">Tue</label>
+		</div>
+		<div class="form-check form-check-inline inline">
+			<input class="form-check-input" type="checkbox" id="wedCheckbox" name="repeatWednesday" value="true">
+			<label class="form-check-label" for="wedCheckbox">Wed</label>
+		</div>
+		<div class="form-check form-check-inline inline">
+			<input class="form-check-input" type="checkbox" id="thuCheckbox" name="repeatthursday" value="true">
+			<label class="form-check-label" for="thuCheckbox">Thu</label>
+		</div>
+		<div class="form-check form-check-inline inline">
+			<input class="form-check-input" type="checkbox" id="friCheckbox" name="repeatFriday" value="true">
+			<label class="form-check-label" for="friCheckbox">Fri</label>
+		</div>
+		<div class="form-check form-check-inline inline">
+			<input class="form-check-input" type="checkbox" id="satCheckbox" name="repeatSaturday" value="true">
+			<label class="form-check-label" for="satCheckbox">Sat</label>
+		</div>
+		<div class="form-check form-check-inline inline">
+			<input class="form-check-input" type="checkbox" id="sunCheckbox" name="repeatSunday" value="true">
+			<label class="form-check-label" for="sunCheckbox">Sun</label>
+		</div>
+	</div>
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
 
 @code {
 	[CascadingParameter] ModalParameters Parameters { get; set; }
 
+	public Dictionary<string, int> ChannelList { get; set; }
+	public List<String> ColorList { get; set; }
+
+	public string Name;
+	public string Description;
+	public int Channel;
+	public string Color;
+	public string Date;
+	public string Time;
+	public string Duration;
+
+	private Event evt;
+
 	protected override void OnInit()
 	{
-		Event evt = Parameters.Get<Event>("Event");
+		ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
+		ChannelList = new Dictionary<string, int>()
+		{
+			{ "Test", 0 },
+			{ "Test2", 1 },
+			{ "Test3", 2 },
+			{ "Test4", 3 },
+			{ "Test5", 4 },
+		};
+
+		this.evt = Parameters.Get<Event>("Event");
+
+		this.Name = this.evt.Name;
+		this.Description = this.evt.Description;
+		this.Channel = (int)this.evt.ChannelId;
+		this.Color = this.evt.Color.ToString();
+		////this.Date =
+		////this.Time =
+		////this.Duration =
+	}
+
+	private void OnSave()
+	{
+		this.evt.Name = this.Name;
+		this.evt.Description = this.Description;
+		this.evt.ChannelId = (uint)this.Channel;
+		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
+		////this.evt.DateTime =
+		////this.evt.Duration =
+		this.Modal.Close(ModalResult.Ok<Event>(this.evt));
+	}
+
+	private void OnClose()
+	{
+		this.Modal.Cancel();
 	}
 }

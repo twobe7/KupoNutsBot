@@ -71,8 +71,6 @@ namespace KupoNuts.Bot
 				Running = true;
 				Log.Write("Kupo Nuts Bot booting..");
 
-				Database.Load();
-
 				if (string.IsNullOrEmpty(Database.Instance.Token))
 				{
 					Log.Write("No token set. Please set a token in the Database file");
