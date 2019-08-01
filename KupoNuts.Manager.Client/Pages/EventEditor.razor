@@ -95,7 +95,16 @@
 	</div>
 </div>
 
+<div class="form-row">
+	<!--  Repeat Days -->
+	<div class="form-group col-md-12">
+		<label class="form-text text-muted">@evt.Id</label>
+	</div>
+</div>
+
 <div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill"/>
 	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
 	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
 </div>
@@ -148,11 +157,17 @@
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
 		////this.evt.DateTime =
 		////this.evt.Duration =
-		this.Modal.Close(ModalResult.Ok<Event>(this.evt));
+
+		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Update)));
 	}
 
 	private void OnClose()
 	{
-		this.Modal.Cancel();
+		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Nothing)));
+	}
+
+	private void OnDelete()
+	{
+		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Delete)));
 	}
 }

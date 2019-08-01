@@ -11,9 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Manager.Server", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Shared", "KupoNuts.Shared\KupoNuts.Shared.csproj", "{A3B12C0F-09FE-4814-9B55-06D64370314C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KupoNuts.Database", "KupoNuts.Database\KupoNuts.Database.csproj", "{0B2AE3C4-7D62-4DB7-9281-AEC8B22ABA15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Database", "KupoNuts.Database\KupoNuts.Database.csproj", "{0B2AE3C4-7D62-4DB7-9281-AEC8B22ABA15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KupoNuts.Boot", "KupoNuts.Boot\KupoNuts.Boot.csproj", "{2751A6B5-B536-4C70-B9B8-87145D363C4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Boot", "KupoNuts.Boot\KupoNuts.Boot.csproj", "{2751A6B5-B536-4C70-B9B8-87145D363C4A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

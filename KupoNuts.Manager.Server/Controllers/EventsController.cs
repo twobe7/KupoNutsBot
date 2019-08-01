@@ -32,9 +32,23 @@ namespace KupoNuts.Manager.Server.Controllers
 		}
 
 		[HttpPost]
-		public void Post(Event evt)
+		public void Post(EventAction evt)
 		{
-			Database.UpdateOrInsert(evt);
+			switch (evt.Action)
+			{
+				case EventAction.Actions.Update:
+				{
+					Database.UpdateOrInsert(evt.Event);
+					break;
+				}
+
+				case EventAction.Actions.Delete:
+				case EventAction.Actions.DeleteConfirmed:
+				{
+					Database.Delete(evt.Event);
+					break;
+				}
+			}
 		}
 	}
 }

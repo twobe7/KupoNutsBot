@@ -60,6 +60,22 @@ namespace KupoNuts
 			instance.Save();
 		}
 
+		public static void Delete(Event evt)
+		{
+			Database instance = Load();
+
+			Event evt2 = instance.GetEvent(evt.Id);
+			if (evt2 != null)
+			{
+				if (!instance.Events.Remove(evt2))
+				{
+					throw new Exception("Failed remove event");
+				}
+			}
+
+			instance.Save();
+		}
+
 		public Event GetEvent(string id)
 		{
 			foreach (Event evt in this.Events)
