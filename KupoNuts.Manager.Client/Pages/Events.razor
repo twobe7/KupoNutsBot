@@ -12,7 +12,7 @@
 }
 else
 {
-	<table class="table">
+	<table class="table table-striped table-dark">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -28,7 +28,7 @@ else
 					<td>@evt.Name</td>
 					<td>@evt.Description</td>
 					<td>@GetNextOccurance(evt)</td>
-					<td><button @onclick="() => this.OnEdit(evt)" class="btn btn-secondary">Edit</button></td>
+					<td><button @onclick="() => this.OnEdit(evt)" class="btn btn-secondary list-btn">Edit</button></td>
 				</tr>
 			}
 		</tbody>
