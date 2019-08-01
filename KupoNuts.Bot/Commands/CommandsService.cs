@@ -12,7 +12,7 @@ namespace KupoNuts.Bot.Commands
 
 	public class CommandsService : ServiceBase
 	{
-		private const string CommandCharacter = "\\";
+		private const string CommandPrefix = ">>";
 
 		private static Dictionary<string, Command> commandHandlers = new Dictionary<string, Command>();
 
@@ -87,7 +87,8 @@ namespace KupoNuts.Bot.Commands
 				if (command.Permission > permissions)
 					continue;
 
-				builder.Append("**\\");
+				builder.Append("**");
+				builder.Append(CommandPrefix);
 				builder.Append(commandString);
 				builder.Append("** - *");
 				builder.Append(command.Permission);
@@ -123,7 +124,7 @@ namespace KupoNuts.Bot.Commands
 				return;
 
 			// Ignore messages that do not start with the command character
-			if (!message.Content.StartsWith(CommandCharacter))
+			if (!message.Content.StartsWith(CommandPrefix))
 				return;
 
 			string command = message.Content.Substring(1);
