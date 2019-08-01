@@ -1,4 +1,4 @@
-﻿@page "/fetchdata"
+﻿@page "/events"
 @using KupoNuts.Events;
 @using KupoNuts.Utils;
 @using NodaTime;
@@ -6,7 +6,7 @@
 @inject HttpClient Http
 @inject IModalService Modal
 
-@if (this.Events == null)
+@if (this.AllEvents == null)
 {
 	<p><em>Loading...</em></p>
 }
@@ -22,7 +22,7 @@ else
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (Event evt in this.Events)
+			@foreach (Event evt in this.AllEvents)
 			{
 				<tr>
 					<td>@evt.Name</td>
@@ -37,20 +37,14 @@ else
 
 @code {
 
-	public List<Event> Events;
+	public List<Event> AllEvents;
 	public List<string> ChannelList;
 	public List<string> ColorList;
 
 	protected override async Task OnInitAsync()
 	{
 		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
-
-		this.Events = await Http.GetJsonAsync<List<Event>>("Events");
-
-		foreach (Event evt in this.Events)
-		{
-			Console.WriteLine(evt.Name);
-		}
+		this.AllEvents = await Http.GetJsonAsync<List<Event>>("Events");
 	}
 
 	protected void OnEdit(Event evt)
