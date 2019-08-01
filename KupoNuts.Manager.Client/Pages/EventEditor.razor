@@ -1,0 +1,12 @@
+﻿@using KupoNuts.Events;
+
+<h3>EventEditor</h3>
+
+@code {
+	[CascadingParameter] ModalParameters Parameters { get; set; }
+
+	protected override void OnInit()
+	{
+		Event evt = Parameters.Get<Event>("Event");
+	}
+}

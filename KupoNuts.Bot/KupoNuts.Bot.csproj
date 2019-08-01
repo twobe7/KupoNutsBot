@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+	<OutputType>Exe</OutputType>
+	<TargetFramework>netcoreapp2.1</TargetFramework>
+	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	<DocumentationFile>..\bin\KupoNuts.Bot.xml</DocumentationFile>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<WarningsAsErrors />
+	<NoWarn>1701;1702;SA1503;CS1591;SA1401;</NoWarn>
+	<OutputPath>..\bin\bot\</OutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	</PropertyGroup>
+
+	<ItemGroup>
+	<None Remove="stylecop.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	<AdditionalFiles Include="stylecop.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	<PackageReference Include="Discord.Net" Version="2.1.1" />
+	<PackageReference Include="MedallionShell" Version="1.6.0" />
+	<PackageReference Include="NodaTime" Version="2.4.6" />
+	<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\KupoNuts.Database\KupoNuts.Database.csproj" />
+	  <ProjectReference Include="..\KupoNuts.Shared\KupoNuts.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	<None Update="Libs\opus.dll">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	</ItemGroup>
+
+</Project>

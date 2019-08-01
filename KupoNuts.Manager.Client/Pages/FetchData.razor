@@ -1,0 +1,71 @@
+﻿@page "/fetchdata"
+@using KupoNuts.Events;
+@using KupoNuts.Utils;
+@using NodaTime;
+@using System.Globalization;
+@inject HttpClient Http
+@inject IModalService Modal
+
+@if (this.Events == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Next Occurance</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (Event evt in this.Events)
+			{
+				<tr>
+					<td>@evt.Name</td>
+					<td>@evt.Description</td>
+					<td>@GetNextOccurance(evt)</td>
+					<td><button @onclick="() => this.OnEdit(evt)" class="btn btn-secondary">Edit</button></td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+
+	public List<Event> Events;
+	public List<string> ChannelList;
+	public List<string> ColorList;
+
+	protected override async Task OnInitAsync()
+	{
+		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
+
+		this.Events = await Http.GetJsonAsync<List<Event>>("Events");
+
+		foreach (Event evt in this.Events)
+		{
+			Console.WriteLine(evt.Name);
+		}
+	}
+
+	protected void OnEdit(Event evt)
+	{
+		ModalParameters parameters = new ModalParameters();
+		parameters.Add("Event", evt);
+		Modal.Show("Edit Event", typeof(EventEditor), parameters);
+	}
+
+	public string GetNextOccurance(Event evt)
+	{
+		DateTimeZone zone = TimeUtils.AEST;
+		Instant instant = evt.NextOccurance(zone);
+		ZonedDateTime zdt = instant.InZone(zone);
+
+		return zdt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+	}
+}

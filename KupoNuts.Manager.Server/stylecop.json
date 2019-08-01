@@ -1,0 +1,18 @@
+﻿{
+	"$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+	"settings": 
+	{
+		"documentationRules": {
+			"xmlHeader": false,
+			"documentInterfaces": false,
+			"documentExposedElements": false,
+			"documentInternalElements": false,
+			"companyName": "Yuuki Inc.",
+			"copyrightText": "This document is intended for use by Kupo Nut Brigade developers."
+		},
+		"indentation": 
+		{
+			"useTabs":  true
+		}
+	}
+}
