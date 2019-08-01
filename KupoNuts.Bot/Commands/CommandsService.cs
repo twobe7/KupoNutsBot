@@ -127,7 +127,7 @@ namespace KupoNuts.Bot.Commands
 			if (!message.Content.StartsWith(CommandPrefix))
 				return;
 
-			string command = message.Content.Substring(1);
+			string command = message.Content.Substring(CommandPrefix.Length);
 			string[] parts = command.Split(" ");
 
 			command = parts[0];
