@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts
+namespace KupoNuts.Bot
 {
 	using System;
 	using System.Text;
@@ -11,7 +11,7 @@ namespace KupoNuts
 	{
 		public static void Write(string message)
 		{
-			Console.WriteLine(message);
+			Console.WriteLine("[Bot] " + message);
 		}
 
 		public static void Write(Exception ex)

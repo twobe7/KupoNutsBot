@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Services
+namespace KupoNuts.Bot.Services
 {
 	using System.Threading.Tasks;
 

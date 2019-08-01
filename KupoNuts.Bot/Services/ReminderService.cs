@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Services
+namespace KupoNuts.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
@@ -8,6 +8,8 @@ namespace KupoNuts.Services
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
+	using KupoNuts.Bot.Events;
+	using KupoNuts.Bot.Utils;
 	using KupoNuts.Events;
 	using KupoNuts.Utils;
 	using NodaTime;

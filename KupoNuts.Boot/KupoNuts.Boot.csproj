@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>netcoreapp3.0</TargetFramework>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<DocumentationFile>..\bin\KupoNuts.Boot.xml</DocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+		<NoWarn>1701;1702;SA1503;CS1591;SA1401;</NoWarn>
+		<OutputPath>..\bin\</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\KupoNuts.Bot\KupoNuts.Bot.csproj" />
+		<ProjectReference Include="..\KupoNuts.Manager.Server\KupoNuts.Manager.Server.csproj" />
+	</ItemGroup>
+
+</Project>

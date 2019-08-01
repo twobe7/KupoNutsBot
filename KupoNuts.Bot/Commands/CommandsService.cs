@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Commands
+namespace KupoNuts.Bot.Commands
 {
 	using System;
 	using System.Collections.Generic;
@@ -8,7 +8,7 @@ namespace KupoNuts.Commands
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
-	using KupoNuts.Services;
+	using KupoNuts.Bot.Services;
 
 	public class CommandsService : ServiceBase
 	{

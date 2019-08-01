@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Utils
+namespace KupoNuts.Bot.Utils
 {
 	using System.IO;
 	using System.Net;

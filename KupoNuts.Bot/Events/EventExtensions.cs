@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Events
+namespace KupoNuts.Bot.Events
 {
 	using System;
 	using System.Collections.Generic;
@@ -10,6 +10,7 @@ namespace KupoNuts.Events
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNuts.Events;
 	using KupoNuts.Utils;
 	using NodaTime;
 

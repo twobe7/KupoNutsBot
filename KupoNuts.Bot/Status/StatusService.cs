@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Status
+namespace KupoNuts.Bot.Status
 {
 	using System;
 	using System.Collections.Generic;
@@ -9,8 +9,8 @@ namespace KupoNuts.Status
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
-	using KupoNuts.Commands;
-	using KupoNuts.Services;
+	using KupoNuts.Bot.Commands;
+	using KupoNuts.Bot.Services;
 	using KupoNuts.Utils;
 
 	public class StatusService : ServiceBase

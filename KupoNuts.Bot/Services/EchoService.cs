@@ -1,13 +1,14 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Services
+namespace KupoNuts.Bot.Services
 {
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
-	using KupoNuts.Commands;
+	using KupoNuts.Bot.Commands;
+	using KupoNuts.Bot.Utils;
 	using KupoNuts.Utils;
 
 	public class EchoService : ServiceBase

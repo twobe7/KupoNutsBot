@@ -1,8 +1,9 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Events
+namespace KupoNuts.Bot.Events
 {
 	using Discord.WebSocket;
+	using KupoNuts.Events;
 
 	public static class AttendeeExtensions
 	{
