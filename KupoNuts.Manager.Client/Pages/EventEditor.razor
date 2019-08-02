@@ -5,7 +5,14 @@
 	<!-- Name -->
 	<div class="form-group col-md-12">
 		<label for="eventName">Name</label>
-		<input type="text" class="form-control" id="eventName" name="eventName" placeholder="Enter event name" @bind="Name"/>
+		<input type="text" class="form-control @(((this.NameValid) ? "" : "is-invalid"))" id="eventName" name="eventName" placeholder="Enter event name" @bind="this.Name" />
+
+		@if (!NameValid)
+		{
+			<div class="invalid-feedback">
+				Invalid Name.
+			</div>
+		}
 	</div>
 </div>
 
@@ -13,7 +20,7 @@
 	<!--  Description -->
 	<div class="form-group col-md-12">
 		<label for="eventDesc">Description</label>
-		<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="Description"></textarea>
+		<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="this.Description"></textarea>
 	</div>
 </div>
 
@@ -21,7 +28,7 @@
 	<!--  Channel -->
 	<div class="form-group col-md-6">
 		<label for="channelSelect">Discord Channel</label>
-		<select class="form-control" id="channelSelect" name="channelSelect" @bind="Channel">
+		<select class="form-control" id="channelSelect" name="channelSelect" @bind="this.Channel">
 			@foreach (KeyValuePair<string, int> keyVal in this.ChannelList)
 			{
 				<option value=@keyVal.Value>@keyVal.Key</option>
@@ -32,7 +39,7 @@
 	<!--  Color -->
 	<div class="form-group col-md-6">
 		<label for="colorSelect">Color</label>
-		<select class="form-control" id="colorSelect" name="colorSelect" @bind="Color">
+		<select class="form-control" id="colorSelect" name="colorSelect" @bind="this.Color">
 			@foreach (string color in this.ColorList)
 			{
 				<option value=@color>@color</option>
@@ -45,7 +52,7 @@
 	<!--  Date -->
 	<div class="form-group col-md-4">
 		<label for="eventDate">Date</label>
-		<input type="date" class="form-control dateTime @(((this.DateTimeValid) ? "" : "is-invalid"))" id="eventDate" name="eventDate" @bind="Date" />
+		<input type="date" class="form-control dateTime @(((this.DateTimeValid) ? "" : "is-invalid"))" id="eventDate" name="eventDate" @bind="this.Date" />
 
 		@if (!DateTimeValid)
 		{
@@ -58,7 +65,7 @@
 	<!--  time -->
 	<div class="form-group col-md-4  is-invalid">
 		<label for="eventTime">Time</label>
-		<input type="time" class="form-control dateTime @(((this.DateTimeValid) ? "" : "is-invalid"))" id="eventTime" name="eventTime" @bind="Time" />
+		<input type="time" class="form-control dateTime @(((this.DateTimeValid) ? "" : "is-invalid"))" id="eventTime" name="eventTime" @bind="this.Time" />
 
 		@if (!DateTimeValid)
 		{
@@ -71,7 +78,7 @@
 	<!--  Duration -->
 	<div class="form-group col-md-4">
 		<label for="eventDuration">Duration</label>
-		<input type="time" class="form-control dateTime @(((this.DurationValid) ? "" : "is-invalid"))" id="eventDuration" name="eventDuration" @bind="Duration" />
+		<input type="time" class="form-control dateTime @(((this.DurationValid) ? "" : "is-invalid"))" id="eventDuration" name="eventDuration" @bind="this.Duration" />
 
 		@if (!DurationValid)
 		{
@@ -84,33 +91,34 @@
 
 <div class="form-row">
 	<!--  Repeat Days -->
+	<label>Repeats</label>
 	<div class="form-group col-md-12">
 		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="monCheckbox" name="repeatMonday" value="true">
+			<input class="form-check-input" type="checkbox" id="monCheckbox" name="repeatMonday" value="true" @bind="this.Monday" />
 			<label class="form-check-label" for="monCheckbox">Mon</label>
 		</div>
 		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="tueCheckbox" name="repeatTuesday" value="true">
+			<input class="form-check-input" type="checkbox" id="tueCheckbox" name="repeatTuesday" value="true" @bind="this.Tuesday" />
 			<label class="form-check-label" for="tueCheckbox">Tue</label>
 		</div>
 		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="wedCheckbox" name="repeatWednesday" value="true">
+			<input class="form-check-input" type="checkbox" id="wedCheckbox" name="repeatWednesday" value="true" @bind="this.Wednesday" />
 			<label class="form-check-label" for="wedCheckbox">Wed</label>
 		</div>
 		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="thuCheckbox" name="repeatthursday" value="true">
+			<input class="form-check-input" type="checkbox" id="thuCheckbox" name="repeatthursday" value="true" @bind="this.Thursday" />
 			<label class="form-check-label" for="thuCheckbox">Thu</label>
 		</div>
 		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="friCheckbox" name="repeatFriday" value="true">
+			<input class="form-check-input" type="checkbox" id="friCheckbox" name="repeatFriday" value="true" @bind="this.Friday" />
 			<label class="form-check-label" for="friCheckbox">Fri</label>
 		</div>
 		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="satCheckbox" name="repeatSaturday" value="true">
+			<input class="form-check-input" type="checkbox" id="satCheckbox" name="repeatSaturday" value="true" @bind="this.Saturday" />
 			<label class="form-check-label" for="satCheckbox">Sat</label>
 		</div>
 		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="sunCheckbox" name="repeatSunday" value="true">
+			<input class="form-check-input" type="checkbox" id="sunCheckbox" name="repeatSunday" value="true" @bind="this.Sunday" />
 			<label class="form-check-label" for="sunCheckbox">Sun</label>
 		</div>
 	</div>
@@ -138,16 +146,22 @@
 	public List<String> ColorList { get; set; }
 
 	public string Name;
+	public bool NameValid = true;
 	public string Description;
 	public int Channel;
 	public string Color;
-
 	public string Date;
 	public string Time;
 	public bool DateTimeValid = true;
-
 	public string Duration;
 	public bool DurationValid = true;
+	public bool Monday;
+	public bool Tuesday;
+	public bool Wednesday;
+	public bool Thursday;
+	public bool Friday;
+	public bool Saturday;
+	public bool Sunday;
 
 	private Event evt;
 
@@ -165,13 +179,14 @@
 
 		this.evt = Parameters.Get<Event>("Event");
 
-		this.evt.GetDateTime(out this.Date, out this.Time);
-		this.evt.GetDuration(out this.Duration);
-			
+
 		this.Name = this.evt.Name;
 		this.Description = this.evt.Description;
 		this.Channel = (int)this.evt.ChannelId;
 		this.Color = this.evt.Color.ToString();
+		this.evt.GetDateTime(out this.Date, out this.Time);
+		this.evt.GetDuration(out this.Duration);
+		this.evt.GetRepeats(out this.Monday, out this.Tuesday, out this.Wednesday, out this.Thursday, out this.Friday, out this.Saturday, out this.Sunday);
 	}
 
 	private void OnSave()
@@ -200,10 +215,19 @@
 
 		this.DurationValid = true;
 
+		if (string.IsNullOrEmpty(this.Name))
+		{
+			this.NameValid = false;
+			return;
+		}
+
+		this.NameValid = true;
+
 		this.evt.Name = this.Name;
 		this.evt.Description = this.Description;
 		this.evt.ChannelId = (uint)this.Channel;
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
+		this.evt.SetRepeats(this.Monday, this.Tuesday, this.Wednesday, this.Thursday, this.Friday, this.Saturday, this.Sunday);
 
 		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Update)));
 	}

@@ -5,6 +5,7 @@ namespace KupoNuts.Events
 	using System;
 	using System.Collections.Generic;
 	using System.Globalization;
+	using System.Text;
 	using KupoNuts.Utils;
 	using NodaTime;
 	using NodaTime.Text;
@@ -97,21 +98,56 @@ namespace KupoNuts.Events
 			self.DateTime = InstantPattern.ExtendedIso.Format(instant);
 		}
 
+		public static void GetRepeats(this Event self, out bool mon, out bool tue, out bool wed, out bool thu, out bool fri, out bool sat, out bool sun)
+		{
+			mon = FlagsUtils.IsSet(Event.Days.Monday, self.Repeats);
+			tue = FlagsUtils.IsSet(Event.Days.Tuesday, self.Repeats);
+			wed = FlagsUtils.IsSet(Event.Days.Wednesday, self.Repeats);
+			thu = FlagsUtils.IsSet(Event.Days.Thursday, self.Repeats);
+			fri = FlagsUtils.IsSet(Event.Days.Friday, self.Repeats);
+			sat = FlagsUtils.IsSet(Event.Days.Saturday, self.Repeats);
+			sun = FlagsUtils.IsSet(Event.Days.Sunday, self.Repeats);
+		}
+
+		public static void SetRepeats(this Event self, bool mon, bool tue, bool wed, bool thu, bool fri, bool sat, bool sun)
+		{
+			Event.Days repeats = self.Repeats;
+			FlagsUtils.Set(ref repeats, Event.Days.Monday, mon);
+			FlagsUtils.Set(ref repeats, Event.Days.Tuesday, tue);
+			FlagsUtils.Set(ref repeats, Event.Days.Wednesday, wed);
+			FlagsUtils.Set(ref repeats, Event.Days.Thursday, thu);
+			FlagsUtils.Set(ref repeats, Event.Days.Friday, fri);
+			FlagsUtils.Set(ref repeats, Event.Days.Saturday, sat);
+			FlagsUtils.Set(ref repeats, Event.Days.Sunday, sun);
+			self.Repeats = repeats;
+		}
+
 		public static string GetNextOccurance(this Event self)
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
-			Instant next = self.GetNextOccurance(zone);
-			ZonedDateTime zdt = next.InZone(zone);
-			return zdt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+			Instant? next = self.GetNextOccurance(zone);
+
+			if (next == null)
+				return "Never";
+
+			ZonedDateTime zdt = ((Instant)next).InZone(zone);
+			StringBuilder builder = new StringBuilder();
+			builder.Append(zdt.ToString("hh:mm ", CultureInfo.InvariantCulture));
+			builder.Append(zdt.ToString("tt", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(zdt.ToString(" dd/MM/yyyy", CultureInfo.InvariantCulture).ToLower());
+			return builder.ToString();
 		}
 
-		public static Instant GetNextOccurance(this Event self, DateTimeZone zone)
+		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
 		{
 			Instant eventDateTime = self.GetDateTime();
 
 			Instant now = SystemClock.Instance.GetCurrentInstant();
-			if (eventDateTime < now && self.Repeats != 0)
+			if (eventDateTime < now)
 			{
+				if (self.Repeats == 0)
+					return null;
+
 				LocalDate nextDate;
 				LocalDateTime dateTime = eventDateTime.InZone(zone).LocalDateTime;
 

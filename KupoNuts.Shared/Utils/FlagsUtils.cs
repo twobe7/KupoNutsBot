@@ -17,6 +17,19 @@ namespace KupoNuts.Utils
 			return (flagsValue & flagValue) != 0;
 		}
 
+		public static void Set<T>(ref T flags, T flag, bool set)
+			where T : struct
+		{
+			if (set)
+			{
+				Set(ref flags, flag);
+			}
+			else
+			{
+				Unset(ref flags, flag);
+			}
+		}
+
 		public static void Set<T>(ref T flags, T flag)
 			where T : struct
 		{
