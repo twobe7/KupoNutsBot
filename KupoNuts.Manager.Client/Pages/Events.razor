@@ -48,7 +48,7 @@ else
 
 	protected override async Task OnInitAsync()
 	{
-		this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("Events");
+		this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
 	}
 
 	protected void OnEdit(Event evt)
@@ -80,10 +80,8 @@ else
 				}
 				case EventAction.Actions.Update:
 				{
-					Console.WriteLine(">>>> " + evtAction.Event.DateTime);
-
-					await this.Http.PostJsonAsync("Events", evtAction);
-					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("Events");
+					await this.Http.PostJsonAsync("EventsAPI", evtAction);
+					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
 					this.StateHasChanged();
 					break;
 				}
@@ -98,7 +96,7 @@ else
 				case EventAction.Actions.DeleteConfirmed:
 				{
 					await this.Http.PostJsonAsync("Events", evtAction);
-					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("Events");
+					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
 					this.StateHasChanged();
 					break;
 				}

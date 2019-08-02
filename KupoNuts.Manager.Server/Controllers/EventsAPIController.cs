@@ -13,7 +13,7 @@ namespace KupoNuts.Manager.Server.Controllers
 
 	[ApiController]
 	[Route("[controller]")]
-	public class EventsController : ControllerBase
+	public class EventsAPIController : ControllerBase
 	{
 		/*
 		Event evt = new Event();
