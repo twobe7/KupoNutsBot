@@ -70,7 +70,7 @@ namespace KupoNuts.Bot.Services
 
 			string remindString = null;
 			if (attendee.RemindTime != null)
-				remindString = "\nYou're already set to recieve a reminder " + TimeUtils.GetDurationString((Duration)attendee.RemindTime) + " before the event";
+				remindString = "\nYou're already set to recieve a reminder " + TimeUtils.GetDurationString(attendee.GetRemindTime()) + " before the event";
 
 			IUserMessage message = await user.SendMessageAsync(messageString + remindString + "\nHow much of a heads up would you like?");
 
@@ -149,7 +149,7 @@ namespace KupoNuts.Bot.Services
 
 			public void SetDelay(Duration? time)
 			{
-				this.Attendee.RemindTime = time;
+				this.Attendee.SetRemindTime(time);
 			}
 		}
 	}

@@ -13,6 +13,7 @@ namespace KupoNuts.Bot.Events
 	using KupoNuts.Events;
 	using KupoNuts.Utils;
 	using NodaTime;
+	using NodaTime.Text;
 
 	public static class EventExtensions
 	{
@@ -102,6 +103,22 @@ namespace KupoNuts.Bot.Events
 			}
 
 			return builder.ToString();
+		}
+
+		public static Duration GetDuration(this Event self)
+		{
+			if (string.IsNullOrEmpty(self.Duration))
+				return Duration.FromSeconds(0);
+
+			return DurationPattern.Roundtrip.Parse(self.Duration).Value;
+		}
+
+		public static Instant GetDateTime(this Event self)
+		{
+			if (string.IsNullOrEmpty(self.DateTime))
+				return Instant.FromJulianDate(0);
+
+			return InstantPattern.ExtendedIso.Parse(self.DateTime).Value;
 		}
 	}
 }

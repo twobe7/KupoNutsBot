@@ -27,7 +27,7 @@ else
 					<tr @onclick="() => this.OnEdit(evt)" class="table-clickable">
 						<td>@evt.Name</td>
 						<td>@evt.Description</td>
-						<td>@GetNextOccurance(evt)</td>
+						<td>@evt.GetNextOccurance()</td>
 					</tr>
 				}
 			</tbody>
@@ -66,15 +66,6 @@ else
 		OnEdit(evt);
 	}
 
-	public string GetNextOccurance(Event evt)
-	{
-		DateTimeZone zone = TimeUtils.AEST;
-		Instant instant = evt.NextOccurance(zone);
-		ZonedDateTime zdt = instant.InZone(zone);
-
-		return zdt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-	}
-
 	private async void OnModalClosed(ModalResult result)
 	{
 		Modal.OnClose -= this.OnModalClosed;
@@ -89,6 +80,8 @@ else
 				}
 				case EventAction.Actions.Update:
 				{
+					Console.WriteLine(">>>> " + evtAction.Event.DateTime);
+
 					await this.Http.PostJsonAsync("Events", evtAction);
 					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("Events");
 					this.StateHasChanged();

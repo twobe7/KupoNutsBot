@@ -7,6 +7,8 @@ namespace KupoNuts
 	using System.IO;
 	using KupoNuts.Events;
 	using Newtonsoft.Json;
+	using NodaTime;
+	using NodaTime.Serialization.JsonNet;
 
 	// This is a terrible database, it just stores data in a json file, and re-loads it every time
 	// the instance is accessed. It has 0 support for concurrency or merging changes.
@@ -16,7 +18,8 @@ namespace KupoNuts
 	[Serializable]
 	public class Database
 	{
-		public const string Location = "data.json";
+		public static int Version = 2;
+		public static string Location = "data_" + Version + ".json";
 
 		public string Token;
 		public int Karma = 0;
@@ -29,8 +32,17 @@ namespace KupoNuts
 
 		public List<Event> Events = new List<Event>();
 
+		public static void Init()
+		{
+			JsonSerializerSettings settings = new JsonSerializerSettings();
+			settings.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+			JsonConvert.DefaultSettings = () => settings;
+		}
+
 		public static Database Load()
 		{
+			Init();
+
 			if (!File.Exists(Location))
 			{
 				Database instance = new Database();

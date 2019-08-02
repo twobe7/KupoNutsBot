@@ -14,6 +14,8 @@ namespace KupoNuts.Manager.Server
 	using Microsoft.Extensions.Hosting;
 	using Microsoft.Extensions.Logging;
 	using Newtonsoft.Json.Serialization;
+	using NodaTime;
+	using NodaTime.Serialization.JsonNet;
 
 	public class Startup
 	{
@@ -21,7 +23,7 @@ namespace KupoNuts.Manager.Server
 		// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddMvc().AddNewtonsoftJson();
+			services.AddMvc().AddNewtonsoftJson(this.SetupJSON);
 			services.AddResponseCompression(opts =>
 			{
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -52,6 +54,11 @@ namespace KupoNuts.Manager.Server
 				endpoints.MapDefaultControllerRoute();
 				endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
 			});
+		}
+
+		private void SetupJSON(MvcNewtonsoftJsonOptions options)
+		{
+			options.SerializerSettings.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 		}
 	}
 }

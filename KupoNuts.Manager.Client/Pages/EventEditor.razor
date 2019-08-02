@@ -45,19 +45,40 @@
 	<!--  Date -->
 	<div class="form-group col-md-4">
 		<label for="eventDate">Date</label>
-		<input type="date" class="form-control dateTime" id="eventDate" name="eventDate" @bind="Date"/>
+		<input type="date" class="form-control dateTime @(((this.DateTimeValid) ? "" : "is-invalid"))" id="eventDate" name="eventDate" @bind="Date" />
+
+		@if (!DateTimeValid)
+		{
+			<div class="invalid-feedback">
+				Invalid Date.
+			</div>
+		}
 	</div>
 
 	<!--  time -->
-	<div class="form-group col-md-4">
+	<div class="form-group col-md-4  is-invalid">
 		<label for="eventTime">Time</label>
-		<input type="time" class="form-control dateTime" id="eventTime" name="eventTime" @bind="Time"/>
+		<input type="time" class="form-control dateTime @(((this.DateTimeValid) ? "" : "is-invalid"))" id="eventTime" name="eventTime" @bind="Time" />
+
+		@if (!DateTimeValid)
+		{
+			<div class="invalid-feedback">
+				Invalid Time.
+			</div>
+		}
 	</div>
 
 	<!--  Duration -->
 	<div class="form-group col-md-4">
 		<label for="eventDuration">Duration</label>
-		<input type="time" class="form-control dateTime" id="eventDuration" name="eventDuration" @bind="Duration"/>
+		<input type="time" class="form-control dateTime @(((this.DurationValid) ? "" : "is-invalid"))" id="eventDuration" name="eventDuration" @bind="Duration" />
+
+		@if (!DurationValid)
+		{
+			<div class="invalid-feedback">
+				Invalid Duration.
+			</div>
+		}
 	</div>
 </div>
 
@@ -120,9 +141,13 @@
 	public string Description;
 	public int Channel;
 	public string Color;
+
 	public string Date;
 	public string Time;
+	public bool DateTimeValid = true;
+
 	public string Duration;
+	public bool DurationValid = true;
 
 	private Event evt;
 
@@ -140,23 +165,45 @@
 
 		this.evt = Parameters.Get<Event>("Event");
 
+		this.evt.GetDateTime(out this.Date, out this.Time);
+		this.evt.GetDuration(out this.Duration);
+			
 		this.Name = this.evt.Name;
 		this.Description = this.evt.Description;
 		this.Channel = (int)this.evt.ChannelId;
 		this.Color = this.evt.Color.ToString();
-		////this.Date =
-		////this.Time =
-		////this.Duration =
 	}
 
 	private void OnSave()
 	{
+		try
+		{
+			this.evt.SetDateTime(this.Date, this.Time);
+		}
+		catch (Exception)
+		{
+			this.DateTimeValid = false;
+			return;
+		}
+
+		this.DateTimeValid = true;
+
+		try
+		{
+			this.evt.SetDuration(this.Duration);
+		}
+		catch (Exception)
+		{
+			this.DurationValid = false;
+			return;
+		}
+
+		this.DurationValid = true;
+
 		this.evt.Name = this.Name;
 		this.evt.Description = this.Description;
 		this.evt.ChannelId = (uint)this.Channel;
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
-		////this.evt.DateTime =
-		////this.evt.Duration =
 
 		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Update)));
 	}

@@ -4,6 +4,8 @@ namespace KupoNuts.Bot.Events
 {
 	using Discord.WebSocket;
 	using KupoNuts.Events;
+	using NodaTime;
+	using NodaTime.Text;
 
 	public static class AttendeeExtensions
 	{
@@ -11,6 +13,25 @@ namespace KupoNuts.Bot.Events
 		{
 			SocketUser user = Program.DiscordClient.GetUser(self.UserId);
 			return user.Mention;
+		}
+
+		public static Duration? GetRemindTime(this Event.Attendee self)
+		{
+			if (string.IsNullOrEmpty(self.RemindTime))
+				return null;
+
+			return DurationPattern.Roundtrip.Parse(self.RemindTime).Value;
+		}
+
+		public static void SetRemindTime(this Event.Attendee self, Duration? duration)
+		{
+			if (duration == null)
+			{
+				self.RemindTime = null;
+				return;
+			}
+
+			self.RemindTime = DurationPattern.Roundtrip.Format((Duration)duration);
 		}
 	}
 }

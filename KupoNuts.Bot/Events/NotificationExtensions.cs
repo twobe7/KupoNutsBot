@@ -41,7 +41,7 @@ namespace KupoNuts.Bot.Events
 			builder.Timestamp = evt.NextOccurance();*/
 
 			StringBuilder timeBuilder = new StringBuilder();
-			timeBuilder.Append(TimeUtils.GetDurationString(evt.Duration));
+			timeBuilder.Append(TimeUtils.GetDurationString(evt.GetDuration()));
 			timeBuilder.Append(" ");
 
 			string repeat = evt.GetRepeatsString();
@@ -49,12 +49,12 @@ namespace KupoNuts.Bot.Events
 			{
 				timeBuilder.Append(repeat);
 				timeBuilder.AppendLine(" at ");
-				timeBuilder.Append(TimeUtils.GetTimeString(evt.DateTime));
+				timeBuilder.Append(TimeUtils.GetTimeString(evt.GetDateTime()));
 			}
 			else
 			{
 				timeBuilder.Append(" on ");
-				timeBuilder.Append(TimeUtils.GetDateTimeString(evt.DateTime));
+				timeBuilder.Append(TimeUtils.GetDateTimeString(evt.GetDateTime()));
 			}
 
 			builder.AddField("When", timeBuilder.ToString(), false);
