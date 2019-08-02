@@ -95,7 +95,7 @@ else
 				}
 				case EventAction.Actions.DeleteConfirmed:
 				{
-					await this.Http.PostJsonAsync("Events", evtAction);
+					await this.Http.PostJsonAsync("EventsAPI", evtAction);
 					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
 					this.StateHasChanged();
 					break;

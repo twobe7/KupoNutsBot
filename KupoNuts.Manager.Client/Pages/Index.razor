@@ -1,7 +1,36 @@
 ﻿@page "/"
+@inject HttpClient Http
 
-<h1>Hello, world!</h1>
+<div style="margin: 1rem">
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-12">
+			<label for="eventName" class="text-white">Bot Token</label>
+			<input type="text" class="form-control" id="botToken" placeholder="Enter bot discord token" @bind="this.BotToken" />
+		</div>
+	</div>
 
-Welcome to your new app.
+	<div class="footer-content">
+		<button class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	</div>
+</div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+
+@code
+{
+	public string BotToken;
+
+	protected override async Task OnInitAsync()
+	{
+		this.BotToken = await this.Http.GetStringAsync("TokenAPI");
+	}
+
+	protected async void OnSave()
+	{
+		Console.WriteLine(">> " + this.BotToken);
+
+		StringData dat = new StringData();
+		dat.Value = this.BotToken;
+		await this.Http.PostJsonAsync("TokenAPI", dat);
+	}
+}

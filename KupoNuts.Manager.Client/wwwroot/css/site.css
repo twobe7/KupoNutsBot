@@ -172,6 +172,12 @@ app
 	box-shadow: 0px 0px 5px #000;
 }
 
+.footer-transparent
+{
+	height: 64px;
+	background: #00000000;
+}
+
 .footer-content
 {
 	padding: 13px;
