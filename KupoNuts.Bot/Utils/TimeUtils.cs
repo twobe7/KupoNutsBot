@@ -70,7 +70,7 @@ namespace KupoNuts.Utils
 		public static string GetDateTimeString(Instant dt)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.AppendLine(dt.InZone(AEST).ToString("dddd, dd MMMM", CultureInfo.InvariantCulture));
+			builder.AppendLine(dt.InZone(AEST).ToString("dddd dd MMMM", CultureInfo.InvariantCulture));
 			builder.Append(GetTimeString(dt));
 			return builder.ToString();
 		}
