@@ -219,6 +219,8 @@
 		this.evt.GetNotifyDuration(out this.NotifyDuration);
 		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, KupoNuts.Channel.Types.Text));
 
+		Console.WriteLine("<< " + this.evt.NotifyDuration + " -- " + this.NotifyDuration);
+
 		this.Channel = this.evt.ChannelId;
 		if (string.IsNullOrEmpty(this.evt.ChannelId))
 		{
@@ -261,6 +263,8 @@
 		this.evt.SetNotifyDuration(this.NotifyDuration);
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
 		this.evt.SetRepeats(this.Monday, this.Tuesday, this.Wednesday, this.Thursday, this.Friday, this.Saturday, this.Sunday);
+
+		Console.WriteLine(">> " + this.evt.NotifyDuration);
 
 		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Update)));
 	}

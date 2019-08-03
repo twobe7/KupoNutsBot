@@ -37,7 +37,7 @@ namespace KupoNuts.Events
 			}
 
 			Duration dur = self.GetNotifyDuration();
-			duration = dur.Hours + (dur.Minutes / 60.0);
+			duration = (dur.Days * 24) + dur.Hours + (dur.Minutes / 60.0);
 		}
 
 		public static void SetNotifyDuration(this Event self, double duration)
