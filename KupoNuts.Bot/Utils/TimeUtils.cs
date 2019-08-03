@@ -147,7 +147,7 @@ namespace KupoNuts.Utils
 				return "Today";
 
 			if (daysAway == 1)
-				return "Tommorow";
+				return "Tomorrow";
 
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 			Instant then = TimeUtils.Now + Duration.FromDays(daysAway);

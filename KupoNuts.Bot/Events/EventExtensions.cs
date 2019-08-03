@@ -211,9 +211,12 @@ namespace KupoNuts.Bot.Events
 			if (nextOccurance == null)
 				return -1;
 
-			ZonedDateTime zdt = ((Instant)nextOccurance).InZone(zone);
+			ZonedDateTime zdt = TimeUtils.Now.InZone(zone);
 			LocalDateTime ldt = zdt.LocalDateTime;
-			Duration duration = ldt.Date.AtMidnight().InZoneLeniently(zone).ToInstant() - TimeUtils.Now;
+			ldt = ldt.Date.AtMidnight();
+			zdt = ldt.InZoneLeniently(zone);
+
+			Duration duration = ((Instant)nextOccurance) - zdt.ToInstant();
 
 			return (int)Math.Floor(duration.TotalDays);
 		}

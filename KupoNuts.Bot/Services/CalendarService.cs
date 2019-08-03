@@ -102,11 +102,11 @@ namespace KupoNuts.Bot.Services
 			}
 
 			// Today
-			Duration? duration = evt.GetDurationTill();
-			if (duration != null && duration.Value.TotalDays < 1)
+			int days = evt.GetDaysTill();
+			if (days == 0)
 			{
 				builder.Append(" - In ");
-				builder.Append(TimeUtils.GetDurationString(duration));
+				builder.Append(TimeUtils.GetDurationString(evt.GetDurationTill()));
 			}
 
 			return builder.ToString();
