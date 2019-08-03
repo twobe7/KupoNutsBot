@@ -1,18 +1,12 @@
-﻿
+﻿@inject IModalService Modal
 
-
-<div class="wrapper" style="margin: 0 auto -101px">
+<div class="wrapper" style="margin: 0 auto -160px">
 	<ul class="nav flex-column">
 		<li class="nav-item px-3">
 			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
 				<span class="oi oi-home" aria-hidden="true"></span> Home
 			</NavLink>
 		</li>
-		<!--<li class="nav-item px-3">
-		<NavLink class="nav-link" href="counter">
-			<span class="oi oi-plus" aria-hidden="true"></span> Counter
-		</NavLink>
-	</li>-->
 		<li class="nav-item px-3">
 			<NavLink class="nav-link" href="events">
 				<span class="oi oi-bell" aria-hidden="true"></span> Events
@@ -23,14 +17,24 @@
 	<div class="push"></div>
 </div>
 
-<div class="footer-transparent" style="height: 101px">
+<div class="footer-transparent" style="height: 160px">
 	<div class="nav-item px-3" style="padding-bottom: 0px">
 		<div class="alert alert-dark justify-content-center">
 			Your timezone has ben set to: @NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault().ToString()
 		</div>
 	</div>
+	<div class="nav-item px-3">
+		<Button class="btn btn-warning nav-link" style="width:100%" @onclick="this.OnSettings">
+			<span class="oi oi-cog" aria-hidden="true"></span> Settings
+		</Button>
+	</div>
 </div>
 
 
-@code {
+@code
+{
+	private void OnSettings()
+	{
+		this.Modal.Show("Settings", typeof(Pages.SettingsEditor));
+	}
 }

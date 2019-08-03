@@ -40,10 +40,10 @@ namespace KupoNuts.Bot.Status
 		{
 			Database db = Database.Load();
 
-			if (db.StatusChannel == message.Channel.Id)
+			if (db.Settings.StatusChannel == message.Channel.Id.ToString())
 				return;
 
-			db.StatusChannel = message.Channel.Id;
+			db.Settings.StatusChannel = message.Channel.Id.ToString();
 			db.StatusMessage = 0;
 			db.Save();
 
@@ -56,7 +56,7 @@ namespace KupoNuts.Bot.Status
 		{
 			Database db = Database.Load();
 
-			if (db.LogChannel <= 0)
+			if (db.Settings.LogChannel == null)
 			{
 				Log.Write("No Status Channel set. Kupo Nuts will not post logs to discord");
 				return;
@@ -70,7 +70,8 @@ namespace KupoNuts.Bot.Status
 
 			builder.AddField("Last Online", TimeUtils.GetDateTimeString(TimeUtils.Now), true);
 
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(db.LogChannel);
+			ulong id = ulong.Parse(db.Settings.LogChannel);
+			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(id);
 
 			RestUserMessage message;
 			if (db.StatusMessage == 0)

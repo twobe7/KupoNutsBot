@@ -72,7 +72,7 @@ namespace KupoNuts.Bot
 				Running = true;
 				Log.Write("Kupo Nuts Bot booting..");
 
-				if (string.IsNullOrEmpty(Database.Load().Token))
+				if (string.IsNullOrEmpty(Database.Load().Settings.Token))
 				{
 					Log.Write("No token set. Please set a token in the Database file");
 				}
@@ -89,7 +89,7 @@ namespace KupoNuts.Bot
 						return Task.CompletedTask;
 					};
 
-					await DiscordClient.LoginAsync(TokenType.Bot, Database.Load().Token);
+					await DiscordClient.LoginAsync(TokenType.Bot, Database.Load().Settings.Token);
 					await DiscordClient.StartAsync();
 
 					while (!ready)

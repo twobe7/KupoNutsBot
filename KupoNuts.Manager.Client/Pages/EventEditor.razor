@@ -186,22 +186,7 @@
 		this.evt.GetDuration(out this.Duration);
 		this.evt.GetRepeats(out this.Monday, out this.Tuesday, out this.Wednesday, out this.Thursday, out this.Friday, out this.Saturday, out this.Sunday);
 
-		List<Channel> allChanels = await this.Http.GetJsonAsync<List<Channel>>("ChannelsAPI");
-		List<Channel> channels = new List<Channel>();
-		foreach (Channel channel in allChanels)
-		{
-			if (channel.Type != KupoNuts.Channel.Types.Text)
-				continue;
-
-			channels.Add(channel);
-		}
-
-		channels.Sort((Channel a, Channel b) =>
-		{
-			return a.Name.CompareTo(b.Name);
-		});
-
-		this.ChannelList.AddRange(channels);
+		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, KupoNuts.Channel.Types.Text));
 
 		this.Channel = this.evt.ChannelId;
 		if (string.IsNullOrEmpty(this.evt.ChannelId))

@@ -7,19 +7,19 @@ namespace KupoNuts.Manager.Server.Controllers
 
 	[ApiController]
 	[Route("[controller]")]
-	public class TokenAPIController : ControllerBase
+	public class SettingsAPIController : ControllerBase
 	{
 		[HttpGet]
-		public string Get()
+		public Settings Get()
 		{
-			return Database.Load().Token;
+			return Database.Load().Settings;
 		}
 
 		[HttpPost]
-		public void Post(StringData token)
+		public void Post(Settings settings)
 		{
 			Database db = Database.Load();
-			db.Token = token.Value;
+			db.Settings = settings;
 			db.Save();
 		}
 	}

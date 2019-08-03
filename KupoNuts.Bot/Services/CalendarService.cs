@@ -57,7 +57,7 @@ namespace KupoNuts.Bot.Services
 			ulong weekMessageID = 0;
 			ulong futureMessageID = 0;
 
-			ulong.TryParse(db.CalendarChannel, out channelId);
+			ulong.TryParse(db.Settings.CalendarChannel, out channelId);
 			ulong.TryParse(db.CalendarMessage, out weekMessageID);
 			ulong.TryParse(db.CalendarMessage2, out futureMessageID);
 

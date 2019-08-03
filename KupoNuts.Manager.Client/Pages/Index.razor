@@ -5,32 +5,14 @@
 	<div class="form-row">
 		<!-- Name -->
 		<div class="form-group col-md-12">
-			<label for="eventName" class="text-white">Bot Token</label>
-			<input type="text" class="form-control" id="botToken" placeholder="Enter bot discord token" @bind="this.BotToken" />
+			<label for="eventName" class="text-white">Welcome to Kupo Nuts Bot</label>
 		</div>
-	</div>
-
-	<div class="footer-content">
-		<button class="btn btn-primary" @onclick="this.OnSave">Save</button>
 	</div>
 </div>
 
-
 @code
 {
-	public string BotToken;
-
-	protected override async Task OnInitAsync()
+	protected override void OnInit()
 	{
-		this.BotToken = await this.Http.GetStringAsync("TokenAPI");
-	}
-
-	protected async void OnSave()
-	{
-		Console.WriteLine(">> " + this.BotToken);
-
-		StringData dat = new StringData();
-		dat.Value = this.BotToken;
-		await this.Http.PostJsonAsync("TokenAPI", dat);
 	}
 }

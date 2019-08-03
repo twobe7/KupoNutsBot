@@ -36,7 +36,8 @@ namespace KupoNuts.Bot
 			{
 				try
 				{
-					SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(Database.Load().LogChannel);
+					ulong id = ulong.Parse(Database.Load().Settings.LogChannel);
+					SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(id);
 					EmbedBuilder enbedBuilder = new EmbedBuilder();
 					enbedBuilder.Color = Color.Red;
 					enbedBuilder.Title = "Kupo Nut Bot encountered an error";

@@ -16,12 +16,11 @@ namespace KupoNuts
 		public static int Version = 4;
 		public static string Location = "data_" + Version + ".json";
 
-		public string Token;
+		public Settings Settings = new Settings();
+
 		public int Karma = 0;
-		public ulong LogChannel;
+
 		public ulong StatusMessage;
-		public ulong StatusChannel;
-		public string CalendarChannel;
 		public string CalendarMessage;
 		public string CalendarMessage2;
 		public List<Channel> Channels = new List<Channel>();
