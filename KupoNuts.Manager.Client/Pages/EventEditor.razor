@@ -29,7 +29,7 @@
 	<!--  Channel -->
 	<div class="form-group col-md-6">
 		<label for="channelSelect">Discord Channel</label>
-		<select class="form-control" id="channelSelect" name="channelSelect" @bind="this.Channel">
+		<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
 			@foreach (KeyValuePair<string, int> keyVal in this.ChannelList)
 			{
 				<option value=@keyVal.Value>@keyVal.Key</option>
@@ -40,7 +40,7 @@
 	<!--  Color -->
 	<div class="form-group col-md-6">
 		<label for="colorSelect">Color</label>
-		<select class="form-control" id="colorSelect" name="colorSelect" @bind="this.Color">
+		<select class="custom-select" id="colorSelect" name="colorSelect" @bind="this.Color">
 			@foreach (string color in this.ColorList)
 			{
 				<option value=@color>@color</option>
@@ -77,21 +77,10 @@
 	</div>
 
 	<!--  Duration -->
-	<!--<div class="form-group col-md-4">
-		<label for="eventDuration">Duration</label>
-		<input type="time" class="form-control dateTime @(((this.DurationValid) ? "" : "is-invalid"))" id="eventDuration" name="eventDuration" @bind="this.Duration" />
-
-		@if (!DurationValid)
-		{
-			<div class="invalid-feedback">
-				Invalid Duration.
-			</div>
-		}
-	</div>-->
 	<div class="form-group col-md-4">
 		<label for="eventDuration">Duration</label>
 		<small id="emailHelp" class="form-text" style="margin-top:0px">@this.DurationString</small>
-		<input name="eventDuration" type="range" min="0.25" max="6" step="0.25" @bind-value="this.Duration" @oninput="OnDurationChanged" style="width:100%"/>
+		<input name="eventDuration" type="range" class="form-control-range" min="0.25" max="6" step="0.25" @bind-value="this.Duration" @oninput="OnDurationChanged" style="width:100%"/>
 	</div>
 </div>
 
@@ -99,33 +88,33 @@
 	<!--  Repeat Days -->
 	<label>Repeats</label>
 	<div class="form-group col-md-12">
-		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="monCheckbox" name="repeatMonday" value="true" @bind="this.Monday" />
-			<label class="form-check-label" for="monCheckbox">Mon</label>
+		<div class="custom-control custom-checkbox custom-control-inline">
+			<input class="custom-control-input" type="checkbox" id="monCheckbox"value="true" @bind="this.Monday" />
+			<label class="custom-control-label" for="monCheckbox">Mon</label>
 		</div>
-		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="tueCheckbox" name="repeatTuesday" value="true" @bind="this.Tuesday" />
-			<label class="form-check-label" for="tueCheckbox">Tue</label>
+		<div class="custom-control custom-checkbox custom-control-inline">
+			<input class="custom-control-input" type="checkbox" id="tueCheckbox" value="true" @bind="this.Tuesday" />
+			<label class="custom-control-label" for="tueCheckbox">Tue</label>
 		</div>
-		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="wedCheckbox" name="repeatWednesday" value="true" @bind="this.Wednesday" />
-			<label class="form-check-label" for="wedCheckbox">Wed</label>
+		<div class="custom-control custom-checkbox custom-control-inline">
+			<input class="custom-control-input" type="checkbox" id="wedCheckbox" value="true" @bind="this.Wednesday" />
+			<label class="custom-control-label" for="wedCheckbox">Wed</label>
 		</div>
-		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="thuCheckbox" name="repeatthursday" value="true" @bind="this.Thursday" />
-			<label class="form-check-label" for="thuCheckbox">Thu</label>
+		<div class="custom-control custom-checkbox custom-control-inline">
+			<input class="custom-control-input" type="checkbox" id="thuCheckbox" value="true" @bind="this.Thursday" />
+			<label class="custom-control-label" for="thuCheckbox">Thu</label>
 		</div>
-		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="friCheckbox" name="repeatFriday" value="true" @bind="this.Friday" />
-			<label class="form-check-label" for="friCheckbox">Fri</label>
+		<div class="custom-control custom-checkbox custom-control-inline">
+			<input class="custom-control-input" type="checkbox" id="friCheckbox" value="true" @bind="this.Friday" />
+			<label class="custom-control-label" for="friCheckbox">Fri</label>
 		</div>
-		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="satCheckbox" name="repeatSaturday" value="true" @bind="this.Saturday" />
-			<label class="form-check-label" for="satCheckbox">Sat</label>
+		<div class="custom-control custom-checkbox custom-control-inline">
+			<input class="custom-control-input" type="checkbox" id="satCheckbox" value="true" @bind="this.Saturday" />
+			<label class="custom-control-label" for="satCheckbox">Sat</label>
 		</div>
-		<div class="form-check form-check-inline inline">
-			<input class="form-check-input" type="checkbox" id="sunCheckbox" name="repeatSunday" value="true" @bind="this.Sunday" />
-			<label class="form-check-label" for="sunCheckbox">Sun</label>
+		<div class="custom-control custom-checkbox custom-control-inline">
+			<input class="custom-control-input" type="checkbox" id="sunCheckbox" value="true" @bind="this.Sunday" />
+			<label class="custom-control-label" for="sunCheckbox">Sun</label>
 		</div>
 	</div>
 </div>
