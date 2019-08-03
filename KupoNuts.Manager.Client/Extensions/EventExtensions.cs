@@ -12,6 +12,49 @@ namespace KupoNuts.Events
 
 	public static class EventExtensions
 	{
+		public static Duration GetNotifyDuration(this Event self)
+		{
+			if (string.IsNullOrEmpty(self.NotifyDuration))
+				return Duration.FromSeconds(0);
+
+			try
+			{
+				return DurationPattern.Roundtrip.Parse(self.NotifyDuration).Value;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("Failed to deserialize duration string: \"" + self.NotifyDuration + "\" " + ex.Message);
+				return Duration.FromSeconds(0);
+			}
+		}
+
+		public static void GetNotifyDuration(this Event self, out double duration)
+		{
+			if (string.IsNullOrEmpty(self.NotifyDuration))
+			{
+				duration = -1;
+				return;
+			}
+
+			Duration dur = self.GetNotifyDuration();
+			duration = dur.Hours + (dur.Minutes / 60.0);
+		}
+
+		public static void SetNotifyDuration(this Event self, double duration)
+		{
+			if (duration < 0)
+			{
+				self.NotifyDuration = null;
+				return;
+			}
+
+			int hours = (int)duration;
+			int minutes = (int)((duration - (double)hours) * 60.0);
+
+			Duration dur = Duration.FromMinutes((hours * 60) + minutes);
+			self.NotifyDuration = DurationPattern.Roundtrip.Format(dur);
+		}
+
 		public static Duration GetDuration(this Event self)
 		{
 			if (string.IsNullOrEmpty(self.Duration))

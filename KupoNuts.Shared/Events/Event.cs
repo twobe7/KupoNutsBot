@@ -72,6 +72,8 @@ namespace KupoNuts.Events
 
 		public string RemindMeEmote { get; set; }
 
+		public string NotifyDuration { get; set; }
+
 		public List<Status> Statuses { get; set; }
 
 		public class Status

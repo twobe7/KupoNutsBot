@@ -26,6 +26,16 @@ namespace KupoNuts.Bot.Commands
 			commandHandlers.Add(command, new Command(handler, permissions, help));
 		}
 
+		public static void BindCommand(string command, Func<Task> handler, Permissions permissions, string help)
+		{
+			command = command.ToLower();
+
+			if (commandHandlers.ContainsKey(command))
+				throw new Exception("Attempt to bind multiple commands with the same name");
+
+			commandHandlers.Add(command, new Command(handler, permissions, help));
+		}
+
 		public static void ClearCommand(string command)
 		{
 			command = command.ToLower();
@@ -158,7 +168,7 @@ namespace KupoNuts.Bot.Commands
 			{
 				try
 				{
-					await commandHandlers[command].Method.Invoke(args, message);
+					await commandHandlers[command].Invoke(args, message);
 				}
 				catch (NotImplementedException)
 				{
@@ -181,6 +191,7 @@ namespace KupoNuts.Bot.Commands
 		private class Command
 		{
 			public readonly Func<string[], SocketMessage, Task> Method;
+			public readonly Func<Task> MethodB;
 			public readonly Permissions Permission;
 			public readonly string Help;
 
@@ -189,6 +200,26 @@ namespace KupoNuts.Bot.Commands
 				this.Method = method;
 				this.Permission = permissions;
 				this.Help = help;
+			}
+
+			public Command(Func<Task> method, Permissions permissions, string help)
+			{
+				this.MethodB = method;
+				this.Permission = permissions;
+				this.Help = help;
+			}
+
+			public async Task Invoke(string[] args, SocketMessage message)
+			{
+				if (this.Method != null)
+				{
+					await this.Method.Invoke(args, message);
+				}
+
+				if (this.MethodB != null)
+				{
+					await this.MethodB.Invoke();
+				}
 			}
 		}
 	}

@@ -94,13 +94,16 @@ namespace KupoNuts
 				}
 			}
 
-			for (int i = this.Notifications.Count - 1; i >= 0; i--)
+			// dont delete the notifications here.
+			// let the bot pick up the orphaned notifications posts so it can
+			// delete them from discord.
+			/*for (int i = this.Notifications.Count - 1; i >= 0; i--)
 			{
 				if (this.Notifications[i].EventId == id)
 				{
 					this.Notifications.RemoveAt(i);
 				}
-			}
+			}*/
 
 			for (int i = this.Attendees.Count - 1; i >= 0; i--)
 			{

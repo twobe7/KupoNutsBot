@@ -5,7 +5,7 @@
 
 <div class="form-row">
 	<!-- Name -->
-	<div class="form-group col-md-12">
+	<div class="form-group col-md-6">
 		<label for="eventName">Name</label>
 		<input type="text" class="form-control @(((this.NameValid) ? "" : "is-invalid"))" id="eventName" name="eventName" placeholder="Enter event name" @bind="this.Name" />
 
@@ -15,6 +15,17 @@
 				Invalid Name.
 			</div>
 		}
+	</div>
+
+	<!--  Notify -->
+	<div class="form-group col-md-6">
+		<label for="channelSelect">Notification</label>
+		<select class="custom-select" id="notifySelect" name="notifySelect" @bind="this.NotifyDuration">
+			@foreach (KeyValuePair<string, double> notify in this.NotifyList)
+			{
+				<option value=@notify.Value>@notify.Key</option>
+			}
+		</select>
 	</div>
 </div>
 
@@ -140,6 +151,7 @@
 
 	public List<Channel> ChannelList { get; set; }
 	public List<String> ColorList { get; set; }
+	public Dictionary<string, double> NotifyList { get; set; }
 
 	public string Name;
 	public bool NameValid = true;
@@ -150,6 +162,7 @@
 	public string Time;
 	public bool DateTimeValid = true;
 	public double Duration;
+	public double NotifyDuration;
 	public bool Monday;
 	public bool Tuesday;
 	public bool Wednesday;
@@ -172,6 +185,14 @@
 	{
 		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
 
+		this.NotifyList = new Dictionary<string, double>()
+		{
+			{ "Never", -1 },
+			{ "Immediatelly", 0},
+			{ "One Hour", 1 },
+			{ "One Day", 24 },
+		};
+
 		this.ChannelList = new List<Channel>()
 		{
 			new Channel(0, "None", KupoNuts.Channel.Types.Unknown),
@@ -185,8 +206,10 @@
 		this.evt.GetDateTime(out this.Date, out this.Time);
 		this.evt.GetDuration(out this.Duration);
 		this.evt.GetRepeats(out this.Monday, out this.Tuesday, out this.Wednesday, out this.Thursday, out this.Friday, out this.Saturday, out this.Sunday);
-
+		this.evt.GetNotifyDuration(out this.NotifyDuration);
 		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, KupoNuts.Channel.Types.Text));
+
+		Console.WriteLine(">> " + this.NotifyDuration);
 
 		this.Channel = this.evt.ChannelId;
 		if (string.IsNullOrEmpty(this.evt.ChannelId))
@@ -226,6 +249,7 @@
 		this.evt.Description = this.Description;
 		this.evt.ChannelId = this.Channel == "0" ? null : this.Channel;
 		this.evt.SetDuration(this.Duration);
+		this.evt.SetNotifyDuration(this.NotifyDuration);
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
 		this.evt.SetRepeats(this.Monday, this.Tuesday, this.Wednesday, this.Thursday, this.Friday, this.Saturday, this.Sunday);
 

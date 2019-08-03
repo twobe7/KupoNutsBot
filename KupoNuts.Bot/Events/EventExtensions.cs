@@ -181,6 +181,14 @@ namespace KupoNuts.Bot.Events
 			return builder.ToString();
 		}
 
+		public static Duration? GetNotifyDuration(this Event self)
+		{
+			if (string.IsNullOrEmpty(self.NotifyDuration))
+				return null;
+
+			return DurationPattern.Roundtrip.Parse(self.NotifyDuration).Value;
+		}
+
 		public static Duration GetDuration(this Event self)
 		{
 			if (string.IsNullOrEmpty(self.Duration))
@@ -229,7 +237,10 @@ namespace KupoNuts.Bot.Events
 			if (eventDateTime < now)
 			{
 				if (self.Repeats == 0)
+				{
+					// This event has already happened.
 					return null;
+				}
 
 				LocalDate nextDate;
 				LocalDateTime dateTime = eventDateTime.InZone(zone).LocalDateTime;

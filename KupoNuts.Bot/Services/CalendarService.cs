@@ -9,6 +9,7 @@ namespace KupoNuts.Bot.Services
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Events;
 	using KupoNuts.Events;
 	using KupoNuts.Utils;
@@ -22,6 +23,8 @@ namespace KupoNuts.Bot.Services
 		{
 			this.online = true;
 
+			CommandsService.BindCommand("calendar", this.Update, Permissions.Administrators, "Updates the calendar");
+
 			await this.Update();
 			_ = Task.Factory.StartNew(this.AutoUpdate, TaskCreationOptions.LongRunning);
 		}
@@ -29,6 +32,7 @@ namespace KupoNuts.Bot.Services
 		public override Task Shutdown()
 		{
 			this.online = false;
+			CommandsService.ClearCommand("calendar");
 			return Task.CompletedTask;
 		}
 

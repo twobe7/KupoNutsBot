@@ -13,6 +13,7 @@ namespace KupoNuts.Bot.Events
 	using KupoNuts.Bot.Events;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.Events;
+	using NodaTime;
 
 	public class EventsService : ServiceBase
 	{
@@ -28,8 +29,55 @@ namespace KupoNuts.Bot.Events
 		{
 			Instance = this;
 
-			CommandsService.BindCommand("notify", this.Notify, Permissions.Administrators, "Posts notifications for all events, regardless of schedule.");
+			CommandsService.BindCommand("events", this.CheckNotifications, Permissions.Administrators, "Checks event notifications");
 
+			_ = Task.Factory.StartNew(this.AutoUpdate, TaskCreationOptions.LongRunning);
+			await this.CheckNotifications();
+
+			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
+		}
+
+		public override Task Shutdown()
+		{
+			Instance = null;
+
+			CommandsService.ClearCommand("events");
+
+			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
+
+			return Task.CompletedTask;
+		}
+
+		public void Watch(RestUserMessage message, Event evt)
+		{
+			if (message == null)
+				return;
+
+			if (this.messageLookup.ContainsKey(message.Id))
+				return;
+
+			this.messageLookup.Add(message.Id, evt);
+		}
+
+		private async Task AutoUpdate()
+		{
+			while (Instance != null)
+			{
+				int minutes = DateTime.UtcNow.Minute;
+				int delay = 15 - minutes;
+				while (delay < 0)
+					delay += 15;
+
+				await Task.Delay(new TimeSpan(0, delay, 0));
+
+				await this.CheckNotifications();
+
+				await Task.Delay(new TimeSpan(0, 2, 0));
+			}
+		}
+
+		private async Task CheckNotifications()
+		{
 			Database db = Database.Load();
 			db.SanatiseAttendees();
 			db.Save();
@@ -58,35 +106,34 @@ namespace KupoNuts.Bot.Events
 				if (channel == null)
 					continue;
 
-				if (db.GetNotification(evt.Id) == null)
+				if (db.GetNotification(evt.Id) == null && this.ShouldNotify(evt))
 				{
 					await evt.Post();
 				}
 
 				await evt.CheckReactions();
 			}
-
-			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
 		}
 
-		public override Task Shutdown()
+		private bool ShouldNotify(Event evt)
 		{
-			CommandsService.ClearCommand("notify");
+			Duration? timeTillEvent = evt.GetDurationTill();
 
-			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
+			// Event in the past. shoudl be deleted...
+			if (timeTillEvent == null)
+				return false;
 
-			return Task.CompletedTask;
-		}
+			Duration? notifyDuration = evt.GetNotifyDuration();
 
-		public void Watch(RestUserMessage message, Event evt)
-		{
-			if (message == null)
-				return;
+			// never notify
+			if (notifyDuration == null)
+				return false;
 
-			if (this.messageLookup.ContainsKey(message.Id))
-				return;
+			// instant notify
+			if (notifyDuration.Value.TotalSeconds == 0)
+				return true;
 
-			this.messageLookup.Add(message.Id, evt);
+			return timeTillEvent.Value < notifyDuration.Value;
 		}
 
 		private async Task Notify(string[] args, SocketMessage message)
