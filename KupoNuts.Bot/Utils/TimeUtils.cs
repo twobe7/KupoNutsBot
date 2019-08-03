@@ -78,17 +78,21 @@ namespace KupoNuts.Utils
 		public static string GetTimeString(Instant dt)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append(dt.InZone(AWST).ToString("h:mm tt", CultureInfo.InvariantCulture));
-			builder.Append(" awst");
+			builder.Append(dt.InZone(AWST).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt.InZone(AWST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(" AWST");
 			builder.Append(" - ");
-			builder.Append(dt.InZone(ACST).ToString("h:mm tt", CultureInfo.InvariantCulture));
-			builder.Append(" acst");
+			builder.Append(dt.InZone(ACST).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt.InZone(ACST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(" ACST");
 			builder.Append(" - ");
-			builder.Append(dt.InZone(AEST).ToString("h:mm tt", CultureInfo.InvariantCulture));
-			builder.Append(" aest");
+			builder.Append(dt.InZone(AEST).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt.InZone(AEST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(" AEST");
 			builder.Append(" - ");
-			builder.Append(dt.InZone(NZST).ToString("h:mm tt", CultureInfo.InvariantCulture));
-			builder.Append(" nzst");
+			builder.Append(dt.InZone(NZST).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt.InZone(NZST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(" NZST");
 			return builder.ToString();
 		}
 
