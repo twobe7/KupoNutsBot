@@ -64,8 +64,13 @@ namespace KupoNuts.Bot.Services
 			if (channelId == 0)
 				return;
 
-			await this.Update(channelId, weekMessageID, "Events in the next week", 0, 7);
-			await this.Update(channelId, futureMessageID, "Events in the future", 7, 30);
+			weekMessageID = await this.Update(channelId, weekMessageID, "Events in the next week", 0, 7);
+			futureMessageID = await this.Update(channelId, futureMessageID, "Events in the future", 7, 30);
+
+			db = Database.Load();
+			db.CalendarMessage = weekMessageID.ToString();
+			db.CalendarMessage2 = futureMessageID.ToString();
+			db.Save();
 		}
 
 		private string GetEventString(Event evt)
