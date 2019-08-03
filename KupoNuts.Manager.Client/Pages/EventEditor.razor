@@ -38,6 +38,14 @@
 </div>
 
 <div class="form-row">
+	<!-- Name -->
+	<div class="form-group col-md-12">
+		<label for="eventImage">Image URL</label>
+		<input type="text" class="form-control" id="eventImage" name="eventImage" placeholder="Enter a URL to an image" @bind="this.Image" />
+	</div>
+</div>
+
+<div class="form-row">
 	<!--  Channel -->
 	<div class="form-group col-md-6">
 		<label for="channelSelect">Discord Channel</label>
@@ -156,6 +164,7 @@
 	public string Name;
 	public bool NameValid = true;
 	public string Description;
+	public string Image;
 	public string Channel;
 	public string Color;
 	public string Date;
@@ -202,14 +211,13 @@
 
 		this.Name = this.evt.Name;
 		this.Description = this.evt.Description;
+		this.Image = this.evt.Image;
 		this.Color = this.evt.Color.ToString();
 		this.evt.GetDateTime(out this.Date, out this.Time);
 		this.evt.GetDuration(out this.Duration);
 		this.evt.GetRepeats(out this.Monday, out this.Tuesday, out this.Wednesday, out this.Thursday, out this.Friday, out this.Saturday, out this.Sunday);
 		this.evt.GetNotifyDuration(out this.NotifyDuration);
 		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, KupoNuts.Channel.Types.Text));
-
-		Console.WriteLine(">> " + this.NotifyDuration);
 
 		this.Channel = this.evt.ChannelId;
 		if (string.IsNullOrEmpty(this.evt.ChannelId))
@@ -247,6 +255,7 @@
 
 		this.evt.Name = this.Name;
 		this.evt.Description = this.Description;
+		this.evt.Image = this.Image;
 		this.evt.ChannelId = this.Channel == "0" ? null : this.Channel;
 		this.evt.SetDuration(this.Duration);
 		this.evt.SetNotifyDuration(this.NotifyDuration);
