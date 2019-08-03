@@ -66,6 +66,16 @@ else
 	protected void OnCreateNew()
 	{
 		Event evt = new Event();
+
+		// todo: selectors for these...
+		evt.RemindMeEmote = "<:RemindMe:604942582988013568>";
+		evt.Statuses = new List<Event.Status>()
+		{
+			new Event.Status("<:Yes:604942582866247690>", "Attending"),
+			new Event.Status("<:Maybe:604942582795075595>"),
+			new Event.Status("<:No:604942582589423618>", "Not Attending"),
+		};
+
 		evt.Id = Guid.NewGuid().ToString();
 		OnEdit(evt);
 	}

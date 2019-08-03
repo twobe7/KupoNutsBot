@@ -30,24 +30,35 @@ namespace KupoNuts.Bot.Events
 
 			CommandsService.BindCommand("notify", this.Notify, Permissions.Administrators, "Posts notifications for all events, regardless of schedule.");
 
-			foreach (Event evt in Database.Load().Events)
+			Database db = Database.Load();
+			db.SanatiseAttendees();
+			db.Save();
+
+			for (int i = db.Notifications.Count - 1; i >= 0; i--)
+			{
+				RestUserMessage message = await db.Notifications[i].GetMessage();
+				Event evt = db.GetEvent(db.Notifications[i].EventId);
+
+				// dead reminder.
+				if (message is null || evt is null)
+				{
+					await db.Notifications[i].Delete();
+					db.Notifications.RemoveAt(i);
+					db.Save();
+				}
+
+				this.Watch(message, evt);
+			}
+
+			db = Database.Load();
+			foreach (Event evt in db.Events)
 			{
 				SocketTextChannel channel = evt.GetChannel();
 
 				if (channel == null)
 					continue;
 
-				foreach (Event.Notification notification in evt.Notifications)
-				{
-					RestUserMessage message = await notification.GetMessage(channel);
-
-					if (message == null)
-						continue;
-
-					this.Watch(message, evt);
-				}
-
-				if (evt.Notifications.Count <= 0)
+				if (db.GetNotifications(evt.Id).Count <= 0)
 				{
 					await evt.Post();
 				}
@@ -69,6 +80,9 @@ namespace KupoNuts.Bot.Events
 
 		public void Watch(RestUserMessage message, Event evt)
 		{
+			if (message == null)
+				return;
+
 			if (this.messageLookup.ContainsKey(message.Id))
 				return;
 
@@ -100,7 +114,7 @@ namespace KupoNuts.Bot.Events
 				return;
 
 			Event evt = this.messageLookup[message.Id];
-			Event.Attendee attendee = evt.GetAttendee(reaction.UserId);
+			Attendee attendee = evt.GetAttendee(reaction.UserId);
 
 			if (!string.IsNullOrEmpty(evt.RemindMeEmote))
 			{
@@ -109,22 +123,18 @@ namespace KupoNuts.Bot.Events
 					ReminderService.SetReminder(attendee, "I'll remind you before the event: \"" + evt.Name + "\".");
 				}
 			}
-			else
-			{
-				for (int i = 0; i < evt.Statuses.Count; i++)
-				{
-					Event.Status status = evt.Statuses[i];
 
-					if (reaction.Emote.Name == status.GetEmote().Name)
-					{
-						attendee.Status = i;
-					}
+			for (int i = 0; i < evt.Statuses.Count; i++)
+			{
+				Event.Status status = evt.Statuses[i];
+
+				if (reaction.Emote.Name == status.GetEmote().Name)
+				{
+					evt.SetAttendeeStatus(reaction.UserId, i);
 				}
 			}
 
 			await evt.UpdateNotifications();
-
-			Database.UpdateOrInsert(evt);
 
 			RestUserMessage userMessage = (RestUserMessage)await channel.GetMessageAsync(message.Id);
 			SocketUser user = Program.DiscordClient.GetUser(reaction.UserId);

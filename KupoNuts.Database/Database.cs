@@ -10,15 +10,10 @@ namespace KupoNuts
 	using NodaTime;
 	using NodaTime.Serialization.JsonNet;
 
-	// This is a terrible database, it just stores data in a json file, and re-loads it every time
-	// the instance is accessed. It has 0 support for concurrency or merging changes.
-	// We should strongly consider a real database solution like Amazon Dynamo DB
-
-	// May god have mercy on my soul for using this live.
 	[Serializable]
 	public class Database
 	{
-		public static int Version = 3;
+		public static int Version = 4;
 		public static string Location = "data_" + Version + ".json";
 
 		public string Token;
@@ -28,6 +23,8 @@ namespace KupoNuts
 		public ulong StatusChannel;
 		public List<Channel> Channels = new List<Channel>();
 		public List<Event> Events = new List<Event>();
+		public List<Attendee> Attendees = new List<Attendee>();
+		public List<Notification> Notifications = new List<Notification>();
 
 		public static void Init()
 		{
@@ -53,36 +50,10 @@ namespace KupoNuts
 			}
 		}
 
-		public static void UpdateOrInsert(Event evt)
+		public void Save()
 		{
-			Database instance = Load();
-
-			Event evt2 = instance.GetEvent(evt.Id);
-
-			if (evt2 != null)
-			{
-				if (!instance.Events.Remove(evt2))
-					throw new Exception("Failed remove event");
-			}
-
-			instance.Events.Add(evt);
-			instance.Save();
-		}
-
-		public static void Delete(Event evt)
-		{
-			Database instance = Load();
-
-			Event evt2 = instance.GetEvent(evt.Id);
-			if (evt2 != null)
-			{
-				if (!instance.Events.Remove(evt2))
-				{
-					throw new Exception("Failed remove event");
-				}
-			}
-
-			instance.Save();
+			string json = JsonConvert.SerializeObject(this, Formatting.Indented);
+			File.WriteAllText(Location, json);
 		}
 
 		public Event GetEvent(string id)
@@ -98,10 +69,72 @@ namespace KupoNuts
 			return null;
 		}
 
-		public void Save()
+		public void UpdateOrInsertEvent(Event newEvent)
 		{
-			string json = JsonConvert.SerializeObject(this, Formatting.Indented);
-			File.WriteAllText(Location, json);
+			for (int i = this.Events.Count - 1; i >= 0; i--)
+			{
+				if (this.Events[i].Id == newEvent.Id)
+				{
+					this.Events.RemoveAt(i);
+				}
+			}
+
+			this.Events.Add(newEvent);
+		}
+
+		public void DeleteEvent(string id)
+		{
+			for (int i = this.Events.Count - 1; i >= 0; i--)
+			{
+				if (this.Events[i].Id == id)
+				{
+					this.Events.RemoveAt(i);
+				}
+			}
+
+			for (int i = this.Notifications.Count - 1; i >= 0; i--)
+			{
+				if (this.Notifications[i].EventId == id)
+				{
+					this.Notifications.RemoveAt(i);
+				}
+			}
+
+			for (int i = this.Attendees.Count - 1; i >= 0; i--)
+			{
+				if (this.Attendees[i].EventId == id)
+				{
+					this.Attendees.RemoveAt(i);
+				}
+			}
+		}
+
+		public List<Notification> GetNotifications(string eventId)
+		{
+			List<Notification> results = new List<Notification>();
+			foreach (Notification notify in this.Notifications)
+			{
+				if (notify.EventId == eventId)
+				{
+					results.Add(notify);
+				}
+			}
+
+			return results;
+		}
+
+		/// <summary>
+		/// Removed any attendees that no longer have a corresponding event.
+		/// </summary>
+		public void SanatiseAttendees()
+		{
+			for (int i = this.Attendees.Count - 1; i >= 0; i--)
+			{
+				if (this.GetEvent(this.Attendees[i].EventId) == null)
+				{
+					this.Attendees.RemoveAt(i);
+				}
+			}
 		}
 	}
 }

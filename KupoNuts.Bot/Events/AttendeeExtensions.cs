@@ -9,13 +9,19 @@ namespace KupoNuts.Bot.Events
 
 	public static class AttendeeExtensions
 	{
-		public static string GetMention(this Event.Attendee self)
+		public static bool Is(this Attendee self, ulong userId)
 		{
-			SocketUser user = Program.DiscordClient.GetUser(self.UserId);
+			return self.UserId == userId.ToString();
+		}
+
+		public static string GetMention(this Attendee self)
+		{
+			ulong userId = ulong.Parse(self.UserId);
+			SocketUser user = Program.DiscordClient.GetUser(userId);
 			return user.Mention;
 		}
 
-		public static Duration? GetRemindTime(this Event.Attendee self)
+		public static Duration? GetRemindTime(this Attendee self)
 		{
 			if (string.IsNullOrEmpty(self.RemindTime))
 				return null;
@@ -23,7 +29,7 @@ namespace KupoNuts.Bot.Events
 			return DurationPattern.Roundtrip.Parse(self.RemindTime).Value;
 		}
 
-		public static void SetRemindTime(this Event.Attendee self, Duration? duration)
+		public static void SetRemindTime(this Attendee self, Duration? duration)
 		{
 			if (duration == null)
 			{

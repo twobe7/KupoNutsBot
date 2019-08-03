@@ -72,33 +72,10 @@ namespace KupoNuts.Events
 
 		public string RemindMeEmote { get; set; }
 
-		public List<Status> Statuses { get; set; } = new List<Status>();
-
-		public List<Attendee> Attendees { get; set; } = new List<Attendee>();
-
-		public List<Notification> Notifications { get; set; } = new List<Notification>();
-
-		public Attendee GetAttendee(ulong userId)
-		{
-			foreach (Attendee attendee in this.Attendees)
-			{
-				if (attendee.UserId == userId)
-				{
-					return attendee;
-				}
-			}
-
-			Attendee newAttendee = new Attendee();
-			newAttendee.UserId = userId;
-			this.Attendees.Add(newAttendee);
-			return newAttendee;
-		}
+		public List<Status> Statuses { get; set; }
 
 		public class Status
 		{
-			public string EmoteString;
-			public string Display;
-
 			public Status()
 			{
 			}
@@ -108,19 +85,10 @@ namespace KupoNuts.Events
 				this.EmoteString = emote;
 				this.Display = display;
 			}
-		}
 
-		public class Attendee
-		{
-			public ulong UserId;
-			public int Status;
-			public string RemindTime;
-		}
+			public string EmoteString { get; set; }
 
-		[Serializable]
-		public class Notification
-		{
-			public string MessageId;
+			public string Display { get; set; }
 		}
 	}
 }

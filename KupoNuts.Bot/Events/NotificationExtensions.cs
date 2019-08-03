@@ -14,11 +14,14 @@ namespace KupoNuts.Bot.Events
 
 	public static class NotificationExtensions
 	{
-		public static async Task Post(this Event.Notification self, Event evt)
+		public static async Task Post(this Notification self, string eventId)
 		{
-			SocketTextChannel channel = evt.GetChannel();
+			SocketTextChannel channel = self.GetChannel();
 			if (channel == null)
 				return;
+
+			Database db = Database.Load();
+			Event evt = db.GetEvent(eventId);
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Color = evt.Color.ToDiscordColor();
@@ -73,7 +76,7 @@ namespace KupoNuts.Bot.Events
 				builder.AddField(status.Display + " (" + count + ")", attending, true);
 			}
 
-			RestUserMessage message = await self.GetMessage(channel);
+			RestUserMessage message = await self.GetMessage();
 			if (message is null)
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
@@ -102,38 +105,64 @@ namespace KupoNuts.Bot.Events
 			}
 		}
 
-		public static async Task CheckReactions(this Event.Notification self, Event evt)
+		public static async Task Delete(this Notification self)
 		{
-			SocketTextChannel channel = evt.GetChannel();
-			if (channel == null)
+			RestUserMessage message = await self.GetMessage();
+			if (message == null)
 				return;
 
-			RestUserMessage message = await self.GetMessage(channel);
+			await message.DeleteAsync();
+		}
+
+		public static async Task CheckReactions(this Notification self, Event evt)
+		{
+			RestUserMessage message = await self.GetMessage();
 			if (message == null)
 				return;
 
 			for (int i = 0; i < evt.Statuses.Count; i++)
 			{
 				Event.Status status = evt.Statuses[i];
-				await self.CheckReactions(evt, channel, message, status, i);
+				await self.CheckReactions(evt, message, status, i);
 			}
 		}
 
-		public static async Task<RestUserMessage> GetMessage(this Event.Notification self, SocketTextChannel channel)
+		public static SocketTextChannel GetChannel(this Notification self)
+		{
+			if (string.IsNullOrEmpty(self.ChannelId))
+				return null;
+
+			ulong id = ulong.Parse(self.ChannelId);
+
+			SocketChannel channel = Program.DiscordClient.GetChannel(id);
+
+			if (channel is SocketTextChannel textChannel)
+				return textChannel;
+
+			throw new Exception("Channel: \"" + self.ChannelId + "\" is not a text channel");
+		}
+
+		public static async Task<RestUserMessage> GetMessage(this Notification self)
 		{
 			if (string.IsNullOrEmpty(self.MessageId))
 				return null;
 
 			ulong id = ulong.Parse(self.MessageId);
 
+			SocketTextChannel channel = self.GetChannel();
+
 			IMessage message = await channel.GetMessageAsync(id);
+
+			if (message is null)
+				return null;
+
 			if (message is RestUserMessage userMessage)
 				return userMessage;
 
-			throw new Exception("Message: \"" + self.MessageId + " is not a user message.");
+			throw new Exception("Message: \"" + self.MessageId + "\" is not a user message.");
 		}
 
-		private static async Task CheckReactions(this Event.Notification self, Event evt, SocketTextChannel channel, RestUserMessage message, Event.Status status, int statusIndex)
+		private static async Task CheckReactions(this Notification self, Event evt, RestUserMessage message, Event.Status status, int statusIndex)
 		{
 			IEmote emote = status.GetEmote();
 			IEnumerable<IUser> checkedUsers = await message.GetReactionUsersAsync(emote, 99).FlattenAsync();
@@ -146,8 +175,7 @@ namespace KupoNuts.Bot.Events
 				if (user.Id == Program.DiscordClient.CurrentUser.Id)
 					continue;
 
-				Event.Attendee attendee = evt.GetAttendee(user.Id);
-				attendee.Status = statusIndex;
+				evt.SetAttendeeStatus(user.Id, statusIndex);
 
 				SocketUser socketUser = Program.DiscordClient.GetUser(user.Id);
 				await message.RemoveReactionAsync(emote, socketUser);

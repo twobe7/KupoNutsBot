@@ -26,7 +26,7 @@ namespace KupoNuts.Bot.Services
 
 		private Dictionary<ulong, PendingReminder> messageLookup = new Dictionary<ulong, PendingReminder>();
 
-		public static void SetReminder(Event.Attendee attendee, string message)
+		public static void SetReminder(Attendee attendee, string message)
 		{
 			_ = Task.Run(async () => { await instance.ConfirmReminder(attendee, message); });
 		}
@@ -64,9 +64,9 @@ namespace KupoNuts.Bot.Services
 			return null;
 		}
 
-		private async Task ConfirmReminder(Event.Attendee attendee, string messageString)
+		private async Task ConfirmReminder(Attendee attendee, string messageString)
 		{
-			SocketUser user = Program.DiscordClient.GetUser(attendee.UserId);
+			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(attendee.UserId));
 
 			string remindString = null;
 			if (attendee.RemindTime != null)
@@ -138,10 +138,10 @@ namespace KupoNuts.Bot.Services
 
 		public class PendingReminder
 		{
-			public ulong UserId;
-			public Event.Attendee Attendee;
+			public string UserId;
+			public Attendee Attendee;
 
-			public PendingReminder(Event.Attendee attendee)
+			public PendingReminder(Attendee attendee)
 			{
 				this.UserId = attendee.UserId;
 				this.Attendee = attendee;

@@ -19,29 +19,51 @@ namespace KupoNuts.Bot.Events
 	{
 		public static async Task Post(this Event self)
 		{
-			Event.Notification notify = new Event.Notification();
-			await notify.Post(self);
-			self.Notifications.Add(notify);
+			Notification notify = new Notification();
+			notify.EventId = self.Id;
+			notify.ChannelId = self.ChannelId;
+			await notify.Post(self.Id);
 
-			Database.UpdateOrInsert(self);
+			Database db = Database.Load();
+			db.Notifications.Add(notify);
+			db.Save();
 		}
 
 		public static async Task UpdateNotifications(this Event self)
 		{
-			foreach (Event.Notification notify in self.Notifications)
+			Database db = Database.Load();
+			foreach (Notification notify in db.Notifications)
 			{
-				await notify.Post(self);
+				if (notify.EventId != self.Id)
+					continue;
+
+				await notify.Post(self.Id);
 			}
 		}
 
 		public static async Task CheckReactions(this Event self)
 		{
-			foreach (Event.Notification notify in self.Notifications)
+			Database db = Database.Load();
+			foreach (Notification notify in db.Notifications)
 			{
+				if (notify.EventId != self.Id)
+					continue;
+
 				await notify.CheckReactions(self);
 			}
 
 			await self.UpdateNotifications();
+		}
+
+		public static Task Delete(this Event self)
+		{
+			Database db = Database.Load();
+			db.DeleteEvent(self.Id);
+			db.Save();
+
+			// TODO: Delete any event notifications that have been posted
+			// TODO: Clear any watched messages from the EventsService
+			return Task.CompletedTask;
 		}
 
 		public static IEmote GetRemindMeEmote(this Event self)
@@ -94,13 +116,52 @@ namespace KupoNuts.Bot.Events
 			return builder.ToString();
 		}
 
+		public static void SetAttendeeStatus(this Event self, ulong userId, int status)
+		{
+			Database db = Database.Load();
+
+			Attendee attendee = self.GetAttendee(db, userId);
+			attendee.Status = status;
+
+			db.Save();
+		}
+
+		public static Attendee GetAttendee(this Event self, ulong userId)
+		{
+			Database db = Database.Load();
+			return self.GetAttendee(db, userId);
+		}
+
+		public static Attendee GetAttendee(this Event self, Database db, ulong userId)
+		{
+			foreach (Attendee attendee in db.Attendees)
+			{
+				if (attendee.EventId != self.Id)
+					continue;
+
+				if (!attendee.Is(userId))
+					continue;
+
+				return attendee;
+			}
+
+			Attendee newAttendee = new Attendee(self.Id, userId);
+			db.Attendees.Add(newAttendee);
+			db.Save();
+			return newAttendee;
+		}
+
 		public static string GetAttendeeString(this Event self, int statusIndex, out int count)
 		{
 			StringBuilder builder = new StringBuilder();
 
+			Database db = Database.Load();
 			count = 0;
-			foreach (Event.Attendee attendee in self.Attendees)
+			foreach (Attendee attendee in db.Attendees)
 			{
+				if (attendee.EventId != self.Id)
+					continue;
+
 				if (attendee.Status == statusIndex)
 				{
 					count++;

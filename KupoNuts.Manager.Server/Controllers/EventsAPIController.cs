@@ -23,14 +23,18 @@ namespace KupoNuts.Manager.Server.Controllers
 			{
 				case EventAction.Actions.Update:
 				{
-					Database.UpdateOrInsert(evt.Event);
+					Database db = Database.Load();
+					db.UpdateOrInsertEvent(evt.Event);
+					db.Save();
 					break;
 				}
 
 				case EventAction.Actions.Delete:
 				case EventAction.Actions.DeleteConfirmed:
 				{
-					Database.Delete(evt.Event);
+					Database db = Database.Load();
+					db.DeleteEvent(evt.Event.Id);
+					db.Save();
 					break;
 				}
 			}
