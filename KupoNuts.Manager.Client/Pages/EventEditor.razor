@@ -1,4 +1,5 @@
 ﻿@using KupoNuts.Events;
+@using KupoNuts.Utils;
 @inject IModalService Modal
 
 <div class="form-row">
@@ -76,7 +77,7 @@
 	</div>
 
 	<!--  Duration -->
-	<div class="form-group col-md-4">
+	<!--<div class="form-group col-md-4">
 		<label for="eventDuration">Duration</label>
 		<input type="time" class="form-control dateTime @(((this.DurationValid) ? "" : "is-invalid"))" id="eventDuration" name="eventDuration" @bind="this.Duration" />
 
@@ -86,6 +87,11 @@
 				Invalid Duration.
 			</div>
 		}
+	</div>-->
+	<div class="form-group col-md-4">
+		<label for="eventDuration">Duration</label>
+		<small id="emailHelp" class="form-text" style="margin-top:0px">@this.DurationString</small>
+		<input name="eventDuration" type="range" min="0.25" max="6" step="0.25" @bind-value="this.Duration" @oninput="OnDurationChanged" style="width:100%"/>
 	</div>
 </div>
 
@@ -133,7 +139,7 @@
 
 <div class="modal-footer">
 	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
-	<div class="flex-fill"/>
+	<div class="flex-fill" />
 	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
 	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
 </div>
@@ -153,8 +159,7 @@
 	public string Date;
 	public string Time;
 	public bool DateTimeValid = true;
-	public string Duration;
-	public bool DurationValid = true;
+	public double Duration;
 	public bool Monday;
 	public bool Tuesday;
 	public bool Wednesday;
@@ -165,11 +170,19 @@
 
 	private Event evt;
 
+	public string DurationString
+	{
+		get
+		{
+			return TimeUtils.GetDurationString(this.Duration);
+		}
+	}
+
 	protected override void OnInit()
 	{
 		ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
 		ChannelList = new Dictionary<string, int>()
-		{
+	{
 			{ "Test", 0 },
 			{ "Test2", 1 },
 			{ "Test3", 2 },
@@ -189,6 +202,11 @@
 		this.evt.GetRepeats(out this.Monday, out this.Tuesday, out this.Wednesday, out this.Thursday, out this.Friday, out this.Saturday, out this.Sunday);
 	}
 
+	private void OnDurationChanged(UIChangeEventArgs e)
+	{
+		this.Duration = double.Parse((string)e.Value);
+	}
+
 	private void OnSave()
 	{
 		try
@@ -203,18 +221,6 @@
 
 		this.DateTimeValid = true;
 
-		try
-		{
-			this.evt.SetDuration(this.Duration);
-		}
-		catch (Exception)
-		{
-			this.DurationValid = false;
-			return;
-		}
-
-		this.DurationValid = true;
-
 		if (string.IsNullOrEmpty(this.Name))
 		{
 			this.NameValid = false;
@@ -226,6 +232,7 @@
 		this.evt.Name = this.Name;
 		this.evt.Description = this.Description;
 		this.evt.ChannelId = (uint)this.Channel;
+		this.evt.SetDuration(this.Duration);
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
 		this.evt.SetRepeats(this.Monday, this.Tuesday, this.Wednesday, this.Thursday, this.Friday, this.Saturday, this.Sunday);
 

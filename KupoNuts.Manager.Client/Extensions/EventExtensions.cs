@@ -28,23 +28,18 @@ namespace KupoNuts.Events
 			}
 		}
 
-		public static void GetDuration(this Event self, out string duration)
+		public static void GetDuration(this Event self, out double duration)
 		{
 			Duration dur = self.GetDuration();
-			duration = dur.Hours.ToString("D2") + ":" + dur.Minutes.ToString("D2");
+			duration = dur.Hours + (dur.Minutes / 60.0);
 		}
 
-		public static void SetDuration(this Event self, string duration)
+		public static void SetDuration(this Event self, double duration)
 		{
-			string[] parts = duration.Split(':');
+			int hours = (int)duration;
+			int minutes = (int)((duration - (double)hours) * 60.0);
 
-			if (parts.Length != 2)
-				throw new Exception("Invalid duration format: \"" + duration + "\"");
-
-			int hour = int.Parse(parts[0]);
-			int minute = int.Parse(parts[1]);
-
-			Duration dur = Duration.FromMinutes((hour * 60) + minute);
+			Duration dur = Duration.FromMinutes((hours * 60) + minutes);
 			self.Duration = DurationPattern.Roundtrip.Format(dur);
 		}
 

@@ -34,5 +34,37 @@ namespace KupoNuts.Utils
 
 			throw new Exception("Unknown day: " + day);
 		}
+
+		public static string GetDurationString(double duration)
+		{
+			int hours = (int)duration;
+			int minutes = (int)((duration - (double)hours) * 60.0);
+
+			StringBuilder builder = new StringBuilder();
+
+			if (hours == 1)
+			{
+				builder.Append(hours);
+				builder.Append(" hour ");
+			}
+			else if (hours > 1)
+			{
+				builder.Append(hours);
+				builder.Append(" hours ");
+			}
+
+			if (minutes == 1)
+			{
+				builder.Append(minutes);
+				builder.Append(" minute ");
+			}
+			else if (minutes > 1)
+			{
+				builder.Append(minutes);
+				builder.Append(" minutes ");
+			}
+
+			return builder.ToString();
+		}
 	}
 }
