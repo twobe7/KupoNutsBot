@@ -1,5 +1,6 @@
 ﻿@using KupoNuts.Events;
 @using KupoNuts.Utils;
+@inject HttpClient Http
 @inject IModalService Modal
 
 <div class="form-row">
@@ -30,9 +31,9 @@
 	<div class="form-group col-md-6">
 		<label for="channelSelect">Discord Channel</label>
 		<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
-			@foreach (KeyValuePair<string, int> keyVal in this.ChannelList)
+			@foreach (Channel channl in this.ChannelList)
 			{
-				<option value=@keyVal.Value>@keyVal.Key</option>
+				<option value=@channl.Id>@channl.Name</option>
 			}
 		</select>
 	</div>
@@ -80,7 +81,7 @@
 	<div class="form-group col-md-4">
 		<label for="eventDuration">Duration</label>
 		<small id="emailHelp" class="form-text" style="margin-top:0px">@this.DurationString</small>
-		<input name="eventDuration" type="range" class="form-control-range" min="0.25" max="6" step="0.25" @bind-value="this.Duration" @oninput="OnDurationChanged" style="width:100%"/>
+		<input name="eventDuration" type="range" class="form-control-range" min="0.25" max="6" step="0.25" @bind-value="this.Duration" @oninput="OnDurationChanged" style="width:100%" />
 	</div>
 </div>
 
@@ -89,7 +90,7 @@
 	<label>Repeats</label>
 	<div class="form-group col-md-12">
 		<div class="custom-control custom-checkbox custom-control-inline">
-			<input class="custom-control-input" type="checkbox" id="monCheckbox"value="true" @bind="this.Monday" />
+			<input class="custom-control-input" type="checkbox" id="monCheckbox" value="true" @bind="this.Monday" />
 			<label class="custom-control-label" for="monCheckbox">Mon</label>
 		</div>
 		<div class="custom-control custom-checkbox custom-control-inline">
@@ -137,13 +138,13 @@
 @code {
 	[CascadingParameter] ModalParameters Parameters { get; set; }
 
-	public Dictionary<string, int> ChannelList { get; set; }
+	public List<Channel> ChannelList { get; set; }
 	public List<String> ColorList { get; set; }
 
 	public string Name;
 	public bool NameValid = true;
 	public string Description;
-	public int Channel;
+	public string Channel;
 	public string Color;
 	public string Date;
 	public string Time;
@@ -167,28 +168,46 @@
 		}
 	}
 
-	protected override void OnInit()
+	protected override async Task OnInitAsync()
 	{
-		ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
-		ChannelList = new Dictionary<string, int>()
-	{
-			{ "Test", 0 },
-			{ "Test2", 1 },
-			{ "Test3", 2 },
-			{ "Test4", 3 },
-			{ "Test5", 4 },
+		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
+
+		this.ChannelList = new List<Channel>()
+		{
+			new Channel(0, "None", KupoNuts.Channel.Types.Unknown),
 		};
 
 		this.evt = Parameters.Get<Event>("Event");
 
-
 		this.Name = this.evt.Name;
 		this.Description = this.evt.Description;
-		this.Channel = (int)this.evt.ChannelId;
 		this.Color = this.evt.Color.ToString();
 		this.evt.GetDateTime(out this.Date, out this.Time);
 		this.evt.GetDuration(out this.Duration);
 		this.evt.GetRepeats(out this.Monday, out this.Tuesday, out this.Wednesday, out this.Thursday, out this.Friday, out this.Saturday, out this.Sunday);
+
+		List<Channel> allChanels = await this.Http.GetJsonAsync<List<Channel>>("ChannelsAPI");
+		List<Channel> channels = new List<Channel>();
+		foreach (Channel channel in allChanels)
+		{
+			if (channel.Type != KupoNuts.Channel.Types.Text)
+				continue;
+
+			channels.Add(channel);
+		}
+
+		channels.Sort((Channel a, Channel b) =>
+		{
+			return a.Name.CompareTo(b.Name);
+		});
+
+		this.ChannelList.AddRange(channels);
+
+		this.Channel = this.evt.ChannelId;
+		if (string.IsNullOrEmpty(this.evt.ChannelId))
+		{
+			this.Channel = "0";
+		}
 	}
 
 	private void OnDurationChanged(UIChangeEventArgs e)
@@ -220,7 +239,7 @@
 
 		this.evt.Name = this.Name;
 		this.evt.Description = this.Description;
-		this.evt.ChannelId = (uint)this.Channel;
+		this.evt.ChannelId = this.Channel == "0" ? null : this.Channel;
 		this.evt.SetDuration(this.Duration);
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
 		this.evt.SetRepeats(this.Monday, this.Tuesday, this.Wednesday, this.Thursday, this.Friday, this.Saturday, this.Sunday);

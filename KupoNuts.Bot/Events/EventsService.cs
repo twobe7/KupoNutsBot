@@ -10,6 +10,7 @@ namespace KupoNuts.Bot.Events
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
+	using KupoNuts.Bot.Events;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.Events;
 
@@ -31,12 +32,19 @@ namespace KupoNuts.Bot.Events
 
 			foreach (Event evt in Database.Load().Events)
 			{
+				SocketTextChannel channel = evt.GetChannel();
+
+				if (channel == null)
+					continue;
+
 				foreach (Event.Notification notification in evt.Notifications)
 				{
-					if (this.messageLookup.ContainsKey(notification.MessageId))
+					RestUserMessage message = await notification.GetMessage(channel);
+
+					if (message == null)
 						continue;
 
-					this.messageLookup.Add(notification.MessageId, evt);
+					this.Watch(message, evt);
 				}
 
 				if (evt.Notifications.Count <= 0)
@@ -59,12 +67,12 @@ namespace KupoNuts.Bot.Events
 			return Task.CompletedTask;
 		}
 
-		public void Watch(ulong messageId, Event evt)
+		public void Watch(RestUserMessage message, Event evt)
 		{
-			if (this.messageLookup.ContainsKey(messageId))
+			if (this.messageLookup.ContainsKey(message.Id))
 				return;
 
-			this.messageLookup.Add(messageId, evt);
+			this.messageLookup.Add(message.Id, evt);
 		}
 
 		private async Task Notify(string[] args, SocketMessage message)

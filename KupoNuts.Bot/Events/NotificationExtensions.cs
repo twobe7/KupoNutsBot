@@ -16,7 +16,8 @@ namespace KupoNuts.Bot.Events
 	{
 		public static async Task Post(this Event.Notification self, Event evt)
 		{
-			if (evt.ChannelId == 0)
+			SocketTextChannel channel = evt.GetChannel();
+			if (channel == null)
 				return;
 
 			EmbedBuilder builder = new EmbedBuilder();
@@ -72,13 +73,11 @@ namespace KupoNuts.Bot.Events
 				builder.AddField(status.Display + " (" + count + ")", attending, true);
 			}
 
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(evt.ChannelId);
-
-			RestUserMessage message;
-			if (self.MessageId == 0)
+			RestUserMessage message = await self.GetMessage(channel);
+			if (message is null)
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
-				self.MessageId = message.Id;
+				self.MessageId = message.Id.ToString();
 
 				List<IEmote> reactions = new List<IEmote>();
 
@@ -92,11 +91,10 @@ namespace KupoNuts.Bot.Events
 
 				await message.AddReactionsAsync(reactions.ToArray());
 
-				EventsService.Instance.Watch(self.MessageId, evt);
+				EventsService.Instance.Watch(message, evt);
 			}
 			else
 			{
-				message = (RestUserMessage)await channel.GetMessageAsync(self.MessageId);
 				await message.ModifyAsync(x =>
 				{
 					x.Embed = builder.Build();
@@ -106,17 +104,33 @@ namespace KupoNuts.Bot.Events
 
 		public static async Task CheckReactions(this Event.Notification self, Event evt)
 		{
-			if (self.MessageId == 0)
+			SocketTextChannel channel = evt.GetChannel();
+			if (channel == null)
 				return;
 
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(evt.ChannelId);
-			RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(self.MessageId);
+			RestUserMessage message = await self.GetMessage(channel);
+			if (message == null)
+				return;
 
 			for (int i = 0; i < evt.Statuses.Count; i++)
 			{
 				Event.Status status = evt.Statuses[i];
 				await self.CheckReactions(evt, channel, message, status, i);
 			}
+		}
+
+		public static async Task<RestUserMessage> GetMessage(this Event.Notification self, SocketTextChannel channel)
+		{
+			if (string.IsNullOrEmpty(self.MessageId))
+				return null;
+
+			ulong id = ulong.Parse(self.MessageId);
+
+			IMessage message = await channel.GetMessageAsync(id);
+			if (message is RestUserMessage userMessage)
+				return userMessage;
+
+			throw new Exception("Message: \"" + self.MessageId + " is not a user message.");
 		}
 
 		private static async Task CheckReactions(this Event.Notification self, Event evt, SocketTextChannel channel, RestUserMessage message, Event.Status status, int statusIndex)

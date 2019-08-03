@@ -133,6 +133,22 @@ namespace KupoNuts.Events
 			return builder.ToString();
 		}
 
+		public static string GetChannelName(this Event self, List<Channel> channels)
+		{
+			if (string.IsNullOrEmpty(self.ChannelId))
+				return null;
+
+			foreach (Channel channel in channels)
+			{
+				if (channel.Id == self.ChannelId)
+				{
+					return channel.Name;
+				}
+			}
+
+			return "Unknown";
+		}
+
 		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
 		{
 			Instant eventDateTime = self.GetDateTime();

@@ -54,7 +54,7 @@ namespace KupoNuts.Events
 
 		public string Id { get; set; }
 
-		public ulong ChannelId { get; set; }
+		public string ChannelId { get; set; }
 
 		public string Name { get; set; }
 
@@ -120,7 +120,7 @@ namespace KupoNuts.Events
 		[Serializable]
 		public class Notification
 		{
-			public ulong MessageId;
+			public string MessageId;
 		}
 	}
 }

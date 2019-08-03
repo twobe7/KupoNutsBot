@@ -23,13 +23,10 @@ namespace KupoNuts
 
 		public string Token;
 		public int Karma = 0;
-
 		public ulong LogChannel;
 		public ulong StatusMessage;
-
-		// Used to notify when the update process is finished
 		public ulong StatusChannel;
-
+		public List<Channel> Channels = new List<Channel>();
 		public List<Event> Events = new List<Event>();
 
 		public static void Init()

@@ -18,6 +18,7 @@ else
 				<tr>
 					<th>Name</th>
 					<th>Description</th>
+					<th width="10%">Channel</th>
 					<th width="15%">Next Occurance</th>
 				</tr>
 			</thead>
@@ -27,6 +28,7 @@ else
 					<tr @onclick="() => this.OnEdit(evt)" class="table-clickable">
 						<td>@evt.Name</td>
 						<td>@evt.Description</td>
+						<td>@evt.GetChannelName(this.AllChannels)</td>
 						<td>@evt.GetNextOccurance()</td>
 					</tr>
 				}
@@ -45,9 +47,11 @@ else
 @code {
 
 	public List<Event> AllEvents;
+	public List<Channel> AllChannels;
 
 	protected override async Task OnInitAsync()
 	{
+		this.AllChannels = await this.Http.GetJsonAsync<List<Channel>>("ChannelsAPI");
 		this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
 	}
 

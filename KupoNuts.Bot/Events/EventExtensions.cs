@@ -49,6 +49,21 @@ namespace KupoNuts.Bot.Events
 			return Emote.Parse(self.RemindMeEmote);
 		}
 
+		public static SocketTextChannel GetChannel(this Event self)
+		{
+			if (string.IsNullOrEmpty(self.ChannelId))
+				return null;
+
+			ulong id = ulong.Parse(self.ChannelId);
+
+			SocketChannel channel = Program.DiscordClient.GetChannel(id);
+
+			if (channel is SocketTextChannel textChannel)
+				return textChannel;
+
+			throw new Exception("Channel: \"" + self.ChannelId + "\" is not a text channel");
+		}
+
 		public static string GetRepeatsString(this Event self)
 		{
 			if (self.Repeats == Event.Days.None)
