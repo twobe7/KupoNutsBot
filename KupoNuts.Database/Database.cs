@@ -18,7 +18,7 @@ namespace KupoNuts
 	[Serializable]
 	public class Database
 	{
-		public static int Version = 2;
+		public static int Version = 3;
 		public static string Location = "data_" + Version + ".json";
 
 		public string Token;
