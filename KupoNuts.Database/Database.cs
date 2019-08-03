@@ -112,18 +112,17 @@ namespace KupoNuts
 			}
 		}
 
-		public List<Notification> GetNotifications(string eventId)
+		public Notification GetNotification(string eventId)
 		{
-			List<Notification> results = new List<Notification>();
 			foreach (Notification notify in this.Notifications)
 			{
 				if (notify.EventId == eventId)
 				{
-					results.Add(notify);
+					return notify;
 				}
 			}
 
-			return results;
+			return null;
 		}
 
 		/// <summary>

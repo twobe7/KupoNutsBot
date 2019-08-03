@@ -141,6 +141,20 @@ namespace KupoNuts.Utils
 			return builder.ToString();
 		}
 
+		public static string GetDayName(int daysAway)
+		{
+			if (daysAway == 0)
+				return "Today";
+
+			if (daysAway == 1)
+				return "Tommorow";
+
+			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+			Instant then = TimeUtils.Now + Duration.FromDays(daysAway);
+			IsoDayOfWeek day = then.InZone(zone).DayOfWeek;
+			return day.ToString();
+		}
+
 		private static DateTimeZone GetTimeZone(string id)
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(id);

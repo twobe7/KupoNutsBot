@@ -9,117 +9,166 @@ namespace KupoNuts.Bot.Services
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNuts.Bot.Events;
+	using KupoNuts.Events;
+	using KupoNuts.Utils;
+	using NodaTime;
 
 	public class CalendarService : ServiceBase
 	{
+		private bool online = false;
+
 		public override async Task Initialize()
 		{
-			Database db = Database.Load();
+			this.online = true;
 
-			if (string.IsNullOrEmpty(db.CalendarChannel))
-				return;
-
-			ulong channelId = ulong.Parse(db.CalendarChannel);
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
-
-			// This week
-			ulong messageId = 0;
-
-			if (!string.IsNullOrEmpty(db.CalendarMessage))
-				messageId = ulong.Parse(db.CalendarMessage);
-
-			StringBuilder builder = new StringBuilder();
-			builder.AppendLine("**Events in the next week**");
-			builder.AppendLine();
-
-			builder.AppendLine("Today");
-			builder.AppendLine("- [Mount Farm](https://discordapp.com/channels/391492798353768449/396103387223162881/604606478694875136) - In 1 Hour, 45 Minutes");
-			builder.AppendLine();
-
-			builder.AppendLine("Tomorrow");
-			builder.AppendLine(" - [Admin Meeting](https://discordapp.com/channels/391492798353768449/604511137299431424/607106732723929088)");
-			builder.AppendLine(" - [Sunday Funday](https://discordapp.com/channels/391492798353768449/396103387223162881/604613965150158867)");
-			builder.AppendLine();
-
-			////weekBuilder.AppendLine("**Monday**");
-			////weekBuilder.AppendLine("None");
-			////weekBuilder.AppendLine();
-
-			builder.AppendLine("Tuesday");
-			builder.AppendLine(" - [Kuponauts Static Night](https://discordapp.com/channels/391492798353768449/567206290372165644/606418388054704139)");
-			builder.AppendLine();
-
-			////weekBuilder.AppendLine("**Wednesday**");
-			////weekBuilder.AppendLine("None");
-			////weekBuilder.AppendLine();
-
-			builder.AppendLine("Thursday");
-			builder.AppendLine(" - [Kuponauts Static Night](https://discordapp.com/channels/391492798353768449/567206290372165644/606418388054704139)");
-			builder.AppendLine(" - [Thursday DnD](https://discordapp.com/channels/391492798353768449/540172911269380096/605686026521935872)");
-			builder.AppendLine();
-
-			builder.AppendLine("Friday");
-			builder.AppendLine(" - [Maps](https://discordapp.com/channels/391492798353768449/396103387223162881/606425996010192896)");
-			builder.AppendLine();
-
-			EmbedBuilder embedBuilder = new EmbedBuilder();
-			embedBuilder.Description = builder.ToString();
-
-			if (messageId == 0)
-			{
-				RestUserMessage message = await channel.SendMessageAsync(null, false, embedBuilder.Build());
-
-				db = Database.Load();
-				db.CalendarMessage = message.Id.ToString();
-				db.Save();
-			}
-			else
-			{
-				RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(messageId);
-				await message.ModifyAsync(x =>
-				{
-					x.Embed = embedBuilder.Build();
-				});
-			}
-
-			// Future
-			messageId = 0;
-
-			if (!string.IsNullOrEmpty(db.CalendarMessage2))
-				messageId = ulong.Parse(db.CalendarMessage2);
-
-			builder = new StringBuilder();
-
-			builder.AppendLine("**Future events**");
-			builder.AppendLine();
-			builder.AppendLine("Monday 30th September 2019");
-			builder.AppendLine(" - [The Eikonic](https://discordapp.com/channels/391492798353768449/396103387223162881/606425996010192896)");
-			builder.AppendLine();
-
-			embedBuilder = new EmbedBuilder();
-			embedBuilder.Description = builder.ToString();
-
-			if (messageId == 0)
-			{
-				RestUserMessage message = await channel.SendMessageAsync(null, false, embedBuilder.Build());
-
-				db = Database.Load();
-				db.CalendarMessage2 = message.Id.ToString();
-				db.Save();
-			}
-			else
-			{
-				RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(messageId);
-				await message.ModifyAsync(x =>
-				{
-					x.Embed = embedBuilder.Build();
-				});
-			}
+			await this.Update();
+			_ = Task.Factory.StartNew(this.AutoUpdate, TaskCreationOptions.LongRunning);
 		}
 
 		public override Task Shutdown()
 		{
+			this.online = false;
 			return Task.CompletedTask;
+		}
+
+		private async Task AutoUpdate()
+		{
+			while (this.online)
+			{
+				int minutes = DateTime.UtcNow.Minute;
+				int delay = 15 - minutes;
+				while (delay < 0)
+					delay += 15;
+
+				await Task.Delay(new TimeSpan(0, delay, 0));
+
+				await this.Update();
+
+				await Task.Delay(new TimeSpan(0, 2, 0));
+			}
+		}
+
+		private async Task Update()
+		{
+			Database db = Database.Load();
+
+			ulong channelId = 0;
+			ulong weekMessageID = 0;
+			ulong futureMessageID = 0;
+
+			ulong.TryParse(db.CalendarChannel, out channelId);
+			ulong.TryParse(db.CalendarMessage, out weekMessageID);
+			ulong.TryParse(db.CalendarMessage2, out futureMessageID);
+
+			if (channelId == 0)
+				return;
+
+			await this.Update(channelId, weekMessageID, "Events in the next week", 0, 7);
+			await this.Update(channelId, futureMessageID, "Events in the future", 7, 30);
+		}
+
+		private string GetEventString(Event evt)
+		{
+			// should come from notification, probably.
+			string serverId = "391492798353768449";
+
+			StringBuilder builder = new StringBuilder();
+
+			Database db = Database.Load();
+			Notification notify = db.GetNotification(evt.Id);
+			if (notify != null)
+			{
+				builder.Append(" - [");
+				builder.Append(evt.Name);
+				builder.Append("](");
+				builder.Append("https://discordapp.com/channels/");
+				builder.Append(serverId);
+				builder.Append("/");
+				builder.Append(notify.ChannelId);
+				builder.Append("/");
+				builder.Append(notify.MessageId);
+				builder.Append(")");
+			}
+			else
+			{
+				builder.Append(" - ");
+				builder.Append(evt.Name);
+			}
+
+			// Today
+			Duration? duration = evt.GetDurationTill();
+			if (duration != null && duration.Value.TotalDays < 1)
+			{
+				builder.Append(" - In ");
+				builder.Append(TimeUtils.GetDurationString(duration));
+			}
+
+			return builder.ToString();
+		}
+
+		// "**Events in the next week**", 0, 7
+		private async Task<ulong> Update(ulong channelId, ulong messageId, string header, int minDays, int maxDays)
+		{
+			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
+
+			StringBuilder builder = new StringBuilder();
+			builder.Append("**");
+			builder.Append(header);
+			builder.AppendLine("**");
+			builder.AppendLine();
+
+			Dictionary<int, List<Event>> weekEvents = new Dictionary<int, List<Event>>();
+
+			Database db = Database.Load();
+			foreach (Event evt in db.Events)
+			{
+				int days = evt.GetDaysTill();
+
+				if (days < minDays || days >= maxDays)
+					continue;
+
+				if (!weekEvents.ContainsKey(days))
+					weekEvents.Add(days, new List<Event>());
+
+				weekEvents[days].Add(evt);
+			}
+
+			int count = 0;
+			foreach ((int days, List<Event> events) in weekEvents)
+			{
+				builder.AppendLine(TimeUtils.GetDayName(days));
+
+				foreach (Event evt in events)
+				{
+					builder.AppendLine(this.GetEventString(evt));
+					builder.AppendLine();
+					count++;
+				}
+			}
+
+			if (count == 0)
+				builder.AppendLine("None");
+
+			EmbedBuilder embedBuilder = new EmbedBuilder();
+			embedBuilder.Description = builder.ToString();
+			embedBuilder.Color = Color.Blue;
+
+			if (messageId == 0)
+			{
+				RestUserMessage message = await channel.SendMessageAsync(null, false, embedBuilder.Build());
+				messageId = message.Id;
+			}
+			else
+			{
+				RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(messageId);
+				await message.ModifyAsync(x =>
+				{
+					x.Embed = embedBuilder.Build();
+				});
+			}
+
+			return messageId;
 		}
 	}
 }

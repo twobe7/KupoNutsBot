@@ -23,7 +23,7 @@ namespace KupoNuts.Bot.Status
 
 			CommandsService.BindCommand("SetStatusChannel", this.SetStatusChannel, Permissions.Administrators, "Sets the channel for posting status.");
 
-			_ = Task.Factory.StartNew(() => this.UpdateStatus(), TaskCreationOptions.LongRunning);
+			_ = Task.Factory.StartNew(this.UpdateStatus, TaskCreationOptions.LongRunning);
 
 			await this.PostStatus();
 		}

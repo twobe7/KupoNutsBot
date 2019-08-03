@@ -196,5 +196,63 @@ namespace KupoNuts.Bot.Events
 
 			return InstantPattern.ExtendedIso.Parse(self.DateTime).Value;
 		}
+
+		public static Duration? GetDurationTill(this Event self)
+		{
+			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+			return self.GetNextOccurance(zone) - TimeUtils.Now;
+		}
+
+		public static int GetDaysTill(this Event self)
+		{
+			Duration? duration = self.GetDurationTill();
+
+			if (duration == null)
+				return -1;
+
+			return (int)Math.Floor(((Duration)duration).TotalDays);
+		}
+
+		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
+		{
+			Instant eventDateTime = self.GetDateTime();
+
+			Instant now = SystemClock.Instance.GetCurrentInstant();
+			if (eventDateTime < now)
+			{
+				if (self.Repeats == 0)
+					return null;
+
+				LocalDate nextDate;
+				LocalDateTime dateTime = eventDateTime.InZone(zone).LocalDateTime;
+
+				LocalDate date = dateTime.Date;
+				LocalDate todaysDate = TimeUtils.Now.InZone(zone).LocalDateTime.Date;
+
+				List<LocalDate> dates = new List<LocalDate>();
+				foreach (Event.Days day in Enum.GetValues(typeof(Event.Days)))
+				{
+					if (!FlagsUtils.IsSet(self.Repeats, day))
+						continue;
+
+					nextDate = todaysDate.Next(TimeUtils.ToIsoDay(day));
+					dates.Add(nextDate);
+				}
+
+				if (dates.Count <= 0)
+					return eventDateTime;
+
+				dates.Sort();
+				nextDate = dates[0];
+
+				Period dateOffset = nextDate - date;
+				dateTime = dateTime + dateOffset;
+
+				Instant nextInstant = dateTime.InZoneLeniently(zone).ToInstant();
+				return nextInstant;
+			}
+
+			return eventDateTime;
+		}
 	}
 }

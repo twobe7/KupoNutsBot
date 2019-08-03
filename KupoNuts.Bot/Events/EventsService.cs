@@ -58,7 +58,7 @@ namespace KupoNuts.Bot.Events
 				if (channel == null)
 					continue;
 
-				if (db.GetNotifications(evt.Id).Count <= 0)
+				if (db.GetNotification(evt.Id) == null)
 				{
 					await evt.Post();
 				}
