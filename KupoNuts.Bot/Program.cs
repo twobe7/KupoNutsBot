@@ -57,6 +57,7 @@ namespace KupoNuts.Bot
 				await this.AddService<ReminderService>();
 				await this.AddService<EchoService>();
 				await this.AddService<KarmaService>();
+				await this.AddService<CalendarService>();
 			}
 			catch (Exception ex)
 			{

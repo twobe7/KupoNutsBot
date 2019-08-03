@@ -21,6 +21,9 @@ namespace KupoNuts
 		public ulong LogChannel;
 		public ulong StatusMessage;
 		public ulong StatusChannel;
+		public string CalendarChannel;
+		public string CalendarMessage;
+		public string CalendarMessage2;
 		public List<Channel> Channels = new List<Channel>();
 		public List<Event> Events = new List<Event>();
 		public List<Attendee> Attendees = new List<Attendee>();
