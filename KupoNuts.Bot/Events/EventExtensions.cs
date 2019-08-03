@@ -205,12 +205,17 @@ namespace KupoNuts.Bot.Events
 
 		public static int GetDaysTill(this Event self)
 		{
-			Duration? duration = self.GetDurationTill();
+			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+			Instant? nextOccurance = self.GetNextOccurance(zone);
 
-			if (duration == null)
+			if (nextOccurance == null)
 				return -1;
 
-			return (int)Math.Floor(((Duration)duration).TotalDays);
+			ZonedDateTime zdt = ((Instant)nextOccurance).InZone(zone);
+			LocalDateTime ldt = zdt.LocalDateTime;
+			Duration duration = ldt.Date.AtMidnight().InZoneLeniently(zone).ToInstant() - TimeUtils.Now;
+
+			return (int)Math.Floor(duration.TotalDays);
 		}
 
 		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
