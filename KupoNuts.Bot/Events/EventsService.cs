@@ -29,10 +29,10 @@ namespace KupoNuts.Bot.Events
 		{
 			Instance = this;
 
-			CommandsService.BindCommand("events", this.CheckNotifications, Permissions.Administrators, "Checks event notifications");
+			CommandsService.BindCommand("events", this.Update, Permissions.Administrators, "Checks event notifications");
 
 			_ = Task.Factory.StartNew(this.AutoUpdate, TaskCreationOptions.LongRunning);
-			await this.CheckNotifications();
+			await this.Update();
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
 		}
@@ -70,17 +70,31 @@ namespace KupoNuts.Bot.Events
 
 				await Task.Delay(new TimeSpan(0, delay, 0));
 
-				await this.CheckNotifications();
+				await this.Update();
 
 				await Task.Delay(new TimeSpan(0, 2, 0));
 			}
 		}
 
-		private async Task CheckNotifications()
+		private async Task Update()
 		{
 			Database db = Database.Load();
 			db.SanatiseAttendees();
 			db.Save();
+
+			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+
+			for (int i = db.Events.Count - 1; i >= 0; i--)
+			{
+				Event evt = db.Events[i];
+				Instant? next = evt.GetNextOccurance(zone);
+
+				// will never occur (past event)
+				if (next == null)
+				{
+					db.DeleteEvent(evt.Id);
+				}
+			}
 
 			for (int i = db.Notifications.Count - 1; i >= 0; i--)
 			{
@@ -88,11 +102,12 @@ namespace KupoNuts.Bot.Events
 				Event evt = db.GetEvent(db.Notifications[i].EventId);
 
 				// dead reminder.
-				if (message is null || evt is null)
+				if (message is null || evt is null || !this.ShouldNotify(evt))
 				{
 					await db.Notifications[i].Delete();
 					db.Notifications.RemoveAt(i);
 					db.Save();
+					continue;
 				}
 
 				this.Watch(message, evt);
@@ -119,7 +134,7 @@ namespace KupoNuts.Bot.Events
 		{
 			Duration? timeTillEvent = evt.GetDurationTill();
 
-			// Event in the past. shoudl be deleted...
+			// Event in the past.
 			if (timeTillEvent == null)
 				return false;
 

@@ -219,8 +219,6 @@
 		this.evt.GetNotifyDuration(out this.NotifyDuration);
 		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, KupoNuts.Channel.Types.Text));
 
-		Console.WriteLine("<< " + this.evt.NotifyDuration + " -- " + this.NotifyDuration);
-
 		this.Channel = this.evt.ChannelId;
 		if (string.IsNullOrEmpty(this.evt.ChannelId))
 		{

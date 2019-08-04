@@ -153,9 +153,10 @@ namespace KupoNuts.Bot.Events
 			ulong id = ulong.Parse(self.MessageId);
 
 			SocketTextChannel channel = self.GetChannel();
+			if (channel is null)
+				return null;
 
 			IMessage message = await channel.GetMessageAsync(id);
-
 			if (message is null)
 				return null;
 
