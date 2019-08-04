@@ -127,26 +127,28 @@ namespace KupoNuts.Bot.Services
 			builder.AppendLine("**");
 			builder.AppendLine();
 
-			Dictionary<int, List<Event>> weekEvents = new Dictionary<int, List<Event>>();
+			Dictionary<int, List<Event>> eventSchedule = new Dictionary<int, List<Event>>();
 
 			Database db = Database.Load();
 			foreach (Event evt in db.Events)
 			{
 				int days = evt.GetDaysTill();
 
-				if (days < minDays || days >= maxDays)
-					continue;
+				if (!eventSchedule.ContainsKey(days))
+					eventSchedule.Add(days, new List<Event>());
 
-				if (!weekEvents.ContainsKey(days))
-					weekEvents.Add(days, new List<Event>());
-
-				weekEvents[days].Add(evt);
+				eventSchedule[days].Add(evt);
 			}
 
 			int count = 0;
-			foreach ((int days, List<Event> events) in weekEvents)
+			for (int i = minDays; i < maxDays; i++)
 			{
-				builder.AppendLine(TimeUtils.GetDayName(days));
+				if (!eventSchedule.ContainsKey(i))
+					continue;
+
+				List<Event> events = eventSchedule[i];
+
+				builder.AppendLine(TimeUtils.GetDayName(i));
 
 				foreach (Event evt in events)
 				{
