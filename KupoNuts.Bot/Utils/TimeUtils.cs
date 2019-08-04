@@ -101,7 +101,7 @@ namespace KupoNuts.Utils
 			return builder.ToString();
 		}
 
-		public static string GetDurationString(Duration? timeNull, float roundMinutes = 0)
+		public static string GetDurationString(Duration? timeNull)
 		{
 			if (timeNull == null)
 				return "Never";
@@ -132,15 +132,14 @@ namespace KupoNuts.Utils
 				builder.Append(" hours ");
 			}
 
-			double minutes = Math.Round(time.Minutes / roundMinutes) * roundMinutes;
-			if (minutes == 1)
+			if (time.Minutes == 1)
 			{
-				builder.Append(minutes);
+				builder.Append(time.Minutes);
 				builder.Append(" minute ");
 			}
-			else if (minutes > 1)
+			else if (time.Minutes > 1)
 			{
-				builder.Append(minutes);
+				builder.Append(time.Minutes);
 				builder.Append(" minutes ");
 			}
 
