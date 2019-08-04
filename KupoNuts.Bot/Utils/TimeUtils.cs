@@ -70,9 +70,14 @@ namespace KupoNuts.Utils
 		public static string GetDateTimeString(Instant dt)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.AppendLine(dt.InZone(AEST).ToString("dddd dd MMMM", CultureInfo.InvariantCulture));
+			builder.AppendLine(GetDateString(dt));
 			builder.Append(GetTimeString(dt));
 			return builder.ToString();
+		}
+
+		public static string GetDateString(Instant dt)
+		{
+			return dt.InZone(AEST).ToString("dddd dd MMMM", CultureInfo.InvariantCulture);
 		}
 
 		public static string GetTimeString(Instant dt)
@@ -151,8 +156,16 @@ namespace KupoNuts.Utils
 
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 			Instant then = TimeUtils.Now + Duration.FromDays(daysAway);
-			IsoDayOfWeek day = then.InZone(zone).DayOfWeek;
-			return day.ToString();
+
+			if (daysAway >= 7)
+			{
+				return GetDateString(then);
+			}
+			else
+			{
+				IsoDayOfWeek day = then.InZone(zone).DayOfWeek;
+				return day.ToString();
+			}
 		}
 
 		private static DateTimeZone GetTimeZone(string id)
