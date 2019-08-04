@@ -150,7 +150,7 @@ namespace KupoNuts.Utils
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 			int minute = instant.InZone(zone).Minute;
-			int newMinute = (int)Math.Round(minute * 15.0) / 15;
+			int newMinute = (int)Math.Round(minute / 15.0) * 15;
 
 			int change = newMinute - minute;
 			Duration changeduration = Duration.FromMinutes(change);
