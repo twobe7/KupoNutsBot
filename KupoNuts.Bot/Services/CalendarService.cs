@@ -110,7 +110,7 @@ namespace KupoNuts.Bot.Services
 			if (days == 0)
 			{
 				builder.Append(" - In ");
-				builder.Append(TimeUtils.GetDurationString(evt.GetDurationTill()));
+				builder.Append(TimeUtils.GetDurationString(evt.GetDurationTill(), 15));
 			}
 
 			return builder.ToString();

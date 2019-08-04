@@ -46,9 +46,9 @@ namespace KupoNuts.Bot.Events
 
 			StringBuilder timeBuilder = new StringBuilder();
 			timeBuilder.Append("In ");
-			timeBuilder.AppendLine(TimeUtils.GetDurationString(evt.GetDurationTill()));
+			timeBuilder.AppendLine(TimeUtils.GetDurationString(evt.GetDurationTill(), 15));
 			timeBuilder.AppendLine();
-			timeBuilder.Append(TimeUtils.GetDurationString(evt.GetDuration()));
+			timeBuilder.Append(TimeUtils.GetDurationString(evt.GetDuration(), 15));
 			timeBuilder.Append(" ");
 
 			string repeat = evt.GetRepeatsString();
