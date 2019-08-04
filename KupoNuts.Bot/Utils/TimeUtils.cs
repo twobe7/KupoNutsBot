@@ -149,13 +149,17 @@ namespace KupoNuts.Utils
 		public static Instant RoundInstant(Instant instant)
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+
+			int second = instant.InZone(zone).Second;
+			Duration secondChange = Duration.FromSeconds(-second);
+			instant += secondChange;
+
 			int minute = instant.InZone(zone).Minute;
 			int newMinute = (int)Math.Round(minute / 15.0) * 15;
+			Duration minutechange = Duration.FromMinutes(newMinute - minute);
+			instant += minutechange;
 
-			int change = newMinute - minute;
-			Duration changeduration = Duration.FromMinutes(change);
-
-			return instant + changeduration;
+			return instant;
 		}
 
 		public static string GetDayName(int daysAway)
