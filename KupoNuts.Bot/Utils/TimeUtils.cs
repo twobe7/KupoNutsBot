@@ -149,12 +149,12 @@ namespace KupoNuts.Utils
 		public static Instant RoundInstant(Instant instant)
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+			ZonedDateTime zdt = instant.InZone(zone);
 
-			int second = instant.InZone(zone).Second;
-			Duration secondChange = Duration.FromSeconds(-second);
-			instant += secondChange;
+			instant += Duration.FromNanoseconds(-zdt.NanosecondOfSecond);
+			instant += Duration.FromSeconds(-zdt.Second);
 
-			int minute = instant.InZone(zone).Minute;
+			int minute = zdt.Minute;
 			int newMinute = (int)Math.Round(minute / 15.0) * 15;
 			Duration minutechange = Duration.FromMinutes(newMinute - minute);
 			instant += minutechange;

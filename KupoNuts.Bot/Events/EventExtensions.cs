@@ -222,7 +222,8 @@ namespace KupoNuts.Bot.Events
 		public static Duration? GetDurationTill(this Event self)
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
-			return self.GetNextOccurance(zone) - TimeUtils.RoundInstant(TimeUtils.Now);
+			Duration? duration = self.GetNextOccurance(zone) - TimeUtils.RoundInstant(TimeUtils.Now);
+			return duration;
 		}
 
 		public static int GetDaysTill(this Event self)
