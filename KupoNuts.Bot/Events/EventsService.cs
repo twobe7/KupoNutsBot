@@ -96,6 +96,9 @@ namespace KupoNuts.Bot.Events
 				}
 			}
 
+			db.Save();
+			db = Database.Load();
+
 			for (int i = db.Notifications.Count - 1; i >= 0; i--)
 			{
 				RestUserMessage message = await db.Notifications[i].GetMessage();
@@ -104,6 +107,7 @@ namespace KupoNuts.Bot.Events
 				// dead reminder.
 				if (message is null || evt is null || !this.ShouldNotify(evt))
 				{
+					evt.ClearAttendees(db);
 					await db.Notifications[i].Delete();
 					db.Notifications.RemoveAt(i);
 					db.Save();

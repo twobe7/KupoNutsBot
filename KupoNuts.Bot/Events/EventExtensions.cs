@@ -116,6 +116,20 @@ namespace KupoNuts.Bot.Events
 			return builder.ToString();
 		}
 
+		/// <summary>
+		/// Deletes all attendees for the given event.
+		/// </summary>
+		public static void ClearAttendees(this Event self, Database db)
+		{
+			for (int i = db.Attendees.Count - 1; i >= 0; i--)
+			{
+				if (db.Attendees[i].EventId == self.Id)
+				{
+					db.Attendees.RemoveAt(i);
+				}
+			}
+		}
+
 		public static void SetAttendeeStatus(this Event self, ulong userId, int status)
 		{
 			Database db = Database.Load();
