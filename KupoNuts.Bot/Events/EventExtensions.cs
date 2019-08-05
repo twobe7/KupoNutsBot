@@ -294,6 +294,10 @@ namespace KupoNuts.Bot.Events
 					dateTime = dateTime + dateOffset;
 
 					Instant occurance = dateTime.InZoneLeniently(zone).ToInstant();
+
+					if (occurance + eventDuration < now)
+						continue;
+
 					occurances.Add(occurance);
 				}
 			}
