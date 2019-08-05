@@ -246,39 +246,23 @@ namespace KupoNuts.Bot.Events
 			return duration;
 		}
 
-		public static int GetDaysTill(this Event self)
-		{
-			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
-			Instant? nextOccurance = self.GetNextOccurance(zone);
-
-			if (nextOccurance == null)
-				return -1;
-
-			ZonedDateTime zdt = TimeUtils.Now.InZone(zone);
-			LocalDateTime ldt = zdt.LocalDateTime;
-			ldt = ldt.Date.AtMidnight();
-			zdt = ldt.InZoneLeniently(zone);
-
-			Duration duration = ((Instant)nextOccurance) - zdt.ToInstant();
-
-			return (int)Math.Floor(duration.TotalDays);
-		}
-
-		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
+		public static List<Instant> GetNextOccurances(this Event self, DateTimeZone zone)
 		{
 			Instant eventDateTime = self.GetDateTime();
 			Duration eventDuration = self.GetDuration();
-
 			Instant now = SystemClock.Instance.GetCurrentInstant();
-			if (eventDateTime + eventDuration < now)
-			{
-				if (self.Repeats == 0)
-				{
-					// This event has already happened.
-					return null;
-				}
 
-				LocalDate nextDate;
+			List<Instant> occurances = new List<Instant>();
+
+			if (self.Repeats == 0)
+			{
+				if (eventDateTime > now)
+				{
+					occurances.Add(eventDateTime);
+				}
+			}
+			else
+			{
 				LocalDateTime dateTime = eventDateTime.InZone(zone).LocalDateTime;
 
 				LocalDate date = dateTime.Date;
@@ -290,24 +274,40 @@ namespace KupoNuts.Bot.Events
 					if (!FlagsUtils.IsSet(self.Repeats, day))
 						continue;
 
-					nextDate = todaysDate.Next(TimeUtils.ToIsoDay(day));
-					dates.Add(nextDate);
+					IsoDayOfWeek dayOfWeek = TimeUtils.ToIsoDay(day);
+
+					if (todaysDate.DayOfWeek == dayOfWeek)
+					{
+						dates.Add(todaysDate);
+					}
+					else
+					{
+						dates.Add(todaysDate.Next(dayOfWeek));
+					}
 				}
 
-				if (dates.Count <= 0)
-					return eventDateTime;
-
 				dates.Sort();
-				nextDate = dates[0];
 
-				Period dateOffset = nextDate - date;
-				dateTime = dateTime + dateOffset;
+				foreach (LocalDate nextDate in dates)
+				{
+					Period dateOffset = nextDate - date;
+					dateTime = dateTime + dateOffset;
 
-				Instant nextInstant = dateTime.InZoneLeniently(zone).ToInstant();
-				return nextInstant;
+					Instant occurance = dateTime.InZoneLeniently(zone).ToInstant();
+					occurances.Add(occurance);
+				}
 			}
 
-			return eventDateTime;
+			return occurances;
+		}
+
+		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
+		{
+			List<Instant> occurances = self.GetNextOccurances(zone);
+			if (occurances == null || occurances.Count <= 0)
+				return null;
+
+			return occurances[0];
 		}
 	}
 }

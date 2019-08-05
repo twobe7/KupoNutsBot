@@ -183,6 +183,18 @@ namespace KupoNuts.Utils
 			}
 		}
 
+		public static int GetDaysTill(Instant instant, DateTimeZone zone)
+		{
+			ZonedDateTime zdt = TimeUtils.Now.InZone(zone);
+			LocalDateTime ldt = zdt.LocalDateTime;
+			ldt = ldt.Date.AtMidnight();
+			zdt = ldt.InZoneLeniently(zone);
+
+			Duration duration = instant - zdt.ToInstant();
+
+			return (int)Math.Floor(duration.TotalDays);
+		}
+
 		private static DateTimeZone GetTimeZone(string id)
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(id);

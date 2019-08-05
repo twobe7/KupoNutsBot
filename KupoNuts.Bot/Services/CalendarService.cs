@@ -77,7 +77,7 @@ namespace KupoNuts.Bot.Services
 			db.Save();
 		}
 
-		private string GetEventString(Event evt)
+		private string GetEventString(Event evt, int daysTill)
 		{
 			// should come from notification, probably.
 			string serverId = "391492798353768449";
@@ -106,8 +106,7 @@ namespace KupoNuts.Bot.Services
 			}
 
 			// Today
-			int days = evt.GetDaysTill();
-			if (days == 0)
+			if (daysTill == 0)
 			{
 				builder.Append(" - ");
 				builder.Append(evt.GetWhenString());
@@ -116,7 +115,6 @@ namespace KupoNuts.Bot.Services
 			return builder.ToString();
 		}
 
-		// "**Events in the next week**", 0, 7
 		private async Task<ulong> Update(ulong channelId, ulong messageId, string header, int minDays, int maxDays)
 		{
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
@@ -129,15 +127,21 @@ namespace KupoNuts.Bot.Services
 
 			Dictionary<int, List<Event>> eventSchedule = new Dictionary<int, List<Event>>();
 
+			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 			Database db = Database.Load();
 			foreach (Event evt in db.Events)
 			{
-				int days = evt.GetDaysTill();
+				List<Instant> occurances = evt.GetNextOccurances(zone);
 
-				if (!eventSchedule.ContainsKey(days))
-					eventSchedule.Add(days, new List<Event>());
+				foreach (Instant occurance in occurances)
+				{
+					int days = TimeUtils.GetDaysTill(occurance, zone);
 
-				eventSchedule[days].Add(evt);
+					if (!eventSchedule.ContainsKey(days))
+						eventSchedule.Add(days, new List<Event>());
+
+					eventSchedule[days].Add(evt);
+				}
 			}
 
 			int count = 0;
@@ -152,7 +156,7 @@ namespace KupoNuts.Bot.Services
 
 				foreach (Event evt in events)
 				{
-					builder.AppendLine(this.GetEventString(evt));
+					builder.AppendLine(this.GetEventString(evt, i));
 					builder.AppendLine();
 					count++;
 				}
