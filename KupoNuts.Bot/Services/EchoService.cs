@@ -37,7 +37,10 @@ namespace KupoNuts.Bot.Services
 
 			if (channel is SocketTextChannel textChannel)
 			{
-				IEnumerable<IMessage> messages = await message.Channel.GetMessagesAsync(message.Id, Discord.Direction.Before, 1).FlattenAsync();
+				int count = 1;
+				int.TryParse(args[0], out count);
+
+				IEnumerable<IMessage> messages = await message.Channel.GetMessagesAsync(message.Id, Discord.Direction.Before, count).FlattenAsync();
 				foreach (IMessage prevMessage in messages)
 				{
 					if (prevMessage.Embeds.Count > 0)
