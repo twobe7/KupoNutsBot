@@ -109,8 +109,8 @@ namespace KupoNuts.Bot.Services
 			int days = evt.GetDaysTill();
 			if (days == 0)
 			{
-				builder.Append(" - In ");
-				builder.Append(TimeUtils.GetDurationString(evt.GetDurationTill()));
+				builder.Append(" - ");
+				builder.Append(evt.GetWhenString());
 			}
 
 			return builder.ToString();

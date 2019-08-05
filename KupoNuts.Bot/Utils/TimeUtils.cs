@@ -104,10 +104,9 @@ namespace KupoNuts.Utils
 		public static string GetDurationString(Duration? timeNull)
 		{
 			if (timeNull == null)
-				return "Never";
+				return null;
 
 			Duration time = (Duration)timeNull;
-
 			StringBuilder builder = new StringBuilder();
 
 			if (time.Days == 1)

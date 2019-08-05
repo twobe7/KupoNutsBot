@@ -211,6 +211,26 @@ namespace KupoNuts.Bot.Events
 			return DurationPattern.Roundtrip.Parse(self.Duration).Value;
 		}
 
+		public static string GetWhenString(this Event self)
+		{
+			Duration? durationTill = self.GetDurationTill();
+
+			if (durationTill == null)
+				return "Never";
+
+			Duration time = (Duration)durationTill;
+
+			if (time.TotalSeconds < 0)
+			{
+				Instant now = TimeUtils.RoundInstant(TimeUtils.Now);
+				Instant instant = now + time + self.GetDuration();
+				Duration endsIn = instant - now;
+				return "Ends in " + TimeUtils.GetDurationString(endsIn);
+			}
+
+			return "In " + TimeUtils.GetDurationString(time);
+		}
+
 		public static Instant GetDateTime(this Event self)
 		{
 			if (string.IsNullOrEmpty(self.DateTime))
@@ -247,9 +267,10 @@ namespace KupoNuts.Bot.Events
 		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
 		{
 			Instant eventDateTime = self.GetDateTime();
+			Duration eventDuration = self.GetDuration();
 
 			Instant now = SystemClock.Instance.GetCurrentInstant();
-			if (eventDateTime < now)
+			if (eventDateTime + eventDuration < now)
 			{
 				if (self.Repeats == 0)
 				{

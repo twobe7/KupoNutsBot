@@ -45,8 +45,7 @@ namespace KupoNuts.Bot.Events
 			builder.Timestamp = evt.NextOccurance();*/
 
 			StringBuilder timeBuilder = new StringBuilder();
-			timeBuilder.Append("In ");
-			timeBuilder.AppendLine(TimeUtils.GetDurationString(evt.GetDurationTill()));
+			timeBuilder.AppendLine(evt.GetWhenString());
 			timeBuilder.AppendLine();
 			timeBuilder.Append(TimeUtils.GetDurationString(evt.GetDuration()));
 			timeBuilder.Append(" ");
