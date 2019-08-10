@@ -145,6 +145,11 @@ namespace KupoNuts.Bot.Events
 			builder.Append(self.ChannelId);
 			builder.Append("/");
 			builder.Append(self.MessageId);
+
+			builder.Append(" \"");
+			builder.Append(evt.Description);
+			builder.Append("\"");
+
 			builder.Append(")");
 
 			return builder.ToString();
