@@ -130,7 +130,7 @@ namespace KupoNuts.Bot.Events
 			}
 		}
 
-		public static void SetAttendeeStatus(this Event self, ulong userId, int status)
+		public static void SetAttendeeStatus(this Event self, string userId, int status)
 		{
 			Database db = Database.Load();
 
@@ -140,13 +140,29 @@ namespace KupoNuts.Bot.Events
 			db.Save();
 		}
 
-		public static Attendee GetAttendee(this Event self, ulong userId)
+		public static List<Attendee> GetAttendees(this Event self)
+		{
+			List<Attendee> attendees = new List<Attendee>();
+			Database db = Database.Load();
+
+			foreach (Attendee attendee in db.Attendees)
+			{
+				if (attendee.EventId != self.Id)
+					continue;
+
+				attendees.Add(attendee);
+			}
+
+			return attendees;
+		}
+
+		public static Attendee GetAttendee(this Event self, string userId)
 		{
 			Database db = Database.Load();
 			return self.GetAttendee(db, userId);
 		}
 
-		public static Attendee GetAttendee(this Event self, Database db, ulong userId)
+		public static Attendee GetAttendee(this Event self, Database db, string userId)
 		{
 			foreach (Attendee attendee in db.Attendees)
 			{
@@ -225,10 +241,10 @@ namespace KupoNuts.Bot.Events
 				Instant now = TimeUtils.RoundInstant(TimeUtils.Now);
 				Instant instant = now + time + self.GetDuration();
 				Duration endsIn = instant - now;
-				return "Ends in " + TimeUtils.GetDurationString(endsIn);
+				return "Ends in" + TimeUtils.GetDurationString(endsIn);
 			}
 
-			return "In " + TimeUtils.GetDurationString(time);
+			return "In" + TimeUtils.GetDurationString(time);
 		}
 
 		public static Instant GetDateTime(this Event self)

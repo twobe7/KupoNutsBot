@@ -8,10 +8,10 @@ namespace KupoNuts.Events
 		{
 		}
 
-		public Attendee(string eventId, ulong userId)
+		public Attendee(string eventId, string userId)
 		{
 			this.EventId = eventId;
-			this.UserId = userId.ToString();
+			this.UserId = userId;
 		}
 
 		public string EventId { get; set; }

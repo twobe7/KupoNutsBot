@@ -17,40 +17,18 @@ namespace KupoNuts.Bot.Services
 
 	public class CalendarService : ServiceBase
 	{
-		private bool online = false;
-
 		public override async Task Initialize()
 		{
-			this.online = true;
-
 			CommandsService.BindCommand("calendar", this.Update, Permissions.Administrators, "Updates the calendar");
 
+			Scheduler.RunOnSchedule(this.Update, 15);
 			await this.Update();
-			_ = Task.Factory.StartNew(this.AutoUpdate, TaskCreationOptions.LongRunning);
 		}
 
 		public override Task Shutdown()
 		{
-			this.online = false;
 			CommandsService.ClearCommand("calendar");
 			return Task.CompletedTask;
-		}
-
-		private async Task AutoUpdate()
-		{
-			while (this.online)
-			{
-				int minutes = DateTime.UtcNow.Minute;
-				int delay = 15 - minutes;
-				while (delay < 0)
-					delay += 15;
-
-				await Task.Delay(new TimeSpan(0, delay, 0));
-
-				await this.Update();
-
-				await Task.Delay(new TimeSpan(0, 2, 0));
-			}
 		}
 
 		private async Task Update()
@@ -79,25 +57,14 @@ namespace KupoNuts.Bot.Services
 
 		private string GetEventString(Event evt, int daysTill)
 		{
-			// should come from notification, probably.
-			string serverId = "391492798353768449";
-
 			StringBuilder builder = new StringBuilder();
 
 			Database db = Database.Load();
 			Notification notify = db.GetNotification(evt.Id);
 			if (notify != null)
 			{
-				builder.Append(" - [");
-				builder.Append(evt.Name);
-				builder.Append("](");
-				builder.Append("https://discordapp.com/channels/");
-				builder.Append(serverId);
-				builder.Append("/");
-				builder.Append(notify.ChannelId);
-				builder.Append("/");
-				builder.Append(notify.MessageId);
-				builder.Append(")");
+				builder.Append(" - ");
+				builder.Append(notify.GetLink());
 			}
 			else
 			{

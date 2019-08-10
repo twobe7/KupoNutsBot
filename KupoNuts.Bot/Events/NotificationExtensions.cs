@@ -129,6 +129,27 @@ namespace KupoNuts.Bot.Events
 			}
 		}
 
+		public static string GetLink(this Notification self)
+		{
+			Database db = Database.Load();
+			Event evt = db.GetEvent(self.EventId);
+
+			StringBuilder builder = new StringBuilder();
+
+			builder.Append("[");
+			builder.Append(evt.Name);
+			builder.Append("](");
+			builder.Append("https://discordapp.com/channels/");
+			builder.Append(evt.ServerId);
+			builder.Append("/");
+			builder.Append(self.ChannelId);
+			builder.Append("/");
+			builder.Append(self.MessageId);
+			builder.Append(")");
+
+			return builder.ToString();
+		}
+
 		public static SocketTextChannel GetChannel(this Notification self)
 		{
 			if (string.IsNullOrEmpty(self.ChannelId))
@@ -178,7 +199,7 @@ namespace KupoNuts.Bot.Events
 				if (user.Id == Program.DiscordClient.CurrentUser.Id)
 					continue;
 
-				evt.SetAttendeeStatus(user.Id, statusIndex);
+				evt.SetAttendeeStatus(user.Id.ToString(), statusIndex);
 
 				SocketUser socketUser = Program.DiscordClient.GetUser(user.Id);
 				await message.RemoveReactionAsync(emote, socketUser);

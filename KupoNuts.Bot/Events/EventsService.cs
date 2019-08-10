@@ -31,7 +31,7 @@ namespace KupoNuts.Bot.Events
 
 			CommandsService.BindCommand("events", this.Update, Permissions.Administrators, "Checks event notifications");
 
-			_ = Task.Factory.StartNew(this.AutoUpdate, TaskCreationOptions.LongRunning);
+			Scheduler.RunOnSchedule(this.Update, 15);
 			await this.Update();
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
@@ -57,23 +57,6 @@ namespace KupoNuts.Bot.Events
 				return;
 
 			this.messageLookup.Add(message.Id, evt);
-		}
-
-		private async Task AutoUpdate()
-		{
-			while (Instance != null)
-			{
-				int minutes = DateTime.UtcNow.Minute;
-				int delay = 15 - minutes;
-				while (delay < 0)
-					delay += 15;
-
-				await Task.Delay(new TimeSpan(0, delay, 0));
-
-				await this.Update();
-
-				await Task.Delay(new TimeSpan(0, 2, 0));
-			}
 		}
 
 		private async Task Update()
@@ -180,13 +163,13 @@ namespace KupoNuts.Bot.Events
 				return;
 
 			Event evt = this.messageLookup[message.Id];
-			Attendee attendee = evt.GetAttendee(reaction.UserId);
+			Attendee attendee = evt.GetAttendee(reaction.UserId.ToString());
 
 			if (!string.IsNullOrEmpty(evt.RemindMeEmote))
 			{
 				if (reaction.Emote.Name == evt.GetRemindMeEmote().Name)
 				{
-					ReminderService.SetReminder(attendee, "I'll remind you before the event: \"" + evt.Name + "\".");
+					ReminderService.SetReminder(evt, attendee);
 				}
 			}
 
@@ -196,7 +179,7 @@ namespace KupoNuts.Bot.Events
 
 				if (reaction.Emote.Name == status.GetEmote().Name)
 				{
-					evt.SetAttendeeStatus(reaction.UserId, i);
+					evt.SetAttendeeStatus(reaction.UserId.ToString(), i);
 				}
 			}
 

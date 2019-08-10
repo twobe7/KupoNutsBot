@@ -111,35 +111,41 @@ namespace KupoNuts.Utils
 
 			if (time.Days == 1)
 			{
+				builder.Append(" ");
 				builder.Append(time.Days);
-				builder.Append(" day ");
+				builder.Append(" day");
 			}
 			else if (time.Days > 1)
 			{
+				builder.Append(" ");
 				builder.Append(time.Days);
-				builder.Append(" days ");
+				builder.Append(" days");
 			}
 
 			if (time.Hours == 1)
 			{
+				builder.Append(" ");
 				builder.Append(time.Hours);
-				builder.Append(" hour ");
+				builder.Append(" hour");
 			}
 			else if (time.Hours > 1)
 			{
+				builder.Append(" ");
 				builder.Append(time.Hours);
-				builder.Append(" hours ");
+				builder.Append(" hours");
 			}
 
 			if (time.Minutes == 1)
 			{
+				builder.Append(" ");
 				builder.Append(time.Minutes);
-				builder.Append(" minute ");
+				builder.Append(" minute");
 			}
 			else if (time.Minutes > 1)
 			{
+				builder.Append(" ");
 				builder.Append(time.Minutes);
-				builder.Append(" minutes ");
+				builder.Append(" minutes");
 			}
 
 			return builder.ToString();

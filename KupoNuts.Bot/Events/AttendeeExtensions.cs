@@ -14,6 +14,11 @@ namespace KupoNuts.Bot.Events
 			return self.UserId == userId.ToString();
 		}
 
+		public static bool Is(this Attendee self, string userId)
+		{
+			return self.UserId == userId;
+		}
+
 		public static string GetMention(this Attendee self)
 		{
 			ulong userId = ulong.Parse(self.UserId);

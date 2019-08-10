@@ -9,7 +9,6 @@ namespace KupoNuts.Bot.Services
 	using Discord;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Events;
-	using KupoNuts.Bot.Utils;
 	using KupoNuts.Events;
 	using KupoNuts.Utils;
 	using NodaTime;
@@ -23,21 +22,23 @@ namespace KupoNuts.Bot.Services
 		private static IEmote emote30mins = Emote.Parse("<:30mins:604947121921064960>");
 		private static IEmote emote1hour = Emote.Parse("<:1hour:604947121778720815>");
 		private static IEmote emote1day = Emote.Parse("<:1day:604947121380261899>");
+		private static IEmote emoteYes = Emote.Parse("<:Yes:604942582866247690>");
 
-		private Dictionary<ulong, PendingReminder> messageLookup = new Dictionary<ulong, PendingReminder>();
+		private Dictionary<ulong, PendingReminder> pendingReminderLookup = new Dictionary<ulong, PendingReminder>();
+		private HashSet<ulong> activeReminderLookup = new HashSet<ulong>();
 
-		public static void SetReminder(Attendee attendee, string message)
+		public static void SetReminder(Event evt, Attendee attendee)
 		{
-			_ = Task.Run(async () => { await instance.ConfirmReminder(attendee, message); });
+			_ = Task.Run(async () => { await instance.ConfirmReminder(evt, attendee); });
 		}
 
-		public override Task Initialize()
+		public override async Task Initialize()
 		{
 			instance = this;
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
-
-			return Task.CompletedTask;
+			Scheduler.RunOnSchedule(this.Update, 15);
+			await this.Update();
 		}
 
 		public override Task Shutdown()
@@ -64,17 +65,106 @@ namespace KupoNuts.Bot.Services
 			return null;
 		}
 
-		private async Task ConfirmReminder(Attendee attendee, string messageString)
+		private async Task Update()
+		{
+			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+
+			Database db = Database.Load();
+			foreach (Event evt in db.Events)
+			{
+				Instant? nextOccurance = evt.GetNextOccurance(zone);
+				if (nextOccurance == null)
+					continue;
+
+				foreach (Attendee attendee in evt.GetAttendees())
+				{
+					Duration? remindTime = attendee.GetRemindTime();
+					if (remindTime == null)
+						continue;
+
+					Instant? remindInstant = nextOccurance - remindTime;
+
+					if (remindInstant.Value < TimeUtils.Now)
+					{
+						await this.Remind(attendee.UserId, evt.Id);
+					}
+				}
+			}
+		}
+
+		private async Task Remind(string userId, string eventId)
+		{
+			Database db = Database.Load();
+			Event evt = db.GetEvent(eventId);
+			Attendee attendee = evt.GetAttendee(db, userId);
+
+			Notification notify = db.GetNotification(eventId);
+
+			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(attendee.UserId));
+
+			EmbedBuilder builder = new EmbedBuilder();
+
+			StringBuilder messageBuilder = new StringBuilder();
+			messageBuilder.Append("Hey ");
+			messageBuilder.Append(user.Username);
+			messageBuilder.AppendLine("!");
+			messageBuilder.Append("You asked me to remind you about the event, ");
+			messageBuilder.Append(notify.GetLink());
+			messageBuilder.Append(", that starts in");
+			messageBuilder.Append(TimeUtils.GetDurationString(attendee.GetRemindTime()));
+			messageBuilder.AppendLine(".");
+
+			builder.Description = messageBuilder.ToString();
+
+			attendee.RemindTime = null;
+			db.Save();
+
+			IUserMessage message = await user.SendMessageAsync(null, false, builder.Build());
+			await message.AddReactionAsync(emoteYes);
+
+			this.activeReminderLookup.Add(message.Id);
+		}
+
+		private async Task ConfirmReminder(Event evt, Attendee attendee)
 		{
 			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(attendee.UserId));
 
-			string remindString = null;
+			Database db = Database.Load();
+			Notification notify = db.GetNotification(evt.Id);
+
+			string eventName = evt.Name;
+			if (notify != null)
+				eventName = notify.GetLink();
+
+			StringBuilder messageBuilder = new StringBuilder();
+			messageBuilder.Append("Hey ");
+			messageBuilder.Append(user.Username);
+			messageBuilder.AppendLine("!");
+
 			if (attendee.RemindTime != null)
-				remindString = "\nYou're already set to recieve a reminder " + TimeUtils.GetDurationString(attendee.GetRemindTime()) + " before the event";
+			{
+				messageBuilder.Append("You're already set to recieve a reminder");
+				messageBuilder.Append(TimeUtils.GetDurationString(attendee.GetRemindTime()));
+				messageBuilder.Append(" before the event ");
+				messageBuilder.Append(eventName);
+				messageBuilder.AppendLine(" begins.");
+			}
+			else
+			{
+				messageBuilder.Append("I can remind you about the event, ");
+				messageBuilder.Append(eventName);
+				messageBuilder.AppendLine(", before it begins.");
+			}
 
-			IUserMessage message = await user.SendMessageAsync(messageString + remindString + "\nHow much of a heads up would you like?");
+			messageBuilder.AppendLine();
+			messageBuilder.AppendLine("How long before the event begins should I remind you?");
 
-			this.messageLookup.Add(message.Id, new PendingReminder(attendee));
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.Description = messageBuilder.ToString();
+
+			IUserMessage message = await user.SendMessageAsync(null, false, builder.Build());
+
+			this.pendingReminderLookup.Add(message.Id, new PendingReminder(evt, attendee));
 
 			List<IEmote> reactions = new List<IEmote>();
 
@@ -110,46 +200,67 @@ namespace KupoNuts.Bot.Services
 
 		private async Task HandleResponse(IUserMessage message, IEmote emote, ulong userId)
 		{
-			if (!this.messageLookup.ContainsKey(message.Id))
-				return;
-
-			PendingReminder reminder = this.messageLookup[message.Id];
-			Duration? time = GetDelaytime(emote);
-			reminder.SetDelay(time);
-
-			SocketUser user = Program.DiscordClient.GetUser(userId);
-			IUserMessage replyMessage;
-			if (time == null)
+			if (this.activeReminderLookup.Contains(message.Id))
 			{
-				replyMessage = await user.SendMessageAsync("Got it, I wont remind you.");
+				this.activeReminderLookup.Remove(message.Id);
+
+				await message.DeleteAsync();
 			}
-			else
+			else if (this.pendingReminderLookup.ContainsKey(message.Id))
 			{
-				replyMessage = await user.SendMessageAsync("Got it, I'll let you know " + TimeUtils.GetDurationString((Duration)time) + "before the event starts!\n\n(this message will self-destruct in 5 seconds)");
+				PendingReminder reminder = this.pendingReminderLookup[message.Id];
+				Duration? time = GetDelaytime(emote);
+				reminder.SetDelay(time);
+
+				SocketUser user = Program.DiscordClient.GetUser(userId);
+				IUserMessage replyMessage;
+				EmbedBuilder builder = new EmbedBuilder();
+				StringBuilder messageBuilder = new StringBuilder();
+
+				if (time == null)
+				{
+					messageBuilder.Append("Got it, I wont remind you.");
+				}
+				else
+				{
+					messageBuilder.Append("Got it, I'll let you know");
+					messageBuilder.Append(TimeUtils.GetDurationString((Duration)time));
+					messageBuilder.AppendLine(" before the event starts!");
+				}
+
+				messageBuilder.AppendLine();
+				messageBuilder.Append("(This message will self-destruct in 5 seconds!)");
+
+				builder.Description = messageBuilder.ToString();
+				replyMessage = await user.SendMessageAsync(null, false, builder.Build());
+
+				await Task.Delay(5000);
+
+				await message.DeleteAsync();
+				await replyMessage.DeleteAsync();
+
+				this.pendingReminderLookup.Remove(message.Id);
 			}
-
-			await Task.Delay(5000);
-
-			await message.DeleteAsync();
-			await replyMessage.DeleteAsync();
-
-			this.messageLookup.Remove(message.Id);
 		}
 
 		public class PendingReminder
 		{
+			public string EventId;
 			public string UserId;
-			public Attendee Attendee;
 
-			public PendingReminder(Attendee attendee)
+			public PendingReminder(Event evt, Attendee attendee)
 			{
+				this.EventId = evt.Id;
 				this.UserId = attendee.UserId;
-				this.Attendee = attendee;
 			}
 
 			public void SetDelay(Duration? time)
 			{
-				this.Attendee.SetRemindTime(time);
+				Database db = Database.Load();
+				Event evt = db.GetEvent(this.EventId);
+				Attendee attendee = evt.GetAttendee(db, this.UserId);
+				attendee.SetRemindTime(time);
+				db.Save();
 			}
 		}
 	}

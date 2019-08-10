@@ -52,6 +52,8 @@ namespace KupoNuts.Events
 			DarkMagenta,
 		}
 
+		public string ServerId { get; set; } = "391492798353768449";
+
 		public string Id { get; set; }
 
 		public string ChannelId { get; set; }
