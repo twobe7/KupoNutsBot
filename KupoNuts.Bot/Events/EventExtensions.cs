@@ -181,12 +181,21 @@ namespace KupoNuts.Bot.Events
 			return newAttendee;
 		}
 
-		public static string GetAttendeeString(this Event self, int statusIndex, out int count)
+		public static string GetAttendeeString(this Event self, int statusIndex, out int total)
 		{
 			StringBuilder builder = new StringBuilder();
 
 			Database db = Database.Load();
-			count = 0;
+			total = 0;
+			foreach (Attendee attendee in db.Attendees)
+			{
+				if (attendee.EventId == self.Id && attendee.Status == statusIndex)
+				{
+					total++;
+				}
+			}
+
+			int count = 0;
 			foreach (Attendee attendee in db.Attendees)
 			{
 				if (attendee.EventId != self.Id)
@@ -195,17 +204,28 @@ namespace KupoNuts.Bot.Events
 				if (attendee.Status == statusIndex)
 				{
 					count++;
-					builder.AppendLine(attendee.GetMention());
+
+					if (total > 8)
+					{
+						if (count > 0)
+							builder.Append(", ");
+
+						builder.Append(attendee.GetMention());
+					}
+					else
+					{
+						builder.AppendLine(attendee.GetMention());
+					}
 				}
 			}
 
-			if (count <= 0)
+			if (total <= 0)
 				builder.Append("No one yet");
 
-			if (count > 8)
+			if (total > 8)
 			{
 				builder.Clear();
-				builder.Append(count + " people");
+				builder.Append(total + " people");
 			}
 
 			return builder.ToString();
