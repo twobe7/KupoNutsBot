@@ -213,7 +213,7 @@ namespace KupoNuts.Bot.Events
 
 					if (total > 8)
 					{
-						if (count > 0)
+						if (count > 1)
 							builder.Append(", ");
 
 						builder.Append(attendee.GetMention());
