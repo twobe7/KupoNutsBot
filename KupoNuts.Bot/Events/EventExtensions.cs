@@ -121,8 +121,14 @@ namespace KupoNuts.Bot.Events
 		/// </summary>
 		public static void ClearAttendees(this Event self, Database db)
 		{
+			if (self == null)
+				return;
+
 			for (int i = db.Attendees.Count - 1; i >= 0; i--)
 			{
+				if (db.Attendees[i] == null)
+					continue;
+
 				if (db.Attendees[i].EventId == self.Id)
 				{
 					db.Attendees.RemoveAt(i);
