@@ -304,12 +304,12 @@ namespace KupoNuts.Bot.Events
 
 				dates.Sort();
 
+				Period dayOffset = dateTime - date.AtMidnight();
+
 				foreach (LocalDate nextDate in dates)
 				{
-					Period dateOffset = nextDate - date;
-					dateTime = dateTime + dateOffset;
-
-					Instant occurance = dateTime.InZoneLeniently(zone).ToInstant();
+					LocalDateTime nextDateTime = nextDate.AtMidnight() + dayOffset;
+					Instant occurance = nextDateTime.InZoneLeniently(zone).ToInstant();
 
 					if (occurance + eventDuration < now)
 						continue;
