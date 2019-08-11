@@ -228,12 +228,6 @@ namespace KupoNuts.Bot.Events
 			if (total <= 0)
 				builder.Append("No one yet");
 
-			if (total > 8)
-			{
-				builder.Clear();
-				builder.Append(total + " people");
-			}
-
 			return builder.ToString();
 		}
 
