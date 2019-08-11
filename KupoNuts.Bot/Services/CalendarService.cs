@@ -137,14 +137,18 @@ namespace KupoNuts.Bot.Services
 			embedBuilder.Description = builder.ToString();
 			embedBuilder.Color = Color.Blue;
 
-			if (messageId == 0)
+			RestUserMessage message = null;
+
+			if (messageId != 0)
+				message = (RestUserMessage)await channel.GetMessageAsync(messageId);
+
+			if (message == null)
 			{
-				RestUserMessage message = await channel.SendMessageAsync(null, false, embedBuilder.Build());
+				message = await channel.SendMessageAsync(null, false, embedBuilder.Build());
 				messageId = message.Id;
 			}
 			else
 			{
-				RestUserMessage message = (RestUserMessage)await channel.GetMessageAsync(messageId);
 				await message.ModifyAsync(x =>
 				{
 					x.Embed = embedBuilder.Build();
