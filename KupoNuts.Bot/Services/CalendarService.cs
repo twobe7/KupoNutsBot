@@ -124,9 +124,10 @@ namespace KupoNuts.Bot.Services
 				foreach (Event evt in events)
 				{
 					builder.AppendLine(this.GetEventString(evt, i));
-					builder.AppendLine();
 					count++;
 				}
+
+				builder.AppendLine();
 			}
 
 			if (count == 0)
