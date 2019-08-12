@@ -2,6 +2,7 @@
 
 namespace KupoNuts.Bot.Events
 {
+	using Discord;
 	using Discord.WebSocket;
 	using KupoNuts.Events;
 	using NodaTime;
@@ -27,8 +28,12 @@ namespace KupoNuts.Bot.Events
 			if (user == null)
 				return "Unknown";
 
-			return user.Username;
-			////return user.Mention;
+			if (user is IGuildUser guildUser)
+			{
+				return guildUser.Nickname;
+			}
+
+			return user.Mention;
 		}
 
 		public static Duration? GetRemindTime(this Attendee self)

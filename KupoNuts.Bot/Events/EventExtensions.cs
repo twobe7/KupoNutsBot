@@ -55,6 +55,11 @@ namespace KupoNuts.Bot.Events
 			await self.UpdateNotifications();
 		}
 
+		public static ulong GetServerId(this Event self)
+		{
+			return ulong.Parse(self.ServerId);
+		}
+
 		public static Task Delete(this Event self)
 		{
 			Database db = Database.Load();
