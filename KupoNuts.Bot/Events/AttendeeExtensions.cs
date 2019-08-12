@@ -28,9 +28,17 @@ namespace KupoNuts.Bot.Events
 			if (user == null)
 				return "Unknown";
 
-			if (user is IGuildUser guildUser)
+			Database db = Database.Load();
+			Event evt = db.GetEvent(self.EventId);
+
+			SocketGuild guild = Program.DiscordClient.GetGuild(evt.GetServerId());
+			if (guild != null)
 			{
-				return guildUser.Nickname;
+				SocketGuildUser guildUser = guild.GetUser(userId);
+				if (guildUser != null)
+				{
+					return guildUser.Nickname;
+				}
 			}
 
 			return user.Mention;
