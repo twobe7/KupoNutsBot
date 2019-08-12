@@ -35,13 +35,13 @@ namespace KupoNuts.Bot.Events
 			if (guild != null)
 			{
 				SocketGuildUser guildUser = guild.GetUser(userId);
-				if (guildUser != null)
+				if (guildUser != null && !string.IsNullOrEmpty(guildUser.Nickname))
 				{
 					return guildUser.Nickname;
 				}
 			}
 
-			return user.Mention;
+			return user.Username;
 		}
 
 		public static Duration? GetRemindTime(this Attendee self)
