@@ -216,11 +216,11 @@ namespace KupoNuts.Bot.Events
 						if (count > 1)
 							builder.Append(", ");
 
-						builder.Append(attendee.GetMention());
+						builder.Append(attendee.GetName());
 					}
 					else
 					{
-						builder.AppendLine(attendee.GetMention());
+						builder.AppendLine(attendee.GetName());
 					}
 				}
 			}

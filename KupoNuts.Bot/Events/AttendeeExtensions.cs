@@ -19,11 +19,16 @@ namespace KupoNuts.Bot.Events
 			return self.UserId == userId;
 		}
 
-		public static string GetMention(this Attendee self)
+		public static string GetName(this Attendee self)
 		{
 			ulong userId = ulong.Parse(self.UserId);
 			SocketUser user = Program.DiscordClient.GetUser(userId);
-			return user.Mention;
+
+			if (user == null)
+				return "Unknown";
+
+			return user.Username;
+			////return user.Mention;
 		}
 
 		public static Duration? GetRemindTime(this Attendee self)
