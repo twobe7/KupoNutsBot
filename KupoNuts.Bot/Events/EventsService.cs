@@ -70,6 +70,11 @@ namespace KupoNuts.Bot.Events
 			for (int i = db.Events.Count - 1; i >= 0; i--)
 			{
 				Event evt = db.Events[i];
+
+				// dont delete repeating events
+				if (evt.Repeats != 0)
+					continue;
+
 				Instant? next = evt.GetNextOccurance(zone);
 
 				// will never occur (past event)
