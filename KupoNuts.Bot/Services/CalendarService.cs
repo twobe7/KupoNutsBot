@@ -33,6 +33,7 @@ namespace KupoNuts.Bot.Services
 
 		private async Task Update()
 		{
+			Log.Write("Updating Calendar");
 			Database db = Database.Load();
 
 			ulong channelId = 0;
