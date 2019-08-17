@@ -95,4 +95,19 @@ namespace KupoNuts.Events
 			public string Display { get; set; }
 		}
 	}
+
+#pragma warning disable SA1402, SA1204
+	public static class DaysUtil
+	{
+		public static Event.Days[] AllDays = new List<Event.Days>()
+		{
+			Event.Days.Monday,
+			Event.Days.Tuesday,
+			Event.Days.Wednesday,
+			Event.Days.Thursday,
+			Event.Days.Friday,
+			Event.Days.Saturday,
+			Event.Days.Sunday,
+		}.ToArray();
+	}
 }

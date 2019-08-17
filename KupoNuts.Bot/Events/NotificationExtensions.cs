@@ -16,8 +16,8 @@ namespace KupoNuts.Bot.Events
 	{
 		public static async Task Post(this Notification self, string eventId)
 		{
-			SocketTextChannel channel = self.GetChannel();
-			if (channel == null)
+			SocketTextChannel? channel = self.GetChannel();
+			if (channel is null)
 				return;
 
 			Database db = Database.Load();
@@ -50,7 +50,7 @@ namespace KupoNuts.Bot.Events
 			timeBuilder.Append(TimeUtils.GetDurationString(evt.GetDuration()));
 			timeBuilder.Append(" ");
 
-			string repeat = evt.GetRepeatsString();
+			string? repeat = evt.GetRepeatsString();
 			if (repeat != null)
 			{
 				timeBuilder.Append(repeat);
@@ -78,7 +78,7 @@ namespace KupoNuts.Bot.Events
 				builder.AddField(status.Display + " (" + count + ")", attending, true);
 			}
 
-			RestUserMessage message = await self.GetMessage();
+			RestUserMessage? message = await self.GetMessage();
 			if (message is null)
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
@@ -109,8 +109,8 @@ namespace KupoNuts.Bot.Events
 
 		public static async Task Delete(this Notification self)
 		{
-			RestUserMessage message = await self.GetMessage();
-			if (message == null)
+			RestUserMessage? message = await self.GetMessage();
+			if (message is null)
 				return;
 
 			await message.DeleteAsync();
@@ -118,8 +118,8 @@ namespace KupoNuts.Bot.Events
 
 		public static async Task CheckReactions(this Notification self, Event evt)
 		{
-			RestUserMessage message = await self.GetMessage();
-			if (message == null)
+			RestUserMessage? message = await self.GetMessage();
+			if (message is null)
 				return;
 
 			for (int i = 0; i < evt.Statuses.Count; i++)
@@ -155,7 +155,7 @@ namespace KupoNuts.Bot.Events
 			return builder.ToString();
 		}
 
-		public static SocketTextChannel GetChannel(this Notification self)
+		public static SocketTextChannel? GetChannel(this Notification self)
 		{
 			if (string.IsNullOrEmpty(self.ChannelId))
 				return null;
@@ -170,14 +170,14 @@ namespace KupoNuts.Bot.Events
 			throw new Exception("Channel: \"" + self.ChannelId + "\" is not a text channel");
 		}
 
-		public static async Task<RestUserMessage> GetMessage(this Notification self)
+		public static async Task<RestUserMessage?> GetMessage(this Notification self)
 		{
 			if (string.IsNullOrEmpty(self.MessageId))
 				return null;
 
 			ulong id = ulong.Parse(self.MessageId);
 
-			SocketTextChannel channel = self.GetChannel();
+			SocketTextChannel? channel = self.GetChannel();
 			if (channel is null)
 				return null;
 

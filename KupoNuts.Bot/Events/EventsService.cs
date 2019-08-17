@@ -17,17 +17,23 @@ namespace KupoNuts.Bot.Events
 
 	public class EventsService : ServiceBase
 	{
+		private static EventsService? instance;
 		private Dictionary<ulong, Event> messageLookup = new Dictionary<ulong, Event>();
 
 		public static EventsService Instance
 		{
-			get;
-			private set;
+			get
+			{
+				if (instance is null)
+					throw new Exception("No Events Service");
+
+				return instance;
+			}
 		}
 
 		public override async Task Initialize()
 		{
-			Instance = this;
+			instance = this;
 
 			CommandsService.BindCommand("events", this.Update, Permissions.Administrators, "Checks event notifications");
 
@@ -39,7 +45,7 @@ namespace KupoNuts.Bot.Events
 
 		public override Task Shutdown()
 		{
-			Instance = null;
+			instance = null;
 
 			CommandsService.ClearCommand("events");
 
@@ -89,13 +95,13 @@ namespace KupoNuts.Bot.Events
 
 			for (int i = db.Notifications.Count - 1; i >= 0; i--)
 			{
-				RestUserMessage message = await db.Notifications[i].GetMessage();
+				RestUserMessage? message = await db.Notifications[i].GetMessage();
 				Event evt = db.GetEvent(db.Notifications[i].EventId);
 
 				// dead reminder.
 				if (message is null || evt is null || !this.ShouldNotify(evt))
 				{
-					evt.ClearAttendees(db);
+					evt?.ClearAttendees(db);
 					await db.Notifications[i].Delete();
 					db.Notifications.RemoveAt(i);
 					db.Save();
@@ -108,9 +114,9 @@ namespace KupoNuts.Bot.Events
 			db = Database.Load();
 			foreach (Event evt in db.Events)
 			{
-				SocketTextChannel channel = evt.GetChannel();
+				SocketTextChannel? channel = evt.GetChannel();
 
-				if (channel == null)
+				if (channel is null)
 					continue;
 
 				if (db.GetNotification(evt.Id) == null && this.ShouldNotify(evt))

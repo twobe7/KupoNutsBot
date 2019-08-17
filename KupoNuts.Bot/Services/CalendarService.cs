@@ -137,7 +137,7 @@ namespace KupoNuts.Bot.Services
 			embedBuilder.Description = builder.ToString();
 			embedBuilder.Color = Color.Blue;
 
-			RestUserMessage message = null;
+			RestUserMessage? message = null;
 
 			if (messageId != 0)
 				message = (RestUserMessage)await channel.GetMessageAsync(messageId);

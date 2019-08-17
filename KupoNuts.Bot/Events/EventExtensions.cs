@@ -76,7 +76,7 @@ namespace KupoNuts.Bot.Events
 			return Emote.Parse(self.RemindMeEmote);
 		}
 
-		public static SocketTextChannel GetChannel(this Event self)
+		public static SocketTextChannel? GetChannel(this Event self)
 		{
 			if (string.IsNullOrEmpty(self.ChannelId))
 				return null;
@@ -91,7 +91,7 @@ namespace KupoNuts.Bot.Events
 			throw new Exception("Channel: \"" + self.ChannelId + "\" is not a text channel");
 		}
 
-		public static string GetRepeatsString(this Event self)
+		public static string? GetRepeatsString(this Event self)
 		{
 			if (self.Repeats == Event.Days.None)
 				return null;
@@ -100,7 +100,7 @@ namespace KupoNuts.Bot.Events
 			builder.Append("Every ");
 
 			int count = 0;
-			foreach (Event.Days day in Enum.GetValues(typeof(Event.Days)))
+			foreach (Event.Days day in DaysUtil.AllDays)
 			{
 				if (FlagsUtils.IsSet(self.Repeats, day))
 				{
@@ -310,7 +310,7 @@ namespace KupoNuts.Bot.Events
 				LocalDate todaysDate = TimeUtils.Now.InZone(zone).LocalDateTime.Date;
 
 				List<LocalDate> dates = new List<LocalDate>();
-				foreach (Event.Days day in Enum.GetValues(typeof(Event.Days)))
+				foreach (Event.Days day in DaysUtil.AllDays)
 				{
 					if (!FlagsUtils.IsSet(self.Repeats, day))
 						continue;

@@ -94,18 +94,9 @@ namespace KupoNuts.Events
 			return InstantPattern.ExtendedIso.Parse(self.DateTime).Value;
 		}
 
-		public static void SetDateTime(this Event self, string date, string time)
+		public static void SetDateTime(this Event self, DateTime date, string time)
 		{
-			string[] parts = date.Split('-');
-
-			if (parts.Length != 3)
-				throw new Exception("Invalid date format: \"" + date + "\"");
-
-			int year = int.Parse(parts[0]);
-			int month = int.Parse(parts[1]);
-			int day = int.Parse(parts[2]);
-
-			parts = time.Split(':');
+			string[] parts = time.Split(':');
 
 			if (parts.Length != 2)
 				throw new Exception("Invalid time format: \"" + time + "\"");
@@ -113,21 +104,22 @@ namespace KupoNuts.Events
 			int hour = int.Parse(parts[0]);
 			int minute = int.Parse(parts[1]);
 
-			LocalDateTime ldt = new LocalDateTime(year, month, day, hour, minute);
+			LocalDateTime ldt = new LocalDateTime(date.Year, date.Month, date.Day, hour, minute);
 			ZonedDateTime zdt = ldt.InZoneLeniently(DateTimeZoneProviders.Tzdb.GetSystemDefault());
 			Instant instant = zdt.ToInstant();
 
 			self.SetDateTime(instant);
 		}
 
-		public static void GetDateTime(this Event self, out string date, out string time)
+		public static void GetDateTime(this Event self, out DateTime date, out string time)
 		{
 			Instant instant = self.GetDateTime();
 
 			ZonedDateTime zdt = instant.InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault());
 			LocalDateTime ldt = zdt.LocalDateTime;
 
-			date = ldt.Year.ToString("D4") + "-" + ldt.Month.ToString("D2") + "-" + ldt.Day.ToString("D2");
+			////date = ldt.Year.ToString("D4") + "-" + ldt.Month.ToString("D2") + "-" + ldt.Day.ToString("D2");
+			date = ldt.ToDateTimeUnspecified();
 			time = ldt.Hour.ToString("D2") + ":" + ldt.Minute.ToString("D2");
 		}
 

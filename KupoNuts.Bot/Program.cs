@@ -18,10 +18,17 @@ namespace KupoNuts.Bot
 		private static List<ServiceBase> services = new List<ServiceBase>();
 		private static bool exiting = false;
 
+		private static DiscordSocketClient? client;
+
 		public static DiscordSocketClient DiscordClient
 		{
-			get;
-			private set;
+			get
+			{
+				if (client is null)
+					throw new Exception("No Discord client");
+
+				return client;
+			}
 		}
 
 		public static bool Running
@@ -78,7 +85,7 @@ namespace KupoNuts.Bot
 				}
 				else
 				{
-					DiscordClient = new DiscordSocketClient();
+					client = new DiscordSocketClient();
 
 					bool ready = false;
 					DiscordClient.Log += this.LogAsync;

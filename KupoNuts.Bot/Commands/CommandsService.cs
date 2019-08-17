@@ -190,8 +190,8 @@ namespace KupoNuts.Bot.Commands
 
 		private class Command
 		{
-			public readonly Func<string[], SocketMessage, Task> Method;
-			public readonly Func<Task> MethodB;
+			public readonly Func<string[], SocketMessage, Task>? Method;
+			public readonly Func<Task>? MethodB;
 			public readonly Permissions Permission;
 			public readonly string Help;
 

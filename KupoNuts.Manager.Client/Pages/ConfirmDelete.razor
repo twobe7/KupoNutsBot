@@ -19,8 +19,9 @@
 
 	private Event evt;
 
-	protected override void OnInit()
+	protected override void OnInitialized()
 	{
+		base.OnInitialized();
 		this.evt = Parameters.Get<Event>("Event");
 	}
 

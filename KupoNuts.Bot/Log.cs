@@ -14,7 +14,7 @@ namespace KupoNuts.Bot
 			Console.WriteLine("[Bot] " + message);
 		}
 
-		public static void Write(Exception ex)
+		public static void Write(Exception? ex)
 		{
 			StringBuilder builder = new StringBuilder();
 			while (ex != null)

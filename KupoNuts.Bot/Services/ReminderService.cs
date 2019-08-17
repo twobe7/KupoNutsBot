@@ -15,7 +15,7 @@ namespace KupoNuts.Bot.Services
 
 	public class ReminderService : ServiceBase
 	{
-		private static ReminderService instance;
+		private static ReminderService? instance;
 
 		private static IEmote emoteCancel = Emote.Parse("<:No:604942582589423618>");
 		private static IEmote emote15mins = Emote.Parse("<:15mins:604947121786978308>");
@@ -29,6 +29,9 @@ namespace KupoNuts.Bot.Services
 
 		public static void SetReminder(Event evt, Attendee attendee)
 		{
+			if (instance == null)
+				throw new Exception("No Reminder Service");
+
 			_ = Task.Run(async () => { await instance.ConfirmReminder(evt, attendee); });
 		}
 

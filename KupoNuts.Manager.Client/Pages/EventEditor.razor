@@ -167,7 +167,7 @@
 	public string Image;
 	public string Channel;
 	public string Color;
-	public string Date;
+	public DateTime Date;
 	public string Time;
 	public bool DateTimeValid = true;
 	public double Duration;
@@ -190,8 +190,10 @@
 		}
 	}
 
-	protected override async Task OnInitAsync()
+	protected override async Task OnInitializedAsync()
 	{
+		await base.OnInitializedAsync();
+
 		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
 
 		this.NotifyList = new Dictionary<string, double>()

@@ -101,7 +101,7 @@ namespace KupoNuts.Utils
 			return builder.ToString();
 		}
 
-		public static string GetDurationString(Duration? timeNull)
+		public static string? GetDurationString(Duration? timeNull)
 		{
 			if (timeNull == null)
 				return null;

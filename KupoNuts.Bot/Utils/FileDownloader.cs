@@ -2,6 +2,7 @@
 
 namespace KupoNuts.Bot.Utils
 {
+	using System;
 	using System.IO;
 	using System.Net;
 	using System.Threading.Tasks;
@@ -10,7 +11,11 @@ namespace KupoNuts.Bot.Utils
 	{
 		public static Task Download(string url, string path)
 		{
-			string dir = Path.GetDirectoryName(path);
+			string? dir = Path.GetDirectoryName(path);
+
+			if (dir is null)
+				throw new Exception("Failed to get director at path: \"" + path + "\"");
+
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 
