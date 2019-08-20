@@ -89,7 +89,7 @@ namespace KupoNuts.Events
 		public static Instant GetDateTime(this Event self)
 		{
 			if (string.IsNullOrEmpty(self.DateTime))
-				return Instant.FromJulianDate(0);
+				return Instant.FromUtc(2019, 01, 01, 00, 00);
 
 			return InstantPattern.ExtendedIso.Parse(self.DateTime).Value;
 		}

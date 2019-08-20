@@ -37,6 +37,9 @@ namespace KupoNuts.Utils
 
 		public static string GetDurationString(double duration)
 		{
+			if (duration == 0)
+				return "0 minutes";
+
 			int hours = (int)duration;
 			int minutes = (int)((duration - (double)hours) * 60.0);
 
