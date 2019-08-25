@@ -109,6 +109,9 @@ namespace KupoNuts.Utils
 			Duration time = (Duration)timeNull;
 			StringBuilder builder = new StringBuilder();
 
+			if (time.Days == 0 && time.Hours == 0 && time.Minutes == 0)
+				return " now";
+
 			if (time.Days == 1)
 			{
 				builder.Append(" ");

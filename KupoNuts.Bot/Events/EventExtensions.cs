@@ -260,16 +260,27 @@ namespace KupoNuts.Bot.Events
 				return "Never";
 
 			Duration time = (Duration)durationTill;
+			string str = "Starting ";
 
 			if (time.TotalSeconds < 0)
 			{
 				Instant now = TimeUtils.RoundInstant(TimeUtils.Now);
 				Instant instant = now + time + self.GetDuration();
 				Duration endsIn = instant - now;
-				return "Ends in" + TimeUtils.GetDurationString(endsIn);
+
+				time = endsIn;
+				str = "Ending ";
+				////return "Ends in" + TimeUtils.GetDurationString(endsIn);
 			}
 
-			return "In" + TimeUtils.GetDurationString(time);
+			string? endsInStr = TimeUtils.GetDurationString(time);
+			if (endsInStr == null)
+				return "Unknown";
+
+			if (endsInStr.Contains("now"))
+				return str + "now";
+
+			return str + "in" + endsInStr;
 		}
 
 		public static Instant GetDateTime(this Event self)

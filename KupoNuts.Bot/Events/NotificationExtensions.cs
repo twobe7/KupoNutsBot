@@ -23,6 +23,8 @@ namespace KupoNuts.Bot.Events
 			Database db = Database.Load();
 			Event evt = db.GetEvent(eventId);
 
+			Log.Write("Posting notification: \"" + evt.Name + "\" (" + eventId + ") in channel: \"" + channel.Name + "\" (" + channel.Id + ")");
+
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Color = evt.Color.ToDiscordColor();
 			builder.Title = evt.Name;
