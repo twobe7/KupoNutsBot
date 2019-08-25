@@ -62,6 +62,7 @@ namespace KupoNuts.Bot.Events
 
 		public static Task Delete(this Event self)
 		{
+			Log.Write("Delete Event: \"" + self.Name + "\" (" + self.Id + ")");
 			Database db = Database.Load();
 			db.DeleteEvent(self.Id);
 			db.Save();

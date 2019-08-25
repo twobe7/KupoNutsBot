@@ -3,6 +3,7 @@
 namespace KupoNuts.Manager.Server.Controllers
 {
 	using System.Collections.Generic;
+	using KupoNuts.Bot;
 	using KupoNuts.Events;
 	using Microsoft.AspNetCore.Mvc;
 
@@ -32,6 +33,7 @@ namespace KupoNuts.Manager.Server.Controllers
 				case EventAction.Actions.Delete:
 				case EventAction.Actions.DeleteConfirmed:
 				{
+					Log.Write("Delete Event: \"" + evt.Event.Name + "\" (" + evt.Event.Id + ")");
 					Database db = Database.Load();
 					db.DeleteEvent(evt.Event.Id);
 					db.Save();

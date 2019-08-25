@@ -86,6 +86,7 @@ namespace KupoNuts.Bot.Events
 				// will never occur (past event)
 				if (next == null)
 				{
+					Log.Write("Delete Event: \"" + evt.Name + "\" (" + evt.Id + ")");
 					db.DeleteEvent(evt.Id);
 				}
 			}
