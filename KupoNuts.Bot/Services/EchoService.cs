@@ -64,7 +64,7 @@ namespace KupoNuts.Bot.Services
 		{
 			if (args.Length != 2 || message.MentionedChannels.Count != 1)
 			{
-				await message.Channel.SendMessageAsync("You need to tell me how many messages and what channel to copy to! try \"\\echo 1 #channel-name\" to copy the previous 1 message to a new channel");
+				await message.Channel.SendMessageAsync("You need to tell me how many messages and what channel to copy to! try \"echo 1 #channel-name\" to copy the previous 1 message to a new channel");
 				return;
 			}
 

@@ -5,6 +5,7 @@ namespace KupoNuts.Bot.Commands
 	using System;
 	using System.Collections.Generic;
 	using System.Text;
+	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
@@ -138,7 +139,9 @@ namespace KupoNuts.Bot.Commands
 				return;
 
 			string command = message.Content.Substring(CommandPrefix.Length);
-			string[] parts = command.Split(" ");
+
+			string[] parts = Regex.Split(command, "(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+			////string[] parts = command.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
 			command = parts[0];
 			string[] args = new string[0];
@@ -149,6 +152,7 @@ namespace KupoNuts.Bot.Commands
 				for (int i = 0; i < args.Length; i++)
 				{
 					args[i] = parts[i + 1];
+					args[i] = args[i].Replace("\"", string.Empty);
 				}
 			}
 
