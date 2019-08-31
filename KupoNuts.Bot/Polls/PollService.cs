@@ -82,8 +82,7 @@ namespace KupoNuts.Bot.Polls
 			Poll poll = new Poll();
 			poll.ChannelId = message.Channel.Id.ToString();
 
-			RestUserMessage pollQuestion = await ((SocketTextChannel)message.Channel).SendMessageAsync(comment);
-
+			await ((SocketTextChannel)toChannel).SendMessageAsync(comment);
 			List<RestUserMessage> messages = await EchoService.Echo((SocketTextChannel)message.Channel, (SocketTextChannel)toChannel, message.Id, count);
 
 			poll.Options = new List<string>();
