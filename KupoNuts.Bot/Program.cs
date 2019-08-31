@@ -10,6 +10,7 @@ namespace KupoNuts.Bot
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Events;
+	using KupoNuts.Bot.Polls;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.Bot.Status;
 

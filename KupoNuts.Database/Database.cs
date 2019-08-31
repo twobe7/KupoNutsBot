@@ -27,6 +27,7 @@ namespace KupoNuts
 		public List<Event> Events = new List<Event>();
 		public List<Attendee> Attendees = new List<Attendee>();
 		public List<Notification> Notifications = new List<Notification>();
+		public List<Poll> Polls = new List<Poll>();
 
 		public static void Init()
 		{
