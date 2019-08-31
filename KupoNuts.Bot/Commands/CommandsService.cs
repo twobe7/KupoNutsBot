@@ -144,15 +144,19 @@ namespace KupoNuts.Bot.Commands
 			////string[] parts = command.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
 			command = parts[0];
-			string[] args = new string[0];
+			List<string> args = new List<string>();
 
 			if (parts.Length > 1)
 			{
-				args = new string[parts.Length - 1];
-				for (int i = 0; i < args.Length; i++)
+				for (int i = 1; i < parts.Length; i++)
 				{
-					args[i] = parts[i + 1];
-					args[i] = args[i].Replace("\"", string.Empty);
+					string arg = parts[i];
+					arg = arg.Replace("\"", string.Empty);
+
+					if (string.IsNullOrEmpty(arg))
+						continue;
+
+					args.Add(arg);
 				}
 			}
 
@@ -172,7 +176,7 @@ namespace KupoNuts.Bot.Commands
 			{
 				try
 				{
-					await commandHandlers[command].Invoke(args, message);
+					await commandHandlers[command].Invoke(args.ToArray(), message);
 				}
 				catch (NotImplementedException)
 				{
