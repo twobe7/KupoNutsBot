@@ -6,6 +6,7 @@ namespace KupoNuts.Bot.Services
 	using System.IO;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Utils;
@@ -13,9 +14,43 @@ namespace KupoNuts.Bot.Services
 
 	public class EchoService : ServiceBase
 	{
+		public static async Task<List<RestUserMessage>> Echo(SocketTextChannel from, SocketTextChannel to, ulong fromMessageID, int count)
+		{
+			List<RestUserMessage> results = new List<RestUserMessage>();
+
+			List<IMessage> messages = new List<IMessage>(await from.GetMessagesAsync(fromMessageID, Discord.Direction.Before, count).FlattenAsync());
+
+			for (int i = messages.Count - 1; i >= 0; i--)
+			{
+				IMessage prevMessage = messages[i];
+				if (prevMessage.Embeds.Count > 0)
+				{
+					await from.SendMessageAsync("Sorry, I can't echo message embeds.");
+					continue;
+				}
+
+				if (prevMessage.Attachments.Count == 1)
+				{
+					string attachmentURL = prevMessage.Attachments.Getfirst().Url;
+					string filePath = "./Temp/" + prevMessage.Id + Path.GetExtension(attachmentURL);
+
+					await FileDownloader.Download(attachmentURL, filePath);
+
+					results.Add(await to.SendFileAsync(filePath, prevMessage.Content));
+				}
+
+				if (!string.IsNullOrEmpty(prevMessage.Content))
+				{
+					results.Add(await to.SendMessageAsync(prevMessage.Content, prevMessage.IsTTS));
+				}
+			}
+
+			return results;
+		}
+
 		public override Task Initialize()
 		{
-			CommandsService.BindCommand("echo", this.Echo, Permissions.Administrators, "Copies a range of messages to a new channel.");
+			CommandsService.BindCommand("echo", this.HandleEcho, Permissions.Administrators, "Copies a range of messages to a new channel.");
 			return Task.CompletedTask;
 		}
 
@@ -25,7 +60,7 @@ namespace KupoNuts.Bot.Services
 			return Task.CompletedTask;
 		}
 
-		private async Task Echo(string[] args, SocketMessage message)
+		private async Task HandleEcho(string[] args, SocketMessage message)
 		{
 			if (args.Length != 2 || message.MentionedChannels.Count != 1)
 			{
@@ -33,37 +68,13 @@ namespace KupoNuts.Bot.Services
 				return;
 			}
 
-			SocketGuildChannel channel = message.MentionedChannels.Getfirst();
-
-			if (channel is SocketTextChannel textChannel)
+			SocketGuildChannel toChannel = message.MentionedChannels.Getfirst();
+			if (toChannel is SocketTextChannel toTextChannel)
 			{
 				int count = 1;
 				int.TryParse(args[0], out count);
 
-				IEnumerable<IMessage> messages = await message.Channel.GetMessagesAsync(message.Id, Discord.Direction.Before, count).FlattenAsync();
-				foreach (IMessage prevMessage in messages)
-				{
-					if (prevMessage.Embeds.Count > 0)
-					{
-						await message.Channel.SendMessageAsync("Sorry, I can't echo message embeds.");
-						continue;
-					}
-
-					if (prevMessage.Attachments.Count == 1)
-					{
-						string attachmentURL = prevMessage.Attachments.Getfirst().Url;
-						string filePath = "./Temp/" + prevMessage.Id + Path.GetExtension(attachmentURL);
-
-						await FileDownloader.Download(attachmentURL, filePath);
-
-						await textChannel.SendFileAsync(filePath, prevMessage.Content);
-					}
-
-					if (!string.IsNullOrEmpty(prevMessage.Content))
-					{
-						await textChannel.SendMessageAsync(prevMessage.Content, prevMessage.IsTTS);
-					}
-				}
+				await Echo((SocketTextChannel)message.Channel, toTextChannel, message.Id, count);
 			}
 			else
 			{

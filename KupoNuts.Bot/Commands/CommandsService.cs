@@ -156,7 +156,7 @@ namespace KupoNuts.Bot.Commands
 
 			bool persmission = this.HasPermission(message.Author, command);
 
-			Log.Write("Recieved command: " + command + " with " + message.Content + " Permission: " + persmission);
+			Log.Write("Recieved command: " + command + " with " + message.Content + " From user: " + message.Author.Id + " Permission: " + persmission);
 
 			if (!persmission)
 			{
