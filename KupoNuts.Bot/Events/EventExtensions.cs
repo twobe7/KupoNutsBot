@@ -317,6 +317,7 @@ namespace KupoNuts.Bot.Events
 			else
 			{
 				LocalDateTime dateTime = eventDateTime.InZone(zone).LocalDateTime;
+				LocalTime time = dateTime.TimeOfDay;
 
 				LocalDate date = dateTime.Date;
 				LocalDate todaysDate = TimeUtils.Now.InZone(zone).LocalDateTime.Date;
@@ -341,11 +342,9 @@ namespace KupoNuts.Bot.Events
 
 				dates.Sort();
 
-				Period dayOffset = dateTime - date.AtMidnight();
-
 				foreach (LocalDate nextDate in dates)
 				{
-					LocalDateTime nextDateTime = nextDate.AtMidnight() + dayOffset;
+					LocalDateTime nextDateTime = nextDate + time;
 					Instant occurance = nextDateTime.InZoneLeniently(zone).ToInstant();
 
 					if (occurance + eventDuration < now)
