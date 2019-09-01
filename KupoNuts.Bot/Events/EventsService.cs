@@ -81,7 +81,7 @@ namespace KupoNuts.Bot.Events
 				if (evt.Repeats != 0)
 					continue;
 
-				Instant? next = evt.GetNextOccurance(zone);
+				Instant? next = evt.GetNextOccurance();
 
 				// will never occur (past event)
 				if (next == null)
@@ -185,13 +185,16 @@ namespace KupoNuts.Bot.Events
 				}
 			}
 
-			for (int i = 0; i < evt.Statuses.Count; i++)
+			if (evt.Statuses != null)
 			{
-				Event.Status status = evt.Statuses[i];
-
-				if (reaction.Emote.Name == status.GetEmote().Name)
+				for (int i = 0; i < evt.Statuses.Count; i++)
 				{
-					evt.SetAttendeeStatus(reaction.UserId.ToString(), i);
+					Event.Status status = evt.Statuses[i];
+
+					if (reaction.Emote.Name == status.GetEmote().Name)
+					{
+						evt.SetAttendeeStatus(reaction.UserId.ToString(), i);
+					}
 				}
 			}
 

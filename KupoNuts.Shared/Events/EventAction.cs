@@ -25,7 +25,7 @@ namespace KupoNuts.Events
 			DeleteConfirmed,
 		}
 
-		public Event Event
+		public Event? Event
 		{
 			get;
 			set;

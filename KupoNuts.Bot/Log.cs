@@ -36,14 +36,18 @@ namespace KupoNuts.Bot
 			{
 				try
 				{
-					ulong id = ulong.Parse(Database.Load().Settings.LogChannel);
-					SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(id);
-					EmbedBuilder enbedBuilder = new EmbedBuilder();
-					enbedBuilder.Color = Color.Red;
-					enbedBuilder.Title = "Kupo Nut Bot encountered an error";
-					enbedBuilder.Description = builder.ToString();
-					enbedBuilder.Timestamp = DateTimeOffset.UtcNow;
-					channel.SendMessageAsync(null, false, enbedBuilder.Build());
+					string? idStr = Database.Load().Settings.LogChannel;
+					if (idStr != null)
+					{
+						ulong id = ulong.Parse(idStr);
+						SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(id);
+						EmbedBuilder enbedBuilder = new EmbedBuilder();
+						enbedBuilder.Color = Color.Red;
+						enbedBuilder.Title = "Kupo Nut Bot encountered an error";
+						enbedBuilder.Description = builder.ToString();
+						enbedBuilder.Timestamp = DateTimeOffset.UtcNow;
+						channel.SendMessageAsync(null, false, enbedBuilder.Build());
+					}
 				}
 				catch (Exception)
 				{

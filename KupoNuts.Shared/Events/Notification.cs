@@ -9,10 +9,10 @@ namespace KupoNuts.Events
 	[Serializable]
 	public class Notification
 	{
-		public string EventId { get; set; }
+		public string? EventId { get; set; }
 
-		public string ChannelId { get; set; }
+		public string? ChannelId { get; set; }
 
-		public string MessageId { get; set; }
+		public string? MessageId { get; set; }
 	}
 }

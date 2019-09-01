@@ -54,29 +54,29 @@ namespace KupoNuts.Events
 
 		public string ServerId { get; set; } = "391492798353768449";
 
-		public string Id { get; set; }
+		public string? Id { get; set; }
 
-		public string ChannelId { get; set; }
+		public string? ChannelId { get; set; }
 
-		public string Name { get; set; }
+		public string? Name { get; set; }
 
-		public string Description { get; set; }
+		public string? Description { get; set; }
 
-		public string Image { get; set; }
+		public string? Image { get; set; }
 
 		public Colors Color { get; set; }
 
-		public string DateTime { get; set; }
+		public string? DateTime { get; set; }
 
 		public Days Repeats { get; set; }
 
-		public string Duration { get; set; }
+		public string? Duration { get; set; }
 
-		public string RemindMeEmote { get; set; }
+		public string? RemindMeEmote { get; set; }
 
-		public string NotifyDuration { get; set; }
+		public string? NotifyDuration { get; set; }
 
-		public List<Status> Statuses { get; set; }
+		public List<Status>? Statuses { get; set; }
 
 		public class Status
 		{
@@ -84,15 +84,15 @@ namespace KupoNuts.Events
 			{
 			}
 
-			public Status(string emote, string display = null)
+			public Status(string emote, string? display = null)
 			{
 				this.EmoteString = emote;
 				this.Display = display;
 			}
 
-			public string EmoteString { get; set; }
+			public string? EmoteString { get; set; }
 
-			public string Display { get; set; }
+			public string? Display { get; set; }
 		}
 	}
 

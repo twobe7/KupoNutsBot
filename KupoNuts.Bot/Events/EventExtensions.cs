@@ -22,7 +22,9 @@ namespace KupoNuts.Bot.Events
 			Notification notify = new Notification();
 			notify.EventId = self.Id;
 			notify.ChannelId = self.ChannelId;
-			await notify.Post(self.Id);
+
+			if (self.Id != null)
+				await notify.Post(self.Id);
 
 			Database db = Database.Load();
 			db.Notifications.Add(notify);
@@ -31,6 +33,9 @@ namespace KupoNuts.Bot.Events
 
 		public static async Task UpdateNotifications(this Event self)
 		{
+			if (self.Id == null)
+				throw new ArgumentNullException("Id");
+
 			Database db = Database.Load();
 			foreach (Notification notify in db.Notifications)
 			{
@@ -53,11 +58,6 @@ namespace KupoNuts.Bot.Events
 			}
 
 			await self.UpdateNotifications();
-		}
-
-		public static ulong GetServerId(this Event self)
-		{
-			return ulong.Parse(self.ServerId);
 		}
 
 		public static Task Delete(this Event self)
@@ -90,36 +90,6 @@ namespace KupoNuts.Bot.Events
 				return textChannel;
 
 			throw new Exception("Channel: \"" + self.ChannelId + "\" is not a text channel");
-		}
-
-		public static string? GetRepeatsString(this Event self)
-		{
-			if (self.Repeats == Event.Days.None)
-				return null;
-
-			StringBuilder builder = new StringBuilder();
-			builder.Append("Every ");
-
-			int count = 0;
-			foreach (Event.Days day in DaysUtil.AllDays)
-			{
-				if (FlagsUtils.IsSet(self.Repeats, day))
-				{
-					if (count > 0)
-						builder.Append(", ");
-
-					count++;
-					builder.Append(day);
-				}
-			}
-
-			if (count == 7)
-			{
-				builder.Clear();
-				builder.Append("Every day");
-			}
-
-			return builder.ToString();
 		}
 
 		/// <summary>
@@ -176,6 +146,9 @@ namespace KupoNuts.Bot.Events
 
 		public static Attendee GetAttendee(this Event self, Database db, string userId)
 		{
+			if (self.Id == null)
+				throw new ArgumentNullException("Id");
+
 			foreach (Attendee attendee in db.Attendees)
 			{
 				if (attendee.EventId != self.Id)
@@ -235,135 +208,6 @@ namespace KupoNuts.Bot.Events
 				builder.Append("No one yet");
 
 			return builder.ToString();
-		}
-
-		public static Duration? GetNotifyDuration(this Event self)
-		{
-			if (string.IsNullOrEmpty(self.NotifyDuration))
-				return null;
-
-			return DurationPattern.Roundtrip.Parse(self.NotifyDuration).Value;
-		}
-
-		public static Duration GetDuration(this Event self)
-		{
-			if (string.IsNullOrEmpty(self.Duration))
-				return Duration.FromSeconds(0);
-
-			return DurationPattern.Roundtrip.Parse(self.Duration).Value;
-		}
-
-		public static string GetWhenString(this Event self)
-		{
-			Duration? durationTill = self.GetDurationTill();
-
-			if (durationTill == null)
-				return "Never";
-
-			Duration time = (Duration)durationTill;
-			string str = "Starting ";
-
-			if (time.TotalSeconds < 0)
-			{
-				Instant now = TimeUtils.RoundInstant(TimeUtils.Now);
-				Instant instant = now + time + self.GetDuration();
-				Duration endsIn = instant - now;
-
-				time = endsIn;
-				str = "Ending ";
-				////return "Ends in" + TimeUtils.GetDurationString(endsIn);
-			}
-
-			string? endsInStr = TimeUtils.GetDurationString(time);
-			if (endsInStr == null)
-				return "Unknown";
-
-			if (endsInStr.Contains("now"))
-				return str + "now";
-
-			return str + "in" + endsInStr;
-		}
-
-		public static Instant GetDateTime(this Event self)
-		{
-			if (string.IsNullOrEmpty(self.DateTime))
-				return Instant.FromJulianDate(0);
-
-			return InstantPattern.ExtendedIso.Parse(self.DateTime).Value;
-		}
-
-		public static Duration? GetDurationTill(this Event self)
-		{
-			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
-			Duration? duration = self.GetNextOccurance(zone) - TimeUtils.RoundInstant(TimeUtils.Now);
-			return duration;
-		}
-
-		public static List<Instant> GetNextOccurances(this Event self, DateTimeZone zone)
-		{
-			Instant eventDateTime = self.GetDateTime();
-			Duration eventDuration = self.GetDuration();
-			Instant now = SystemClock.Instance.GetCurrentInstant();
-
-			List<Instant> occurances = new List<Instant>();
-
-			if (self.Repeats == 0)
-			{
-				if (eventDateTime > now)
-				{
-					occurances.Add(eventDateTime);
-				}
-			}
-			else
-			{
-				LocalDateTime dateTime = eventDateTime.InZone(zone).LocalDateTime;
-				LocalTime time = dateTime.TimeOfDay;
-
-				LocalDate date = dateTime.Date;
-				LocalDate todaysDate = TimeUtils.Now.InZone(zone).LocalDateTime.Date;
-
-				List<LocalDate> dates = new List<LocalDate>();
-				foreach (Event.Days day in DaysUtil.AllDays)
-				{
-					if (!FlagsUtils.IsSet(self.Repeats, day))
-						continue;
-
-					IsoDayOfWeek dayOfWeek = TimeUtils.ToIsoDay(day);
-
-					if (todaysDate.DayOfWeek == dayOfWeek)
-					{
-						dates.Add(todaysDate);
-					}
-					else
-					{
-						dates.Add(todaysDate.Next(dayOfWeek));
-					}
-				}
-
-				dates.Sort();
-
-				foreach (LocalDate nextDate in dates)
-				{
-					LocalDateTime nextDateTime = nextDate + time;
-					Instant occurance = nextDateTime.InZoneLeniently(zone).ToInstant();
-
-					if (occurance + eventDuration < now)
-						continue;
-
-					occurances.Add(occurance);
-				}
-			}
-
-			return occurances;
-		}
-
-		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
-		{
-			List<Instant> occurances = self.GetNextOccurances(zone);
-			if (occurances == null || occurances.Count <= 0)
-				return null;
-
-			return occurances[0];
 		}
 	}
 }

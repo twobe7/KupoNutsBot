@@ -6,7 +6,7 @@ namespace KupoNuts
 
 	public class Poll
 	{
-		public string ChannelId;
-		public List<string> Options;
+		public string? ChannelId;
+		public List<string>? Options;
 	}
 }

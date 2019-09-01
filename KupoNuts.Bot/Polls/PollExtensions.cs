@@ -18,16 +18,19 @@ namespace KupoNuts.Bot.Polls
 			if (channel is null)
 				return false;
 
-			foreach (string option in self.Options)
+			if (self.Options != null)
 			{
-				if (!ulong.TryParse(option, out ulong messageID))
-					return false;
-
-				IMessage optionMessage = await channel.GetMessageAsync(messageID);
-
-				if (optionMessage == null)
+				foreach (string option in self.Options)
 				{
-					return false;
+					if (!ulong.TryParse(option, out ulong messageID))
+						return false;
+
+					IMessage optionMessage = await channel.GetMessageAsync(messageID);
+
+					if (optionMessage == null)
+					{
+						return false;
+					}
 				}
 			}
 

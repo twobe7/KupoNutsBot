@@ -2,6 +2,7 @@
 
 namespace KupoNuts.Bot.Events
 {
+	using System;
 	using Discord;
 	using Discord.WebSocket;
 	using KupoNuts.Events;
@@ -22,6 +23,9 @@ namespace KupoNuts.Bot.Events
 
 		public static string GetName(this Attendee self)
 		{
+			if (self.UserId == null)
+				throw new ArgumentNullException("Id");
+
 			ulong userId = ulong.Parse(self.UserId);
 			SocketUser user = Program.DiscordClient.GetUser(userId);
 

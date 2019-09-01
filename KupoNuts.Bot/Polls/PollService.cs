@@ -101,6 +101,9 @@ namespace KupoNuts.Bot.Polls
 
 		private void WatchPoll(Poll poll)
 		{
+			if (poll.Options == null)
+				return;
+
 			foreach (string option in poll.Options)
 			{
 				if (!ulong.TryParse(option, out ulong messageID))
@@ -123,16 +126,19 @@ namespace KupoNuts.Bot.Polls
 
 			Poll poll = this.pollLookup[message.Id];
 
-			foreach (string optionIdStr in poll.Options)
+			if (poll.Options != null)
 			{
-				if (!ulong.TryParse(optionIdStr, out ulong optionId))
-					continue;
+				foreach (string optionIdStr in poll.Options)
+				{
+					if (!ulong.TryParse(optionIdStr, out ulong optionId))
+						continue;
 
-				if (optionId == message.Id)
-					continue;
+					if (optionId == message.Id)
+						continue;
 
-				IUserMessage option = (IUserMessage)await channel.GetMessageAsync(optionId);
-				await option.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+					IUserMessage option = (IUserMessage)await channel.GetMessageAsync(optionId);
+					await option.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+				}
 			}
 		}
 	}

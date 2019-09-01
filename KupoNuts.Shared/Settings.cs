@@ -7,12 +7,12 @@ namespace KupoNuts
 	[Serializable]
 	public class Settings
 	{
-		public string Token { get; set; }
+		public string? Token { get; set; }
 
-		public string LogChannel { get; set; }
+		public string? LogChannel { get; set; }
 
-		public string StatusChannel { get; set; }
+		public string? StatusChannel { get; set; }
 
-		public string CalendarChannel { get; set; }
+		public string? CalendarChannel { get; set; }
 	}
 }

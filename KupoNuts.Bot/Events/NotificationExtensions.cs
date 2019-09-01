@@ -57,7 +57,7 @@ namespace KupoNuts.Bot.Events
 			{
 				timeBuilder.Append(repeat);
 				timeBuilder.AppendLine(" at ");
-				timeBuilder.Append(TimeUtils.GetTimeString(evt.GetDateTime()));
+				timeBuilder.Append(TimeUtils.GetTimeString(evt.GetNextOccurance()));
 			}
 			else
 			{
@@ -67,17 +67,20 @@ namespace KupoNuts.Bot.Events
 
 			builder.AddField("When", timeBuilder.ToString(), false);
 
-			for (int i = 0; i < evt.Statuses.Count; i++)
+			if (evt.Statuses != null)
 			{
-				Event.Status status = evt.Statuses[i];
+				for (int i = 0; i < evt.Statuses.Count; i++)
+				{
+					Event.Status status = evt.Statuses[i];
 
-				if (string.IsNullOrEmpty(status.Display))
-					continue;
+					if (string.IsNullOrEmpty(status.Display))
+						continue;
 
-				int count = 0;
-				string attending = evt.GetAttendeeString(i, out count);
+					int count = 0;
+					string attending = evt.GetAttendeeString(i, out count);
 
-				builder.AddField(status.Display + " (" + count + ")", attending, true);
+					builder.AddField(status.Display + " (" + count + ")", attending, true);
+				}
 			}
 
 			RestUserMessage? message = await self.GetMessage();
@@ -91,9 +94,12 @@ namespace KupoNuts.Bot.Events
 				if (!string.IsNullOrEmpty(evt.RemindMeEmote))
 					reactions.Add(evt.GetRemindMeEmote());
 
-				foreach (Event.Status status in evt.Statuses)
+				if (evt.Statuses != null)
 				{
-					reactions.Add(status.GetEmote());
+					foreach (Event.Status status in evt.Statuses)
+					{
+						reactions.Add(status.GetEmote());
+					}
 				}
 
 				await message.AddReactionsAsync(reactions.ToArray());
@@ -124,10 +130,13 @@ namespace KupoNuts.Bot.Events
 			if (message is null)
 				return;
 
-			for (int i = 0; i < evt.Statuses.Count; i++)
+			if (evt.Statuses != null)
 			{
-				Event.Status status = evt.Statuses[i];
-				await self.CheckReactions(evt, message, status, i);
+				for (int i = 0; i < evt.Statuses.Count; i++)
+				{
+					Event.Status status = evt.Statuses[i];
+					await self.CheckReactions(evt, message, status, i);
+				}
 			}
 		}
 

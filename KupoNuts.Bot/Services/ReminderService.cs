@@ -70,17 +70,21 @@ namespace KupoNuts.Bot.Services
 
 		private async Task Update()
 		{
-			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
-
 			Database db = Database.Load();
 			foreach (Event evt in db.Events)
 			{
-				Instant? nextOccurance = evt.GetNextOccurance(zone);
+				if (evt.Id == null)
+					continue;
+
+				Instant? nextOccurance = evt.GetNextOccurance();
 				if (nextOccurance == null)
 					continue;
 
 				foreach (Attendee attendee in evt.GetAttendees())
 				{
+					if (attendee.UserId == null)
+						continue;
+
 					Duration? remindTime = attendee.GetRemindTime();
 					if (remindTime == null)
 						continue;
@@ -100,6 +104,9 @@ namespace KupoNuts.Bot.Services
 			Database db = Database.Load();
 			Event evt = db.GetEvent(eventId);
 			Attendee attendee = evt.GetAttendee(db, userId);
+
+			if (attendee.UserId == null)
+				return;
 
 			Notification notify = db.GetNotification(eventId);
 
@@ -130,12 +137,15 @@ namespace KupoNuts.Bot.Services
 
 		private async Task ConfirmReminder(Event evt, Attendee attendee)
 		{
+			if (attendee.UserId == null)
+				return;
+
 			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(attendee.UserId));
 
 			Database db = Database.Load();
 			Notification notify = db.GetNotification(evt.Id);
 
-			string eventName = evt.Name;
+			string? eventName = evt.Name;
 			if (notify != null)
 				eventName = notify.GetLink();
 
@@ -253,6 +263,12 @@ namespace KupoNuts.Bot.Services
 
 			public PendingReminder(Event evt, Attendee attendee)
 			{
+				if (evt.Id == null)
+					throw new ArgumentNullException("evt.Id");
+
+				if (attendee.UserId == null)
+					throw new ArgumentNullException("attendee.Id");
+
 				this.EventId = evt.Id;
 				this.UserId = attendee.UserId;
 			}

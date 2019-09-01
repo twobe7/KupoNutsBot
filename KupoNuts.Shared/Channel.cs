@@ -25,9 +25,9 @@ namespace KupoNuts
 			Voice,
 		}
 
-		public string Id { get; set; }
+		public string? Id { get; set; }
 
-		public string Name { get; set; }
+		public string? Name { get; set; }
 
 		public Types Type { get; set; }
 	}

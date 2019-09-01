@@ -96,10 +96,11 @@ namespace KupoNuts.Bot.Services
 			Dictionary<int, List<Event>> eventSchedule = new Dictionary<int, List<Event>>();
 
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+
 			Database db = Database.Load();
 			foreach (Event evt in db.Events)
 			{
-				List<Instant> occurances = evt.GetNextOccurances(zone);
+				List<Instant> occurances = evt.GetNextOccurances();
 
 				foreach (Instant occurance in occurances)
 				{

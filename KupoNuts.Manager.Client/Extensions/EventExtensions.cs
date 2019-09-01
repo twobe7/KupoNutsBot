@@ -12,32 +12,21 @@ namespace KupoNuts.Events
 
 	public static class EventExtensions
 	{
-		public static Duration GetNotifyDuration(this Event self)
-		{
-			if (string.IsNullOrEmpty(self.NotifyDuration))
-				return Duration.FromSeconds(0);
-
-			try
-			{
-				return DurationPattern.Roundtrip.Parse(self.NotifyDuration).Value;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Failed to deserialize duration string: \"" + self.NotifyDuration + "\" " + ex.Message);
-				return Duration.FromSeconds(0);
-			}
-		}
-
 		public static void GetNotifyDuration(this Event self, out double duration)
 		{
+			duration = 0;
+
 			if (string.IsNullOrEmpty(self.NotifyDuration))
 			{
 				duration = -1;
 				return;
 			}
 
-			Duration dur = self.GetNotifyDuration();
-			duration = (dur.Days * 24) + dur.Hours + (dur.Minutes / 60.0);
+			Duration? dur = self.GetNotifyDuration();
+			if (dur == null)
+				return;
+
+			duration = (dur.Value.Days * 24) + dur.Value.Hours + (dur.Value.Minutes / 60.0);
 		}
 
 		public static void SetNotifyDuration(this Event self, double duration)
@@ -55,22 +44,6 @@ namespace KupoNuts.Events
 			self.NotifyDuration = DurationPattern.Roundtrip.Format(dur);
 		}
 
-		public static Duration GetDuration(this Event self)
-		{
-			if (string.IsNullOrEmpty(self.Duration))
-				return Duration.FromSeconds(0);
-
-			try
-			{
-				return DurationPattern.Roundtrip.Parse(self.Duration).Value;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Failed to deserialize duration string: \"" + self.Duration + "\" " + ex.Message);
-				return Duration.FromSeconds(0);
-			}
-		}
-
 		public static void GetDuration(this Event self, out double duration)
 		{
 			Duration dur = self.GetDuration();
@@ -84,14 +57,6 @@ namespace KupoNuts.Events
 
 			Duration dur = Duration.FromMinutes((hours * 60) + minutes);
 			self.Duration = DurationPattern.Roundtrip.Format(dur);
-		}
-
-		public static Instant GetDateTime(this Event self)
-		{
-			if (string.IsNullOrEmpty(self.DateTime))
-				return Instant.FromUtc(2019, 01, 01, 00, 00);
-
-			return InstantPattern.ExtendedIso.Parse(self.DateTime).Value;
 		}
 
 		public static void SetDateTime(this Event self, DateTime date, string time)
@@ -152,14 +117,14 @@ namespace KupoNuts.Events
 			self.Repeats = repeats;
 		}
 
-		public static string GetNextOccurance(this Event self)
+		public static string GetNextOccuranceString(this Event self)
 		{
-			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
-			Instant? next = self.GetNextOccurance(zone);
+			Instant? next = self.GetNextOccurance();
 
 			if (next == null)
 				return "Never";
 
+			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 			ZonedDateTime zdt = ((Instant)next).InZone(zone);
 			StringBuilder builder = new StringBuilder();
 			builder.Append(zdt.ToString("hh:mm ", CultureInfo.InvariantCulture));
@@ -182,48 +147,6 @@ namespace KupoNuts.Events
 			}
 
 			return "Unknown";
-		}
-
-		public static Instant? GetNextOccurance(this Event self, DateTimeZone zone)
-		{
-			Instant eventDateTime = self.GetDateTime();
-
-			Instant now = SystemClock.Instance.GetCurrentInstant();
-			if (eventDateTime < now)
-			{
-				if (self.Repeats == 0)
-					return null;
-
-				LocalDate nextDate;
-				LocalDateTime dateTime = eventDateTime.InZone(zone).LocalDateTime;
-
-				LocalDate date = dateTime.Date;
-				LocalDate todaysDate = TimeUtils.Now.InZone(zone).LocalDateTime.Date;
-
-				List<LocalDate> dates = new List<LocalDate>();
-				foreach (Event.Days day in Enum.GetValues(typeof(Event.Days)))
-				{
-					if (!FlagsUtils.IsSet(self.Repeats, day))
-						continue;
-
-					nextDate = todaysDate.Next(TimeUtils.ToIsoDay(day));
-					dates.Add(nextDate);
-				}
-
-				if (dates.Count <= 0)
-					return eventDateTime;
-
-				dates.Sort();
-				nextDate = dates[0];
-
-				Period dateOffset = nextDate - date;
-				dateTime = dateTime + dateOffset;
-
-				Instant nextInstant = dateTime.InZoneLeniently(zone).ToInstant();
-				return nextInstant;
-			}
-
-			return eventDateTime;
 		}
 	}
 }

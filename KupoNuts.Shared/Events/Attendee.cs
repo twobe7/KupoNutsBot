@@ -14,12 +14,12 @@ namespace KupoNuts.Events
 			this.UserId = userId;
 		}
 
-		public string EventId { get; set; }
+		public string? EventId { get; set; }
 
-		public string UserId { get; set; }
+		public string? UserId { get; set; }
 
-		public int Status { get; set; }
+		public int? Status { get; set; }
 
-		public string RemindTime { get; set; }
+		public string? RemindTime { get; set; }
 	}
 }

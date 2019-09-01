@@ -80,23 +80,26 @@ namespace KupoNuts.Utils
 			return dt.InZone(AEST).ToString("dddd dd MMMM", CultureInfo.InvariantCulture);
 		}
 
-		public static string GetTimeString(Instant dt)
+		public static string GetTimeString(Instant? dt)
 		{
+			if (dt == null)
+				return string.Empty;
+
 			StringBuilder builder = new StringBuilder();
-			builder.Append(dt.InZone(AWST).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt.InZone(AWST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(dt?.InZone(AWST).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt?.InZone(AWST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
 			builder.Append(" AWST");
 			builder.Append(" - ");
-			builder.Append(dt.InZone(ACST).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt.InZone(ACST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(dt?.InZone(ACST).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt?.InZone(ACST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
 			builder.Append(" ACST");
 			builder.Append(" - ");
-			builder.Append(dt.InZone(AEST).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt.InZone(AEST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(dt?.InZone(AEST).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt?.InZone(AEST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
 			builder.Append(" AEST");
 			builder.Append(" - ");
-			builder.Append(dt.InZone(NZST).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt.InZone(NZST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(dt?.InZone(NZST).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt?.InZone(NZST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
 			builder.Append(" NZST");
 			return builder.ToString();
 		}
@@ -202,6 +205,41 @@ namespace KupoNuts.Utils
 			Duration duration = instant - zdt.ToInstant();
 
 			return (int)Math.Floor(duration.TotalDays);
+		}
+
+		public static string GetDurationString(double duration)
+		{
+			if (duration == 0)
+				return "0 minutes";
+
+			int hours = (int)duration;
+			int minutes = (int)((duration - (double)hours) * 60.0);
+
+			StringBuilder builder = new StringBuilder();
+
+			if (hours == 1)
+			{
+				builder.Append(hours);
+				builder.Append(" hour ");
+			}
+			else if (hours > 1)
+			{
+				builder.Append(hours);
+				builder.Append(" hours ");
+			}
+
+			if (minutes == 1)
+			{
+				builder.Append(minutes);
+				builder.Append(" minute ");
+			}
+			else if (minutes > 1)
+			{
+				builder.Append(minutes);
+				builder.Append(" minutes ");
+			}
+
+			return builder.ToString();
 		}
 
 		private static DateTimeZone GetTimeZone(string id)
