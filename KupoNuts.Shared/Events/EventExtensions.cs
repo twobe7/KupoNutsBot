@@ -142,12 +142,18 @@ namespace KupoNuts.Events
 
 					if (todaysDate.DayOfWeek == dayOfWeek)
 					{
-						dates.Add(todaysDate);
+						Period datePeriod = Period.Between(dateTime.Date, todaysDate);
+						LocalDateTime nextDateTime = dateTime + datePeriod;
+						Instant occurance = nextDateTime.InUtc().ToInstant();
+
+						if (occurance > now)
+						{
+							dates.Add(todaysDate);
+							continue;
+						}
 					}
-					else
-					{
-						dates.Add(todaysDate.Next(dayOfWeek));
-					}
+
+					dates.Add(todaysDate.Next(dayOfWeek));
 				}
 
 				dates.Sort();
