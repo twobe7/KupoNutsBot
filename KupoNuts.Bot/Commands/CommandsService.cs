@@ -172,11 +172,26 @@ namespace KupoNuts.Bot.Commands
 				return;
 			}
 
+			_ = Task.Run(async () => await this.RunCommand(command, args.ToArray(), message));
+		}
+
+		private async Task RunCommand(string command, string[] args, SocketMessage message)
+		{
 			if (commandHandlers.ContainsKey(command))
 			{
 				try
 				{
-					await commandHandlers[command].Invoke(args.ToArray(), message);
+					if (message.Channel is SocketTextChannel textChannel)
+					{
+						using (textChannel.EnterTypingState())
+						{
+							await commandHandlers[command].Invoke(args, message);
+						}
+					}
+					else
+					{
+						await commandHandlers[command].Invoke(args, message);
+					}
 				}
 				catch (NotImplementedException)
 				{
@@ -192,8 +207,6 @@ namespace KupoNuts.Bot.Commands
 			{
 				await message.Channel.SendMessageAsync("I'm sorry, I didn't understand that command.");
 			}
-
-			await Task.Delay(0);
 		}
 
 		private class Command
