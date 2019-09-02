@@ -2,37 +2,38 @@
 
 namespace KupoNuts.Boot
 {
-	using KupoNuts.Bot;
 	using System;
 	using System.Collections.Generic;
 	using System.Text;
 	using System.Threading;
 	using System.Threading.Tasks;
+	using KupoNuts.Bot;
+	using XIVAPI;
 
-	class Program
+	public class Program
 	{
-		private static Task botTask;
-		private static Task managerTask;
+		private static Task? botTask;
+		private static Task? managerTask;
 
 		private static bool Running
 		{
 			get
 			{
-				if (botTask.IsCompleted && managerTask.IsCompleted)
+				if ((botTask == null || botTask.IsCompleted) && (managerTask == null || managerTask.IsCompleted))
 					return false;
 
 				return true;
 			}
 		}
 
-		static void Main(string[] args)
+		public static void Main(string[] args)
 		{
 			Task task = Task.Run(async () => { await MainAsync(args); });
 			task.Wait();
 		}
 
 		private static async Task MainAsync(string[] args)
-		{ 
+		{
 			Console.WriteLine("[Boot] Initializing... press [ESC] to shutdown");
 
 			try
@@ -53,7 +54,7 @@ namespace KupoNuts.Boot
 					}
 				}
 			}
-			catch (Exception ex)
+			catch (Exception? ex)
 			{
 				StringBuilder builder = new StringBuilder();
 				while (ex != null)

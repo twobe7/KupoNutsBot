@@ -40,6 +40,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\KupoNuts.Database\KupoNuts.Database.csproj" />
 		<ProjectReference Include="..\KupoNuts.Shared\KupoNuts.Shared.csproj" />
+		<ProjectReference Include="..\XIVAPI\XIVAPI.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

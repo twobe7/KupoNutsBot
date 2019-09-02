@@ -20,9 +20,30 @@ namespace XIVAPI
 		}
 
 		/// <summary>
+		/// Search and retrieve character data from The Lodestone. Providing useful information such as character profile data,
+		/// minions and mounts obtained, achievements obtained and their relative dates. Character friends, their free company, pvp team and much more.
+		/// </summary>
+		/// <param name="name">The name to search for, you can use `+` for spaces or let the API handle it for you.</param>
+		/// <param name="server">The server to search against, this is case sensitive - You can obtain a list of valid servers via: Server List.</param>
+		/// <param name="page">Search or move to a specific page.
+		/// There is currently no way to change the amount of results back returned.It will always be 50 per page with a maximum of 20 pages.This is due to how Lodestone works.</param>
+		public static async Task<GetResponse> Search(string name, string? server = null, int page = 0)
+		{
+			string route = "/character/search?name=" + name;
+
+			if (!string.IsNullOrEmpty(server))
+				route += "&server=" + server;
+
+			if (page != 0)
+				route += "&page=" + page;
+
+			return await Request.Send<GetResponse>(route);
+		}
+
+		/// <summary>
 		/// Get Character data, this is parsed straight from Lodestone in real-time. The more data you request the slower the entire request will be.
 		/// </summary>
-		public static async Task<Response> Get(uint? id, CharacterData dataFlags = CharacterData.None)
+		public static async Task<GetResponse> Get(uint? id, CharacterData dataFlags = CharacterData.None)
 		{
 			string data = string.Empty;
 
@@ -41,16 +62,23 @@ namespace XIVAPI
 			if (FlagsUtils.IsSet(dataFlags, CharacterData.PlayerVsPlayerTeam))
 				data += "PVP,";
 
-			return await Request.Send<Response>("/character/" + id + "?data=" + data);
+			return await Request.Send<GetResponse>("/character/" + id + "?data=" + data + "&extended=true");
 		}
 
 		[Serializable]
-		public class Response
+		public class SearchResponse
 		{
-			public Achievements? Achievements;
+			public Pagination? Pagination;
+			public List<Member>? Results;
+		}
+
+		[Serializable]
+		public class GetResponse
+		{
+			////public ? Achievements;
 			public bool? AchievementsPublic;
 			public Character? Character;
-			public FreeCompany? FreeCompany;
+			////public ? FreeCompany;
 			public List<Member>? FreeCompanyMembers;
 			////public List<>? Friends;
 			public bool? FriendsPublic;
@@ -58,32 +86,46 @@ namespace XIVAPI
 		}
 
 		[Serializable]
-		public class FreeCompany
+		public class Character
 		{
-			public string? Active;
-			public uint? ActiveMemberCount;
-			public List<string>? Crest;
+			public ClassJob? ActiveClassJob;
+			public string? Avatar;
+			public string? Bio;
+			public List<ClassJob>? ClassJobs;
 			public string? DC;
-			public Estate? Estate;
-			public List<IconNameStatus>? Focus;
-			public uint? Formed;
-			public string? GrandCompany;
-			public string? ID;
+			public string? FreeCompanyId;
+			////public ? GearSet;
+			public uint? Gender;
+			public GrandCompany? GrandCompany;
+			public Data? GuardianDeity;
+			public uint? ID;
+			////public List<>? Minions;
+			////public List<>? Mounts;
 			public string? Name;
+			public string? Nameday;
 			public uint? ParseDate;
-			public uint? Rank;
-			public Ranking? Ranking;
-			public string? Recruitment;
-			public List<Reputation>? Reputation;
-			public List<IconNameStatus>? Seeking;
+			public string? Portrait;
+			public uint? PvPTeamId;
+			public Data? Race;
 			public string? Server;
-			public string? Slogan;
-			public string? Tag;
+			public Data? Title;
+			public bool TitleTop;
+			public Data? Town;
+			public Data? Tribe;
 
 			public override string? ToString()
 			{
-				return "Free Company: " + this.Name + " (" + this.ID + ")";
+				return "Character: " + this.Name + " (" + this.ID + ")";
 			}
+		}
+
+		[Serializable]
+		public class Data
+		{
+			public int ID;
+			public string? Name;
+			public string? Icon;
+			public string? Url;
 		}
 
 		[Serializable]
@@ -104,129 +146,27 @@ namespace XIVAPI
 		}
 
 		[Serializable]
-		public class Reputation
+		public class ClassJob
 		{
-			public string? Name;
-			public uint? Progress;
-			public string? Rank;
-
-			public override string? ToString()
-			{
-				return this.Name + " " + this.Progress + " " + this.Rank;
-			}
+			public Class? Class;
+			public ulong ExpLevel = 0;
+			public ulong ExpLevelMax = 0;
+			public ulong ExpLevelTogo = 0;
+			public bool IsSpecialised = false;
+			public Class? Job;
+			public int Level = 0;
+			public string Name = string.Empty;
 		}
 
 		[Serializable]
-		public class Ranking
+		public class Class
 		{
-			public uint? Monthly;
-			public uint? Weekly;
-		}
-
-		[Serializable]
-		public class Estate
-		{
-			public string? Greeting;
-			public string? Name;
-			public string? Plot;
-		}
-
-		[Serializable]
-		public class IconNameStatus
-		{
+			public string? Abbreviation;
+			//// public ? ClassJobCategory
+			public uint? ID;
 			public string? Icon;
 			public string? Name;
-			public bool Status;
-		}
-
-		[Serializable]
-		public class Character
-		{
-			public Job? ActiveClassJob;
-			public string? Avatar;
-			public string? Bio;
-			public List<Job>? ClassJobs;
-			public string? DC;
-			public string? FreeCompanyId;
-			public GearSet? GearSet;
-			public uint? Gender;
-			public GrandCompany? GrandCompany;
-			public uint? GuardianDeity;
-			public uint? ID;
-			////public List<>? Minions;
-			////public List<>? Mounts;
-			public string? Name;
-			public string? Nameday;
-			public uint? ParseDate;
-			public string? Portrait;
-			public uint? PvPTeamId;
-			public uint? Race;
-			public string? Server;
-			public uint? Title;
-			public bool TitleTop;
-			public uint? Town;
-			public uint? Tribe;
-
-			public override string? ToString()
-			{
-				return "Character: " + this.Name + " (" + this.ID + ")";
-			}
-		}
-
-		[Serializable]
-		public class Job
-		{
-			public uint? ClassID;
-			public ulong ExpLevel;
-			public ulong ExpLevelMax;
-			public ulong ExpLevelToGo;
-			public bool IsSpecialised;
-			public uint? JobID;
-			public uint? Level;
-			public string? Name;
-
-			public override string? ToString()
-			{
-				return "Job: " + this.Name + " (" + this.JobID + ")";
-			}
-		}
-
-		[Serializable]
-		public class GearSet
-		{
-			public Dictionary<string, uint>? Attributes;
-			public uint? ClassID;
-			public Dictionary<GearSlots, Item>? Gear;
-			public string? GearKey;
-			public uint? JobID;
-			public uint? Level;
-
-			public enum GearSlots
-			{
-				Body,
-				Bracelets,
-				Earrings,
-				Feet,
-				Hands,
-				Head,
-				Legs,
-				MainHand,
-				Necklace,
-				Ring1,
-				Ring2,
-				SoulCrystal,
-				Waist,
-			}
-		}
-
-		[Serializable]
-		public class Item
-		{
-			public string? Creator;
-			public uint? Dye;
-			public uint? ID;
-			public List<uint>? Materia;
-			public uint? Mirage;
+			public string? Url;
 		}
 
 		[Serializable]
@@ -234,20 +174,6 @@ namespace XIVAPI
 		{
 			public uint? NameID;
 			public uint? RankID;
-		}
-
-		[Serializable]
-		public class Achievements
-		{
-			public List<Achievement>? List;
-			public uint? Pouints;
-		}
-
-		[Serializable]
-		public class Achievement
-		{
-			public uint? Date;
-			public uint? ID;
 		}
 	}
 }

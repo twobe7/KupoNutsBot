@@ -17,6 +17,9 @@ namespace XIVAPI
 			if (!route.StartsWith('/'))
 				route = '/' + route;
 
+			if (!route.Contains('?'))
+				route += '?';
+
 			string url = "https://xivapi.com" + route + "&private_key=" + key;
 
 			try

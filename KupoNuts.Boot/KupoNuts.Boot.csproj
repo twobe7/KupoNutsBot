@@ -9,11 +9,28 @@
 		<WarningsAsErrors />
 		<NoWarn>1701;1702;SA1503;CS1591;SA1401;</NoWarn>
 		<OutputPath>..\bin\</OutputPath>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="stylecop.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AdditionalFiles Include="stylecop.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\KupoNuts.Bot\KupoNuts.Bot.csproj" />
 		<ProjectReference Include="..\KupoNuts.Manager.Server\KupoNuts.Manager.Server.csproj" />
+		<ProjectReference Include="..\XIVAPI\XIVAPI.csproj" />
 	</ItemGroup>
 
 </Project>

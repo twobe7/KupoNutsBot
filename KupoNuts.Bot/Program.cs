@@ -8,6 +8,7 @@ namespace KupoNuts.Bot
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
+	using KupoNuts.Bot.Characters;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Events;
 	using KupoNuts.Bot.Polls;
@@ -67,6 +68,7 @@ namespace KupoNuts.Bot
 				await this.AddService<EchoService>();
 				await this.AddService<KarmaService>();
 				await this.AddService<PollService>();
+				await this.AddService<CharacterService>();
 			}
 			catch (Exception ex)
 			{
