@@ -46,8 +46,10 @@ namespace KupoNuts
 			CredentialProfile profile = new CredentialProfile("Default", options);
 			profile.Region = RegionEndpoint.APSoutheast2;
 
-			NetSDKCredentialsFile netDSKFile = new NetSDKCredentialsFile();
-			netDSKFile.RegisterProfile(profile);
+			SharedCredentialsFile sharedFile = new SharedCredentialsFile();
+			sharedFile.RegisterProfile(profile);
+			////NetSDKCredentialsFile netDSKFile = new NetSDKCredentialsFile();
+			////netDSKFile.RegisterProfile(profile);
 
 			AmazonDynamoDBConfig dbConfig = new AmazonDynamoDBConfig();
 
