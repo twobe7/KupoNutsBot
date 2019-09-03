@@ -2,11 +2,12 @@
 
 namespace KupoNuts
 {
+	using System;
 	using System.Collections.Generic;
+	using System.Text;
 
-	public class Poll : EntryBase
+	public class Karma : EntryBase
 	{
-		public string? ChannelId;
-		public List<string>? Options;
+		public int Count;
 	}
 }

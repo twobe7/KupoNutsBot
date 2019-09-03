@@ -11,11 +11,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Manager.Server", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Shared", "KupoNuts.Shared\KupoNuts.Shared.csproj", "{A3B12C0F-09FE-4814-9B55-06D64370314C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Database", "KupoNuts.Database\KupoNuts.Database.csproj", "{0B2AE3C4-7D62-4DB7-9281-AEC8B22ABA15}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Boot", "KupoNuts.Boot\KupoNuts.Boot.csproj", "{2751A6B5-B536-4C70-B9B8-87145D363C4A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A3B12C0F-09FE-4814-9B55-06D64370314C} = {A3B12C0F-09FE-4814-9B55-06D64370314C}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XIVAPI", "XIVAPI\XIVAPI.csproj", "{4A44B667-D157-4CA4-BC2C-492AC3D7C03A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XIVAPI", "XIVAPI\XIVAPI.csproj", "{4A44B667-D157-4CA4-BC2C-492AC3D7C03A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,10 +40,6 @@ Global
 		{A3B12C0F-09FE-4814-9B55-06D64370314C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3B12C0F-09FE-4814-9B55-06D64370314C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3B12C0F-09FE-4814-9B55-06D64370314C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B2AE3C4-7D62-4DB7-9281-AEC8B22ABA15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B2AE3C4-7D62-4DB7-9281-AEC8B22ABA15}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B2AE3C4-7D62-4DB7-9281-AEC8B22ABA15}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B2AE3C4-7D62-4DB7-9281-AEC8B22ABA15}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2751A6B5-B536-4C70-B9B8-87145D363C4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2751A6B5-B536-4C70-B9B8-87145D363C4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2751A6B5-B536-4C70-B9B8-87145D363C4A}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -34,13 +34,13 @@ namespace KupoNuts.Bot.Services
 		private async Task Update()
 		{
 			Log.Write("Updating Calendar");
-			Database db = Database.Load();
+			Settings db = Settings.Load();
 
 			ulong channelId = 0;
 			ulong weekMessageID = 0;
 			ulong futureMessageID = 0;
 
-			ulong.TryParse(db.Settings.CalendarChannel, out channelId);
+			ulong.TryParse(db.CalendarChannel, out channelId);
 			ulong.TryParse(db.CalendarMessage, out weekMessageID);
 			ulong.TryParse(db.CalendarMessage2, out futureMessageID);
 
@@ -50,7 +50,6 @@ namespace KupoNuts.Bot.Services
 			weekMessageID = await this.Update(channelId, weekMessageID, "Events in the next week", 0, 7);
 			futureMessageID = await this.Update(channelId, futureMessageID, "Events in the future", 7, 30);
 
-			db = Database.Load();
 			db.CalendarMessage = weekMessageID.ToString();
 			db.CalendarMessage2 = futureMessageID.ToString();
 			db.Save();
@@ -60,12 +59,10 @@ namespace KupoNuts.Bot.Services
 		{
 			StringBuilder builder = new StringBuilder();
 
-			Database db = Database.Load();
-			Notification notify = db.GetNotification(evt.Id);
-			if (notify != null)
+			if (evt.Notify != null)
 			{
 				builder.Append(" - ");
-				builder.Append(notify.GetLink());
+				builder.Append(evt.Notify.GetLink(evt));
 			}
 			else
 			{
@@ -97,8 +94,8 @@ namespace KupoNuts.Bot.Services
 
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 
-			Database db = Database.Load();
-			foreach (Event evt in db.Events)
+			List<Event> events = await EventsService.EventsDatabase.LoadAll();
+			foreach (Event evt in events)
 			{
 				List<Instant> occurances = evt.GetNextOccurances();
 
@@ -119,11 +116,11 @@ namespace KupoNuts.Bot.Services
 				if (!eventSchedule.ContainsKey(i))
 					continue;
 
-				List<Event> events = eventSchedule[i];
+				List<Event> eventsDay = eventSchedule[i];
 
 				builder.AppendLine(TimeUtils.GetDayName(i));
 
-				foreach (Event evt in events)
+				foreach (Event evt in eventsDay)
 				{
 					builder.AppendLine(this.GetEventString(evt, i));
 					count++;

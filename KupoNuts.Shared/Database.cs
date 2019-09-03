@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Data
+namespace KupoNuts
 {
 	using System;
 	using System.Collections.Generic;
@@ -17,9 +17,9 @@ namespace KupoNuts.Data
 		public readonly string Name;
 		public readonly int Version;
 
-		private AmazonDynamoDBClient client;
-		private DynamoDBContext context;
-		private DynamoDBOperationConfig operationConfig;
+		private AmazonDynamoDBClient? client;
+		private DynamoDBContext? context;
+		private DynamoDBOperationConfig? operationConfig;
 
 		public Database(string databaseName, int version)
 		{
@@ -70,18 +70,13 @@ namespace KupoNuts.Data
 			this.operationConfig.OverrideTableName = this.InternalName;
 		}
 
-		public async Task<T> CreateEntry(string id = null)
+		public async Task<T> CreateEntry(string? id = null)
 		{
-			T t = new T();
-
 			if (id == null)
-			{
-				t.Id = await this.GetNewID();
-			}
-			else
-			{
-				t.Id = id;
-			}
+				id = await this.GetNewID();
+
+			T t = new T();
+			t.Id = id;
 
 			return t;
 		}
@@ -107,28 +102,51 @@ namespace KupoNuts.Data
 
 		public async Task<T> Load(string key)
 		{
+			if (this.context == null)
+				throw new Exception("Database is not connected");
+
 			return await this.context.LoadAsync<T>(key, this.operationConfig);
 		}
 
 		public async Task<List<T>> LoadAll()
 		{
+			if (this.context == null)
+				throw new Exception("Database is not connected");
+
 			AsyncSearch<T> search = this.context.ScanAsync<T>(null, this.operationConfig);
 			return await search.GetRemainingAsync();
 		}
 
+		public async Task Delete(T entry)
+		{
+			if (entry.Id == null)
+				return;
+
+			await this.Delete(entry.Id);
+		}
+
 		public async Task Delete(string key)
 		{
+			if (this.context == null)
+				throw new Exception("Database is not connected");
+
 			await this.context.DeleteAsync<T>(key, this.operationConfig);
 		}
 
 		public Task Save(T document)
 		{
+			if (this.context == null)
+				throw new Exception("Database is not connected");
+
 			document.Updated = DateTime.UtcNow;
 			return this.context.SaveAsync(document, this.operationConfig);
 		}
 
 		private async Task EnsureTable()
 		{
+			if (this.client == null)
+				throw new Exception("Database is not connected");
+
 			ListTablesResponse listTablesResponse = await this.client.ListTablesAsync();
 
 			if (listTablesResponse.TableNames.Contains(this.InternalName))

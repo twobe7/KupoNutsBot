@@ -8,6 +8,7 @@ namespace KupoNuts.Boot
 	using System.Threading;
 	using System.Threading.Tasks;
 	using KupoNuts.Bot;
+	using KupoNuts.Events;
 	using XIVAPI;
 
 	public class Program

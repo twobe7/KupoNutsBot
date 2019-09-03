@@ -59,11 +59,12 @@ namespace KupoNuts.Bot
 		{
 			try
 			{
+				await this.AddService<EventsService>();
+
 				await this.AddService<CalendarService>();
 				await this.AddService<CommandsService>();
 				await this.AddService<DebugService>();
 				await this.AddService<StatusService>();
-				await this.AddService<EventsService>();
 				await this.AddService<ReminderService>();
 				await this.AddService<EchoService>();
 				await this.AddService<KarmaService>();
@@ -83,7 +84,9 @@ namespace KupoNuts.Bot
 				Running = true;
 				Log.Write("Kupo Nuts Bot booting..");
 
-				if (string.IsNullOrEmpty(Database.Load().Settings.Token))
+				string? token = Settings.Load().Token;
+
+				if (string.IsNullOrEmpty(token))
 				{
 					Log.Write("No token set. Please set a token in the Database file");
 				}
@@ -100,14 +103,14 @@ namespace KupoNuts.Bot
 						return Task.CompletedTask;
 					};
 
-					await DiscordClient.LoginAsync(TokenType.Bot, Database.Load().Settings.Token);
+					await DiscordClient.LoginAsync(TokenType.Bot, token);
 					await DiscordClient.StartAsync();
 
 					while (!ready)
 						await Task.Yield();
 
 					// Write channels to the database
-					Database db = Database.Load();
+					/*Database db = Data.Load();
 					db.Channels.Clear();
 					foreach (SocketGuild guild in DiscordClient.Guilds)
 					{
@@ -124,7 +127,7 @@ namespace KupoNuts.Bot
 						}
 					}
 
-					db.Save();
+					db.Save();*/
 
 					// boot the rest of the bot
 					await this.AddServices();

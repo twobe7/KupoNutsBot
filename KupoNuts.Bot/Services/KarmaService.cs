@@ -8,11 +8,14 @@ namespace KupoNuts.Bot.Services
 
 	public class KarmaService : ServiceBase
 	{
-		public override Task Initialize()
+		private Database<Karma> karmaDatabase = new Database<Karma>("Karma", 1);
+
+		public override async Task Initialize()
 		{
+			await this.karmaDatabase.Connect();
+
 			CommandsService.BindCommand("goodbot", this.GoodBot, Permissions.Everyone, "Ye.");
 			CommandsService.BindCommand("badbot", this.BadBot, Permissions.Everyone, "Na.");
-			return Task.CompletedTask;
 		}
 
 		public override Task Shutdown()
@@ -24,20 +27,31 @@ namespace KupoNuts.Bot.Services
 
 		private async Task GoodBot(string[] args, SocketMessage message)
 		{
-			Database db = Database.Load();
-			db.Karma++;
-			db.Save();
-
-			await message.Channel.SendMessageAsync("Thanks!\nMy karma is " + db.Karma);
+			int count = await this.AddKarma(1, Program.DiscordClient.CurrentUser.Id);
+			await message.Channel.SendMessageAsync("Thanks!\nMy karma is " + count);
 		}
 
 		private async Task BadBot(string[] args, SocketMessage message)
 		{
-			Database db = Database.Load();
-			db.Karma--;
-			db.Save();
+			if (message is SocketUserMessage userMessage)
+			{
+				int count = await this.AddKarma(-1, userMessage.Author.Id);
+				await message.Channel.SendMessageAsync("Aww!\nYour karma is " + count);
+			}
+		}
 
-			await message.Channel.SendMessageAsync("Aww!\nMy karma is " + db.Karma);
+		private async Task<int> AddKarma(int count, ulong userId)
+		{
+			Karma karma = await this.karmaDatabase.Load(userId.ToString());
+
+			if (karma == null)
+				karma = await this.karmaDatabase.CreateEntry(userId.ToString());
+
+			karma.Count += count;
+
+			await this.karmaDatabase.Save(karma);
+
+			return karma.Count;
 		}
 	}
 }

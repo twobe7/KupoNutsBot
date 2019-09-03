@@ -36,7 +36,7 @@ namespace KupoNuts.Bot
 			{
 				try
 				{
-					string? idStr = Database.Load().Settings.LogChannel;
+					string? idStr = Settings.Load().LogChannel;
 					if (idStr != null)
 					{
 						ulong id = ulong.Parse(idStr);

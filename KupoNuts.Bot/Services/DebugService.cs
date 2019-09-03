@@ -14,7 +14,6 @@ namespace KupoNuts.Bot.Services
 		public override Task Initialize()
 		{
 			CommandsService.BindCommand("time", this.Time, Permissions.Everyone, "Shows the current time in multiple time zones.");
-			CommandsService.BindCommand("data", this.Data, Permissions.Administrators, "Uploads teh current database.");
 			return Task.CompletedTask;
 		}
 
@@ -28,11 +27,6 @@ namespace KupoNuts.Bot.Services
 		{
 			Instant now = SystemClock.Instance.GetCurrentInstant();
 			await message.Channel.SendMessageAsync("The time is: " + TimeUtils.GetDateTimeString(now));
-		}
-
-		private async Task Data(string[] args, SocketMessage message)
-		{
-			await message.Channel.SendFileAsync(Database.Location);
 		}
 	}
 }

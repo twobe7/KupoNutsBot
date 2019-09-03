@@ -17,59 +17,12 @@ namespace KupoNuts.Bot.Events
 
 	public static class EventExtensions
 	{
-		public static async Task Post(this Event self)
-		{
-			Notification notify = new Notification();
-			notify.EventId = self.Id;
-			notify.ChannelId = self.ChannelId;
-
-			if (self.Id != null)
-				await notify.Post(self.Id);
-
-			Database db = Database.Load();
-			db.Notifications.Add(notify);
-			db.Save();
-		}
-
-		public static async Task UpdateNotifications(this Event self)
-		{
-			if (self.Id == null)
-				throw new ArgumentNullException("Id");
-
-			Database db = Database.Load();
-			foreach (Notification notify in db.Notifications)
-			{
-				if (notify.EventId != self.Id)
-					continue;
-
-				await notify.Post(self.Id);
-			}
-		}
-
 		public static async Task CheckReactions(this Event self)
 		{
-			Database db = Database.Load();
-			foreach (Notification notify in db.Notifications)
-			{
-				if (notify.EventId != self.Id)
-					continue;
+			if (self.Notify == null)
+				return;
 
-				await notify.CheckReactions(self);
-			}
-
-			await self.UpdateNotifications();
-		}
-
-		public static Task Delete(this Event self)
-		{
-			Log.Write("Delete Event: \"" + self.Name + "\" (" + self.Id + ")");
-			Database db = Database.Load();
-			db.DeleteEvent(self.Id);
-			db.Save();
-
-			// TODO: Delete any event notifications that have been posted
-			// TODO: Clear any watched messages from the EventsService
-			return Task.CompletedTask;
+			await self.Notify.CheckReactions(self);
 		}
 
 		public static IEmote GetRemindMeEmote(this Event self)
@@ -92,100 +45,65 @@ namespace KupoNuts.Bot.Events
 			throw new Exception("Channel: \"" + self.ChannelId + "\" is not a text channel");
 		}
 
-		/// <summary>
-		/// Deletes all attendees for the given event.
-		/// </summary>
-		public static void ClearAttendees(this Event self, Database db)
+		public static void SetAttendeeStatus(this Event self, ulong userId, int status)
 		{
-			if (self == null)
-				return;
+			Event.Notification.Attendee? attendee = self.GetAttendee(userId);
 
-			for (int i = db.Attendees.Count - 1; i >= 0; i--)
+			if (attendee == null)
 			{
-				if (db.Attendees[i] == null)
-					continue;
-
-				if (db.Attendees[i].EventId == self.Id)
-				{
-					db.Attendees.RemoveAt(i);
-				}
+				attendee = new Event.Notification.Attendee();
+				attendee.UserId = userId;
 			}
-		}
 
-		public static void SetAttendeeStatus(this Event self, string userId, int status)
-		{
-			Database db = Database.Load();
-
-			Attendee attendee = self.GetAttendee(db, userId);
 			attendee.Status = status;
-
-			db.Save();
 		}
 
-		public static List<Attendee> GetAttendees(this Event self)
+		public static List<Event.Notification.Attendee>? GetAttendees(this Event self)
 		{
-			List<Attendee> attendees = new List<Attendee>();
-			Database db = Database.Load();
+			if (self.Notify == null)
+				return null;
 
-			foreach (Attendee attendee in db.Attendees)
-			{
-				if (attendee.EventId != self.Id)
-					continue;
-
-				attendees.Add(attendee);
-			}
-
-			return attendees;
+			return self.Notify.Attendees;
 		}
 
-		public static Attendee GetAttendee(this Event self, string userId)
-		{
-			Database db = Database.Load();
-			return self.GetAttendee(db, userId);
-		}
-
-		public static Attendee GetAttendee(this Event self, Database db, string userId)
+		public static Event.Notification.Attendee? GetAttendee(this Event self, ulong userId)
 		{
 			if (self.Id == null)
 				throw new ArgumentNullException("Id");
 
-			foreach (Attendee attendee in db.Attendees)
-			{
-				if (attendee.EventId != self.Id)
-					continue;
+			if (self.Notify == null)
+				throw new Exception("Attempt to get attendees for event without an active notification");
 
+			foreach (Event.Notification.Attendee attendee in self.Notify.Attendees)
+			{
 				if (!attendee.Is(userId))
 					continue;
 
 				return attendee;
 			}
 
-			Attendee newAttendee = new Attendee(self.Id, userId);
-			db.Attendees.Add(newAttendee);
-			db.Save();
-			return newAttendee;
+			return null;
 		}
 
 		public static string GetAttendeeString(this Event self, int statusIndex, out int total)
 		{
+			if (self.Notify == null)
+				throw new Exception("Attempt to get attendee string without event notification");
+
 			StringBuilder builder = new StringBuilder();
 
-			Database db = Database.Load();
 			total = 0;
-			foreach (Attendee attendee in db.Attendees)
+			foreach (Event.Notification.Attendee attendee in self.Notify.Attendees)
 			{
-				if (attendee.EventId == self.Id && attendee.Status == statusIndex)
+				if (attendee.Status == statusIndex)
 				{
 					total++;
 				}
 			}
 
 			int count = 0;
-			foreach (Attendee attendee in db.Attendees)
+			foreach (Event.Notification.Attendee attendee in self.Notify.Attendees)
 			{
-				if (attendee.EventId != self.Id)
-					continue;
-
 				if (attendee.Status == statusIndex)
 				{
 					count++;
@@ -195,11 +113,11 @@ namespace KupoNuts.Bot.Events
 						if (count > 1)
 							builder.Append(", ");
 
-						builder.Append(attendee.GetName());
+						builder.Append(attendee.GetName(self));
 					}
 					else
 					{
-						builder.AppendLine(attendee.GetName());
+						builder.AppendLine(attendee.GetName(self));
 					}
 				}
 			}

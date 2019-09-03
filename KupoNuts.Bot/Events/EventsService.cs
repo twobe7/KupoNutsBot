@@ -17,8 +17,10 @@ namespace KupoNuts.Bot.Events
 
 	public class EventsService : ServiceBase
 	{
+		public static Database<Event> EventsDatabase = new Database<Event>("Events", 1);
+
 		private static EventsService? instance;
-		private Dictionary<ulong, Event> messageLookup = new Dictionary<ulong, Event>();
+		private Dictionary<ulong, string> messageEventLookup = new Dictionary<ulong, string>();
 
 		public static EventsService Instance
 		{
@@ -34,6 +36,8 @@ namespace KupoNuts.Bot.Events
 		public override async Task Initialize()
 		{
 			instance = this;
+
+			await EventsDatabase.Connect();
 
 			CommandsService.BindCommand("events", this.Update, Permissions.Administrators, "Checks event notifications");
 
@@ -54,78 +58,69 @@ namespace KupoNuts.Bot.Events
 			return Task.CompletedTask;
 		}
 
-		public void Watch(RestUserMessage message, Event evt)
+		public void Watch(Event evt)
 		{
-			if (message == null)
+			if (evt.Notify == null || evt.Notify.MessageId == null || evt.Id == null)
 				return;
 
-			if (this.messageLookup.ContainsKey(message.Id))
+			if (this.messageEventLookup.ContainsKey(evt.Notify.MessageId.Value))
 				return;
 
-			this.messageLookup.Add(message.Id, evt);
+			this.messageEventLookup.Add(evt.Notify.MessageId.Value, evt.Id);
 		}
 
 		private async Task Update()
 		{
-			Database db = Database.Load();
-			db.SanatiseAttendees();
-			db.Save();
-
-			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
-
-			for (int i = db.Events.Count - 1; i >= 0; i--)
+			// todo: store event ID's in a seperate table so we aren't scanning the entire events db each update.
+			List<Event> events = await EventsDatabase.LoadAll();
+			foreach (Event evt in events)
 			{
-				Event evt = db.Events[i];
-
-				// dont delete repeating events
-				if (evt.Repeats != 0)
+				if (evt.Id == null)
 					continue;
 
-				Instant? next = evt.GetNextOccurance();
-
-				// will never occur (past event)
-				if (next == null)
+				// delete non repeating events that have passed
+				if (evt.Repeats == 0)
 				{
-					Log.Write("Delete Event: \"" + evt.Name + "\" (" + evt.Id + ")");
-					db.DeleteEvent(evt.Id);
-				}
-			}
+					Instant? next = evt.GetNextOccurance();
 
-			db.Save();
-			db = Database.Load();
+					// will never occur (past event)
+					if (next == null)
+					{
+						Log.Write("Delete Event: \"" + evt.Name + "\" (" + evt.Id + ")");
+						await EventsDatabase.Delete(evt.Id);
 
-			for (int i = db.Notifications.Count - 1; i >= 0; i--)
-			{
-				RestUserMessage? message = await db.Notifications[i].GetMessage();
-				Event evt = db.GetEvent(db.Notifications[i].EventId);
+						if (evt.Notify != null)
+						{
+							await evt.Notify.Delete(evt);
+						}
+					}
 
-				// dead reminder.
-				if (message is null || evt is null || !this.ShouldNotify(evt))
-				{
-					evt?.ClearAttendees(db);
-					await db.Notifications[i].Delete();
-					db.Notifications.RemoveAt(i);
-					db.Save();
 					continue;
 				}
 
-				this.Watch(message, evt);
-			}
-
-			db = Database.Load();
-			foreach (Event evt in db.Events)
-			{
 				SocketTextChannel? channel = evt.GetChannel();
 
 				if (channel is null)
 					continue;
 
-				if (db.GetNotification(evt.Id) == null && this.ShouldNotify(evt))
+				if (this.ShouldNotify(evt))
 				{
-					await evt.Post();
-				}
+					if (evt.Notify == null)
+						evt.Notify = new Event.Notification();
 
-				await evt.CheckReactions();
+					await evt.CheckReactions();
+
+					await evt.Notify.Post(evt);
+					await EventsDatabase.Save(evt);
+				}
+				else
+				{
+					if (evt.Notify != null)
+					{
+						// remove notification
+						await evt.Notify.Delete(evt);
+					}
+				}
 			}
 		}
 
@@ -150,32 +145,29 @@ namespace KupoNuts.Bot.Events
 			return timeTillEvent.Value < notifyDuration.Value;
 		}
 
-		private async Task Notify(string[] args, SocketMessage message)
-		{
-			if (args.Length <= 0)
-			{
-				foreach (Event evt in Database.Load().Events)
-				{
-					await evt.Post();
-				}
-			}
-			else
-			{
-				await message.Channel.SendMessageAsync("I'm sorry, I cant notify specific events yet.");
-			}
-		}
-
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (!this.messageLookup.ContainsKey(message.Id))
+			if (!this.messageEventLookup.ContainsKey(message.Id))
 				return;
 
 			// dont mark yourself as attending!
 			if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
 				return;
 
-			Event evt = this.messageLookup[message.Id];
-			Attendee attendee = evt.GetAttendee(reaction.UserId.ToString());
+			Event evt = await EventsDatabase.Load(this.messageEventLookup[message.Id]);
+
+			if (evt.Notify == null)
+				return;
+
+			Event.Notification.Attendee? attendee = evt.GetAttendee(reaction.UserId);
+
+			if (attendee == null)
+			{
+				attendee = new Event.Notification.Attendee();
+				attendee.UserId = reaction.UserId;
+				evt.Notify.Attendees.Add(attendee);
+				await EventsDatabase.Save(evt);
+			}
 
 			if (!string.IsNullOrEmpty(evt.RemindMeEmote))
 			{
@@ -193,12 +185,13 @@ namespace KupoNuts.Bot.Events
 
 					if (reaction.Emote.Name == status.GetEmote().Name)
 					{
-						evt.SetAttendeeStatus(reaction.UserId.ToString(), i);
+						evt.SetAttendeeStatus(reaction.UserId, i);
+						await EventsDatabase.Save(evt);
 					}
 				}
 			}
 
-			await evt.UpdateNotifications();
+			await evt.Notify.Post(evt);
 
 			RestUserMessage userMessage = (RestUserMessage)await channel.GetMessageAsync(message.Id);
 			SocketUser user = Program.DiscordClient.GetUser(reaction.UserId);

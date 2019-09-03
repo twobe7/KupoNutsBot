@@ -14,7 +14,7 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpGet]
 		public IEnumerable<Event> Get()
 		{
-			return Database.Load().Events;
+			return Data.Load().Events;
 		}
 
 		[HttpPost]
@@ -24,7 +24,7 @@ namespace KupoNuts.Manager.Server.Controllers
 			{
 				case EventAction.Actions.Update:
 				{
-					Database db = Database.Load();
+					Database db = Data.Load();
 					db.UpdateOrInsertEvent(evt.Event);
 					db.Save();
 					break;
@@ -34,7 +34,7 @@ namespace KupoNuts.Manager.Server.Controllers
 				case EventAction.Actions.DeleteConfirmed:
 				{
 					Log.Write("Delete Event: \"" + evt.Event.Name + "\" (" + evt.Event.Id + ")");
-					Database db = Database.Load();
+					Database db = Data.Load();
 					db.DeleteEvent(evt.Event.Id);
 					db.Save();
 					break;

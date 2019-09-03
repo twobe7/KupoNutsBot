@@ -12,7 +12,7 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpGet]
 		public List<Channel> Get()
 		{
-			return Database.Load().Channels;
+			return Data.Load().Channels;
 		}
 	}
 }

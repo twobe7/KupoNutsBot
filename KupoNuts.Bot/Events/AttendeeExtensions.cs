@@ -3,7 +3,6 @@
 namespace KupoNuts.Bot.Events
 {
 	using System;
-	using Discord;
 	using Discord.WebSocket;
 	using KupoNuts.Events;
 	using NodaTime;
@@ -11,34 +10,28 @@ namespace KupoNuts.Bot.Events
 
 	public static class AttendeeExtensions
 	{
-		public static bool Is(this Attendee self, ulong userId)
+		public static bool Is(this Event.Notification.Attendee self, ulong userId)
 		{
-			return self.UserId == userId.ToString();
-		}
+			if (self.UserId == null)
+				return false;
 
-		public static bool Is(this Attendee self, string userId)
-		{
 			return self.UserId == userId;
 		}
 
-		public static string GetName(this Attendee self)
+		public static string GetName(this Event.Notification.Attendee self, Event evt)
 		{
 			if (self.UserId == null)
 				throw new ArgumentNullException("Id");
 
-			ulong userId = ulong.Parse(self.UserId);
-			SocketUser user = Program.DiscordClient.GetUser(userId);
+			SocketUser user = Program.DiscordClient.GetUser((ulong)self.UserId);
 
 			if (user == null)
 				return "Unknown";
 
-			Database db = Database.Load();
-			Event evt = db.GetEvent(self.EventId);
-
 			SocketGuild guild = Program.DiscordClient.GetGuild(evt.GetServerId());
 			if (guild != null)
 			{
-				SocketGuildUser guildUser = guild.GetUser(userId);
+				SocketGuildUser guildUser = guild.GetUser((ulong)self.UserId);
 				if (guildUser != null && !string.IsNullOrEmpty(guildUser.Nickname))
 				{
 					return guildUser.Nickname;
@@ -48,7 +41,7 @@ namespace KupoNuts.Bot.Events
 			return user.Username;
 		}
 
-		public static Duration? GetRemindTime(this Attendee self)
+		public static Duration? GetRemindTime(this Event.Notification.Attendee self)
 		{
 			if (string.IsNullOrEmpty(self.RemindTime))
 				return null;
@@ -56,7 +49,7 @@ namespace KupoNuts.Bot.Events
 			return DurationPattern.Roundtrip.Parse(self.RemindTime).Value;
 		}
 
-		public static void SetRemindTime(this Attendee self, Duration? duration)
+		public static void SetRemindTime(this Event.Notification.Attendee self, Duration? duration)
 		{
 			if (duration == null)
 			{

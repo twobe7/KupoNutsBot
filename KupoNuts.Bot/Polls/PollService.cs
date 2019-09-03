@@ -17,26 +17,28 @@ namespace KupoNuts.Bot.Polls
 	{
 		private Dictionary<ulong, Poll> pollLookup = new Dictionary<ulong, Poll>();
 
+		private Database<Poll> pollDatabase = new Database<Poll>("Polls", 1);
+
 		public override async Task Initialize()
 		{
+			await this.pollDatabase.Connect();
+
 			CommandsService.BindCommand("poll", this.HandlePoll, Permissions.Administrators, "Copies a range of messages to a new channel, adds a reaction, and counts votes.");
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
 
-			Database db = Database.Load();
+			List<Poll> polls = await this.pollDatabase.LoadAll();
 
-			for (int i = db.Polls.Count - 1; i >= 0; i--)
+			foreach (Poll poll in polls)
 			{
-				bool valid = await db.Polls[i].IsValid();
+				bool valid = await poll.IsValid();
 
 				if (!valid)
 				{
-					Database db1 = Database.Load();
-					db1.Polls.RemoveAt(i);
-					db1.Save();
+					await this.pollDatabase.Delete(poll);
 				}
 				else
 				{
-					this.WatchPoll(db.Polls[i]);
+					this.WatchPoll(poll);
 				}
 			}
 		}
@@ -79,7 +81,7 @@ namespace KupoNuts.Bot.Polls
 			if (args.Length == 4)
 				comment = args[3];
 
-			Poll poll = new Poll();
+			Poll poll = await this.pollDatabase.CreateEntry();
 			poll.ChannelId = message.Channel.Id.ToString();
 
 			await ((SocketTextChannel)toChannel).SendMessageAsync(comment);
@@ -92,9 +94,7 @@ namespace KupoNuts.Bot.Polls
 				await pollMessage.AddReactionAsync(emote);
 			}
 
-			Database db = Database.Load();
-			db.Polls.Add(poll);
-			db.Save();
+			await this.pollDatabase.Save(poll);
 
 			this.WatchPoll(poll);
 		}

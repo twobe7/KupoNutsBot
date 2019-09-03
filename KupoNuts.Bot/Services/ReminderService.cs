@@ -27,7 +27,7 @@ namespace KupoNuts.Bot.Services
 		private Dictionary<ulong, PendingReminder> pendingReminderLookup = new Dictionary<ulong, PendingReminder>();
 		private HashSet<ulong> activeReminderLookup = new HashSet<ulong>();
 
-		public static void SetReminder(Event evt, Attendee attendee)
+		public static void SetReminder(Event evt, Event.Notification.Attendee attendee)
 		{
 			if (instance == null)
 				throw new Exception("No Reminder Service");
@@ -70,8 +70,8 @@ namespace KupoNuts.Bot.Services
 
 		private async Task Update()
 		{
-			Database db = Database.Load();
-			foreach (Event evt in db.Events)
+			List<Event> events = await EventsService.EventsDatabase.LoadAll();
+			foreach (Event evt in events)
 			{
 				if (evt.Id == null)
 					continue;
@@ -80,37 +80,38 @@ namespace KupoNuts.Bot.Services
 				if (nextOccurance == null)
 					continue;
 
-				foreach (Attendee attendee in evt.GetAttendees())
+				List<Event.Notification.Attendee>? attendees = evt.GetAttendees();
+				if (attendees != null)
 				{
-					if (attendee.UserId == null)
-						continue;
-
-					Duration? remindTime = attendee.GetRemindTime();
-					if (remindTime == null)
-						continue;
-
-					Instant? remindInstant = nextOccurance - remindTime;
-
-					if (remindInstant.Value < TimeUtils.Now)
+					foreach (Event.Notification.Attendee attendee in attendees)
 					{
-						await this.Remind(attendee.UserId, evt.Id);
+						if (attendee.UserId == null)
+							continue;
+
+						Duration? remindTime = attendee.GetRemindTime();
+						if (remindTime == null)
+							continue;
+
+						Instant? remindInstant = nextOccurance - remindTime;
+
+						if (remindInstant.Value < TimeUtils.Now)
+						{
+							await this.Remind(attendee, evt);
+						}
 					}
 				}
 			}
 		}
 
-		private async Task Remind(string userId, string eventId)
+		private async Task Remind(Event.Notification.Attendee attendee, Event evt)
 		{
-			Database db = Database.Load();
-			Event evt = db.GetEvent(eventId);
-			Attendee attendee = evt.GetAttendee(db, userId);
-
 			if (attendee.UserId == null)
 				return;
 
-			Notification notify = db.GetNotification(eventId);
+			if (evt.Notify == null)
+				return;
 
-			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(attendee.UserId));
+			SocketUser user = Program.DiscordClient.GetUser((ulong)attendee.UserId);
 
 			EmbedBuilder builder = new EmbedBuilder();
 
@@ -119,7 +120,7 @@ namespace KupoNuts.Bot.Services
 			messageBuilder.Append(user.Username);
 			messageBuilder.AppendLine("!");
 			messageBuilder.Append("You asked me to remind you about the event, ");
-			messageBuilder.Append(notify.GetLink());
+			messageBuilder.Append(evt.Notify.GetLink(evt));
 			messageBuilder.Append(", that starts in");
 			messageBuilder.Append(TimeUtils.GetDurationString(attendee.GetRemindTime()));
 			messageBuilder.AppendLine(".");
@@ -127,7 +128,7 @@ namespace KupoNuts.Bot.Services
 			builder.Description = messageBuilder.ToString();
 
 			attendee.RemindTime = null;
-			db.Save();
+			await EventsService.EventsDatabase.Save(evt);
 
 			IUserMessage message = await user.SendMessageAsync(null, false, builder.Build());
 			await message.AddReactionAsync(emoteYes);
@@ -135,19 +136,16 @@ namespace KupoNuts.Bot.Services
 			this.activeReminderLookup.Add(message.Id);
 		}
 
-		private async Task ConfirmReminder(Event evt, Attendee attendee)
+		private async Task ConfirmReminder(Event evt, Event.Notification.Attendee attendee)
 		{
 			if (attendee.UserId == null)
 				return;
 
-			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(attendee.UserId));
-
-			Database db = Database.Load();
-			Notification notify = db.GetNotification(evt.Id);
+			SocketUser user = Program.DiscordClient.GetUser((ulong)attendee.UserId);
 
 			string? eventName = evt.Name;
-			if (notify != null)
-				eventName = notify.GetLink();
+			if (evt.Notify != null)
+				eventName = evt.Notify.GetLink(evt);
 
 			StringBuilder messageBuilder = new StringBuilder();
 			messageBuilder.Append("Hey ");
@@ -223,7 +221,7 @@ namespace KupoNuts.Bot.Services
 			{
 				PendingReminder reminder = this.pendingReminderLookup[message.Id];
 				Duration? time = GetDelaytime(emote);
-				reminder.SetDelay(time);
+				await reminder.SetDelay(time);
 
 				SocketUser user = Program.DiscordClient.GetUser(userId);
 				IUserMessage replyMessage;
@@ -259,9 +257,9 @@ namespace KupoNuts.Bot.Services
 		public class PendingReminder
 		{
 			public string EventId;
-			public string UserId;
+			public ulong UserId;
 
-			public PendingReminder(Event evt, Attendee attendee)
+			public PendingReminder(Event evt, Event.Notification.Attendee attendee)
 			{
 				if (evt.Id == null)
 					throw new ArgumentNullException("evt.Id");
@@ -270,16 +268,19 @@ namespace KupoNuts.Bot.Services
 					throw new ArgumentNullException("attendee.Id");
 
 				this.EventId = evt.Id;
-				this.UserId = attendee.UserId;
+				this.UserId = (ulong)attendee.UserId;
 			}
 
-			public void SetDelay(Duration? time)
+			public async Task SetDelay(Duration? time)
 			{
-				Database db = Database.Load();
-				Event evt = db.GetEvent(this.EventId);
-				Attendee attendee = evt.GetAttendee(db, this.UserId);
+				Event evt = await EventsService.EventsDatabase.Load(this.EventId);
+				Event.Notification.Attendee? attendee = evt.GetAttendee(this.UserId);
+
+				if (attendee == null)
+					return;
+
 				attendee.SetRemindTime(time);
-				db.Save();
+				await EventsService.EventsDatabase.Save(evt);
 			}
 		}
 	}
