@@ -140,7 +140,7 @@ namespace KupoNuts.Events
 
 			foreach (Channel channel in channels)
 			{
-				if (channel.Id == self.ChannelId)
+				if (channel.DiscordId == self.ChannelId)
 				{
 					return channel.Name;
 				}

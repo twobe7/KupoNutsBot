@@ -15,7 +15,7 @@ namespace KupoNuts.Bot.Events
 			if (self.UserId == null)
 				return false;
 
-			return self.UserId == userId;
+			return ulong.Parse(self.UserId) == userId;
 		}
 
 		public static string GetName(this Event.Notification.Attendee self, Event evt)
@@ -23,7 +23,7 @@ namespace KupoNuts.Bot.Events
 			if (self.UserId == null)
 				throw new ArgumentNullException("Id");
 
-			SocketUser user = Program.DiscordClient.GetUser((ulong)self.UserId);
+			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(self.UserId));
 
 			if (user == null)
 				return "Unknown";
@@ -31,7 +31,7 @@ namespace KupoNuts.Bot.Events
 			SocketGuild guild = Program.DiscordClient.GetGuild(evt.GetServerId());
 			if (guild != null)
 			{
-				SocketGuildUser guildUser = guild.GetUser((ulong)self.UserId);
+				SocketGuildUser guildUser = guild.GetUser(ulong.Parse(self.UserId));
 				if (guildUser != null && !string.IsNullOrEmpty(guildUser.Nickname))
 				{
 					return guildUser.Nickname;

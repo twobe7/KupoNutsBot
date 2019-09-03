@@ -52,7 +52,7 @@ namespace KupoNuts.Bot.Events
 			if (attendee == null)
 			{
 				attendee = new Event.Notification.Attendee();
-				attendee.UserId = userId;
+				attendee.UserId = userId.ToString();
 			}
 
 			attendee.Status = status;

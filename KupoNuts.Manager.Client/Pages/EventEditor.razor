@@ -52,7 +52,7 @@
 		<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
 			@foreach (Channel channl in this.ChannelList)
 			{
-				<option value=@channl.Id>@channl.Name</option>
+				<option value=@channl.DiscordId>@channl.Name</option>
 			}
 		</select>
 	</div>

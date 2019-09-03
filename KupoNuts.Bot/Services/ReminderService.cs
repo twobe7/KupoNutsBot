@@ -111,7 +111,7 @@ namespace KupoNuts.Bot.Services
 			if (evt.Notify == null)
 				return;
 
-			SocketUser user = Program.DiscordClient.GetUser((ulong)attendee.UserId);
+			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(attendee.UserId));
 
 			EmbedBuilder builder = new EmbedBuilder();
 
@@ -141,7 +141,7 @@ namespace KupoNuts.Bot.Services
 			if (attendee.UserId == null)
 				return;
 
-			SocketUser user = Program.DiscordClient.GetUser((ulong)attendee.UserId);
+			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(attendee.UserId));
 
 			string? eventName = evt.Name;
 			if (evt.Notify != null)
@@ -268,7 +268,7 @@ namespace KupoNuts.Bot.Services
 					throw new ArgumentNullException("attendee.Id");
 
 				this.EventId = evt.Id;
-				this.UserId = (ulong)attendee.UserId;
+				this.UserId = ulong.Parse(attendee.UserId);
 			}
 
 			public async Task SetDelay(Duration? time)

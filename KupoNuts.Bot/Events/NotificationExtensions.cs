@@ -84,7 +84,7 @@ namespace KupoNuts.Bot.Events
 			if (message is null)
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
-				self.MessageId = message.Id;
+				self.MessageId = message.Id.ToString();
 
 				List<IEmote> reactions = new List<IEmote>();
 
@@ -169,7 +169,7 @@ namespace KupoNuts.Bot.Events
 			if (channel is null)
 				return null;
 
-			IMessage message = await channel.GetMessageAsync((ulong)self.MessageId);
+			IMessage message = await channel.GetMessageAsync(ulong.Parse(self.MessageId));
 			if (message is null)
 				return null;
 

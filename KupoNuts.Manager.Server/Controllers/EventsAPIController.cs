@@ -17,7 +17,8 @@ namespace KupoNuts.Manager.Server.Controllers
 		{
 			Database<Event> eventsDb = new Database<Event>("Events", 1);
 			await eventsDb.Connect();
-			return await eventsDb.LoadAll();
+			List<Event> events = await eventsDb.LoadAll();
+			return events;
 		}
 
 		[HttpPost]

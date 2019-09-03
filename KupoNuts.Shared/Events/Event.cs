@@ -8,20 +8,6 @@ namespace KupoNuts.Events
 	[Serializable]
 	public class Event : EntryBase
 	{
-		public string ServerId = "391492798353768449";
-		public string? ChannelId;
-		public string? Name;
-		public string? Description;
-		public string? Image;
-		public Colors Color;
-		public string? DateTime;
-		public Days Repeats;
-		public string? Duration;
-		public string? RemindMeEmote;
-		public string? NotifyDuration;
-		public List<Status> Statuses = new List<Status>();
-		public Notification? Notify;
-
 		[Flags]
 		public enum Days
 		{
@@ -61,11 +47,34 @@ namespace KupoNuts.Events
 			DarkMagenta,
 		}
 
+		public string ServerId { get; set; } = "391492798353768449";
+
+		public string? ChannelId { get; set; }
+
+		public string? Name { get; set; }
+
+		public string? Description { get; set; }
+
+		public string? Image { get; set; }
+
+		public Colors Color { get; set; }
+
+		public string? DateTime { get; set; }
+
+		public Days Repeats { get; set; }
+
+		public string? Duration { get; set; }
+
+		public string? RemindMeEmote { get; set; }
+
+		public string? NotifyDuration { get; set; }
+
+		public List<Status> Statuses { get; set; } = new List<Status>();
+
+		public Notification? Notify { get; set; }
+
 		public class Status
 		{
-			public string? EmoteString;
-			public string? Display;
-
 			public Status()
 			{
 			}
@@ -75,18 +84,25 @@ namespace KupoNuts.Events
 				this.EmoteString = emote;
 				this.Display = display;
 			}
+
+			public string? EmoteString { get; set; }
+
+			public string? Display { get; set; }
 		}
 
 		public class Notification
 		{
-			public ulong? MessageId;
-			public List<Attendee> Attendees = new List<Attendee>();
+			public string? MessageId { get; set; }
+
+			public List<Attendee> Attendees { get; set; } = new List<Attendee>();
 
 			public class Attendee
 			{
-				public ulong? UserId;
-				public int? Status;
-				public string? RemindTime;
+				public string? UserId { get; set; }
+
+				public int? Status { get; set; }
+
+				public string? RemindTime { get; set; }
 			}
 		}
 	}

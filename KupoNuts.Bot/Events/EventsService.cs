@@ -20,7 +20,7 @@ namespace KupoNuts.Bot.Events
 		public static Database<Event> EventsDatabase = new Database<Event>("Events", 1);
 
 		private static EventsService? instance;
-		private Dictionary<ulong, string> messageEventLookup = new Dictionary<ulong, string>();
+		private Dictionary<string, string> messageEventLookup = new Dictionary<string, string>();
 
 		public static EventsService Instance
 		{
@@ -63,10 +63,10 @@ namespace KupoNuts.Bot.Events
 			if (evt.Notify == null || evt.Notify.MessageId == null || evt.Id == null)
 				return;
 
-			if (this.messageEventLookup.ContainsKey(evt.Notify.MessageId.Value))
+			if (this.messageEventLookup.ContainsKey(evt.Notify.MessageId))
 				return;
 
-			this.messageEventLookup.Add(evt.Notify.MessageId.Value, evt.Id);
+			this.messageEventLookup.Add(evt.Notify.MessageId, evt.Id);
 		}
 
 		private async Task Update()
@@ -147,14 +147,14 @@ namespace KupoNuts.Bot.Events
 
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (!this.messageEventLookup.ContainsKey(message.Id))
+			if (!this.messageEventLookup.ContainsKey(message.Id.ToString()))
 				return;
 
 			// dont mark yourself as attending!
 			if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
 				return;
 
-			Event evt = await EventsDatabase.Load(this.messageEventLookup[message.Id]);
+			Event evt = await EventsDatabase.Load(this.messageEventLookup[message.Id.ToString()]);
 
 			if (evt.Notify == null)
 				return;
@@ -164,7 +164,7 @@ namespace KupoNuts.Bot.Events
 			if (attendee == null)
 			{
 				attendee = new Event.Notification.Attendee();
-				attendee.UserId = reaction.UserId;
+				attendee.UserId = reaction.UserId.ToString();
 				evt.Notify.Attendees.Add(attendee);
 				await EventsDatabase.Save(evt);
 			}

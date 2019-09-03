@@ -7,8 +7,9 @@ namespace KupoNuts
 	[Serializable]
 	public abstract class EntryBase
 	{
-		public string? Id;
-		public DateTime? Updated;
+		public string? Id { get; set; }
+
+		public DateTime? Updated { get; set; }
 
 		public virtual void Import(EntryBase other)
 		{
