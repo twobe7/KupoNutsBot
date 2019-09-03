@@ -63,9 +63,9 @@ namespace KupoNuts
 			{
 				await this.client.ListTablesAsync();
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
-				throw new Exception("Unable to connect to database");
+				throw new Exception("Unable to connect to database: " + ex.Message, ex);
 			}
 
 			this.operationConfig = new DynamoDBOperationConfig();
