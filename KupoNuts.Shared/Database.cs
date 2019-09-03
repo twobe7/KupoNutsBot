@@ -48,8 +48,6 @@ namespace KupoNuts
 
 			SharedCredentialsFile sharedFile = new SharedCredentialsFile();
 			sharedFile.RegisterProfile(profile);
-			NetSDKCredentialsFile netDSKFile = new NetSDKCredentialsFile();
-			netDSKFile.RegisterProfile(profile);
 
 			AmazonDynamoDBConfig dbConfig = new AmazonDynamoDBConfig();
 
