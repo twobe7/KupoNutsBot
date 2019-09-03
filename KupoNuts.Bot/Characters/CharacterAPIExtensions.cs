@@ -49,28 +49,19 @@ namespace KupoNuts.Bot.Characters
 			{
 				StringBuilder classes = new StringBuilder();
 
-				int column = 0;
 				foreach (CharacterAPI.ClassJob job in self.ClassJobs)
 				{
 					if (job.Job == null)
+						continue;
+
+					if (job.Level <= 0)
 						continue;
 
 					classes.Append(job.Job.Abbreviation);
 					classes.Append(": **");
 					classes.Append(job.Level.ToString());
 					classes.Append("**");
-
-					if (column >= 6)
-					{
-						classes.AppendLine();
-						column = 0;
-					}
-					else
-					{
-						classes.Append("   ");
-					}
-
-					column++;
+					classes.Append("   ");
 				}
 
 				builder.AddField("Classes", classes.ToString(), true);
