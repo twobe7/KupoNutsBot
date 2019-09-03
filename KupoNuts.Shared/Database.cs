@@ -55,7 +55,7 @@ namespace KupoNuts
 
 			this.client = new AmazonDynamoDBClient(dbConfig);
 
-			await this.EnsureTable();
+			////await this.EnsureTable();
 
 			this.context = new DynamoDBContext(this.client);
 
