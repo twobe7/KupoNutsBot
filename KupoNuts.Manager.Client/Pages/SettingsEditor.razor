@@ -18,7 +18,7 @@
 		<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.LogChannel">
 			@foreach (Channel channl in this.ChannelList)
 			{
-				<option value=@channl.Id>@channl.Name</option>
+				<option value=@channl.DiscordId>@channl.Name</option>
 			}
 		</select>
 	</div>
@@ -29,7 +29,7 @@
 		<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.StatusChannel">
 			@foreach (Channel channl in this.ChannelList)
 			{
-				<option value=@channl.Id>@channl.Name</option>
+				<option value=@channl.DiscordId>@channl.Name</option>
 			}
 		</select>
 	</div>
@@ -42,7 +42,7 @@
 		<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.CalendarChannel">
 			@foreach (Channel channl in this.ChannelList)
 			{
-				<option value=@channl.Id>@channl.Name</option>
+				<option value=@channl.DiscordId>@channl.Name</option>
 			}
 		</select>
 	</div>

@@ -3,6 +3,7 @@
 namespace KupoNuts.Manager.Server.Controllers
 {
 	using System.Collections.Generic;
+	using System.Threading.Tasks;
 	using KupoNuts.Bot;
 	using KupoNuts.Events;
 	using Microsoft.AspNetCore.Mvc;
@@ -12,21 +13,24 @@ namespace KupoNuts.Manager.Server.Controllers
 	public class EventsAPIController : ControllerBase
 	{
 		[HttpGet]
-		public IEnumerable<Event> Get()
+		public async Task<IEnumerable<Event>> Get()
 		{
-			return Data.Load().Events;
+			Database<Event> eventsDb = new Database<Event>("Events", 1);
+			await eventsDb.Connect();
+			return await eventsDb.LoadAll();
 		}
 
 		[HttpPost]
-		public void Post(EventAction evt)
+		public async Task Post(EventAction evt)
 		{
+			Database<Event> eventsDb = new Database<Event>("Events", 1);
+			await eventsDb.Connect();
+
 			switch (evt.Action)
 			{
 				case EventAction.Actions.Update:
 				{
-					Database db = Data.Load();
-					db.UpdateOrInsertEvent(evt.Event);
-					db.Save();
+					await eventsDb.Save(evt.Event);
 					break;
 				}
 
@@ -34,9 +38,7 @@ namespace KupoNuts.Manager.Server.Controllers
 				case EventAction.Actions.DeleteConfirmed:
 				{
 					Log.Write("Delete Event: \"" + evt.Event.Name + "\" (" + evt.Event.Id + ")");
-					Database db = Data.Load();
-					db.DeleteEvent(evt.Event.Id);
-					db.Save();
+					await eventsDb.Delete(evt.Event);
 					break;
 				}
 			}

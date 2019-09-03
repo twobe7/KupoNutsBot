@@ -113,7 +113,8 @@ namespace KupoNuts
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
-			AsyncSearch<T> search = this.context.ScanAsync<T>(null, this.operationConfig);
+			List<ScanCondition> conditions = new List<ScanCondition>();
+			AsyncSearch<T> search = this.context.ScanAsync<T>(conditions, this.operationConfig);
 			return await search.GetRemainingAsync();
 		}
 

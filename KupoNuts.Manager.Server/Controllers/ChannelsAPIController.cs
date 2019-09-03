@@ -3,6 +3,7 @@
 namespace KupoNuts.Manager.Server.Controllers
 {
 	using System.Collections.Generic;
+	using System.Threading.Tasks;
 	using Microsoft.AspNetCore.Mvc;
 
 	[ApiController]
@@ -10,9 +11,13 @@ namespace KupoNuts.Manager.Server.Controllers
 	public class ChannelsAPIController : ControllerBase
 	{
 		[HttpGet]
-		public List<Channel> Get()
+		public async Task<List<Channel>> GetAsync()
 		{
-			return Data.Load().Channels;
+			Database<Channel> channelDb = new Database<Channel>("Channels", 1);
+			await channelDb.Connect();
+			List<Channel> channels = await channelDb.LoadAll();
+
+			return channels;
 		}
 	}
 }

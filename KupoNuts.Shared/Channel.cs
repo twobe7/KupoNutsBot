@@ -7,9 +7,16 @@ namespace KupoNuts
 	[Serializable]
 	public class Channel : EntryBase
 	{
-		public string? DiscordId;
-		public string? Name;
-		public Types Type;
+		public Channel()
+		{
+		}
+
+		public Channel(ulong discordId, string name, Types type)
+		{
+			this.DiscordId = discordId.ToString();
+			this.Name = name;
+			this.Type = type;
+		}
 
 		public enum Types
 		{
@@ -17,5 +24,11 @@ namespace KupoNuts
 			Text,
 			Voice,
 		}
+
+		public string? DiscordId { get; set; }
+
+		public string? Name { get; set; }
+
+		public Types Type { get; set; }
 	}
 }

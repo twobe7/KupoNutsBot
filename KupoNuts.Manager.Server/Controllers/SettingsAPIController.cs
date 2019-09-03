@@ -12,15 +12,14 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpGet]
 		public Settings Get()
 		{
-			return Data.Load().Settings;
+			Settings settings = Settings.Load();
+			return settings;
 		}
 
 		[HttpPost]
 		public void Post(Settings settings)
 		{
-			Database db = Data.Load();
-			db.Settings = settings;
-			db.Save();
+			settings.Save();
 		}
 	}
 }
