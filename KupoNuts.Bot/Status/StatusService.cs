@@ -57,6 +57,7 @@ namespace KupoNuts.Bot.Status
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
 				settings.StatusMessage = message.Id.ToString();
+				settings.Save();
 			}
 			else
 			{
