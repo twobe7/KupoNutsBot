@@ -16,7 +16,7 @@ namespace KupoNuts.Bot.Commands
 	{
 		private const string CommandPrefix = ">>";
 
-		private static Dictionary<string, Command> commandHandlers = new Dictionary<string, Command>();
+		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
 
 		public static void BindCommands(object obj)
 		{
@@ -24,11 +24,11 @@ namespace KupoNuts.Bot.Commands
 
 			foreach ((MethodInfo method, CommandAttribute attribute) in commands)
 			{
-				if (commandHandlers.ContainsKey(attribute.Command))
-					throw new Exception("Duplicate command: \"" + attribute.Command + "\"");
+				if (!commandHandlers.ContainsKey(attribute.Command))
+					commandHandlers.Add(attribute.Command, new List<Command>());
 
 				Command cmd = new Command(method, obj, attribute.Permissions, attribute.Help);
-				commandHandlers.Add(attribute.Command, cmd);
+				commandHandlers[attribute.Command].Add(cmd);
 				Console.WriteLine("Registered command: \"" + attribute.Command + "\"");
 			}
 		}
@@ -69,19 +69,22 @@ namespace KupoNuts.Bot.Commands
 
 			foreach (string commandString in commandStrings)
 			{
-				Command command = commandHandlers[commandString];
+				List<Command> commands = commandHandlers[commandString];
 
-				// Don't show commands users cannot access
-				if (command.Permission > permissions)
-					continue;
+				foreach (Command command in commands)
+				{
+					// Don't show commands users cannot access
+					if (command.Permission > permissions)
+						continue;
 
-				builder.Append("**");
-				builder.Append(CommandPrefix);
-				builder.Append(commandString);
-				builder.Append("** - *");
-				builder.Append(command.Permission);
-				builder.Append("* - ");
-				builder.AppendLine(command.Help);
+					builder.Append("**");
+					builder.Append(CommandPrefix);
+					builder.Append(commandString);
+					builder.Append("** - *");
+					builder.Append(command.Permission);
+					builder.Append("* - ");
+					builder.AppendLine(command.Help);
+				}
 			}
 
 			EmbedBuilder embedBuilder = new EmbedBuilder();
@@ -103,18 +106,6 @@ namespace KupoNuts.Bot.Commands
 			}
 
 			return Permissions.Everyone;
-		}
-
-		private bool HasPermission(SocketUser user, string command)
-		{
-			if (commandHandlers.ContainsKey(command))
-			{
-				Permissions requiredPermissions = commandHandlers[command].Permission;
-				return requiredPermissions <= GetPermissions(user);
-			}
-
-			// not a command, so they _do_ have permission to try.
-			return true;
 		}
 
 		private async Task OnMessageReceived(SocketMessage message)
@@ -144,7 +135,7 @@ namespace KupoNuts.Bot.Commands
 				for (int i = 1; i < parts.Length; i++)
 				{
 					string arg = parts[i];
-					arg = arg.Replace("\"", string.Empty);
+					////arg = arg.Replace("\"", string.Empty);
 
 					if (string.IsNullOrEmpty(arg))
 						continue;
@@ -155,49 +146,63 @@ namespace KupoNuts.Bot.Commands
 
 			command = command.ToLower();
 
-			bool persmission = this.HasPermission(message.Author, command);
-
-			Log.Write("Recieved command: " + command + " with " + message.Content + " From user: " + message.Author.Id + " Permission: " + persmission);
-
-			if (!persmission)
-			{
-				await message.Channel.SendMessageAsync("I'm sorry, you don't have permission to do that~");
-				return;
-			}
-
+			Log.Write("Recieved command: " + command + " with " + message.Content + " From user: " + message.Author.Id);
 			_ = Task.Run(async () => await this.RunCommand(command, args.ToArray(), message));
+
+			await Task.Yield();
 		}
 
-		private async Task RunCommand(string command, string[] args, SocketMessage message)
+		private async Task RunCommand(string commandStr, string[] args, SocketMessage message)
 		{
-			if (commandHandlers.ContainsKey(command))
+			if (commandHandlers.ContainsKey(commandStr))
 			{
-				try
+				SocketTextChannel? textChannel = message.Channel as SocketTextChannel;
+
+				if (textChannel == null)
+					return;
+
+				using (textChannel.EnterTypingState())
 				{
-					if (message.Channel is SocketTextChannel textChannel)
+					Exception? lastException = null;
+					foreach (Command command in commandHandlers[commandStr])
 					{
-						using (textChannel.EnterTypingState())
+						try
 						{
-							await commandHandlers[command].Invoke(args, message);
+							lastException = null;
+							await command.Invoke(args, message);
+							break;
+						}
+						catch (ParameterException ex)
+						{
+							lastException = ex;
+						}
+						catch (Exception ex)
+						{
+							lastException = ex;
+							break;
 						}
 					}
-					else
+
+					if (lastException != null)
 					{
-						await commandHandlers[command].Invoke(args, message);
+						if (lastException is UserException userEx)
+						{
+							await message.Channel.SendMessageAsync(userEx.Message);
+						}
+						else if (lastException is ParameterException paramEx)
+						{
+							await message.Channel.SendMessageAsync(paramEx.Message);
+						}
+						else if (lastException is NotImplementedException)
+						{
+							await message.Channel.SendMessageAsync("I'm sorry, seems like I dont quite know how to do that yet.");
+						}
+						else
+						{
+							Log.Write(lastException);
+							await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+						}
 					}
-				}
-				catch (UserException userEx)
-				{
-					await message.Channel.SendMessageAsync(userEx.Message);
-				}
-				catch (NotImplementedException)
-				{
-					await message.Channel.SendMessageAsync("I'm sorry, seems like I dont quite know how to do that yet.");
-				}
-				catch (Exception ex)
-				{
-					Log.Write(ex);
-					await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
 				}
 			}
 			else
@@ -223,6 +228,9 @@ namespace KupoNuts.Bot.Commands
 
 			public async Task Invoke(string[] args, SocketMessage message)
 			{
+				if (this.Permission > CommandsService.GetPermissions(message.Author))
+					throw new UserException("I'm sorry, you don't have permission to do that.");
+
 				object? owner;
 				if (!this.Owner.TryGetTarget(out owner) || owner == null)
 					throw new Exception("Attempt to invoke command on null owner.");
@@ -266,15 +274,20 @@ namespace KupoNuts.Bot.Commands
 						}
 						catch (Exception)
 						{
-							throw new UserException("I didn't understand the parameter: \"" + arg + "\". That was supposed to be a " + this.GetTypeName(paramInfo.ParameterType) + " for: \"" + this.GetParamName(paramInfo.Name) + "\"");
+							string hint = string.Empty;
+
+							if (paramInfo.ParameterType == typeof(string))
+								hint = "\n(Strings should have \"quotes\" around them, Kupo!)";
+
+							throw new ParameterException("I didn't understand the parameter: " + arg + ".\nWas that was supposed to be a " + this.GetTypeName(paramInfo.ParameterType) + " for " + this.GetParamName(paramInfo.Name) + "?" + hint);
 						}
 
 						parameters.Add(param);
 					}
 				}
 
-				if (parameters.Count != allParamInfos.Length || argCount != args.Length)
-					throw new UserException("Incorrect number of parameters. I was expecting " + neededArgCount + ", but you sent me " + args.Length + "!");
+				if (parameters.Count != allParamInfos.Length || argCount != args.Length || neededArgCount != args.Length)
+					throw new ParameterException("Incorrect number of parameters. I was expecting " + neededArgCount + ", but you sent me " + args.Length + "!");
 
 				object? returnObject = this.Method.Invoke(owner, parameters.ToArray());
 
@@ -293,7 +306,10 @@ namespace KupoNuts.Bot.Commands
 			{
 				if (type == typeof(string))
 				{
-					return arg;
+					if (!arg.Contains("\""))
+						throw new Exception("strings must be wrapped in quotations");
+
+					return arg.Replace("\"", string.Empty);
 				}
 				else if (type == typeof(double))
 				{
@@ -302,6 +318,10 @@ namespace KupoNuts.Bot.Commands
 				else if (type == typeof(int))
 				{
 					return int.Parse(arg);
+				}
+				else if (type == typeof(uint))
+				{
+					return uint.Parse(arg);
 				}
 
 				throw new Exception("Unsupported parameter type: \"" + type + "\"");
@@ -334,6 +354,14 @@ namespace KupoNuts.Bot.Commands
 					return "unknown";
 
 				return Regex.Replace(name, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
+			}
+		}
+
+		private class ParameterException : Exception
+		{
+			public ParameterException(string message)
+				: base(message)
+			{
 			}
 		}
 	}
