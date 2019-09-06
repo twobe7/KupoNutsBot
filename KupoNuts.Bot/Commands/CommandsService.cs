@@ -63,39 +63,124 @@ namespace KupoNuts.Bot.Commands
 			return Task.CompletedTask;
 		}
 
-		[Command("Help", Permissions.Everyone, "Shows a list of available commands.")]
+		[Command("Help", Permissions.Everyone, "really?")]
 		public async Task Help(SocketMessage message)
 		{
+			Permissions permissions = GetPermissions(message.Author);
+			await GetHelp(message, permissions);
+		}
+
+		[Command("Help", Permissions.Everyone, "really really?")]
+		public async Task Help(SocketMessage message, string command)
+		{
 			StringBuilder builder = new StringBuilder();
+			builder.AppendLine("```md");
 
 			Permissions permissions = GetPermissions(message.Author);
+
+			builder.AppendLine(GetHelp(command, permissions));
+
+			builder.Append("```");
+			await message.Channel.SendMessageAsync(builder.ToString());
+		}
+
+		[Command("Help", Permissions.Administrators, "really?")]
+		public async Task Help(SocketMessage message, bool publicOnly)
+		{
+			await GetHelp(message, Permissions.Everyone);
+		}
+
+		private static async Task GetHelp(SocketMessage message, Permissions permissions)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.AppendLine("```md");
 
 			List<string> commandStrings = new List<string>(commandHandlers.Keys);
 			commandStrings.Sort();
 
 			foreach (string commandString in commandStrings)
 			{
-				List<Command> commands = commandHandlers[commandString];
+				if (commandString == "help")
+					continue;
 
-				foreach (Command command in commands)
+				builder.AppendLine(GetHelp(commandString, permissions));
+			}
+
+			builder.Append("```");
+			await message.Channel.SendMessageAsync(builder.ToString());
+		}
+
+		private static string GetHelp(string commandStr, Permissions permissions)
+		{
+			if (!commandHandlers.ContainsKey(commandStr.ToLower()))
+				throw new UserException("I dont know that command.");
+
+			StringBuilder builder = new StringBuilder();
+			List<Command> commands = commandHandlers[commandStr.ToLower()];
+
+			builder.Append("# ");
+			builder.Append(CommandPrefix);
+			builder.Append(commandStr);
+			builder.AppendLine();
+
+			foreach (Command command in commands)
+			{
+				// Don't show commands users cannot access
+				if (command.Permission > permissions)
+					continue;
+
+				builder.Append(" < ");
+				builder.Append(command.Permission);
+				builder.Append(" > ");
+				builder.AppendLine(command.Help);
+
+				List<ParameterInfo> parameters = command.GetNeededParams();
+				if (parameters.Count > 0)
 				{
-					// Don't show commands users cannot access
-					if (command.Permission > permissions)
-						continue;
+					builder.Append(" ");
+					foreach (ParameterInfo param in parameters)
+					{
+						builder.Append("[");
+						builder.Append(GetTypeName(param.ParameterType));
+						builder.Append("](");
+						builder.Append(GetParamName(param.Name));
+						builder.Append("), ");
+					}
 
-					builder.Append("**");
-					builder.Append(CommandPrefix);
-					builder.Append(commandString);
-					builder.Append("** - *");
-					builder.Append(command.Permission);
-					builder.Append("* - ");
-					builder.AppendLine(command.Help);
+					builder.AppendLine();
 				}
 			}
 
-			EmbedBuilder embedBuilder = new EmbedBuilder();
-			embedBuilder.Description = builder.ToString();
-			await message.Channel.SendMessageAsync(null, false, embedBuilder.Build());
+			return builder.ToString();
+		}
+
+		private static string GetTypeName(Type type)
+		{
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean: return "boolean";
+				case TypeCode.Int16:
+				case TypeCode.UInt16:
+				case TypeCode.Int32:
+				case TypeCode.UInt32:
+				case TypeCode.Int64:
+				case TypeCode.UInt64:
+				case TypeCode.Single:
+				case TypeCode.Double:
+				case TypeCode.Decimal: return "number";
+				case TypeCode.DateTime: return "date and time";
+				case TypeCode.String: return "string";
+			}
+
+			return type.Name;
+		}
+
+		private static string GetParamName(string? name)
+		{
+			if (name == null)
+				return "unknown";
+
+			return Regex.Replace(name, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
 		}
 
 		private async Task OnMessageReceived(SocketMessage message)
@@ -136,10 +221,14 @@ namespace KupoNuts.Bot.Commands
 
 			command = command.ToLower();
 
+			if (args.Count == 1 && args[0] == "?")
+			{
+				await this.Help(message, command);
+				return;
+			}
+
 			Log.Write("Recieved command: " + command + " with " + message.Content + " From user: " + message.Author.Id);
 			_ = Task.Run(async () => await this.RunCommand(command, args.ToArray(), message));
-
-			await Task.Yield();
 		}
 
 		private async Task RunCommand(string commandStr, string[] args, SocketMessage message)
@@ -216,6 +305,27 @@ namespace KupoNuts.Bot.Commands
 				this.Owner = new WeakReference<object>(owner);
 			}
 
+			public List<ParameterInfo> GetNeededParams()
+			{
+				List<ParameterInfo> results = new List<ParameterInfo>();
+
+				ParameterInfo[] allParamInfos = this.Method.GetParameters();
+				for (int i = 0; i < allParamInfos.Length; i++)
+				{
+					ParameterInfo paramInfo = allParamInfos[i];
+
+					if (paramInfo.ParameterType == typeof(SocketMessage))
+						continue;
+
+					if (paramInfo.ParameterType == typeof(string[]))
+						continue;
+
+					results.Add(paramInfo);
+				}
+
+				return results;
+			}
+
 			public async Task Invoke(string[] args, SocketMessage message)
 			{
 				if (this.Permission > CommandsService.GetPermissions(message.Author))
@@ -269,7 +379,7 @@ namespace KupoNuts.Bot.Commands
 							if (paramInfo.ParameterType == typeof(string))
 								hint = "\n(Strings should have \"quotes\" around them, Kupo!)";
 
-							throw new ParameterException("I didn't understand the parameter: " + arg + ".\nWas that was supposed to be a " + this.GetTypeName(paramInfo.ParameterType) + " for " + this.GetParamName(paramInfo.Name) + "?" + hint);
+							throw new ParameterException("I didn't understand the parameter: " + arg + ".\nWas that was supposed to be a " + CommandsService.GetTypeName(paramInfo.ParameterType) + " for " + CommandsService.GetParamName(paramInfo.Name) + "?" + hint);
 						}
 
 						parameters.Add(param);
@@ -313,37 +423,12 @@ namespace KupoNuts.Bot.Commands
 				{
 					return uint.Parse(arg);
 				}
-
-				throw new Exception("Unsupported parameter type: \"" + type + "\"");
-			}
-
-			private string GetTypeName(Type type)
-			{
-				switch (Type.GetTypeCode(type))
+				else if (type == typeof(bool))
 				{
-					case TypeCode.Boolean: return "boolean";
-					case TypeCode.Int16:
-					case TypeCode.UInt16:
-					case TypeCode.Int32:
-					case TypeCode.UInt32:
-					case TypeCode.Int64:
-					case TypeCode.UInt64:
-					case TypeCode.Single:
-					case TypeCode.Double:
-					case TypeCode.Decimal: return "number";
-					case TypeCode.DateTime: return "date and time";
-					case TypeCode.String: return "string";
+					return bool.Parse(arg);
 				}
 
-				return type.Name;
-			}
-
-			private string GetParamName(string? name)
-			{
-				if (name == null)
-					return "unknown";
-
-				return Regex.Replace(name, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
+				throw new Exception("Unsupported parameter type: \"" + type + "\"");
 			}
 		}
 

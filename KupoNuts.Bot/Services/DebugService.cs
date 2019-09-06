@@ -52,7 +52,7 @@ namespace KupoNuts.Bot.Services
 				SocketGuildUser target = targets[val];
 
 				if (target.Id == Program.DiscordClient.CurrentUser.Id)
-					return Task.FromResult("This is my failt.\n>>BadBot");
+					return Task.FromResult("This is my fault.\n>>BadBot");
 
 				return Task.FromResult("This is your fault, " + target.Mention);
 			}

@@ -48,7 +48,7 @@ namespace KupoNuts.Bot.Polls
 			return Task.CompletedTask;
 		}
 
-		[Command("Poll", Permissions.Administrators, "Copies a range of messages to a new channel, adds a reaction, and counts votes.")]
+		[Command("Poll", Permissions.Administrators, "Copies a range of messages to a new channel as a poll.")]
 		public async Task HandlePoll(string[] args, SocketMessage message)
 		{
 			if (args.Length != 3 && args.Length != 4)
