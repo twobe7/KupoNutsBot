@@ -29,6 +29,8 @@ namespace KupoNuts
 
 		public string? DBSecret { get; set; }
 
+		public string? UserLogChannel { get; set; }
+
 		public static void Init()
 		{
 			JsonSerializerSettings settings = new JsonSerializerSettings();

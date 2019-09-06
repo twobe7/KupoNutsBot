@@ -67,6 +67,14 @@ namespace KupoNuts.Utils
 			throw new Exception("Unknown day: " + day);
 		}
 
+		public static string GetDateTimeString(DateTimeOffset? dt)
+		{
+			if (dt == null)
+				return string.Empty;
+
+			return GetDateTimeString(Instant.FromDateTimeOffset((DateTimeOffset)dt));
+		}
+
 		public static string GetDateTimeString(Instant dt)
 		{
 			StringBuilder builder = new StringBuilder();
@@ -77,7 +85,7 @@ namespace KupoNuts.Utils
 
 		public static string GetDateString(Instant dt)
 		{
-			return dt.InZone(AEST).ToString("dddd dd MMMM", CultureInfo.InvariantCulture);
+			return dt.InZone(AEST).ToString("dddd dd MMMM, yyyy", CultureInfo.InvariantCulture);
 		}
 
 		public static string GetTimeString(Instant? dt)
