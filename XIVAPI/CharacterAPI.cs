@@ -27,7 +27,7 @@ namespace XIVAPI
 		/// <param name="server">The server to search against, this is case sensitive - You can obtain a list of valid servers via: Server List.</param>
 		/// <param name="page">Search or move to a specific page.
 		/// There is currently no way to change the amount of results back returned.It will always be 50 per page with a maximum of 20 pages.This is due to how Lodestone works.</param>
-		public static async Task<GetResponse> Search(string name, string? server = null, int page = 0)
+		public static async Task<SearchResponse> Search(string name, string? server = null, int page = 0)
 		{
 			string route = "/character/search?name=" + name;
 
@@ -37,7 +37,7 @@ namespace XIVAPI
 			if (page != 0)
 				route += "&page=" + page;
 
-			return await Request.Send<GetResponse>(route);
+			return await Request.Send<SearchResponse>(route);
 		}
 
 		/// <summary>
