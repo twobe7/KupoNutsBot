@@ -119,6 +119,8 @@ namespace KupoNuts.Bot.Events
 					{
 						// remove notification
 						await evt.Notify.Delete(evt);
+						evt.Notify = null;
+						await EventsDatabase.Save(evt);
 					}
 				}
 			}
