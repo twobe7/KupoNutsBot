@@ -103,14 +103,18 @@ namespace KupoNuts.Bot.Commands
 				if (commandString == "help")
 					continue;
 
-				builder.AppendLine(GetHelp(commandString, permissions));
+				string? help = GetHelp(commandString, permissions);
+				if (help != null)
+				{
+					builder.AppendLine(help);
+				}
 			}
 
 			builder.Append("```");
 			await message.Channel.SendMessageAsync(builder.ToString());
 		}
 
-		private static string GetHelp(string commandStr, Permissions permissions)
+		private static string? GetHelp(string commandStr, Permissions permissions)
 		{
 			if (!commandHandlers.ContainsKey(commandStr.ToLower()))
 				throw new UserException("I dont know that command.");
@@ -118,10 +122,25 @@ namespace KupoNuts.Bot.Commands
 			StringBuilder builder = new StringBuilder();
 			List<Command> commands = commandHandlers[commandStr.ToLower()];
 
+			int count = 0;
+			foreach (Command command in commands)
+			{
+				// Don't show commands users cannot access
+				if (command.Permission > permissions)
+					continue;
+
+				count++;
+			}
+
+			if (count <= 0)
+				return null;
+
 			builder.Append("# ");
 			builder.Append(CommandPrefix);
 			builder.Append(commandStr);
-			builder.AppendLine();
+			builder.Append(" (");
+			builder.Append(count);
+			builder.AppendLine(")");
 
 			foreach (Command command in commands)
 			{
