@@ -100,7 +100,7 @@
 	<div class="form-group col-md-4">
 		<label for="eventDuration">Duration</label>
 		<small id="emailHelp" class="form-text" style="margin-top:0px">@this.DurationString</small>
-		<input name="eventDuration" type="range" class="form-control-range" min="0.25" max="6" step="0.25" @bind="this.Duration" @oninput="OnDurationChanged" style="width:100%" />
+		<input name="eventDuration" type="range" class="form-control-range" min="0.25" max="6" step="0.25" @bind-value="this.Duration" @oninput="OnDurationChanged" style="width:100%" />
 	</div>
 </div>
 
@@ -228,10 +228,10 @@
 		}
 	}
 
-	/*private void OnDurationChanged()
+	private void OnDurationChanged(ChangeEventArgs e)
 	{
-		this.Duration = double.Parse();
-	}*/
+		this.Duration = double.Parse((string)e.Value);
+	}
 
 	private void OnSave()
 	{
