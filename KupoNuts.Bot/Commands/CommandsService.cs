@@ -33,14 +33,20 @@ namespace KupoNuts.Bot.Commands
 			}
 		}
 
-		public static void ClearCommand(string command)
+		public static Permissions GetPermissions(SocketUser user)
 		{
-			command = command.ToLower();
+			if (user is SocketGuildUser guildUser)
+			{
+				foreach (SocketRole role in guildUser.Roles)
+				{
+					if (role.Permissions.Administrator)
+					{
+						return Permissions.Administrators;
+					}
+				}
+			}
 
-			if (!commandHandlers.ContainsKey(command))
-				return;
-
-			commandHandlers.Remove(command);
+			return Permissions.Everyone;
 		}
 
 		public override Task Initialize()
@@ -90,22 +96,6 @@ namespace KupoNuts.Bot.Commands
 			EmbedBuilder embedBuilder = new EmbedBuilder();
 			embedBuilder.Description = builder.ToString();
 			await message.Channel.SendMessageAsync(null, false, embedBuilder.Build());
-		}
-
-		private static Permissions GetPermissions(SocketUser user)
-		{
-			if (user is SocketGuildUser guildUser)
-			{
-				foreach (SocketRole role in guildUser.Roles)
-				{
-					if (role.Permissions.Administrator)
-					{
-						return Permissions.Administrators;
-					}
-				}
-			}
-
-			return Permissions.Everyone;
 		}
 
 		private async Task OnMessageReceived(SocketMessage message)
