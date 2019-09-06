@@ -4,6 +4,7 @@ namespace KupoNuts.Bot.Commands
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Reflection;
 	using System.Text;
 	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
@@ -17,24 +18,19 @@ namespace KupoNuts.Bot.Commands
 
 		private static Dictionary<string, Command> commandHandlers = new Dictionary<string, Command>();
 
-		public static void BindCommand(string command, Func<string[], SocketMessage, Task> handler, Permissions permissions, string help)
+		public static void BindCommands(object obj)
 		{
-			command = command.ToLower();
+			Dictionary<MethodInfo, CommandAttribute> commands = CommandAttribute.GetCommands(obj.GetType());
 
-			if (commandHandlers.ContainsKey(command))
-				throw new Exception("Attempt to bind multiple commands with the same name");
+			foreach ((MethodInfo method, CommandAttribute attribute) in commands)
+			{
+				if (commandHandlers.ContainsKey(attribute.Command))
+					throw new Exception("Duplicate command: \"" + attribute.Command + "\"");
 
-			commandHandlers.Add(command, new Command(handler, permissions, help));
-		}
-
-		public static void BindCommand(string command, Func<Task> handler, Permissions permissions, string help)
-		{
-			command = command.ToLower();
-
-			if (commandHandlers.ContainsKey(command))
-				throw new Exception("Attempt to bind multiple commands with the same name");
-
-			commandHandlers.Add(command, new Command(handler, permissions, help));
+				Command cmd = new Command(method, obj, attribute.Permissions, attribute.Help);
+				commandHandlers.Add(attribute.Command, cmd);
+				Console.WriteLine("Registered command: \"" + attribute.Command + "\"");
+			}
 		}
 
 		public static void ClearCommand(string command)
@@ -51,8 +47,6 @@ namespace KupoNuts.Bot.Commands
 		{
 			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
 
-			BindCommand("help", this.Help, Permissions.Everyone, "Shows a list of available commands.");
-
 			return Task.CompletedTask;
 		}
 
@@ -60,28 +54,11 @@ namespace KupoNuts.Bot.Commands
 		{
 			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
 
-			ClearCommand("help");
-
 			return Task.CompletedTask;
 		}
 
-		private static Permissions GetPermissions(SocketUser user)
-		{
-			if (user is SocketGuildUser guildUser)
-			{
-				foreach (SocketRole role in guildUser.Roles)
-				{
-					if (role.Permissions.Administrator)
-					{
-						return Permissions.Administrators;
-					}
-				}
-			}
-
-			return Permissions.Everyone;
-		}
-
-		private async Task Help(string[] args, SocketMessage message)
+		[Command("Help", Permissions.Everyone, "Shows a list of available commands.")]
+		public async Task Help(SocketMessage message)
 		{
 			StringBuilder builder = new StringBuilder();
 
@@ -110,6 +87,22 @@ namespace KupoNuts.Bot.Commands
 			EmbedBuilder embedBuilder = new EmbedBuilder();
 			embedBuilder.Description = builder.ToString();
 			await message.Channel.SendMessageAsync(null, false, embedBuilder.Build());
+		}
+
+		private static Permissions GetPermissions(SocketUser user)
+		{
+			if (user is SocketGuildUser guildUser)
+			{
+				foreach (SocketRole role in guildUser.Roles)
+				{
+					if (role.Permissions.Administrator)
+					{
+						return Permissions.Administrators;
+					}
+				}
+			}
+
+			return Permissions.Everyone;
 		}
 
 		private bool HasPermission(SocketUser user, string command)
@@ -193,6 +186,10 @@ namespace KupoNuts.Bot.Commands
 						await commandHandlers[command].Invoke(args, message);
 					}
 				}
+				catch (UserException userEx)
+				{
+					await message.Channel.SendMessageAsync(userEx.Message);
+				}
 				catch (NotImplementedException)
 				{
 					await message.Channel.SendMessageAsync("I'm sorry, seems like I dont quite know how to do that yet.");
@@ -211,36 +208,132 @@ namespace KupoNuts.Bot.Commands
 
 		private class Command
 		{
-			public readonly Func<string[], SocketMessage, Task>? Method;
-			public readonly Func<Task>? MethodB;
+			public readonly MethodInfo Method;
 			public readonly Permissions Permission;
 			public readonly string Help;
+			public readonly WeakReference<object> Owner;
 
-			public Command(Func<string[], SocketMessage, Task> method, Permissions permissions, string help)
+			public Command(MethodInfo method, object owner, Permissions permissions, string help)
 			{
 				this.Method = method;
 				this.Permission = permissions;
 				this.Help = help;
-			}
-
-			public Command(Func<Task> method, Permissions permissions, string help)
-			{
-				this.MethodB = method;
-				this.Permission = permissions;
-				this.Help = help;
+				this.Owner = new WeakReference<object>(owner);
 			}
 
 			public async Task Invoke(string[] args, SocketMessage message)
 			{
-				if (this.Method != null)
+				object? owner;
+				if (!this.Owner.TryGetTarget(out owner) || owner == null)
+					throw new Exception("Attempt to invoke command on null owner.");
+
+				List<object> parameters = new List<object>();
+				ParameterInfo[] allParamInfos = this.Method.GetParameters();
+
+				int argCount = 0;
+				int neededArgCount = allParamInfos.Length;
+				for (int i = 0; i < allParamInfos.Length; i++)
 				{
-					await this.Method.Invoke(args, message);
+					ParameterInfo paramInfo = allParamInfos[i];
+
+					if (paramInfo.ParameterType == typeof(SocketMessage))
+					{
+						parameters.Add(message);
+						neededArgCount--;
+						continue;
+					}
+					else if (paramInfo.ParameterType == typeof(string[]))
+					{
+						parameters.Add(args);
+						neededArgCount--;
+					}
+					else
+					{
+						if (argCount >= args.Length)
+						{
+							parameters.Add("Empty");
+							continue;
+						}
+
+						string arg = args[argCount];
+						argCount++;
+
+						object param;
+
+						try
+						{
+							param = this.Convert(arg, paramInfo.ParameterType);
+						}
+						catch (Exception)
+						{
+							throw new UserException("I didn't understand the parameter: \"" + arg + "\". That was supposed to be a " + this.GetTypeName(paramInfo.ParameterType) + " for: \"" + this.GetParamName(paramInfo.Name) + "\"");
+						}
+
+						parameters.Add(param);
+					}
 				}
 
-				if (this.MethodB != null)
+				if (parameters.Count != allParamInfos.Length || argCount != args.Length)
+					throw new UserException("Incorrect number of parameters. I was expecting " + neededArgCount + ", but you sent me " + args.Length + "!");
+
+				object? returnObject = this.Method.Invoke(owner, parameters.ToArray());
+
+				if (returnObject is Task<string> tString)
 				{
-					await this.MethodB.Invoke();
+					string str = await tString;
+					await message.Channel.SendMessageAsync(str);
 				}
+				else if (returnObject is Task task)
+				{
+					await task;
+				}
+			}
+
+			private object Convert(string arg, Type type)
+			{
+				if (type == typeof(string))
+				{
+					return arg;
+				}
+				else if (type == typeof(double))
+				{
+					return double.Parse(arg);
+				}
+				else if (type == typeof(int))
+				{
+					return int.Parse(arg);
+				}
+
+				throw new Exception("Unsupported parameter type: \"" + type + "\"");
+			}
+
+			private string GetTypeName(Type type)
+			{
+				switch (Type.GetTypeCode(type))
+				{
+					case TypeCode.Boolean: return "boolean";
+					case TypeCode.Int16:
+					case TypeCode.UInt16:
+					case TypeCode.Int32:
+					case TypeCode.UInt32:
+					case TypeCode.Int64:
+					case TypeCode.UInt64:
+					case TypeCode.Single:
+					case TypeCode.Double:
+					case TypeCode.Decimal: return "number";
+					case TypeCode.DateTime: return "date and time";
+					case TypeCode.String: return "string";
+				}
+
+				return type.Name;
+			}
+
+			private string GetParamName(string? name)
+			{
+				if (name == null)
+					return "unknown";
+
+				return Regex.Replace(name, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
 			}
 		}
 	}

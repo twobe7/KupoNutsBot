@@ -39,8 +39,6 @@ namespace KupoNuts.Bot.Events
 
 			await EventsDatabase.Connect();
 
-			CommandsService.BindCommand("events", this.Update, Permissions.Administrators, "Checks event notifications");
-
 			Scheduler.RunOnSchedule(this.Update, 15);
 			await this.Update();
 
@@ -50,9 +48,6 @@ namespace KupoNuts.Bot.Events
 		public override Task Shutdown()
 		{
 			instance = null;
-
-			CommandsService.ClearCommand("events");
-
 			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
 
 			return Task.CompletedTask;
@@ -69,7 +64,8 @@ namespace KupoNuts.Bot.Events
 			this.messageEventLookup.Add(evt.Notify.MessageId, evt.Id);
 		}
 
-		private async Task Update()
+		[Command("Events", Permissions.Administrators, "Checks event notifications")]
+		public async Task Update()
 		{
 			// todo: store event ID's in a seperate table so we aren't scanning the entire events db each update.
 			List<Event> events = await EventsDatabase.LoadAll();

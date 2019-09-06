@@ -3,11 +3,23 @@
 namespace KupoNuts.Bot.Services
 {
 	using System.Threading.Tasks;
+	using KupoNuts.Bot.Commands;
 
 	public abstract class ServiceBase
 	{
-		public abstract Task Initialize();
+		public ServiceBase()
+		{
+			CommandsService.BindCommands(this);
+		}
 
-		public abstract Task Shutdown();
+		public virtual Task Initialize()
+		{
+			return Task.CompletedTask;
+		}
+
+		public virtual Task Shutdown()
+		{
+			return Task.CompletedTask;
+		}
 	}
 }

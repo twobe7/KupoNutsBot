@@ -13,25 +13,17 @@ namespace KupoNuts.Bot.Services
 		public override async Task Initialize()
 		{
 			await this.karmaDatabase.Connect();
-
-			CommandsService.BindCommand("goodbot", this.GoodBot, Permissions.Everyone, "Ye.");
-			CommandsService.BindCommand("badbot", this.BadBot, Permissions.Everyone, "Na.");
 		}
 
-		public override Task Shutdown()
-		{
-			CommandsService.ClearCommand("goodbot");
-			CommandsService.ClearCommand("badBot");
-			return Task.CompletedTask;
-		}
-
-		private async Task GoodBot(string[] args, SocketMessage message)
+		[Command("GoodBot", Permissions.Everyone, "Ye.")]
+		public async Task GoodBot(string[] args, SocketMessage message)
 		{
 			int count = await this.AddKarma(1, Program.DiscordClient.CurrentUser.Id);
 			await message.Channel.SendMessageAsync("Thanks!\nMy karma is " + count);
 		}
 
-		private async Task BadBot(string[] args, SocketMessage message)
+		[Command("BadBot", Permissions.Everyone, "Na.")]
+		public async Task BadBot(string[] args, SocketMessage message)
 		{
 			if (message is SocketUserMessage userMessage)
 			{

@@ -19,19 +19,12 @@ namespace KupoNuts.Bot.Services
 	{
 		public override async Task Initialize()
 		{
-			CommandsService.BindCommand("calendar", this.Update, Permissions.Administrators, "Updates the calendar");
-
 			Scheduler.RunOnSchedule(this.Update, 15);
 			await this.Update();
 		}
 
-		public override Task Shutdown()
-		{
-			CommandsService.ClearCommand("calendar");
-			return Task.CompletedTask;
-		}
-
-		private async Task Update()
+		[Command("Calendar", Permissions.Administrators, "Updates the calendar")]
+		public async Task Update()
 		{
 			Log.Write("Updating Calendar");
 			Settings db = Settings.Load();

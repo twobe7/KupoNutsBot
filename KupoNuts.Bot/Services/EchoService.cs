@@ -48,19 +48,8 @@ namespace KupoNuts.Bot.Services
 			return results;
 		}
 
-		public override Task Initialize()
-		{
-			CommandsService.BindCommand("echo", this.HandleEcho, Permissions.Administrators, "Copies a range of messages to a new channel.");
-			return Task.CompletedTask;
-		}
-
-		public override Task Shutdown()
-		{
-			CommandsService.ClearCommand("echo");
-			return Task.CompletedTask;
-		}
-
-		private async Task HandleEcho(string[] args, SocketMessage message)
+		[Command("Echo", Permissions.Administrators, "Copies a range of messages to a new channel.")]
+		public async Task HandleEcho(string[] args, SocketMessage message)
 		{
 			if (args.Length != 2 || message.MentionedChannels.Count != 1)
 			{

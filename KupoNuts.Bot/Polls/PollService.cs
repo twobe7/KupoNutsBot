@@ -23,7 +23,6 @@ namespace KupoNuts.Bot.Polls
 		{
 			await this.pollDatabase.Connect();
 
-			CommandsService.BindCommand("poll", this.HandlePoll, Permissions.Administrators, "Copies a range of messages to a new channel, adds a reaction, and counts votes.");
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
 
 			List<Poll> polls = await this.pollDatabase.LoadAll();
@@ -45,12 +44,12 @@ namespace KupoNuts.Bot.Polls
 
 		public override Task Shutdown()
 		{
-			CommandsService.ClearCommand("poll");
 			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
 			return Task.CompletedTask;
 		}
 
-		private async Task HandlePoll(string[] args, SocketMessage message)
+		[Command("Poll", Permissions.Administrators, "Copies a range of messages to a new channel, adds a reaction, and counts votes.")]
+		public async Task HandlePoll(string[] args, SocketMessage message)
 		{
 			if (args.Length != 3 && args.Length != 4)
 			{

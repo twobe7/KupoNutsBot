@@ -13,20 +13,19 @@ namespace KupoNuts.Bot.Services
 	{
 		public override Task Initialize()
 		{
-			CommandsService.BindCommand("time", this.Time, Permissions.Everyone, "Shows the current time in multiple time zones.");
 			return Task.CompletedTask;
 		}
 
 		public override Task Shutdown()
 		{
-			CommandsService.ClearCommand("time");
 			return Task.CompletedTask;
 		}
 
-		private async Task Time(string[] args, SocketMessage message)
+		[Command("Time", Permissions.Everyone, "Shows the current time in multiple time zones.")]
+		public Task<string> Time()
 		{
 			Instant now = SystemClock.Instance.GetCurrentInstant();
-			await message.Channel.SendMessageAsync("The time is: " + TimeUtils.GetDateTimeString(now));
+			return Task.FromResult("The time is: " + TimeUtils.GetDateTimeString(now));
 		}
 	}
 }

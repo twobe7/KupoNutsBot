@@ -12,32 +12,13 @@ namespace KupoNuts.Bot.Characters
 
 	public class CharacterService : ServiceBase
 	{
-		public override Task Initialize()
+		[Command("WhoIs", Permissions.Everyone, "looks up a character profile")]
+		public async Task WhoIs(SocketMessage message, uint characterId)
 		{
-			CommandsService.BindCommand("whoIs", this.HandleWhoIs, Permissions.Everyone, string.Empty);
-			return Task.CompletedTask;
-		}
-
-		public override Task Shutdown()
-		{
-			return Task.CompletedTask;
-		}
-
-		private async Task HandleWhoIs(string[] args, SocketMessage message)
-		{
-			if (args.Length != 1 || !uint.TryParse(args[0], out uint characterId))
-			{
-				await message.Channel.SendMessageAsync("Sorry! try \"WhoIs 17376038\"");
-				return;
-			}
-
 			CharacterAPI.GetResponse response = await CharacterAPI.Get(characterId);
 
 			if (response.Character == null)
-			{
-				await message.Channel.SendMessageAsync("Sorry! That character was blank.");
-				return;
-			}
+				throw new UserException("Sorry! That character was blank.");
 
 			Embed embed = response.Character.BuildEmbed();
 			await message.Channel.SendMessageAsync(null, false, embed);
