@@ -38,7 +38,15 @@
 </div>
 
 <div class="form-row">
-	<!-- Name -->
+	<!-- Short description-->
+	<div class="form-group col-md-12">
+		<label for="eventShortDesc">Short Description</label>
+		<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.ShortDescription" />
+	</div>
+</div>
+
+<div class="form-row">
+	<!-- Image URL -->
 	<div class="form-group col-md-12">
 		<label for="eventImage">Image URL</label>
 		<input type="text" class="form-control" id="eventImage" name="eventImage" placeholder="Enter a URL to an image" @bind="this.Image" />
@@ -139,13 +147,6 @@
 	</div>
 </div>
 
-<div class="form-row">
-	<!--  Repeat Days -->
-	<div class="form-group col-md-12">
-		<label class="form-text text-muted">@evt.Id</label>
-	</div>
-</div>
-
 <div class="modal-footer">
 	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
 	<div class="flex-fill" />
@@ -164,6 +165,7 @@
 	public string Name;
 	public bool NameValid = true;
 	public string Description;
+	public string ShortDescription;
 	public string Image;
 	public string Channel;
 	public string Color;
@@ -213,6 +215,7 @@
 
 		this.Name = this.evt.Name;
 		this.Description = this.evt.Description;
+		this.ShortDescription = this.evt.ShortDescription;
 		this.Image = this.evt.Image;
 		this.Color = this.evt.Color.ToString();
 		this.evt.GetDateTime(out this.Date, out this.Time);
@@ -257,14 +260,13 @@
 
 		this.evt.Name = this.Name;
 		this.evt.Description = this.Description;
+		this.evt.ShortDescription = this.ShortDescription;
 		this.evt.Image = this.Image;
 		this.evt.ChannelId = this.Channel == "0" ? null : this.Channel;
 		this.evt.SetDuration(this.Duration);
 		this.evt.SetNotifyDuration(this.NotifyDuration);
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
 		this.evt.SetRepeats(this.Monday, this.Tuesday, this.Wednesday, this.Thursday, this.Friday, this.Saturday, this.Sunday);
-
-		Console.WriteLine(">> " + this.evt.NotifyDuration);
 
 		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Update)));
 	}

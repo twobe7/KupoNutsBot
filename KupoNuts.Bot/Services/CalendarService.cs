@@ -48,19 +48,25 @@ namespace KupoNuts.Bot.Services
 			db.Save();
 		}
 
-		private string GetEventString(Event evt, int daysTill)
+		private string GetEventString(Event evt, int daysTill, Instant occurance)
 		{
 			StringBuilder builder = new StringBuilder();
+			builder.Append(Utils.Characters.Tab);
 
 			if (evt.Notify != null)
 			{
-				builder.Append(" - ");
 				builder.Append(evt.Notify.GetLink(evt));
 			}
 			else
 			{
-				builder.Append(" - ");
 				builder.Append(evt.Name);
+			}
+
+			if (!string.IsNullOrEmpty(evt.ShortDescription))
+			{
+				builder.Append(" - *");
+				builder.Append(evt.ShortDescription);
+				builder.Append("*");
 			}
 
 			// Today
@@ -70,6 +76,13 @@ namespace KupoNuts.Bot.Services
 				builder.Append(evt.GetWhenString());
 			}
 
+			/*else
+			{
+				builder.AppendLine();
+				builder.Append(Utils.Characters.Tab);
+				builder.AppendLine(TimeUtils.GetTimeString(occurance));
+			}*/
+
 			return builder.ToString();
 		}
 
@@ -78,12 +91,12 @@ namespace KupoNuts.Bot.Services
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
 
 			StringBuilder builder = new StringBuilder();
-			builder.Append("**");
+			/*builder.Append("**");
 			builder.Append(header);
 			builder.AppendLine("**");
-			builder.AppendLine();
+			builder.AppendLine();*/
 
-			Dictionary<int, List<Event>> eventSchedule = new Dictionary<int, List<Event>>();
+			Dictionary<int, List<(Event, Instant)>> eventSchedule = new Dictionary<int, List<(Event, Instant)>>();
 
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 
@@ -97,9 +110,9 @@ namespace KupoNuts.Bot.Services
 					int days = TimeUtils.GetDaysTill(occurance, zone);
 
 					if (!eventSchedule.ContainsKey(days))
-						eventSchedule.Add(days, new List<Event>());
+						eventSchedule.Add(days, new List<(Event, Instant)>());
 
-					eventSchedule[days].Add(evt);
+					eventSchedule[days].Add((evt, occurance));
 				}
 			}
 
@@ -109,13 +122,15 @@ namespace KupoNuts.Bot.Services
 				if (!eventSchedule.ContainsKey(i))
 					continue;
 
-				List<Event> eventsDay = eventSchedule[i];
+				List<(Event, Instant)> eventsDay = eventSchedule[i];
 
-				builder.AppendLine(TimeUtils.GetDayName(i));
+				builder.Append("__");
+				builder.Append(TimeUtils.GetDayName(i));
+				builder.AppendLine("__");
 
-				foreach (Event evt in eventsDay)
+				foreach ((Event evt, Instant occurance) in eventsDay)
 				{
-					builder.AppendLine(this.GetEventString(evt, i));
+					builder.AppendLine(this.GetEventString(evt, i, occurance));
 					count++;
 				}
 
@@ -136,13 +151,14 @@ namespace KupoNuts.Bot.Services
 
 			if (message == null)
 			{
-				message = await channel.SendMessageAsync(null, false, embedBuilder.Build());
+				message = await channel.SendMessageAsync(header, false, embedBuilder.Build());
 				messageId = message.Id;
 			}
 			else
 			{
 				await message.ModifyAsync(x =>
 				{
+					x.Content = header;
 					x.Embed = embedBuilder.Build();
 				});
 			}
