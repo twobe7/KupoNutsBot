@@ -78,6 +78,13 @@ namespace KupoNuts.Events
 
 		public static void GetDateTime(this Event self, out DateTime date, out string time)
 		{
+			if (string.IsNullOrEmpty(self.DateTime))
+			{
+				date = DateTime.Today;
+				time = "00:00";
+				return;
+			}
+
 			Instant instant = self.GetDateTime();
 
 			ZonedDateTime zdt = instant.InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault());
