@@ -63,6 +63,7 @@ namespace KupoNuts.Bot
 				await this.AddService<EventsService>();
 				await this.AddService<CalendarService>();
 				await this.AddService<CommandsService>();
+				await this.AddService<HelpService>();
 				await this.AddService<DebugService>();
 				await this.AddService<StatusService>();
 				await this.AddService<ReminderService>();
