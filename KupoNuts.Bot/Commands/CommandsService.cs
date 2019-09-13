@@ -84,12 +84,6 @@ namespace KupoNuts.Bot.Commands
 			await message.Channel.SendMessageAsync(builder.ToString());
 		}
 
-		[Command("Help", Permissions.Administrators, "really?")]
-		public async Task Help(SocketMessage message, bool publicOnly)
-		{
-			await GetHelp(message, Permissions.Everyone);
-		}
-
 		private static async Task GetHelp(SocketMessage message, Permissions permissions)
 		{
 			StringBuilder builder = new StringBuilder();
@@ -190,6 +184,12 @@ namespace KupoNuts.Bot.Commands
 				case TypeCode.DateTime: return "date and time";
 				case TypeCode.String: return "string";
 			}
+
+			if (type == typeof(SocketTextChannel))
+				return "channel";
+
+			if (type == typeof(IEmote))
+				return "emote";
 
 			return type.Name;
 		}
@@ -445,6 +445,32 @@ namespace KupoNuts.Bot.Commands
 				else if (type == typeof(bool))
 				{
 					return bool.Parse(arg);
+				}
+				else if (type == typeof(SocketTextChannel))
+				{
+					string str = arg;
+					str = str.Replace("<", string.Empty);
+					str = str.Replace(">", string.Empty);
+					str = str.Replace("#", string.Empty);
+
+					ulong id = ulong.Parse(str);
+					SocketChannel channel = Program.DiscordClient.GetChannel(id);
+					if (channel is SocketTextChannel)
+					{
+						return channel;
+					}
+					else if (channel is null)
+					{
+						throw new Exception("Invalid channel ID: " + id);
+					}
+					else
+					{
+						throw new Exception("Channel is not a Text Channel");
+					}
+				}
+				else if (type == typeof(IEmote))
+				{
+					return Emote.Parse(arg);
 				}
 
 				throw new Exception("Unsupported parameter type: \"" + type + "\"");

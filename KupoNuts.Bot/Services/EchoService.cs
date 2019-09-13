@@ -2,6 +2,7 @@
 
 namespace KupoNuts.Bot.Services
 {
+	using System;
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Threading.Tasks;
@@ -16,6 +17,12 @@ namespace KupoNuts.Bot.Services
 	{
 		public static async Task<List<RestUserMessage>> Echo(SocketTextChannel from, SocketTextChannel to, ulong fromMessageID, int count)
 		{
+			if (from is null)
+				throw new ArgumentException("to");
+
+			if (to is null)
+				throw new ArgumentException("to");
+
 			List<RestUserMessage> results = new List<RestUserMessage>();
 
 			List<IMessage> messages = new List<IMessage>(await from.GetMessagesAsync(fromMessageID, Discord.Direction.Before, count).FlattenAsync());
@@ -49,26 +56,27 @@ namespace KupoNuts.Bot.Services
 		}
 
 		[Command("Echo", Permissions.Administrators, "Copies a range of messages to a new channel.")]
-		public async Task HandleEcho(string[] args, SocketMessage message)
+		public async Task HandleEcho(SocketMessage message, int count, SocketTextChannel channel)
 		{
-			if (args.Length != 2 || message.MentionedChannels.Count != 1)
-			{
-				await message.Channel.SendMessageAsync("You need to tell me how many messages and what channel to copy to! try \"echo 1 #channel-name\" to copy the previous 1 message to a new channel");
-				return;
-			}
+			await Echo((SocketTextChannel)message.Channel, channel, message.Id, count);
+		}
 
-			SocketGuildChannel toChannel = message.MentionedChannels.Getfirst();
-			if (toChannel is SocketTextChannel toTextChannel)
-			{
-				int count = 1;
-				int.TryParse(args[0], out count);
+		[Command("Echo", Permissions.Administrators, "Copies a single message to a new channel.")]
+		public async Task HandleEcho(SocketMessage message, SocketTextChannel channel)
+		{
+			await Echo((SocketTextChannel)message.Channel, channel, message.Id, 1);
+		}
 
-				await Echo((SocketTextChannel)message.Channel, toTextChannel, message.Id, count);
-			}
-			else
-			{
-				await message.Channel.SendMessageAsync("I can only echo messages into text channels!");
-			}
+		[Command("Echo", Permissions.Administrators, "Copies a range of messages to the same channel.")]
+		public async Task HandleEcho(SocketMessage message, int count)
+		{
+			await Echo((SocketTextChannel)message.Channel, (SocketTextChannel)message.Channel, message.Id, count);
+		}
+
+		[Command("Echo", Permissions.Administrators, "Copies a single message to the same channel.")]
+		public async Task HandleEcho(SocketMessage message)
+		{
+			await Echo((SocketTextChannel)message.Channel, (SocketTextChannel)message.Channel, message.Id, 1);
 		}
 	}
 }

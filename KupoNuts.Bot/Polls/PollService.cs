@@ -48,43 +48,20 @@ namespace KupoNuts.Bot.Polls
 			return Task.CompletedTask;
 		}
 
-		[Command("Poll", Permissions.Administrators, "Copies a range of messages to a new channel as a poll.")]
-		public async Task HandlePoll(string[] args, SocketMessage message)
+		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
+		public async Task HandlePoll(SocketMessage message, IEmote emote, int count, string comment)
 		{
-			if (args.Length != 3 && args.Length != 4)
-			{
-				await message.Channel.SendMessageAsync("You need to tell me how many messages and what channel to copy to! try \"poll 5 :MSQDone: #channel-name \"Hello world!\"\" to copy the previous 5 message to a new channel and react with the MSQDone emote");
-				return;
-			}
+			await this.HandlePoll(message, emote, count, (SocketTextChannel)message.Channel, comment);
+		}
 
-			if (!int.TryParse(args[0], out int count) || count <= 0)
-			{
-				await message.Channel.SendMessageAsync("Bad message count: \"" + args[0] + "\"");
-				return;
-			}
-
-			if (!Emote.TryParse(args[1], out Emote emote) || emote == null)
-			{
-				await message.Channel.SendMessageAsync("Bad emote count: \"" + args[1] + "\"");
-				return;
-			}
-
-			SocketGuildChannel toChannel = message.MentionedChannels.Getfirst();
-			if (toChannel == null || !(toChannel is SocketTextChannel))
-			{
-				await message.Channel.SendMessageAsync("Bad destination channel: \"" + args[2] + "\". Must be a text channel!");
-				return;
-			}
-
-			string comment = string.Empty;
-			if (args.Length == 4)
-				comment = args[3];
-
+		[Command("Poll", Permissions.Administrators, "Copies a range of messages to a new channel as a poll.")]
+		public async Task HandlePoll(SocketMessage message, IEmote emote, int count, SocketTextChannel channel, string comment)
+		{
 			Poll poll = await this.pollDatabase.CreateEntry();
 			poll.ChannelId = message.Channel.Id.ToString();
 
-			await ((SocketTextChannel)toChannel).SendMessageAsync(comment);
-			List<RestUserMessage> messages = await EchoService.Echo((SocketTextChannel)message.Channel, (SocketTextChannel)toChannel, message.Id, count);
+			await channel.SendMessageAsync(comment);
+			List<RestUserMessage> messages = await EchoService.Echo((SocketTextChannel)message.Channel, channel, message.Id, count);
 
 			poll.Options = new List<string>();
 			foreach (RestUserMessage pollMessage in messages)
