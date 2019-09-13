@@ -89,9 +89,9 @@ namespace KupoNuts.Bot.Events
 						{
 							await evt.Notify.Delete(evt);
 						}
-					}
 
-					continue;
+						continue;
+					}
 				}
 
 				SocketTextChannel? channel = evt.GetChannel();

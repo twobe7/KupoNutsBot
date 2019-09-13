@@ -75,6 +75,11 @@ namespace KupoNuts.Events
 
 		public Notification? Notify { get; set; }
 
+		public override string ToString()
+		{
+			return "Event: " + this.Name;
+		}
+
 		public class Status
 		{
 			public Status()
