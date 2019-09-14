@@ -38,6 +38,8 @@ namespace KupoNuts.Bot.Lodestone
 				{
 					Log.Write("Posintg Lodestone news: " + item.title);
 					await item.Post(channelId);
+
+					entry.IsPosted = true;
 					await this.newsDb.Save(entry);
 
 					// dont flood channel!
