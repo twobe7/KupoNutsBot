@@ -31,6 +31,8 @@ namespace KupoNuts
 
 		public string? UserLogChannel { get; set; }
 
+		public string? LodestoneChannel { get; set; }
+
 		public static void Init()
 		{
 			JsonSerializerSettings settings = new JsonSerializerSettings();

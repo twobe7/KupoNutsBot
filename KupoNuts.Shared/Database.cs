@@ -108,6 +108,16 @@ namespace KupoNuts
 			return await this.context.LoadAsync<T>(key, this.operationConfig);
 		}
 
+		public async Task<T> LoadOrCreate(string key)
+		{
+			T entry = await this.Load(key);
+
+			if (entry is null)
+				entry = await this.CreateEntry(key);
+
+			return entry;
+		}
+
 		public async Task<List<T>> LoadAll()
 		{
 			if (this.context == null)
