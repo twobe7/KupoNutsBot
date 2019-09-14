@@ -104,6 +104,8 @@ namespace KupoNuts.Bot.Events
 					if (evt.Notify == null)
 						evt.Notify = new Event.Notification();
 
+					this.Watch(evt);
+
 					await evt.CheckReactions();
 
 					await evt.Notify.Post(evt);
