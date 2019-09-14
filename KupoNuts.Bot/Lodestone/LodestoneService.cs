@@ -22,6 +22,8 @@ namespace KupoNuts.Bot.Lodestone
 
 		private async Task Update()
 		{
+			Log.Write("Updating lodestone news");
+
 			if (!ulong.TryParse(Settings.Load().LodestoneChannel, out ulong channelId))
 				return;
 
