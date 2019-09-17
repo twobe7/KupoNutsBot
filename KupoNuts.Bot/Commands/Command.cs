@@ -184,6 +184,7 @@ namespace KupoNuts.Bot.Commands
 				str = str.Replace("<", string.Empty);
 				str = str.Replace(">", string.Empty);
 				str = str.Replace("@", string.Empty);
+				str = str.Replace("!", string.Empty);
 
 				ulong id = ulong.Parse(str);
 				IUser user = Program.DiscordClient.GetUser(id);
