@@ -2,12 +2,8 @@
 
 namespace KupoNuts
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Text;
-
 	public class Karma : EntryBase
 	{
-		public int Count;
+		public int Count = 10;
 	}
 }

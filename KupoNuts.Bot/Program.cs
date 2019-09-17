@@ -59,6 +59,11 @@ namespace KupoNuts.Bot
 			}
 		}
 
+		public static async Task<IGuildUser> GetBotUserForGuild(IGuild guild)
+		{
+			return await guild.GetUserAsync(DiscordClient.CurrentUser.Id);
+		}
+
 		protected virtual async Task AddServices()
 		{
 			try

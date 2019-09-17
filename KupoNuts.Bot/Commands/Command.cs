@@ -90,7 +90,7 @@ namespace KupoNuts.Bot.Commands
 
 					try
 					{
-						param = this.Convert(arg, paramInfo.ParameterType);
+						param = await this.Convert(message, arg, paramInfo.ParameterType);
 					}
 					catch (Exception)
 					{
@@ -127,7 +127,7 @@ namespace KupoNuts.Bot.Commands
 			}
 		}
 
-		private object Convert(string arg, Type type)
+		private async Task<object> Convert(SocketMessage message, string arg, Type type)
 		{
 			if (type == typeof(string))
 			{
@@ -188,6 +188,22 @@ namespace KupoNuts.Bot.Commands
 
 				ulong id = ulong.Parse(str);
 				IUser user = Program.DiscordClient.GetUser(id);
+
+				if (user == null)
+					throw new Exception("Invalid user Id: " + arg);
+
+				return user;
+			}
+			else if (type == typeof(IGuildUser))
+			{
+				string str = arg;
+				str = str.Replace("<", string.Empty);
+				str = str.Replace(">", string.Empty);
+				str = str.Replace("@", string.Empty);
+				str = str.Replace("!", string.Empty);
+
+				ulong id = ulong.Parse(str);
+				IGuildUser user = await message.GetGuild().GetUserAsync(id);
 
 				if (user == null)
 					throw new Exception("Invalid user Id: " + arg);

@@ -41,6 +41,9 @@ namespace KupoNuts.Bot.Services
 			if (type == typeof(IUser))
 				return "@user";
 
+			if (type == typeof(IGuildUser))
+				return "@user";
+
 			return type.Name;
 		}
 
