@@ -78,5 +78,15 @@ namespace KupoNuts.Bot.Services
 		{
 			await Echo((SocketTextChannel)message.Channel, (SocketTextChannel)message.Channel, message.Id, 1);
 		}
+
+		[Command("Embed", Permissions.Administrators, "Creates an embed on the target channel")]
+		public async Task HandleEmbedd(SocketTextChannel channel, string title, string content)
+		{
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.Description = content;
+			builder.Title = title;
+
+			await channel.SendMessageAsync(null, false, builder.Build());
+		}
 	}
 }
