@@ -77,6 +77,7 @@ namespace KupoNuts.Bot
 				await this.AddService<CharacterService>();
 				await this.AddService<LodestoneService>();
 				await this.AddService<QuoteService>();
+				await this.AddService<ModerationService>();
 			}
 			catch (Exception ex)
 			{
