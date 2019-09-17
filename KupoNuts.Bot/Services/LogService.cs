@@ -78,10 +78,10 @@ namespace KupoNuts.Bot.Services
 			if (user is SocketGuildUser guildUser)
 			{
 				builder.Title = guildUser.Nickname + " (" + user.Username + ") " + message;
-				builder.AddField("Joined", TimeUtils.GetDateTimeString(guildUser.JoinedAt));
+				builder.AddField("Joined", TimeUtils.GetDateString(guildUser.JoinedAt), true);
 			}
 
-			builder.AddField("Created", TimeUtils.GetDateTimeString(user.CreatedAt));
+			builder.AddField("Created", TimeUtils.GetDateString(user.CreatedAt), true);
 
 			builder.Footer = new EmbedFooterBuilder();
 			builder.Footer.Text = "ID: " + user.Id;

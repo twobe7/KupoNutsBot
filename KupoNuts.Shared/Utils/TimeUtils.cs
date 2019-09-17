@@ -75,6 +75,14 @@ namespace KupoNuts.Utils
 			return GetDateTimeString(Instant.FromDateTimeOffset((DateTimeOffset)dt));
 		}
 
+		public static string GetDateString(DateTimeOffset? dt)
+		{
+			if (dt == null)
+				return string.Empty;
+
+			return GetDateString(Instant.FromDateTimeOffset((DateTimeOffset)dt));
+		}
+
 		public static string GetDateTimeString(Instant dt)
 		{
 			StringBuilder builder = new StringBuilder();
