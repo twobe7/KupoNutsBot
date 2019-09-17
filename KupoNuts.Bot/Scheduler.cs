@@ -3,8 +3,6 @@
 namespace KupoNuts.Bot
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Text;
 	using System.Threading.Tasks;
 
 	public static class Scheduler
@@ -23,7 +21,6 @@ namespace KupoNuts.Bot
 				while (delay < 0)
 					delay += minutesDelay;
 
-				Log.Write("Delaying schedule: " + delay + " minutes", "Bot");
 				await Task.Delay(new TimeSpan(0, delay, 0));
 
 				await method.Invoke();
