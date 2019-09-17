@@ -178,6 +178,21 @@ namespace KupoNuts.Bot.Commands
 			{
 				return Emote.Parse(arg);
 			}
+			else if (type == typeof(IUser))
+			{
+				string str = arg;
+				str = str.Replace("<", string.Empty);
+				str = str.Replace(">", string.Empty);
+				str = str.Replace("@", string.Empty);
+
+				ulong id = ulong.Parse(str);
+				IUser user = Program.DiscordClient.GetUser(id);
+
+				if (user == null)
+					throw new Exception("Invalid user Id: " + arg);
+
+				return user;
+			}
 
 			throw new Exception("Unsupported parameter type: \"" + type + "\"");
 		}

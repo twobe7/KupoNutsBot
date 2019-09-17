@@ -43,6 +43,29 @@ namespace KupoNuts.Bot.Quotes
 			return quotes[index].ToEmbed();
 		}
 
+		[Command("Quote", Permissions.Everyone, "Gets a random quote from a user")]
+		public async Task<Embed> GetQuote(IUser user)
+		{
+			List<Quote> allQuotes = await this.quoteDb.LoadAll();
+
+			List<Quote> quotes = new List<Quote>();
+			foreach (Quote quote in allQuotes)
+			{
+				if (quote.UserId != user.Id)
+					continue;
+
+				quotes.Add(quote);
+			}
+
+			if (quotes.Count <= 0)
+				throw new UserException("There are no quotes from that user yet! Try reacting to a message with a 💬!");
+
+			Random rn = new Random();
+			int index = rn.Next(quotes.Count);
+
+			return quotes[index].ToEmbed();
+		}
+
 		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> messageCache, ISocketMessageChannel channel, SocketReaction reaction)
 		{
 			if (reaction.Emote.Name != "💬")

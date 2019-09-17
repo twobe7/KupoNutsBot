@@ -33,10 +33,13 @@ namespace KupoNuts.Bot.Services
 			}
 
 			if (type == typeof(SocketTextChannel))
-				return "channel";
+				return "#channel";
 
 			if (type == typeof(IEmote))
-				return "emote";
+				return ":emote:";
+
+			if (type == typeof(IUser))
+				return "@user";
 
 			return type.Name;
 		}
