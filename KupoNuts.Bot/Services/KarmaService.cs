@@ -3,6 +3,7 @@
 namespace KupoNuts.Bot.Services
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
@@ -72,7 +73,7 @@ namespace KupoNuts.Bot.Services
 			await message.Channel.SendMessageAsync(messageBuilder.ToString(), false, embedBuilder.Build());
 		}
 
-		[Command("Karma", Permissions.Everyone, "Shows your current karma")]
+		[Command("MyKarma", Permissions.Everyone, "Shows your current karma")]
 		public async Task<Embed> ShowKarma(SocketMessage message)
 		{
 			return await this.ShowKarma(message.GetAuthor());
@@ -86,6 +87,42 @@ namespace KupoNuts.Bot.Services
 			EmbedBuilder embedBuilder = new EmbedBuilder();
 			embedBuilder.AddField(user.GetName(), fromKarma.Count);
 
+			return embedBuilder.Build();
+		}
+
+		[Command("Karma", Permissions.Everyone, "Shows the karma leaderboards")]
+		public async Task<Embed> ShowKarmaLEaders(SocketMessage message)
+		{
+			List<Karma> karmas = await this.karmaDatabase.LoadAll();
+
+			karmas.Sort((Karma a, Karma b) =>
+			{
+				return -a.Count.CompareTo(b.Count);
+			});
+
+			int count = 10;
+			if (count > karmas.Count)
+				count = karmas.Count;
+
+			IGuild guild = message.GetGuild();
+
+			StringBuilder builder = new StringBuilder();
+			for (int i = 0; i < count; i++)
+			{
+				Karma karma = karmas[i];
+
+				if (karma.Id == null)
+					continue;
+
+				IGuildUser user = await guild.GetUserAsync(ulong.Parse(karma.Id));
+				builder.Append(karma.Count);
+				builder.Append(" - ");
+				builder.AppendLine(user.GetName());
+			}
+
+			EmbedBuilder embedBuilder = new EmbedBuilder();
+			embedBuilder.Title = "Karma Leaderboard";
+			embedBuilder.Description = builder.ToString();
 			return embedBuilder.Build();
 		}
 
