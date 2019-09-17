@@ -6,6 +6,7 @@ namespace XIVAPI
 	using System.IO;
 	using System.Net;
 	using System.Threading.Tasks;
+	using KupoNuts;
 	using Newtonsoft.Json;
 
 	internal static class Request
@@ -24,20 +25,20 @@ namespace XIVAPI
 
 			try
 			{
-				Console.WriteLine("[XIVAPI] Request: " + url);
+				Log.Write("Request: " + url, "XIVAPI");
 
 				WebRequest req = WebRequest.Create(url);
 				WebResponse response = await req.GetResponseAsync();
 				StreamReader reader = new StreamReader(response.GetResponseStream());
 				string json = await reader.ReadToEndAsync();
 
-				Console.WriteLine("[XIVAPI] Response: " + json.Length + " characters");
+				Log.Write("Response: " + json.Length + " characters", "XIVAPI");
 
 				return JsonConvert.DeserializeObject<T>(json);
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("[XIVAPI] Error: " + ex.Message);
+				Log.Write("Error: " + ex.Message, "XIVAPI");
 				throw ex;
 			}
 		}

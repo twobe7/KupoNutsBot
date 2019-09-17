@@ -30,7 +30,7 @@ namespace KupoNuts.Bot.Commands
 
 				Command cmd = new Command(method, obj, attribute.Permissions, attribute.Help);
 				commandHandlers[attribute.Command].Add(cmd);
-				Console.WriteLine("Registered command: \"" + attribute.Command + "\"");
+				Log.Write("Registered command: \"" + attribute.Command + "\"", "Bot");
 			}
 		}
 

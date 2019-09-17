@@ -6,6 +6,7 @@ namespace Lodestone
 	using System.IO;
 	using System.Net;
 	using System.Threading.Tasks;
+	using KupoNuts;
 	using Newtonsoft.Json;
 
 	internal static class Request
@@ -19,20 +20,20 @@ namespace Lodestone
 
 			try
 			{
-				Console.WriteLine("[Lodestone] Request: " + url);
+				Log.Write("Request: " + url, "Lodestone");
 
 				WebRequest req = WebRequest.Create(url);
 				WebResponse response = await req.GetResponseAsync();
 				StreamReader reader = new StreamReader(response.GetResponseStream());
 				string json = await reader.ReadToEndAsync();
 
-				Console.WriteLine("[Lodestone] Response: " + json.Length + " characters");
+				Log.Write("Response: " + json.Length + " characters", "Lodestone");
 
 				return JsonConvert.DeserializeObject<T>(json);
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("[Lodestone] Error: " + ex.Message);
+				Log.Write("Error: " + ex.Message, "Lodestone");
 				throw ex;
 			}
 		}

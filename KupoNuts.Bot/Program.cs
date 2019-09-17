@@ -42,6 +42,8 @@ namespace KupoNuts.Bot
 
 		public static Task Run(string[] args)
 		{
+			Log.ExceptionLogged += Log_ExceptionLogged;
+
 			Program prog = new Program();
 			return prog.DoRun();
 		}
@@ -73,10 +75,36 @@ namespace KupoNuts.Bot
 				await this.AddService<PollService>();
 				await this.AddService<CharacterService>();
 				await this.AddService<LodestoneService>();
+				await this.AddService<QuoteService>();
 			}
 			catch (Exception ex)
 			{
 				Log.Write(ex);
+			}
+		}
+
+		private static void Log_ExceptionLogged(string exceptionLog)
+		{
+			if (Program.DiscordClient != null)
+			{
+				try
+				{
+					string? idStr = Settings.Load().LogChannel;
+					if (idStr != null)
+					{
+						ulong id = ulong.Parse(idStr);
+						SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(id);
+						EmbedBuilder enbedBuilder = new EmbedBuilder();
+						enbedBuilder.Color = Color.Red;
+						enbedBuilder.Title = "Kupo Nut Bot encountered an error";
+						enbedBuilder.Description = exceptionLog;
+						enbedBuilder.Timestamp = DateTimeOffset.UtcNow;
+						channel.SendMessageAsync(null, false, enbedBuilder.Build());
+					}
+				}
+				catch (Exception)
+				{
+				}
 			}
 		}
 

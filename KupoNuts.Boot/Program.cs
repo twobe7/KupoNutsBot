@@ -35,7 +35,7 @@ namespace KupoNuts.Boot
 
 		private static async Task MainAsync(string[] args)
 		{
-			Console.WriteLine("[Boot] Initializing... press [ESC] to shutdown");
+			Log.Write("Initializing... press [ESC] to shutdown", "Boot");
 
 			try
 			{
@@ -49,7 +49,7 @@ namespace KupoNuts.Boot
 
 					if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
 					{
-						Console.WriteLine("[Boot] Shutting down...");
+						Log.Write("Shutting down...", "Boot");
 						await Bot.Program.Exit();
 						await Manager.Server.Program.Exit();
 					}
@@ -57,24 +57,10 @@ namespace KupoNuts.Boot
 			}
 			catch (Exception? ex)
 			{
-				StringBuilder builder = new StringBuilder();
-				while (ex != null)
-				{
-					builder.Append(ex.GetType());
-					builder.Append(" - ");
-					builder.AppendLine(ex.Message);
-					builder.AppendLine(ex.StackTrace);
-					builder.AppendLine();
-
-					ex = ex.InnerException;
-				}
-
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine(builder.ToString());
-				Console.ForegroundColor = ConsoleColor.White;
+				Log.Write(ex);
 			}
 
-			Console.WriteLine("[Boot] Shutdown complete");
+			Log.Write("Shutdown complete", "Boot");
 		}
 	}
 }

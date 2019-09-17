@@ -187,7 +187,7 @@ namespace KupoNuts
 			try
 			{
 				CreateTableResponse createTableResponse = await this.client.CreateTableAsync(request);
-				Console.WriteLine("[Database] Created the Table: \"" + this.InternalName + "\"");
+				Log.Write("Created the Table: \"" + this.InternalName + "\"", "Database");
 			}
 			catch (Exception ex)
 			{
