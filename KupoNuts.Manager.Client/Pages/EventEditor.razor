@@ -268,16 +268,16 @@
 		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
 		this.evt.SetRepeats(this.Monday, this.Tuesday, this.Wednesday, this.Thursday, this.Friday, this.Saturday, this.Sunday);
 
-		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Update)));
+		this.Modal.Close(ModalResult.Ok(new DataAction<Event>(this.evt, Actions.Update)));
 	}
 
 	private void OnClose()
 	{
-		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Nothing)));
+		this.Modal.Close(ModalResult.Ok(new DataAction<Event>(this.evt, Actions.Nothing)));
 	}
 
 	private void OnDelete()
 	{
-		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Delete)));
+		this.Modal.Close(ModalResult.Ok(new DataAction<Event>(this.evt, Actions.Delete)));
 	}
 }

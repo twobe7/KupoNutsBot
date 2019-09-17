@@ -21,7 +21,7 @@ namespace KupoNuts.Bot.Utils
 
 			using (WebClient client = new WebClient())
 			{
-				Log.Write("download: " + url + " to " + path);
+				Log.Write("download: " + url + " to " + path, "Bot");
 				client.DownloadFile(url, path);
 			}
 

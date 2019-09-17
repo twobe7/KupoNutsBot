@@ -13,7 +13,7 @@ namespace KupoNuts
 
 		public static event LogEvent? ExceptionLogged;
 
-		public static void Write(string message, string category = "Bot")
+		public static void Write(string message, string category)
 		{
 			string str = "[" + DateTime.Now.ToString("HH:mm:ss") + "][" + category + "] " + message;
 			Console.WriteLine(str);

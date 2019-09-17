@@ -23,7 +23,7 @@ namespace KupoNuts.Bot
 				while (delay < 0)
 					delay += minutesDelay;
 
-				Log.Write("Delaying schedule: " + delay + " minutes");
+				Log.Write("Delaying schedule: " + delay + " minutes", "Bot");
 				await Task.Delay(new TimeSpan(0, delay, 0));
 
 				await method.Invoke();

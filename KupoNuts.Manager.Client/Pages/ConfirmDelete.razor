@@ -3,7 +3,7 @@
 
 <div class="form-row">
 	<div class="form-group col-md-12">
-		<label>Are you sure you want to delete the event: "@evt.Name" ?</label>
+		<label>Are you sure you want to delete the item: "@this.content" ?</label>
 	</div>
 </div>
 
@@ -17,21 +17,21 @@
 @code {
 	[CascadingParameter] ModalParameters Parameters { get; set; }
 
-	private Event evt;
+	private string content;
 
 	protected override void OnInitialized()
 	{
 		base.OnInitialized();
-		this.evt = Parameters.Get<Event>("Event");
+		this.content = Parameters.Get<string>("Content");
 	}
 
 	private void OnClose()
 	{
-		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.Nothing)));
+		this.Modal.Close(ModalResult.Cancel());
 	}
 
 	private void OnDelete()
 	{
-		this.Modal.Close(ModalResult.Ok<EventAction>(new EventAction(this.evt, EventAction.Actions.DeleteConfirmed)));
+		this.Modal.Close(ModalResult.Ok(true));
 	}
 }

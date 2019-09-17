@@ -26,7 +26,7 @@ namespace KupoNuts.Bot.Services
 		[Command("Calendar", Permissions.Administrators, "Updates the calendar")]
 		public async Task Update()
 		{
-			Log.Write("Updating Calendar");
+			Log.Write("Updating Calendar", "Bot");
 			Settings db = Settings.Load();
 
 			ulong channelId = 0;

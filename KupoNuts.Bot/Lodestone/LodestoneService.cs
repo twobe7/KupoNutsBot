@@ -22,7 +22,7 @@ namespace KupoNuts.Bot.Lodestone
 
 		private async Task Update()
 		{
-			Log.Write("Updating lodestone news");
+			Log.Write("Updating lodestone news", "Bot");
 
 			if (!ulong.TryParse(Settings.Load().LodestoneChannel, out ulong channelId))
 				return;
@@ -38,7 +38,7 @@ namespace KupoNuts.Bot.Lodestone
 
 				if (!entry.IsPosted)
 				{
-					Log.Write("Posintg Lodestone news: " + item.title);
+					Log.Write("Posintg Lodestone news: " + item.title, "Bot");
 					await item.Post(channelId);
 
 					entry.IsPosted = true;

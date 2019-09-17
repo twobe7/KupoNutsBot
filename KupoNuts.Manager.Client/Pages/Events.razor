@@ -86,34 +86,36 @@ else
 	{
 		Modal.OnClose -= this.OnModalClosed;
 
-		if (result.Data is EventAction evtAction)
+		if (result.Data is DataAction<Event> evtAction)
 		{
 			switch (evtAction.Action)
 			{
-				case EventAction.Actions.Nothing:
+				case Actions.Nothing:
 				{
 					break;
 				}
-				case EventAction.Actions.Update:
+				case Actions.Update:
 				{
 					await this.Http.PostJsonAsync("EventsAPI", evtAction);
 					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
 					this.StateHasChanged();
 					break;
 				}
-				case EventAction.Actions.Delete:
+				case Actions.Delete:
 				{
 					ModalParameters parameters = new ModalParameters();
-					parameters.Add("Event", evtAction.Event);
+					parameters.Add("Content", evtAction.Data.Name);
 					this.Modal.Show("Delete Event", typeof(ConfirmDelete), parameters);
-					this.Modal.OnClose += this.OnModalClosed;
-					break;
-				}
-				case EventAction.Actions.DeleteConfirmed:
-				{
-					await this.Http.PostJsonAsync("EventsAPI", evtAction);
-					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
-					this.StateHasChanged();
+					this.Modal.OnClose += async (ModalResult res) =>
+					{
+						if (!res.Cancelled)
+						{
+							await this.Http.PostJsonAsync("EventsAPI", evtAction);
+							this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
+							this.StateHasChanged();
+						}
+					};
+
 					break;
 				}
 			}

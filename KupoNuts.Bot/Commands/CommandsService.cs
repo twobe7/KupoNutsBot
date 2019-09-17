@@ -121,7 +121,7 @@ namespace KupoNuts.Bot.Commands
 				return;
 			}
 
-			Log.Write("Recieved command: " + command + " with " + message.Content + " From user: " + message.Author.Id);
+			Log.Write("Recieved command: " + command + " with " + message.Content + " From user: " + message.Author.Id, "Bot");
 			_ = Task.Run(async () => await this.RunCommand(command, args.ToArray(), message));
 		}
 

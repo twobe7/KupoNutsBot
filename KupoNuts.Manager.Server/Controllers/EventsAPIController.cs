@@ -4,7 +4,6 @@ namespace KupoNuts.Manager.Server.Controllers
 {
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
-	using KupoNuts.Bot;
 	using KupoNuts.Events;
 	using Microsoft.AspNetCore.Mvc;
 
@@ -22,24 +21,24 @@ namespace KupoNuts.Manager.Server.Controllers
 		}
 
 		[HttpPost]
-		public async Task Post(EventAction evt)
+		public async Task Post(DataAction<Event> evt)
 		{
 			Database<Event> eventsDb = new Database<Event>("Events", 1);
 			await eventsDb.Connect();
 
 			switch (evt.Action)
 			{
-				case EventAction.Actions.Update:
+				case Actions.Update:
 				{
-					await eventsDb.Save(evt.Event);
+					await eventsDb.Save(evt.Data);
 					break;
 				}
 
-				case EventAction.Actions.Delete:
-				case EventAction.Actions.DeleteConfirmed:
+				case Actions.Delete:
+				case Actions.DeleteConfirmed:
 				{
-					Log.Write("Delete Event: \"" + evt.Event.Name + "\" (" + evt.Event.Id + ")");
-					await eventsDb.Delete(evt.Event);
+					Log.Write("Delete Event: \"" + evt.Data.Name + "\" (" + evt.Data.Id + ")", "Manager");
+					await eventsDb.Delete(evt.Data);
 					break;
 				}
 			}

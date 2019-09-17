@@ -116,6 +116,11 @@ namespace KupoNuts.Bot.Commands
 				string str = await tString;
 				await message.Channel.SendMessageAsync(str);
 			}
+			else if (returnObject is Task<Embed> tEmbed)
+			{
+				Embed embed = await tEmbed;
+				await message.Channel.SendMessageAsync(null, false, embed);
+			}
 			else if (returnObject is Task task)
 			{
 				await task;

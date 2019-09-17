@@ -37,7 +37,7 @@ namespace KupoNuts.Bot.Status
 			Settings settings = Settings.Load();
 			if (settings.StatusChannel == null)
 			{
-				Log.Write("No Status Channel set. Kupo Nuts will not post logs to discord");
+				Log.Write("No Status Channel set. Kupo Nuts will not post logs to discord", "Bot");
 				return;
 			}
 
@@ -85,7 +85,7 @@ namespace KupoNuts.Bot.Status
 
 				try
 				{
-					Log.Write("Updating status");
+					Log.Write("Updating status", "Bot");
 					await this.PostStatus();
 				}
 				catch (Exception ex)

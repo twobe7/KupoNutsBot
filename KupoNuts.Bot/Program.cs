@@ -13,6 +13,7 @@ namespace KupoNuts.Bot
 	using KupoNuts.Bot.Events;
 	using KupoNuts.Bot.Lodestone;
 	using KupoNuts.Bot.Polls;
+	using KupoNuts.Bot.Quotes;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.Bot.Status;
 
@@ -113,13 +114,13 @@ namespace KupoNuts.Bot
 			try
 			{
 				Running = true;
-				Log.Write("Kupo Nuts Bot booting..");
+				Log.Write("Kupo Nuts Bot booting..", "Bot");
 
 				string? token = Settings.Load().Token;
 
 				if (string.IsNullOrEmpty(token))
 				{
-					Log.Write("No token set. Please set a token in the Database file");
+					Log.Write("No token set. Please set a token in the Database file", "Bot");
 				}
 				else
 				{
@@ -172,7 +173,7 @@ namespace KupoNuts.Bot
 					}
 				}
 
-				Log.Write("shutting down");
+				Log.Write("shutting down", "Bot");
 
 				if (services != null)
 				{
@@ -184,7 +185,7 @@ namespace KupoNuts.Bot
 
 				DiscordClient?.Dispose();
 				Running = false;
-				Log.Write("shutdown complete");
+				Log.Write("shutdown complete", "Bot");
 			}
 			catch (Exception ex)
 			{
@@ -202,7 +203,7 @@ namespace KupoNuts.Bot
 
 		private Task LogAsync(LogMessage log)
 		{
-			Log.Write(log.ToString());
+			Log.Write(log.ToString(), "Bot");
 			return Task.CompletedTask;
 		}
 	}
