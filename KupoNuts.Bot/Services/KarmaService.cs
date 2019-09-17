@@ -139,7 +139,8 @@ namespace KupoNuts.Bot.Services
 			if (iMessage is RestUserMessage restMessage)
 			{
 				Random rn = new Random();
-				if (rn.NextDouble() < KarmaGenerationChance)
+				double roll = rn.NextDouble();
+				if (roll < KarmaGenerationChance)
 				{
 					IGuildUser toUser = message.GetAuthor();
 
