@@ -109,6 +109,7 @@ namespace KupoNuts.Bot.Commands
 					if (string.IsNullOrEmpty(arg))
 						continue;
 
+					arg = arg.Replace("\\n", "\n");
 					args.Add(arg);
 				}
 			}
