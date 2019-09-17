@@ -57,6 +57,9 @@ namespace KupoNuts.Bot.Services
 		public async Task Karma(SocketMessage message, IGuildUser destinationUser)
 		{
 			IGuildUser fromUser = message.GetAuthor();
+
+			Log.Write(fromUser.GetName() + " sent karma to " + destinationUser.GetName() + " (command)", "Bot");
+
 			(Karma fromKarma, Karma toKarma) = await this.SendKarma(fromUser, destinationUser);
 
 			StringBuilder messageBuilder = new StringBuilder();
@@ -139,6 +142,9 @@ namespace KupoNuts.Bot.Services
 				if (rn.NextDouble() < KarmaGenerationChance)
 				{
 					IGuildUser toUser = message.GetAuthor();
+
+					Log.Write(toUser.GetName() + " Generated Karma with message: \"" + message.Content + "\"", "Bot");
+
 					Karma toKarma = await this.karmaDatabase.LoadOrCreate(toUser.Id.ToString());
 					toKarma.Count++;
 					await this.karmaDatabase.Save(toKarma);
@@ -163,6 +169,8 @@ namespace KupoNuts.Bot.Services
 
 				IGuild guild = userMessage.GetGuild();
 				IGuildUser fromUser = await guild.GetUserAsync(reaction.UserId);
+
+				Log.Write(toUser.GetName() + " sent karma to " + toUser.GetName() + " (reaction)", "Bot");
 
 				await this.SendKarma(fromUser, toUser);
 			}
