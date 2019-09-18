@@ -22,8 +22,6 @@ namespace KupoNuts.Manager.Client
 		{
 			if (!IsAuthenticated)
 			{
-				Console.WriteLine("NAVIGATE");
-
 				navigation.NavigateTo("/");
 				return false;
 			}
