@@ -68,7 +68,7 @@ namespace KupoNuts.Bot.Services
 
 			if (string.IsNullOrEmpty(embed.Description))
 			{
-				await message.Channel.SendMessageAsync("I'm sorry, I didn't find any help for that command.");
+				await message.Channel.SendMessageAsync("I'm sorry, you dont have permission to use that command.");
 				return;
 			}
 
