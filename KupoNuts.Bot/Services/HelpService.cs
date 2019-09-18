@@ -65,6 +65,13 @@ namespace KupoNuts.Bot.Services
 
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
+
+			if (string.IsNullOrEmpty(embed.Description))
+			{
+				await message.Channel.SendMessageAsync("I'm sorry, I didn't find any help for that command.");
+				return;
+			}
+
 			await message.Channel.SendMessageAsync(null, false, embed.Build());
 		}
 
