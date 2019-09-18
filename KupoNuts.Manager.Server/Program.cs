@@ -21,6 +21,7 @@ namespace KupoNuts.Manager.Server
 		public static Task Run(string[] args)
 		{
 			host = BuildWebHost(args);
+			Authentication.GenerateSecret();
 			return host.RunAsync();
 		}
 

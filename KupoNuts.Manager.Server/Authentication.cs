@@ -31,16 +31,8 @@ namespace KupoNuts.Manager.Server
 			Secret = data;
 		}
 
-		public static string GetSecret()
-		{
-			return Convert.ToBase64String(Secret);
-		}
-
 		public static bool IsAuthenticated(HttpRequest request)
 		{
-			return true;
-			#pragma warning disable
-
 			if (!request.Headers.TryGetValue("Token", out StringValues val))
 				return false;
 
@@ -48,13 +40,15 @@ namespace KupoNuts.Manager.Server
 				return false;
 
 			string token = val[0];
-
 			return VerifyToken(token, "IsAdmin", "true");
 		}
 
-		public static string Authenticate()
+		public static string Authenticate(string discordCode)
 		{
+			Log.Write("User Authenticated: " + discordCode, "Manager");
+
 			Dictionary<string, string> claims = new Dictionary<string, string>();
+			claims.Add("DiscordCode", discordCode);
 			claims.Add("IsAdmin", "true");
 			return GenerateToken(claims);
 		}

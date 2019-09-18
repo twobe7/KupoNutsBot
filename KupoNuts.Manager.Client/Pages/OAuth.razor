@@ -1,0 +1,21 @@
+﻿@page "/OAuth/"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@code
+{
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		string code = NavigationManager.GetQuerryParameter("code");
+
+		AuthenticationRequest request = new AuthenticationRequest();
+		request.DiscordCode = code;
+
+		AuthenticationRequest response = await this.Http.PostJsonAsync<AuthenticationRequest>("AuthenticationAPI", request);
+		Authentication.Token = response.Token;
+
+		NavigationManager.NavigateTo("/");
+	}
+}

@@ -3,10 +3,12 @@
 namespace KupoNuts
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Text;
 
+	[Serializable]
 	public class AuthenticationRequest
 	{
+		public string? DiscordCode { get; set; }
+
+		public string? Token { get; set; }
 	}
 }

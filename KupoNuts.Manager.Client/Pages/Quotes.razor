@@ -1,11 +1,14 @@
 ﻿@page "/quotes"
+
 @using KupoNuts.Quotes;
 @using KupoNuts.Utils;
 @using System.Text;
 @using NodaTime;
 @using System.Globalization;
+
 @inject HttpClient Http
 @inject IModalService Modal
+@inject NavigationManager NavigationManager
 
 @if (this.AllQuotes == null)
 {
@@ -44,6 +47,8 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
+		Authentication.Initialize(this.Http, this.NavigationManager);
+
 		await base.OnInitializedAsync();
 
 		this.AllQuotes = await this.Http.GetJsonAsync<List<Quote>>("QuotesAPI");

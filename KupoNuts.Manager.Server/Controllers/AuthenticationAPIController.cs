@@ -2,12 +2,7 @@
 
 namespace KupoNuts.Manager.Server.Controllers
 {
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Text;
 	using System.Threading.Tasks;
-	using KupoNuts.Events;
-	using Microsoft.AspNetCore.Http;
 	using Microsoft.AspNetCore.Mvc;
 
 	[ApiController]
@@ -15,13 +10,11 @@ namespace KupoNuts.Manager.Server.Controllers
 	public class AuthenticationAPIController : ControllerBase
 	{
 		[HttpPost]
-		[Route("OAuth")]
-		public Task Post([FromQuery] string code)
+		public Task<AuthenticationRequest> Post(AuthenticationRequest request)
 		{
-			Log.Write(code, "Manager");
+			request.Token = Authentication.Authenticate(request.DiscordCode);
 
-			return Task.CompletedTask;
-			////https://discordapp.com/api/oauth2/authorize?response_type=code&client_id=604288630579527698&scope=identify&state=thisisfortesting&redirect_uri=http://ec2-13-239-119-246.ap-southeast-2.compute.amazonaws.com/AuthenticationAPI/OAuth&prompt=consent
+			return Task.FromResult(request);
 		}
 	}
 }

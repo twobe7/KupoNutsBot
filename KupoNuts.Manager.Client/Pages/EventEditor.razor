@@ -1,7 +1,9 @@
 ﻿@using KupoNuts.Events;
 @using KupoNuts.Utils;
+
 @inject HttpClient Http
 @inject IModalService Modal
+@inject NavigationManager NavigationManager
 
 <div class="form-row">
 	<!-- Name -->
@@ -194,12 +196,14 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		Authentication.Initialize(this.Http, this.NavigationManager);
+
 		await base.OnInitializedAsync();
 
 		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
 
 		this.NotifyList = new Dictionary<string, double>()
-		{
+	{
 			{ "Never", -1 },
 			{ "Immediatelly", 0},
 			{ "One Hour", 1 },
@@ -207,7 +211,7 @@
 		};
 
 		this.ChannelList = new List<Channel>()
-		{
+	{
 			new Channel(0, "None", KupoNuts.Channel.Types.Unknown),
 		};
 

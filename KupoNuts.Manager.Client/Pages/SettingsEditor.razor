@@ -2,6 +2,7 @@
 @using KupoNuts.Utils;
 @inject HttpClient Http
 @inject IModalService Modal
+@inject NavigationManager NavigationManager
 
 <div class="form-row">
 	<!-- Name -->
@@ -80,7 +81,7 @@
 </div>
 
 
-@code 
+@code
 {
 	public List<Channel> ChannelList { get; set; }
 
@@ -95,10 +96,12 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		Authentication.Initialize(this.Http, this.NavigationManager);
+
 		await base.OnInitializedAsync();
 
 		this.ChannelList = new List<Channel>()
-		{
+	{
 			new Channel(0, "None", KupoNuts.Channel.Types.Unknown),
 		};
 

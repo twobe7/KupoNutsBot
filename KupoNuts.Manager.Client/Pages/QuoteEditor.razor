@@ -3,8 +3,10 @@
 @using System.Text;
 @using NodaTime;
 @using System.Globalization;
+
 @inject HttpClient Http
 @inject IModalService Modal
+@inject NavigationManager NavigationManager
 
 <div class="form-row">
 	<!-- Name -->
@@ -43,6 +45,8 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		Authentication.Initialize(this.Http, this.NavigationManager);
+
 		await base.OnInitializedAsync();
 
 		this.quote = Parameters.Get<Quote>("Quote");
