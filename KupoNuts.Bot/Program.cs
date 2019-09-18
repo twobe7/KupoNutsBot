@@ -147,28 +147,6 @@ namespace KupoNuts.Bot
 					while (!ready)
 						await Task.Yield();
 
-					// Write channels to the database
-					Database<Channel> channelsDb = new Database<Channel>("Channels", 1);
-					await channelsDb.Connect();
-					foreach (SocketGuild guild in DiscordClient.Guilds)
-					{
-						foreach (SocketGuildChannel channel in guild.Channels)
-						{
-							Channel.Types type = Channel.Types.Unknown;
-							if (channel is SocketTextChannel)
-								type = Channel.Types.Text;
-
-							if (channel is SocketVoiceChannel)
-								type = Channel.Types.Voice;
-
-							Channel record = await channelsDb.CreateEntry(guild.Id + "_" + channel.Id);
-							record.DiscordId = channel.Id.ToString();
-							record.Name = channel.Name;
-							record.Type = type;
-							await channelsDb.Save(record);
-						}
-					}
-
 					// boot the rest of the bot
 					await this.AddServices();
 

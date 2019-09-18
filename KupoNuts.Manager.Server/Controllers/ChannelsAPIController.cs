@@ -4,6 +4,7 @@ namespace KupoNuts.Manager.Server.Controllers
 {
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using Discord.WebSocket;
 	using Microsoft.AspNetCore.Mvc;
 
 	[ApiController]
@@ -11,16 +12,32 @@ namespace KupoNuts.Manager.Server.Controllers
 	public class ChannelsAPIController : ControllerBase
 	{
 		[HttpGet]
-		public async Task<List<Channel>> GetAsync()
+		public List<Channel> Get()
 		{
 			if (!Authentication.IsAuthenticated(this.Request))
 				return null;
 
-			Database<Channel> channelDb = new Database<Channel>("Channels", 1);
-			await channelDb.Connect();
-			List<Channel> channels = await channelDb.LoadAll();
+			List<Channel> results = new List<Channel>();
+			foreach (SocketGuild guild in DiscordAPI.Client.Guilds)
+			{
+				foreach (SocketGuildChannel channel in guild.Channels)
+				{
+					Channel.Types type = Channel.Types.Unknown;
+					if (channel is SocketTextChannel)
+						type = Channel.Types.Text;
 
-			return channels;
+					if (channel is SocketVoiceChannel)
+						type = Channel.Types.Voice;
+
+					Channel record = new Channel();
+					record.DiscordId = channel.Id.ToString();
+					record.Name = channel.Name;
+					record.Type = type;
+					results.Add(record);
+				}
+			}
+
+			return results;
 		}
 	}
 }

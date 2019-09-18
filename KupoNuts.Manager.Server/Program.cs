@@ -3,7 +3,6 @@
 namespace KupoNuts.Manager.Server
 {
 	using System.Threading.Tasks;
-	using KupoNuts.Bot;
 	using Microsoft.AspNetCore;
 	using Microsoft.AspNetCore.Hosting;
 	using Microsoft.Extensions.Configuration;
@@ -18,11 +17,12 @@ namespace KupoNuts.Manager.Server
 			host.Run();
 		}
 
-		public static Task Run(string[] args)
+		public static async Task Run(string[] args)
 		{
 			host = BuildWebHost(args);
 			Authentication.GenerateSecret();
-			return host.RunAsync();
+			await DiscordAPI.Start();
+			await host.RunAsync();
 		}
 
 		public static IWebHost BuildWebHost(string[] args)
@@ -36,9 +36,10 @@ namespace KupoNuts.Manager.Server
 			return builder.Build();
 		}
 
-		public static Task Exit()
+		public static async Task Exit()
 		{
-			return host.StopAsync();
+			await host.StopAsync();
+			DiscordAPI.Dispose();
 		}
 	}
 }

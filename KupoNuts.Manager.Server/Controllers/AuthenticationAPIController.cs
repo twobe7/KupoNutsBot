@@ -6,6 +6,7 @@ namespace KupoNuts.Manager.Server.Controllers
 	using System.Collections.Generic;
 	using System.Net.Http;
 	using System.Threading.Tasks;
+	using Discord.WebSocket;
 	using Microsoft.AspNetCore.Http;
 	using Microsoft.AspNetCore.Mvc;
 	using Newtonsoft.Json;
@@ -14,15 +15,11 @@ namespace KupoNuts.Manager.Server.Controllers
 	[Route("[controller]")]
 	public class AuthenticationAPIController : ControllerBase
 	{
-		private Database<User> userDb = new Database<User>("Users", 0);
-
 		[HttpPost]
 		public async Task<AuthenticationRequest> Post(AuthenticationRequest request)
 		{
 			try
 			{
-				await this.userDb.Connect();
-
 				Settings settings = Settings.Load();
 
 				Dictionary<string, string> values = new Dictionary<string, string>
@@ -50,12 +47,14 @@ namespace KupoNuts.Manager.Server.Controllers
 				responseString = await response.Content.ReadAsStringAsync();
 				DiscordMeResponse discordMeResponse = JsonConvert.DeserializeObject<DiscordMeResponse>(responseString);
 
-				User user = await this.userDb.Load(discordMeResponse.id);
-				if (user == null || !user.IsAdmin)
-					throw new Exception("User is not an administrator");
+				if (!this.GetIsUserAdmin(discordMeResponse.id))
+				{
+					request.Message = "You must be an administrator to access this page.";
+					return request;
+				}
 
 				// Finally invoke the authentication back-end
-				request.Token = Authentication.Authenticate(user.Id);
+				request.Token = Authentication.Authenticate(discordMeResponse.id);
 			}
 			catch (Exception ex)
 			{
@@ -63,6 +62,27 @@ namespace KupoNuts.Manager.Server.Controllers
 			}
 
 			return request;
+		}
+
+		private bool GetIsUserAdmin(string userId)
+		{
+			foreach (SocketGuild guild in DiscordAPI.Client.Guilds)
+			{
+				SocketGuildUser guildUser = guild.GetUser(ulong.Parse(userId));
+
+				if (guildUser == null)
+					continue;
+
+				foreach (SocketRole role in guildUser.Roles)
+				{
+					if (role.Permissions.Administrator)
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 
 		[Serializable]

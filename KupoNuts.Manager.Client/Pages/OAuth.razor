@@ -1,6 +1,7 @@
 ﻿@page "/OAuth/"
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IModalService Modal
 
 @code
 {
@@ -15,8 +16,22 @@
 		request.DiscordCode = code;
 
 		AuthenticationRequest response = await this.Http.PostJsonAsync<AuthenticationRequest>("AuthenticationAPI", request);
-		Authentication.Token = response.Token;
 
-		NavigationManager.NavigateTo("/");
+
+		if (response.Token != null)
+		{
+			Authentication.Token = response.Token;
+			NavigationManager.NavigateTo("/");
+		}
+		else
+		{
+			ModalParameters parameters = new ModalParameters();
+			parameters.Add("Content", response.Message);
+			this.Modal.Show("Authentication Error", typeof(GenericModal), parameters);
+			this.Modal.OnClose += (ModalResult) =>
+			{
+				NavigationManager.NavigateTo("/");
+			};
+		}
 	}
 }

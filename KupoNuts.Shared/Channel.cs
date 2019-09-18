@@ -5,7 +5,7 @@ namespace KupoNuts
 	using System;
 
 	[Serializable]
-	public class Channel : EntryBase
+	public class Channel
 	{
 		public Channel()
 		{
