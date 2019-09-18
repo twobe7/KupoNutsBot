@@ -4,6 +4,7 @@ namespace KupoNuts.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
+	using System.IO;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
@@ -13,7 +14,8 @@ namespace KupoNuts.Bot.Services
 
 	public class LogService : ServiceBase
 	{
-		private Queue<string> logMessages = new Queue<string>();
+		private const string FileLocation = "Log.txt";
+		private bool lockFile = false;
 
 		public override Task Initialize()
 		{
@@ -25,17 +27,20 @@ namespace KupoNuts.Bot.Services
 			Program.DiscordClient.UserBanned += this.DiscordClient_UserBanned;
 			Program.DiscordClient.UserUnbanned += this.DiscordClient_UserUnbanned;
 
+			if (File.Exists(FileLocation))
+				File.Delete(FileLocation);
+
 			return base.Initialize();
 		}
 
-		public override Task Shutdown()
+		public override async Task Shutdown()
 		{
 			Program.DiscordClient.UserJoined -= this.DiscordClient_UserJoined;
 			Program.DiscordClient.UserLeft -= this.DiscordClient_UserLeft;
 			Program.DiscordClient.UserBanned -= this.DiscordClient_UserBanned;
 			Program.DiscordClient.UserUnbanned -= this.DiscordClient_UserUnbanned;
 
-			return base.Shutdown();
+			await base.Shutdown();
 		}
 
 		[Command("LogMe", Permissions.Administrators, "Test a user join log message.")]
@@ -47,16 +52,9 @@ namespace KupoNuts.Bot.Services
 		[Command("Log", Permissions.Administrators, "posts the bot log")]
 		public async Task PostLog(SocketMessage message)
 		{
-			StringBuilder text = new StringBuilder();
-
-			foreach (string msg in this.logMessages)
-				text.AppendLine(msg);
-
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = "Log" + " [" + DateTime.Now.ToString("HH:mm:ss") + "]";
-			builder.Description = text.ToString();
-
-			await message.Channel.SendMessageAsync(null, false, builder.Build());
+			this.lockFile = true;
+			await message.Channel.SendFileAsync(FileLocation);
+			this.lockFile = false;
 		}
 
 		private async Task DiscordClient_UserJoined(SocketGuildUser user)
@@ -116,11 +114,20 @@ namespace KupoNuts.Bot.Services
 
 		private void OnMessageLogged(string str)
 		{
-			this.logMessages.Enqueue(str);
-
-			while (this.logMessages.Count > 100)
+			// TODO: we should make this async so we can wait for the file to unlock...
+			if (this.lockFile)
 			{
-				this.logMessages.Dequeue();
+				Log.Write("Log file is locked.", "Log");
+				return;
+			}
+
+			try
+			{
+				File.AppendAllText(FileLocation, str + "\n");
+			}
+			catch (Exception)
+			{
+				Console.WriteLine("Unable to write log file");
 			}
 		}
 	}
