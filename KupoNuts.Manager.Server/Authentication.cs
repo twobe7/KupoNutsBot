@@ -47,12 +47,12 @@ namespace KupoNuts.Manager.Server
 #endif
 		}
 
-		public static string Authenticate(string discordCode)
+		public static string Authenticate(string discordId)
 		{
-			Log.Write("User Authenticated: " + discordCode, "Manager");
+			Log.Write("User Authenticated: " + discordId, "Manager");
 
 			Dictionary<string, string> claims = new Dictionary<string, string>();
-			claims.Add("DiscordCode", discordCode);
+			claims.Add("DiscordID", discordId);
 			claims.Add("IsAdmin", "true");
 			return GenerateToken(claims);
 		}

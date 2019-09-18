@@ -26,5 +26,11 @@ namespace KupoNuts.Manager.Client
 
 			return null;
 		}
+
+		public static string GetURL(this NavigationManager self)
+		{
+			Uri uri = new Uri(self.Uri);
+			return string.Format("{0}{1}{2}{3}", uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.AbsolutePath);
+		}
 	}
 }

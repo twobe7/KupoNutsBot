@@ -10,5 +10,7 @@ namespace KupoNuts
 		public string? DiscordCode { get; set; }
 
 		public string? Token { get; set; }
+
+		public string? URL { get; set; }
 	}
 }

@@ -11,6 +11,7 @@
 		string code = NavigationManager.GetQuerryParameter("code");
 
 		AuthenticationRequest request = new AuthenticationRequest();
+		request.URL = NavigationManager.GetURL();
 		request.DiscordCode = code;
 
 		AuthenticationRequest response = await this.Http.PostJsonAsync<AuthenticationRequest>("AuthenticationAPI", request);
