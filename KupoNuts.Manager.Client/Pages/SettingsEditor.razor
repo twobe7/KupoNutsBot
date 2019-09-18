@@ -5,14 +5,6 @@
 @inject NavigationManager NavigationManager
 
 <div class="form-row">
-	<!-- Name -->
-	<div class="form-group col-md-12">
-		<label for="eventName">Token</label>
-		<input type="text" class="form-control" name="eventName" placeholder="Enter discord bot token" @bind="this.Token" />
-	</div>
-</div>
-
-<div class="form-row">
 	<!--  Log Channel -->
 	<div class="form-group col-md-6">
 		<label for="channelSelect">Log Channel</label>
@@ -73,6 +65,28 @@
 	</div>
 </div>
 
+<div class="form-row">
+	<!-- Name -->
+	<div class="form-group col-md-12">
+		<label for="eventName">Discord Token</label>
+		<input type="text" class="form-control" name="eventName" placeholder="Enter discord bot token" @bind="this.Token" />
+	</div>
+</div>
+
+<div class="form-row">
+	<!--  Log Channel -->
+	<div class="form-group col-md-6">
+		<label for="channelSelect">Discord Key</label>
+		<input type="text" class="form-control" name="eventName" placeholder="Enter discord key" @bind="this.DiscordKey" />
+	</div>
+
+	<!--  Status Channel -->
+	<div class="form-group col-md-6">
+		<label for="channelSelect">discord Secret</label>
+		<input type="text" class="form-control" name="eventName" placeholder="Enter discord secret" @bind="this.DiscordSecret" />
+	</div>
+</div>
+
 
 <div class="modal-footer">
 	<div class="flex-fill" />
@@ -91,6 +105,8 @@
 	public string CalendarChannel;
 	public string UserLogChannel;
 	public string LodestoneChannel;
+	public string DiscordKey;
+	public string DiscordSecret;
 
 	private Settings settings;
 
@@ -101,13 +117,15 @@
 		await base.OnInitializedAsync();
 
 		this.ChannelList = new List<Channel>()
-	{
+{
 			new Channel(0, "None", KupoNuts.Channel.Types.Unknown),
 		};
 
 		this.settings = await this.Http.GetJsonAsync<Settings>("SettingsAPI");
 
 		this.Token = this.settings.Token;
+		this.DiscordKey = this.settings.DiscordKey;
+		this.DiscordSecret = this.settings.DiscordSecret;
 
 		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, KupoNuts.Channel.Types.Text));
 
@@ -115,11 +133,14 @@
 		this.StatusChannel = string.IsNullOrEmpty(this.settings.StatusChannel) ? "0" : this.settings.StatusChannel;
 		this.CalendarChannel = string.IsNullOrEmpty(this.settings.CalendarChannel) ? "0" : this.settings.CalendarChannel;
 		this.LodestoneChannel = string.IsNullOrEmpty(this.settings.LodestoneChannel) ? "0" : this.settings.LodestoneChannel;
+		this.UserLogChannel = string.IsNullOrEmpty(this.settings.UserLogChannel) ? "0" : this.settings.UserLogChannel;
 	}
 
 	private async void OnSave()
 	{
 		this.settings.Token = this.Token;
+		this.settings.DiscordKey = this.DiscordKey;
+		this.settings.DiscordSecret = this.DiscordSecret;
 		this.settings.LogChannel = this.LogChannel == "0" ? null : this.LogChannel;
 		this.settings.StatusChannel = this.StatusChannel == "0" ? null : this.StatusChannel;
 		this.settings.CalendarChannel = this.CalendarChannel == "0" ? null : this.CalendarChannel;

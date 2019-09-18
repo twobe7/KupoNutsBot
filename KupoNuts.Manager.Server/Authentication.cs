@@ -33,6 +33,9 @@ namespace KupoNuts.Manager.Server
 
 		public static bool IsAuthenticated(HttpRequest request)
 		{
+#if DEBUG
+			return true;
+#else
 			if (!request.Headers.TryGetValue("Token", out StringValues val))
 				return false;
 
@@ -41,6 +44,7 @@ namespace KupoNuts.Manager.Server
 
 			string token = val[0];
 			return VerifyToken(token, "IsAdmin", "true");
+#endif
 		}
 
 		public static string Authenticate(string discordCode)

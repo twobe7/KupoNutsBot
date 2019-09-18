@@ -14,7 +14,11 @@ namespace KupoNuts.Manager.Client
 		{
 			get
 			{
+#if DEBUG
+				return true;
+#else
 				return !string.IsNullOrEmpty(Token);
+#endif
 			}
 		}
 

@@ -29,6 +29,10 @@ namespace KupoNuts
 
 		public string? DBSecret { get; set; }
 
+		public string? DiscordKey { get; set; }
+
+		public string? DiscordSecret { get; set; }
+
 		public string? UserLogChannel { get; set; }
 
 		public string? LodestoneChannel { get; set; }
