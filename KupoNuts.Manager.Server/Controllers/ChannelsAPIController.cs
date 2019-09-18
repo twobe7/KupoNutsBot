@@ -13,6 +13,9 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpGet]
 		public async Task<List<Channel>> GetAsync()
 		{
+			if (!Authentication.IsAuthenticated(this.Request))
+				return null;
+
 			Database<Channel> channelDb = new Database<Channel>("Channels", 1);
 			await channelDb.Connect();
 			List<Channel> channels = await channelDb.LoadAll();

@@ -12,6 +12,9 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpGet]
 		public Settings Get()
 		{
+			if (!Authentication.IsAuthenticated(this.Request))
+				return null;
+
 			Settings settings = Settings.Load();
 			return settings;
 		}
@@ -19,6 +22,9 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpPost]
 		public void Post(Settings settings)
 		{
+			if (!Authentication.IsAuthenticated(this.Request))
+				return;
+
 			settings.Save();
 		}
 	}

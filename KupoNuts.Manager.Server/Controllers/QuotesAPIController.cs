@@ -14,6 +14,9 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpGet]
 		public async Task<IEnumerable<Quote>> Get()
 		{
+			if (!Authentication.IsAuthenticated(this.Request))
+				return null;
+
 			Database<Quote> quotesDb = new Database<Quote>("Quotes", Quote.Version);
 			await quotesDb.Connect();
 			List<Quote> events = await quotesDb.LoadAll();
@@ -23,6 +26,9 @@ namespace KupoNuts.Manager.Server.Controllers
 		[HttpPost]
 		public async Task Post(DataAction<Quote> action)
 		{
+			if (!Authentication.IsAuthenticated(this.Request))
+				return;
+
 			Database<Quote> quotesDb = new Database<Quote>("Quotes", Quote.Version);
 			await quotesDb.Connect();
 
