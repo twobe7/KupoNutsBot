@@ -40,7 +40,7 @@
 		urlBuilder.Append("&redirect_uri=");
 		urlBuilder.Append(NavigationManager.Uri);
 		urlBuilder.Append("OAuth");
-		urlBuilder.Append("&prompt=consent");
+		urlBuilder.Append("&prompt=none");
 
 		NavigationManager.NavigateTo(urlBuilder.ToString());
 	}
