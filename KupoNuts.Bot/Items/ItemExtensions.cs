@@ -3,6 +3,7 @@
 namespace KupoNuts.Bot.Items
 {
 	using System.Text;
+	using System.Text.RegularExpressions;
 	using Discord;
 	using XIVAPI;
 
@@ -26,7 +27,7 @@ namespace KupoNuts.Bot.Items
 				builder.AddField("Stats", self.GetMainStatsString());
 
 			if (!string.IsNullOrEmpty(self.Description))
-				desc.AppendLine(self.Description);
+				desc.AppendLine(Regex.Replace(self.Description, "<.*?>", string.Empty));
 
 			if (self.HasSecondaryStats())
 				builder.AddField("Bonuses", self.GetSecondaryStatsString());
