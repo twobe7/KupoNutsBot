@@ -39,7 +39,7 @@ namespace KupoNuts.Bot.Items
 
 			builder.Description = desc.ToString();
 			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = self.ID?.ToString();
+			builder.Footer.Text = "ID: " + self.ID;
 			builder.Url = "http://www.garlandtools.org/db/#item/" + self.ID?.ToString();
 			builder.Color = Color.Teal;
 
