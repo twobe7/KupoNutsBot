@@ -129,6 +129,7 @@ namespace KupoNuts.Bot.Commands
 
 		private async Task<object> Convert(SocketMessage message, string arg, Type type)
 		{
+			#pragma warning disable SA1121
 			if (type == typeof(string))
 			{
 				if (!arg.Contains("\""))
@@ -147,6 +148,10 @@ namespace KupoNuts.Bot.Commands
 			else if (type == typeof(uint))
 			{
 				return uint.Parse(arg);
+			}
+			else if (type == typeof(UInt64))
+			{
+				return UInt64.Parse(arg);
 			}
 			else if (type == typeof(bool))
 			{
@@ -212,6 +217,7 @@ namespace KupoNuts.Bot.Commands
 			}
 
 			throw new Exception("Unsupported parameter type: \"" + type + "\"");
+			#pragma warning restore
 		}
 	}
 }

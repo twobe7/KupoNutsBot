@@ -516,16 +516,80 @@ namespace XIVAPI
 			ZoneSharedGroup,
 		}
 
-		public static async Task<GetResponse> Get(ContentType contentType, ulong id)
+		public static async Task<Content> Get(ContentType contentType, ulong id)
 		{
 			string route = "/" + contentType + "/" + id;
 
-			return await Request.Send<GetResponse>(route);
+			return await Request.Send<Content>(route);
 		}
 
+		// Note: it seems like the responses actually come out differently depending on what content
+		// we search for. Consider splitting the responses into the categoreis.
 		[Serializable]
-		public class GetResponse
+		public class Content
 		{
+			public int? ID;
+			public string? Name;
+			public string? Description;
+			public string? Icon;
+			public string? Url;
+			public int? LevelEquip;
+			public int? LevelItem;
+			public bool? IsUnique;
+			public bool? IsUntradable;
+			public ItemCategory? ItemUICategory;
+			public Parameter? BaseParam0;
+			public int? BaseParamValue0;
+			public Parameter? BaseParam1;
+			public int? BaseParamValue1;
+			public Parameter? BaseParam2;
+			public int? BaseParamValue2;
+			public Parameter? BaseParam3;
+			public int? BaseParamValue3;
+			public Parameter? BaseParam4;
+			public int? BaseParamValue4;
+			public Parameter? BaseParam5;
+			public int? BaseParamValue5;
+			public ClassJob? ClassJobCategory;
+			public int DamageMag;
+			public int DamagePhys;
+			public int DefenseMag;
+			public int DefensePhys;
+			public int DelayMs;
+
+			public string? GetIcon()
+			{
+				if (string.IsNullOrEmpty(this.Icon))
+					return null;
+
+				return "https://xivapi.com/" + this.Icon;
+			}
+		}
+
+		public class ItemCategory
+		{
+			public int? Id;
+			public string? Icon;
+			public string? Name;
+
+			public string? GetIcon()
+			{
+				if (string.IsNullOrEmpty(this.Icon))
+					return null;
+
+				return "https://xivapi.com/" + this.Icon;
+			}
+		}
+
+		public class Parameter
+		{
+			public string? Description;
+			public string? Name;
+		}
+
+		public class ClassJob
+		{
+			public string? Name;
 		}
 	}
 }
