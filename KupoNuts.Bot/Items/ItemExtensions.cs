@@ -38,9 +38,14 @@ namespace KupoNuts.Bot.Items
 			if (self.HasMateria())
 				builder.AddField("Materia", self.GetMateriaString());
 
+			StringBuilder footerText = new StringBuilder();
+			footerText.Append("ID: ");
+			footerText.Append(self.ID?.ToString());
+			footerText.Append(" - XIVAPI.com - Universalis.app");
+
 			builder.Description = desc.ToString();
 			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = "ID: " + self.ID;
+			builder.Footer.Text = footerText.ToString();
 			builder.Url = "http://www.garlandtools.org/db/#item/" + self.ID?.ToString();
 			builder.Color = Color.Teal;
 
