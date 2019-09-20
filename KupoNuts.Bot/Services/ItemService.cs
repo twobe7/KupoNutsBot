@@ -12,6 +12,7 @@ namespace KupoNuts.Bot.Services
 
 	public class ItemService : ServiceBase
 	{
+		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
 		public async Task<Embed> GetItem(string search)
 		{
@@ -43,6 +44,7 @@ namespace KupoNuts.Bot.Services
 			return await this.GetItem((ulong)id);
 		}
 
+		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
 		public async Task<Embed> GetItem(ulong itemID)
 		{

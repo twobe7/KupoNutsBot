@@ -21,16 +21,19 @@ namespace KupoNuts.Bot.Commands
 
 		public static void BindCommands(object obj)
 		{
-			Dictionary<MethodInfo, CommandAttribute> commands = CommandAttribute.GetCommands(obj.GetType());
+			Dictionary<MethodInfo, List<CommandAttribute>> commands = CommandAttribute.GetCommands(obj.GetType());
 
-			foreach ((MethodInfo method, CommandAttribute attribute) in commands)
+			foreach ((MethodInfo method, List<CommandAttribute> attributes) in commands)
 			{
-				if (!commandHandlers.ContainsKey(attribute.Command))
-					commandHandlers.Add(attribute.Command, new List<Command>());
+				foreach (CommandAttribute attribute in attributes)
+				{
+					if (!commandHandlers.ContainsKey(attribute.Command))
+						commandHandlers.Add(attribute.Command, new List<Command>());
 
-				Command cmd = new Command(method, obj, attribute.Permissions, attribute.Help);
-				commandHandlers[attribute.Command].Add(cmd);
-				Log.Write("Registered command: \"" + attribute.Command + "\"", "Bot");
+					Command cmd = new Command(method, obj, attribute.Permissions, attribute.Help);
+					commandHandlers[attribute.Command].Add(cmd);
+					Log.Write("Registered command: \"" + attribute.Command + "\"", "Bot");
+				}
 			}
 		}
 
