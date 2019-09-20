@@ -183,7 +183,7 @@ namespace KupoNuts.Bot.Services
 			builder.ThumbnailUrl = content.GetIcon();
 
 			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = content.ID?.ToString();
+			builder.Footer.Text = "ID: " + content.ID;
 
 			return builder.Build();
 		}
