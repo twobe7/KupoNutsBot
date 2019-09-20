@@ -17,16 +17,13 @@ namespace KupoNuts.Bot.Services
 		{
 			List<SearchAPI.Result> results = await SearchAPI.Search(search, ContentAPI.ContentType.Item);
 
-			if (results.Count > 10)
-				throw new UserException("I found too many items that match that search!");
-
 			EmbedBuilder embed = new EmbedBuilder();
 			if (results.Count > 1)
 			{
 				StringBuilder description = new StringBuilder();
-				foreach (SearchAPI.Result result in results)
+				for (int i = 0; i < Math.Min(results.Count, 10); i++)
 				{
-					description.AppendLine(result.ID + " - " + result.Name);
+					description.AppendLine(results[i].ID + " - " + results[i].Name);
 				}
 
 				embed.Title = results.Count + " results found";
