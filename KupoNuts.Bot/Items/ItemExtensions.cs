@@ -27,7 +27,7 @@ namespace KupoNuts.Bot.Items
 				builder.AddField("Stats", self.GetMainStatsString());
 
 			if (!string.IsNullOrEmpty(self.Description))
-				desc.AppendLine(Regex.Replace(self.Description, "<.*?>", string.Empty));
+				desc.AppendLine(self.GetDescription());
 
 			if (self.HasSecondaryStats())
 				builder.AddField("Bonuses", self.GetSecondaryStatsString());
@@ -45,6 +45,20 @@ namespace KupoNuts.Bot.Items
 			builder.Color = Color.Teal;
 
 			return builder;
+		}
+
+		public static string GetDescription(this ItemAPI.Item self)
+		{
+			if (self.Description == null)
+				return string.Empty;
+
+			string desc = self.Description;
+			desc = Regex.Replace(self.Description, "<.*?>", string.Empty);
+
+			while (desc.Contains("\n\n\n"))
+				desc = desc.Replace("\n\n\n", "\n\n");
+
+			return desc;
 		}
 
 		public static string GetIconInfoString(this ItemAPI.Item self)
