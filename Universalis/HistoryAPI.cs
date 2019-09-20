@@ -13,25 +13,40 @@ namespace Universalis
 			return await Request.Send<GetResponse>("/history/" + dataCenter + "/" + itemId);
 		}
 
-		public static async Task<Entry?> GetBestPrice(string dataCenter, ulong itemId)
+		public static async Task<(Entry?, Entry?)> GetBestPrice(string dataCenter, ulong itemId)
 		{
 			GetResponse response = await Get(dataCenter, itemId);
 
-			ulong? bestPrice = ulong.MaxValue;
-			Entry? best = null;
+			ulong? bestHqPrice = ulong.MaxValue;
+			Entry? bestHq = null;
+
+			ulong? bestNmPrice = ulong.MaxValue;
+			Entry? bestNm = null;
+
 			foreach (Entry entry in response.entries)
 			{
 				if (entry.pricePerUnit == null)
 					continue;
 
-				if (entry.pricePerUnit < bestPrice)
+				if (entry.hq == true)
 				{
-					best = entry;
-					bestPrice = entry.pricePerUnit;
+					if (entry.pricePerUnit < bestHqPrice)
+					{
+						bestHq = entry;
+						bestHqPrice = entry.pricePerUnit;
+					}
+				}
+				else
+				{
+					if (entry.pricePerUnit < bestNmPrice)
+					{
+						bestNm = entry;
+						bestNmPrice = entry.pricePerUnit;
+					}
 				}
 			}
 
-			return best;
+			return (bestHq, bestNm);
 		}
 
 		#pragma warning disable SA1307

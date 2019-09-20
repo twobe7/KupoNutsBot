@@ -3,26 +3,27 @@
 namespace KupoNuts.Bot.Items
 {
 	using System.Text;
-	using Discord;
 	using Universalis;
 
 	public static class HistoryEntryExtensions
 	{
-		public static void ToEmbed(this HistoryAPI.Entry self, EmbedBuilder embed)
+		public static string ToStringEx(this HistoryAPI.Entry self)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append(ItemService.GilEmote);
+			if (self.hq == true)
+			{
+				builder.Append(ItemService.HighQualityEmote);
+			}
+			else
+			{
+				builder.Append(ItemService.NormalQualityEmote);
+			}
+
 			builder.Append(self.pricePerUnit?.ToString("N0"));
 			builder.Append("g - ");
 			builder.Append(self.worldName);
 
-			if (self.hq == true)
-			{
-				builder.Append("  ");
-				builder.Append(ItemService.HighQualityEmote);
-			}
-
-			embed.AddField("Best Marketboard Price", builder.ToString());
+			return builder.ToString();
 		}
 	}
 }

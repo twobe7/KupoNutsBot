@@ -25,6 +25,7 @@ namespace KupoNuts.Bot.Items
 		public static string AdvancedMeldingForbiddenEmote = "<:AdvancedMeldingForbidden:624534020906156032> ";
 		public static string GilEmote = "<:Gil:624582640493789184> ";
 		public static string HighQualityEmote = "<:hq:624587323887190025> ";
+		public static string NormalQualityEmote = "<:nq:624606645124857867> ";
 
 		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
@@ -68,10 +69,18 @@ namespace KupoNuts.Bot.Items
 
 			if (item.IsUntradable != true)
 			{
-				HistoryAPI.Entry? entry = await HistoryAPI.GetBestPrice("Elemental", itemId);
-				if (entry != null)
+				(HistoryAPI.Entry? hq, HistoryAPI.Entry? nm) = await HistoryAPI.GetBestPrice("Elemental", itemId);
+
+				if (hq != null | nm != null)
 				{
-					entry.ToEmbed(embed);
+					StringBuilder builder = new StringBuilder();
+					if (hq != null)
+						builder.AppendLine(hq.ToStringEx());
+
+					if (nm != null)
+						builder.AppendLine(nm.ToStringEx());
+
+					embed.AddField("Best Marketboard Prices", builder.ToString());
 				}
 			}
 
