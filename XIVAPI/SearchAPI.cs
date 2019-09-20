@@ -43,7 +43,7 @@ namespace XIVAPI
 		}
 
 		[Serializable]
-		public class SearchResponse
+		public class SearchResponse : ResponseBase
 		{
 			public Pagination? Pagination;
 			public List<Result>? Results;

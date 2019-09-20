@@ -3,6 +3,7 @@
 namespace XIVAPI
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Threading.Tasks;
 
 	public static class ItemAPI
@@ -15,17 +16,22 @@ namespace XIVAPI
 		}
 
 		[Serializable]
-		public class Item
+		public class Item : ResponseBase
 		{
 			public int? ID;
 			public string? Name;
 			public string? Description;
 			public string? Icon;
 			public string? Url;
+			public bool? AetherialReduce;
+			public int? MaterializeType;
 			public int? LevelEquip;
 			public int? LevelItem;
 			public bool? IsUnique;
 			public bool? IsUntradable;
+			public bool? IsDyeable;
+			public bool? IsGlamourous;
+			public object? GameContentLinks;
 			public ItemCategory? ItemUICategory;
 			public Parameter? BaseParam0;
 			public int? BaseParamValue0;
@@ -60,6 +66,7 @@ namespace XIVAPI
 			public int DelayMs;
 			public int? MateriaSlotCount;
 			public bool? IsAdvancedMeldingPermitted;
+			public SalvageInfo? Salvage;
 		}
 
 		public class ItemCategory
@@ -83,6 +90,12 @@ namespace XIVAPI
 		public class ItemSpecial
 		{
 			public string? Name;
+		}
+
+		public class SalvageInfo
+		{
+			public int? ID;
+			public int? OptimalSkill;
 		}
 	}
 }

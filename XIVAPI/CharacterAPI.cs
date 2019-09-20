@@ -66,14 +66,14 @@ namespace XIVAPI
 		}
 
 		[Serializable]
-		public class SearchResponse
+		public class SearchResponse : ResponseBase
 		{
 			public Pagination? Pagination;
 			public List<Member>? Results;
 		}
 
 		[Serializable]
-		public class GetResponse
+		public class GetResponse : ResponseBase
 		{
 			////public ? Achievements;
 			public bool? AchievementsPublic;

@@ -8,11 +8,6 @@ namespace KupoNuts.Bot.Items
 
 	public static class ItemExtensions
 	{
-		public static bool IsUniqueOrUntradable(this ItemAPI.Item self)
-		{
-			return self.IsUnique == true || self.IsUntradable == true;
-		}
-
 		public static Embed ToEmbed(this ItemAPI.Item self)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
@@ -22,10 +17,10 @@ namespace KupoNuts.Bot.Items
 			StringBuilder desc = new StringBuilder();
 
 			desc.Append(self.GetLevelCategoryString());
+			desc.Append(Utils.Characters.DoubleTab);
+			desc.Append(self.GetIconInfoString());
+			desc.AppendLine();
 			desc.Append(self.GetLevelClassString());
-
-			if (self.IsUniqueOrUntradable())
-				desc.AppendLine(self.GetUniqueUntradableString());
 
 			if (self.HasMainStats())
 				builder.AddField("Stats", self.GetMainStatsString());
@@ -45,30 +40,40 @@ namespace KupoNuts.Bot.Items
 			builder.Description = desc.ToString();
 			builder.Footer = new EmbedFooterBuilder();
 			builder.Footer.Text = self.ID?.ToString();
-
 			builder.Url = "http://www.garlandtools.org/db/#item/" + self.ID?.ToString();
+			builder.Color = Color.Teal;
 
 			return builder.Build();
 		}
 
-		public static string GetUniqueUntradableString(this ItemAPI.Item self)
+		public static string GetIconInfoString(this ItemAPI.Item self)
 		{
 			StringBuilder builder = new StringBuilder();
-			if (self.IsUnique == true || self.IsUntradable == true)
-			{
-				builder.Append("*");
 
-				if (self.IsUnique == true)
-					builder.Append("Unique");
+			if (self.AetherialReduce == true || self.MaterializeType != 0)
+				builder.Append(ItemService.ConvertToMateriaEmote);
 
-				if (self.IsUnique == true && self.IsUntradable == true)
-					builder.Append(Utils.Characters.Tab);
+			if (self.IsDyeable == true)
+				builder.Append(ItemService.DyeEmote);
 
-				if (self.IsUntradable == true)
-					builder.Append("Untradable");
+			if (self.Salvage != null)
+				builder.Append(ItemService.SalvageEmote);
 
-				builder.Append("*");
-			}
+			if (self.IsGlamourous == true)
+				builder.Append(ItemService.GlamourDresserEmote);
+
+			// such a hack. D=
+			if (self.Json != null && self.Json.Contains("{\"Cabinet\":{\"Item\":"))
+				builder.Append(ItemService.ArmoireEmote);
+
+			if (self.IsUntradable == true)
+				builder.Append(ItemService.UntradableEmote);
+
+			if (self.IsUnique == true)
+				builder.Append(ItemService.UniqueEmote);
+
+			if (self.HasMateria() && self.IsAdvancedMeldingPermitted != true)
+				builder.Append(ItemService.AdvancedMeldingForbiddenEmote);
 
 			return builder.ToString();
 		}
@@ -80,13 +85,13 @@ namespace KupoNuts.Bot.Items
 			{
 				builder.Append("Lv. ");
 				builder.Append(self.LevelEquip);
-				builder.Append(" ");
-				builder.AppendLine(self.ItemUICategory?.Name);
+				builder.Append(" - ");
+				builder.Append(self.ItemUICategory?.Name);
 			}
 			else
 			{
 				builder.Append("Lv. ");
-				builder.AppendLine(self.LevelEquip?.ToString());
+				builder.Append(self.LevelEquip?.ToString());
 			}
 
 			return builder.ToString();
@@ -94,13 +99,20 @@ namespace KupoNuts.Bot.Items
 
 		public static string GetLevelClassString(this ItemAPI.Item self)
 		{
+			if (self.LevelItem == 1)
+				return string.Empty;
+
 			StringBuilder builder = new StringBuilder();
+			builder.Append("iLv. ");
+			builder.Append(self.LevelItem?.ToString());
 
 			if (self.ClassJobCategory != null)
-				builder.AppendLine(self.ClassJobCategory.Name);
+			{
+				builder.Append(" - ");
+				builder.Append(self.ClassJobCategory.Name);
+			}
 
-			builder.Append("iLv. ");
-			builder.AppendLine(self.LevelItem?.ToString());
+			builder.AppendLine();
 
 			return builder.ToString();
 		}
@@ -293,7 +305,7 @@ namespace KupoNuts.Bot.Items
 
 		public static bool HasMateria(this ItemAPI.Item self)
 		{
-			return (self.MateriaSlotCount != null && self.MateriaSlotCount > 0) || self.IsAdvancedMeldingPermitted != null;
+			return self.MateriaSlotCount != null && self.MateriaSlotCount > 0;
 		}
 
 		public static string GetMateriaString(this ItemAPI.Item self)
@@ -304,9 +316,6 @@ namespace KupoNuts.Bot.Items
 				builder.Append("◯ ");
 
 			builder.AppendLine();
-
-			if (self.IsAdvancedMeldingPermitted == false)
-				builder.AppendLine("Advanced Melding Forbidden");
 
 			return builder.ToString();
 		}

@@ -13,6 +13,16 @@ namespace KupoNuts.Bot.Items
 
 	public class ItemService : ServiceBase
 	{
+		public static string DyeEmote = "<:Dye:624532865404633088> ";
+		public static string SalvageEmote = "<:Desynth:624533057634041876> ";
+		public static string ConvertToMateriaEmote = "<:ConvertToMateria:624532395261165569> ";
+		public static string UntradableEmote = "<:Untradable:624532956710699008> ";
+		public static string UniqueEmote = "<:Unique:624532714506158091> ";
+		public static string ArmoireEmote = "<:Armoire:624513915765784584> ";
+		public static string GlamourDresserEmote = "<:GlamourDresser:624513915719778305> ";
+		public static string CrestEmote = "<:CompanyCrests:624513915325382678> ";
+		public static string AdvancedMeldingForbiddenEmote = "<:AdvancedMeldingForbidden:624534020906156032> ";
+
 		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
 		public async Task<Embed> GetItem(string search)

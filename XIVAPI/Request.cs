@@ -14,6 +14,7 @@ namespace XIVAPI
 		private static string key = "4de52eac0f664097957216b24446e29b58219f2d348b482e94f6b53db1fa81d5";
 
 		internal static async Task<T> Send<T>(string route)
+			where T : ResponseBase
 		{
 			if (!route.StartsWith('/'))
 				route = '/' + route;
@@ -34,7 +35,9 @@ namespace XIVAPI
 
 				Log.Write("Response: " + json.Length + " characters", "XIVAPI");
 
-				return JsonConvert.DeserializeObject<T>(json);
+				T result = JsonConvert.DeserializeObject<T>(json);
+				result.Json = json;
+				return result;
 			}
 			catch (Exception ex)
 			{
