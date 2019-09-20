@@ -66,9 +66,14 @@ namespace KupoNuts.Bot.Items
 
 			EmbedBuilder embed = item.ToEmbed();
 
-			HistoryAPI.Entry? entry = await HistoryAPI.GetBestPrice("Elemental", itemId);
-			if (entry != null)
-				entry.ToEmbed(embed);
+			if (item.IsUntradable != true)
+			{
+				HistoryAPI.Entry? entry = await HistoryAPI.GetBestPrice("Elemental", itemId);
+				if (entry != null)
+				{
+					entry.ToEmbed(embed);
+				}
+			}
 
 			return embed.Build();
 		}
