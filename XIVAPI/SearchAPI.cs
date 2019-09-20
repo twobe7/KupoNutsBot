@@ -20,18 +20,19 @@ namespace XIVAPI
 			return response.Results;
 		}
 
-		public static async Task<List<Result>> Search(string name, ContentAPI.ContentType type)
+		public static async Task<List<Result>> Search(string name, string type)
 		{
 			List<Result> results = new List<Result>();
 
 			string route = "/search?string=" + name;
+
 			SearchResponse response = await Request.Send<SearchResponse>(route);
 
 			if (response.Results != null)
 			{
 				foreach (Result result in response.Results)
 				{
-					if (result.UrlType != type.ToString())
+					if (result.UrlType != type)
 						continue;
 
 					results.Add(result);

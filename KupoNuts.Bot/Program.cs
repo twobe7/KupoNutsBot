@@ -11,6 +11,7 @@ namespace KupoNuts.Bot
 	using KupoNuts.Bot.Characters;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Events;
+	using KupoNuts.Bot.Items;
 	using KupoNuts.Bot.Lodestone;
 	using KupoNuts.Bot.Polls;
 	using KupoNuts.Bot.Quotes;
