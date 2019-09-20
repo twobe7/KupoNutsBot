@@ -27,7 +27,7 @@ namespace Universalis
 				StreamReader reader = new StreamReader(response.GetResponseStream());
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Lodestone");
+				Log.Write("Response: " + json.Length + " characters", "Universalis");
 
 				return JsonConvert.DeserializeObject<T>(json);
 			}
