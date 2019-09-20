@@ -8,7 +8,7 @@ namespace KupoNuts.Bot.Items
 
 	public static class ItemExtensions
 	{
-		public static Embed ToEmbed(this ItemAPI.Item self)
+		public static EmbedBuilder ToEmbed(this ItemAPI.Item self)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Title = self.Name;
@@ -43,7 +43,7 @@ namespace KupoNuts.Bot.Items
 			builder.Url = "http://www.garlandtools.org/db/#item/" + self.ID?.ToString();
 			builder.Color = Color.Teal;
 
-			return builder.Build();
+			return builder;
 		}
 
 		public static string GetIconInfoString(this ItemAPI.Item self)

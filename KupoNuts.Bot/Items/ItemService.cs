@@ -9,6 +9,7 @@ namespace KupoNuts.Bot.Items
 	using Discord;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
+	using Universalis;
 	using XIVAPI;
 
 	public class ItemService : ServiceBase
@@ -22,6 +23,8 @@ namespace KupoNuts.Bot.Items
 		public static string GlamourDresserEmote = "<:GlamourDresser:624513915719778305> ";
 		public static string CrestEmote = "<:CompanyCrests:624513915325382678> ";
 		public static string AdvancedMeldingForbiddenEmote = "<:AdvancedMeldingForbidden:624534020906156032> ";
+		public static string GilEmote = "<:Gil:624582640493789184> ";
+		public static string HighQualityEmote = "<:hq:624587323887190025> ";
 
 		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
@@ -57,10 +60,17 @@ namespace KupoNuts.Bot.Items
 
 		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
-		public async Task<Embed> GetItem(ulong itemID)
+		public async Task<Embed> GetItem(ulong itemId)
 		{
-			ItemAPI.Item item = await ItemAPI.Get(itemID);
-			return item.ToEmbed();
+			ItemAPI.Item item = await ItemAPI.Get(itemId);
+
+			EmbedBuilder embed = item.ToEmbed();
+
+			HistoryAPI.Entry? entry = await HistoryAPI.GetBestPrice("Elemental", itemId);
+			if (entry != null)
+				entry.ToEmbed(embed);
+
+			return embed.Build();
 		}
 	}
 }

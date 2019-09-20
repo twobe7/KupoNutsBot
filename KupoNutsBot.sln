@@ -18,7 +18,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KupoNuts.Boot", "KupoNuts.B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XIVAPI", "XIVAPI\XIVAPI.csproj", "{4A44B667-D157-4CA4-BC2C-492AC3D7C03A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lodestone", "Lodestone\Lodestone.csproj", "{6C573D2E-0849-4B1F-900D-E7E8564A058B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lodestone", "Lodestone\Lodestone.csproj", "{6C573D2E-0849-4B1F-900D-E7E8564A058B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Universalis", "Universalis\Universalis.csproj", "{611EE2AB-5FE5-4427-A7D5-FF885E6BB24F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +56,10 @@ Global
 		{6C573D2E-0849-4B1F-900D-E7E8564A058B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C573D2E-0849-4B1F-900D-E7E8564A058B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C573D2E-0849-4B1F-900D-E7E8564A058B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{611EE2AB-5FE5-4427-A7D5-FF885E6BB24F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{611EE2AB-5FE5-4427-A7D5-FF885E6BB24F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{611EE2AB-5FE5-4427-A7D5-FF885E6BB24F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{611EE2AB-5FE5-4427-A7D5-FF885E6BB24F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

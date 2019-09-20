@@ -4,7 +4,7 @@
 		<OutputType>Library</OutputType>
 		<TargetFramework>netcoreapp3.0</TargetFramework>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<DocumentationFile>..\bin\KupoNuts.Bot.xml</DocumentationFile>
+		<DocumentationFile>..\bin\Universalis.xml</DocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
 		<NoWarn>1701;1702;SA1503;CS1591;SA1401;</NoWarn>
@@ -12,12 +12,6 @@
 		<ApplicationIcon />
 		<StartupObject />
 		<Nullable>enable</Nullable>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -29,8 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Discord.Net" Version="2.1.1" />
-		<PackageReference Include="NodaTime" Version="2.4.6" />
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -39,15 +32,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\KupoNuts.Shared\KupoNuts.Shared.csproj" />
-		<ProjectReference Include="..\Lodestone\Lodestone.csproj" />
-		<ProjectReference Include="..\Universalis\Universalis.csproj" />
-		<ProjectReference Include="..\XIVAPI\XIVAPI.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Update="Libs\opus.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 </Project>
