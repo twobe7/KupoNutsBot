@@ -25,7 +25,7 @@ namespace KupoNuts.Bot.Characters
 
 			titleBuilder.Append(self.Name);
 
-			if (self.Title != null && !self.TitleTop)
+			if (self.Title != null && !self.TitleTop && !string.IsNullOrEmpty(self.Title.Name))
 			{
 				titleBuilder.Append(" - ");
 				titleBuilder.Append(self.Title.Name);
@@ -45,7 +45,8 @@ namespace KupoNuts.Bot.Characters
 
 			builder.Description = descriptionBuilder.ToString();
 
-			builder.AddField("Bio", self.Bio, true);
+			if (self.HasBio())
+				builder.AddField("Bio", self.Bio, true);
 
 			if (self.ClassJobs != null)
 			{
@@ -95,6 +96,17 @@ namespace KupoNuts.Bot.Characters
 			}
 
 			return builder.Build();
+		}
+
+		public static bool HasBio(this CharacterAPI.Character self)
+		{
+			if (string.IsNullOrEmpty(self.Bio))
+				return false;
+
+			if (self.Bio == "-")
+				return false;
+
+			return true;
 		}
 
 		public static string GetJobString(this CharacterAPI.Character self, Jobs id)
