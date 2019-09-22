@@ -13,6 +13,11 @@ namespace Twitter
 		{
 			Settings settings = Settings.Load();
 
+			List<FashionReportEntry> results = new List<FashionReportEntry>();
+
+			if (settings.TwitterConsumerKey == null || settings.TwitterConsumerSecret == null || settings.TwitterToken == null || settings.TwitterTokenSecret == null)
+				return Task.FromResult(results);
+
 			TwitterService service = new TwitterService(settings.TwitterConsumerKey, settings.TwitterConsumerSecret);
 			service.AuthenticateWith(settings.TwitterToken, settings.TwitterTokenSecret);
 
@@ -22,7 +27,6 @@ namespace Twitter
 			op.ExcludeReplies = true;
 			IEnumerable<TwitterStatus> statuses = service.ListTweetsOnUserTimeline(op);
 
-			List<FashionReportEntry> results = new List<FashionReportEntry>();
 			foreach (TwitterStatus status in statuses)
 			{
 				if (!status.Text.Contains("Fashion Report Week"))
