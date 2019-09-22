@@ -23,7 +23,7 @@ namespace KupoNuts.Bot.Quotes
 			EmbedBuilder builder = new EmbedBuilder();
 
 			builder.Author = new EmbedAuthorBuilder();
-			builder.Author.Name = user.Nickname;
+			builder.Author.Name = user.GetName();
 			builder.Author.IconUrl = user.GetAvatarUrl();
 			builder.Description = self.Content;
 			builder.Timestamp = self.GetDateTime().ToDateTimeOffset();
