@@ -85,6 +85,7 @@ namespace KupoNuts.Bot
 				await this.AddService<QuoteService>();
 				await this.AddService<ModerationService>();
 				await this.AddService<ItemService>();
+				await this.AddService<FashionReportService>();
 			}
 			catch (Exception ex)
 			{

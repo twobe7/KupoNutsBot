@@ -25,6 +25,8 @@ namespace KupoNuts
 
 		public string? CalendarMessage2 { get; set; }
 
+		public string? FashionReportChannel { get; set; }
+
 		public string? DBKey { get; set; }
 
 		public string? DBSecret { get; set; }
@@ -32,6 +34,14 @@ namespace KupoNuts
 		public string? DiscordKey { get; set; }
 
 		public string? DiscordSecret { get; set; }
+
+		public string? TwitterConsumerKey { get; set; }
+
+		public string? TwitterConsumerSecret { get; set; }
+
+		public string? TwitterToken { get; set; }
+
+		public string? TwitterTokenSecret { get; set; }
 
 		public string? UserLogChannel { get; set; }
 

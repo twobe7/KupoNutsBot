@@ -31,7 +31,7 @@ namespace KupoNuts.Manager.Server.Controllers
 
 					Channel record = new Channel();
 					record.DiscordId = channel.Id.ToString();
-					record.Name = channel.Name;
+					record.Name = guild.Name + " - " + channel.Name;
 					record.Type = type;
 					results.Add(record);
 				}
