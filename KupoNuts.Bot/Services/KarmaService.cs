@@ -13,7 +13,7 @@ namespace KupoNuts.Bot.Services
 
 	public class KarmaService : ServiceBase
 	{
-		private const double KarmaGenerationChance = 0.1;
+		private const double KarmaGenerationChance = 0.05;
 
 		private static IEmote karmaEmote = Emote.Parse("<:karma:623475895138779138>");
 
@@ -33,24 +33,6 @@ namespace KupoNuts.Bot.Services
 			Program.DiscordClient.ReactionAdded -= this.OnReactionAdded;
 			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
 			return base.Shutdown();
-		}
-
-		[Command("GoodBot", Permissions.Everyone, "Gives karma to the bot")]
-		public async Task GoodBot(SocketMessage message)
-		{
-			IGuildUser fromUser = message.GetAuthor();
-			IGuildUser toUser = await Program.GetBotUserForGuild(message.GetGuild());
-
-			(Karma fromKarma, Karma toKarma) = await this.SendKarma(fromUser, toUser);
-
-			StringBuilder messageBuilder = new StringBuilder();
-			messageBuilder.Append("Thanks!");
-
-			EmbedBuilder embedBuilder = new EmbedBuilder();
-			embedBuilder.AddField(fromUser.GetName(), fromKarma.Count);
-			embedBuilder.AddField(toUser.GetName(), toKarma.Count);
-
-			await message.Channel.SendMessageAsync(messageBuilder.ToString(), false, embedBuilder.Build());
 		}
 
 		[Command("GiveKarma", Permissions.Everyone, "Gives karma to the specified user")]
@@ -134,6 +116,9 @@ namespace KupoNuts.Bot.Services
 			if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
 				return;
 
+			if (message.Author.IsBot)
+				return;
+
 			IMessage iMessage = await message.Channel.GetMessageAsync(message.Id);
 
 			if (iMessage is RestUserMessage restMessage)
@@ -190,6 +175,9 @@ namespace KupoNuts.Bot.Services
 
 			if (fromKarma.Count <= 0)
 				throw new UserException("You dont have any more karma to give!");
+
+			if (toUser.IsBot)
+				throw new UserException("You cant send karma to a bot!");
 
 			Karma toKarma = await this.karmaDatabase.LoadOrCreate(toUser.Id.ToString());
 
