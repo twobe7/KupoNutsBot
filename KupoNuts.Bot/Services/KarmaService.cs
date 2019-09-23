@@ -176,6 +176,9 @@ namespace KupoNuts.Bot.Services
 			if (fromKarma.Count <= 0)
 				throw new UserException("You dont have any more karma to give!");
 
+			if (toUser.Id == Program.DiscordClient.CurrentUser.Id)
+				throw new UserException("You cant send karma to a bot... even me. The best bot.");
+
 			if (toUser.IsBot)
 				throw new UserException("You cant send karma to a bot!");
 
