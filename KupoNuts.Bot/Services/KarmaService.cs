@@ -92,14 +92,21 @@ namespace KupoNuts.Bot.Services
 			IGuild guild = message.Guild;
 
 			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < count; i++)
+			foreach (Karma karma in karmas)
 			{
-				Karma karma = karmas[i];
+				count++;
+
+				if (count > 10)
+					break;
 
 				if (karma.Id == null)
 					continue;
 
 				IGuildUser user = await guild.GetUserAsync(ulong.Parse(karma.Id));
+
+				if (user == null)
+					continue;
+
 				builder.Append(karma.Count);
 				builder.Append(" - ");
 				builder.AppendLine(user.GetName());
