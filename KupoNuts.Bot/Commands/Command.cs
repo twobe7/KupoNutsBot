@@ -34,7 +34,7 @@ namespace KupoNuts.Bot.Commands
 			{
 				ParameterInfo paramInfo = allParamInfos[i];
 
-				if (paramInfo.ParameterType == typeof(SocketMessage))
+				if (paramInfo.ParameterType == typeof(CommandMessage))
 					continue;
 
 				if (paramInfo.ParameterType == typeof(string[]))
@@ -46,7 +46,7 @@ namespace KupoNuts.Bot.Commands
 			return results;
 		}
 
-		public async Task Invoke(string[] args, SocketMessage message)
+		public async Task Invoke(string[] args, CommandMessage message)
 		{
 			if (this.Permission > CommandsService.GetPermissions(message.Author))
 				throw new UserException("I'm sorry, you don't have permission to do that.");
@@ -64,7 +64,7 @@ namespace KupoNuts.Bot.Commands
 			{
 				ParameterInfo paramInfo = allParamInfos[i];
 
-				if (paramInfo.ParameterType == typeof(SocketMessage))
+				if (paramInfo.ParameterType == typeof(CommandMessage))
 				{
 					parameters.Add(message);
 					neededArgCount--;
@@ -127,7 +127,7 @@ namespace KupoNuts.Bot.Commands
 			}
 		}
 
-		private async Task<object> Convert(SocketMessage message, string arg, Type type)
+		private async Task<object> Convert(CommandMessage message, string arg, Type type)
 		{
 			#pragma warning disable SA1121
 			if (type == typeof(string))
@@ -208,7 +208,7 @@ namespace KupoNuts.Bot.Commands
 				str = str.Replace("!", string.Empty);
 
 				ulong id = ulong.Parse(str);
-				IGuildUser user = await message.GetGuild().GetUserAsync(id);
+				IGuildUser user = await message.Guild.GetUserAsync(id);
 
 				if (user == null)
 					throw new Exception("Invalid user Id: " + arg);

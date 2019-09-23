@@ -36,9 +36,9 @@ namespace KupoNuts.Bot.Services
 		}
 
 		[Command("GiveKarma", Permissions.Everyone, "Gives karma to the specified user")]
-		public async Task Karma(SocketMessage message, IGuildUser destinationUser)
+		public async Task Karma(CommandMessage message, IGuildUser destinationUser)
 		{
-			IGuildUser fromUser = message.GetAuthor();
+			IGuildUser fromUser = message.Author;
 
 			Log.Write(fromUser.GetName() + " sent karma to " + destinationUser.GetName() + " (command)", "Bot");
 
@@ -59,9 +59,9 @@ namespace KupoNuts.Bot.Services
 		}
 
 		[Command("MyKarma", Permissions.Everyone, "Shows your current karma")]
-		public async Task<Embed> ShowKarma(SocketMessage message)
+		public async Task<Embed> ShowKarma(CommandMessage message)
 		{
-			return await this.ShowKarma(message.GetAuthor());
+			return await this.ShowKarma(message.Author);
 		}
 
 		[Command("Karma", Permissions.Everyone, "Shows the karma of the specified user")]
@@ -76,7 +76,7 @@ namespace KupoNuts.Bot.Services
 		}
 
 		[Command("Karma", Permissions.Everyone, "Shows the karma leaderboards")]
-		public async Task<Embed> ShowKarmaLEaders(SocketMessage message)
+		public async Task<Embed> ShowKarmaLEaders(CommandMessage message)
 		{
 			List<Karma> karmas = await this.karmaDatabase.LoadAll();
 
@@ -89,7 +89,7 @@ namespace KupoNuts.Bot.Services
 			if (count > karmas.Count)
 				count = karmas.Count;
 
-			IGuild guild = message.GetGuild();
+			IGuild guild = message.Guild;
 
 			StringBuilder builder = new StringBuilder();
 			for (int i = 0; i < count; i++)

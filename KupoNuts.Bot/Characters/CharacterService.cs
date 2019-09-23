@@ -13,7 +13,7 @@ namespace KupoNuts.Bot.Characters
 	public class CharacterService : ServiceBase
 	{
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by Lodestone Id")]
-		public async Task WhoIs(SocketMessage message, uint characterId)
+		public async Task WhoIs(CommandMessage message, uint characterId)
 		{
 			CharacterAPI.GetResponse response = await CharacterAPI.Get(characterId);
 
@@ -25,13 +25,13 @@ namespace KupoNuts.Bot.Characters
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
-		public async Task WhoIs(SocketMessage message, string characterName)
+		public async Task WhoIs(CommandMessage message, string characterName)
 		{
 			await this.WhoIs(message, characterName, null);
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
-		public async Task WhoIs(SocketMessage message, string characterName, string? serverName)
+		public async Task WhoIs(CommandMessage message, string characterName, string? serverName)
 		{
 			CharacterAPI.SearchResponse response = await CharacterAPI.Search(characterName, serverName);
 

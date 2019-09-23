@@ -56,25 +56,25 @@ namespace KupoNuts.Bot.Services
 		}
 
 		[Command("Echo", Permissions.Administrators, "Copies a range of messages to a new channel.")]
-		public async Task HandleEcho(SocketMessage message, int count, SocketTextChannel channel)
+		public async Task HandleEcho(CommandMessage message, int count, SocketTextChannel channel)
 		{
 			await Echo((SocketTextChannel)message.Channel, channel, message.Id, count);
 		}
 
 		[Command("Echo", Permissions.Administrators, "Copies a single message to a new channel.")]
-		public async Task HandleEcho(SocketMessage message, SocketTextChannel channel)
+		public async Task HandleEcho(CommandMessage message, SocketTextChannel channel)
 		{
 			await Echo((SocketTextChannel)message.Channel, channel, message.Id, 1);
 		}
 
 		[Command("Echo", Permissions.Administrators, "Copies a range of messages to the same channel.")]
-		public async Task HandleEcho(SocketMessage message, int count)
+		public async Task HandleEcho(CommandMessage message, int count)
 		{
 			await Echo((SocketTextChannel)message.Channel, (SocketTextChannel)message.Channel, message.Id, count);
 		}
 
 		[Command("Echo", Permissions.Administrators, "Copies a single message to the same channel.")]
-		public async Task HandleEcho(SocketMessage message)
+		public async Task HandleEcho(CommandMessage message)
 		{
 			await Echo((SocketTextChannel)message.Channel, (SocketTextChannel)message.Channel, message.Id, 1);
 		}

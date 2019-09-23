@@ -13,7 +13,7 @@ namespace KupoNuts.Bot.Services
 	public class ModerationService : ServiceBase
 	{
 		[Command("Clear", Permissions.Administrators, "Clears a range of messages from the channel")]
-		public async Task Clear(SocketMessage message, int count)
+		public async Task Clear(CommandMessage message, int count)
 		{
 			IEnumerable<IMessage> messages = await message.Channel.GetMessagesAsync(count + 1).FlattenAsync();
 

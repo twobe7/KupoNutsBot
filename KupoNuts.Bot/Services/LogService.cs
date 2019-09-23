@@ -44,13 +44,13 @@ namespace KupoNuts.Bot.Services
 		}
 
 		[Command("LogMe", Permissions.Administrators, "Test a user join log message.")]
-		public async Task LogMe(SocketMessage message)
+		public async Task LogMe(CommandMessage message)
 		{
-			await this.PostMessage((SocketGuildUser)message.Author, Color.Purple, "Is testing");
+			await this.PostMessage(message.Author, Color.Purple, "Is testing");
 		}
 
 		[Command("Log", Permissions.Administrators, "posts the bot log")]
-		public async Task PostLog(SocketMessage message)
+		public async Task PostLog(CommandMessage message)
 		{
 			this.lockFile = true;
 			await message.Channel.SendFileAsync(FileLocation);
@@ -69,15 +69,29 @@ namespace KupoNuts.Bot.Services
 
 		private async Task DiscordClient_UserBanned(SocketUser user, SocketGuild guild)
 		{
-			await this.PostMessage(user, Color.Red, "Was Banned");
+			if (user is IGuildUser guildUser)
+			{
+				await this.PostMessage(guildUser, Color.Red, "Was Banned");
+			}
+			else
+			{
+				throw new Exception("User is not a guild user: " + user);
+			}
 		}
 
 		private async Task DiscordClient_UserUnbanned(SocketUser user, SocketGuild guild)
 		{
-			await this.PostMessage(user, Color.Orange, "Was Unbanned");
+			if (user is IGuildUser guildUser)
+			{
+				await this.PostMessage(guildUser, Color.Orange, "Was Unbanned");
+			}
+			else
+			{
+				throw new Exception("User is not a guild user: " + user);
+			}
 		}
 
-		private async Task PostMessage(SocketUser user, Color color, string message)
+		private async Task PostMessage(IGuildUser user, Color color, string message)
 		{
 			if (!ulong.TryParse(Settings.Load().UserLogChannel, out ulong channelId))
 				return;

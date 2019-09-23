@@ -55,13 +55,15 @@ namespace KupoNuts.Bot.Services
 			return Regex.Replace(name, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
 		}
 
-		public static async Task GetHelp(SocketMessage message, string command)
+		public static async Task GetHelp(CommandMessage message, string? command = null)
 		{
 			StringBuilder builder = new StringBuilder();
-
 			Permissions permissions = CommandsService.GetPermissions(message.Author);
 
-			builder.AppendLine(GetHelp(command, permissions));
+			if (command == null)
+				command = message.Command;
+
+			builder.AppendLine(GetHelp(command, message.CommandPrefix, permissions));
 
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
@@ -75,7 +77,7 @@ namespace KupoNuts.Bot.Services
 			await message.Channel.SendMessageAsync(null, false, embed.Build());
 		}
 
-		public static async Task GetHelp(SocketMessage message, Permissions permissions)
+		public static async Task GetHelp(CommandMessage message, Permissions permissions)
 		{
 			StringBuilder builder = new StringBuilder();
 
@@ -99,24 +101,24 @@ namespace KupoNuts.Bot.Services
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
 
-			string messageStr = "To get more information on a specific command, look it up directly, like `>>help \"GoodBot\"` or `>>goodbot ?`";
+			string messageStr = "To get more information on a specific command, look it up directly, like `" + message.CommandPrefix + "help \"time\"` or `" + message.CommandPrefix + "goodbot ?`";
 			await message.Channel.SendMessageAsync(messageStr, false, embed.Build());
 		}
 
 		[Command("Help", Permissions.Everyone, "really?")]
-		public async Task Help(SocketMessage message)
+		public async Task Help(CommandMessage message)
 		{
 			Permissions permissions = CommandsService.GetPermissions(message.Author);
 			await GetHelp(message, permissions);
 		}
 
 		[Command("Help", Permissions.Everyone, "really really?")]
-		public async Task Help(SocketMessage message, string command)
+		public async Task Help(CommandMessage message, string command)
 		{
 			await GetHelp(message, command);
 		}
 
-		private static string? GetHelp(string commandStr, Permissions permissions)
+		private static string? GetHelp(string commandStr, string prefix, Permissions permissions)
 		{
 			StringBuilder builder = new StringBuilder();
 			List<Command> commands = CommandsService.GetCommands(commandStr);
@@ -155,7 +157,7 @@ namespace KupoNuts.Bot.Services
 
 				builder.Append("**");
 				builder.Append(Utils.Characters.Tab);
-				builder.Append(CommandsService.CommandPrefix);
+				builder.Append(prefix);
 				builder.Append(commandStr);
 				builder.Append(" ");
 

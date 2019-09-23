@@ -49,13 +49,13 @@ namespace KupoNuts.Bot.Polls
 		}
 
 		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
-		public async Task HandlePoll(SocketMessage message, IEmote emote, int count, string comment)
+		public async Task HandlePoll(CommandMessage message, IEmote emote, int count, string comment)
 		{
 			await this.HandlePoll(message, emote, count, (SocketTextChannel)message.Channel, comment);
 		}
 
 		[Command("Poll", Permissions.Administrators, "Copies a range of messages to a new channel as a poll.")]
-		public async Task HandlePoll(SocketMessage message, IEmote emote, int count, SocketTextChannel channel, string comment)
+		public async Task HandlePoll(CommandMessage message, IEmote emote, int count, SocketTextChannel channel, string comment)
 		{
 			Poll poll = await this.pollDatabase.CreateEntry();
 			poll.ChannelId = message.Channel.Id.ToString();

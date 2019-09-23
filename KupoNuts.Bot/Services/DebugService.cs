@@ -30,7 +30,7 @@ namespace KupoNuts.Bot.Services
 		}
 
 		[Command("Blame", Permissions.Everyone, "Blames someone")]
-		public Task<string> Blame(SocketMessage message)
+		public Task<string> Blame(CommandMessage message)
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)
 			{

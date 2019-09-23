@@ -15,7 +15,11 @@ namespace KupoNuts.Bot.Commands
 
 	public class CommandsService : ServiceBase
 	{
-		public const string CommandPrefix = ">>";
+		public static readonly List<string> CommandPrefixes = new List<string>()
+		{
+			">>",
+			"?",
+		};
 
 		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
 
@@ -50,7 +54,7 @@ namespace KupoNuts.Bot.Commands
 			return commandHandlers[command.ToLower()];
 		}
 
-		public static Permissions GetPermissions(SocketUser user)
+		public static Permissions GetPermissions(IGuildUser user)
 		{
 			if (user is SocketGuildUser guildUser)
 			{
@@ -90,12 +94,24 @@ namespace KupoNuts.Bot.Commands
 			if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
 				return;
 
-			// Ignore messages that do not start with the command character
-			if (!message.Content.StartsWith(CommandPrefix))
+			// special cast to ignore malformed block-quotes
+			if (message.Content.StartsWith(">>>"))
 				return;
 
-			string command = message.Content.Substring(CommandPrefix.Length);
+			foreach (string prefix in CommandPrefixes)
+			{
+				// Ignore messages that do not start with the command character
+				if (!message.Content.StartsWith(prefix))
+					continue;
 
+				string command = message.Content.Substring(prefix.Length);
+				await this.ProcessCommandInput(message, prefix, command);
+				return;
+			}
+		}
+
+		private async Task ProcessCommandInput(SocketMessage message, string prefixUsed, string command)
+		{
 			string[] parts = Regex.Split(command, "(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 			////string[] parts = command.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
@@ -118,18 +134,19 @@ namespace KupoNuts.Bot.Commands
 			}
 
 			command = command.ToLower();
+			CommandMessage cmdMessage = new CommandMessage(prefixUsed, command, message);
 
 			if (args.Count == 1 && args[0] == "?")
 			{
-				await HelpService.GetHelp(message, command);
+				await HelpService.GetHelp(cmdMessage);
 				return;
 			}
 
 			Log.Write("Recieved command: " + command + " with " + message.Content + " From user: " + message.Author.Id, "Bot");
-			_ = Task.Run(async () => await this.RunCommand(command, args.ToArray(), message));
+			_ = Task.Run(async () => await this.RunCommand(command, args.ToArray(), cmdMessage));
 		}
 
-		private async Task RunCommand(string commandStr, string[] args, SocketMessage message)
+		private async Task RunCommand(string commandStr, string[] args, CommandMessage message)
 		{
 			if (commandHandlers.ContainsKey(commandStr))
 			{
