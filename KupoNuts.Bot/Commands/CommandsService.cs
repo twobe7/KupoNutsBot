@@ -94,10 +94,6 @@ namespace KupoNuts.Bot.Commands
 			if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
 				return;
 
-			// special cast to ignore malformed block-quotes
-			if (message.Content.StartsWith(">>>"))
-				return;
-
 			foreach (string prefix in CommandPrefixes)
 			{
 				// Ignore messages that do not start with the command character
@@ -105,6 +101,17 @@ namespace KupoNuts.Bot.Commands
 					continue;
 
 				string command = message.Content.Substring(prefix.Length);
+				command = command.TrimStart(' ', '	');
+
+				// command must contain an actual command (dont process "?" as a command)
+				if (command.Length <= 0)
+					continue;
+
+				// the first letter of the input must be a letter, or a space (dont process "?????" or ">>>" as a command)
+				char first = command[0];
+				if (!char.IsLetter(first))
+					return;
+
 				await this.ProcessCommandInput(message, prefix, command);
 				return;
 			}
