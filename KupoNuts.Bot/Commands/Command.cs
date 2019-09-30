@@ -92,6 +92,10 @@ namespace KupoNuts.Bot.Commands
 					{
 						param = await this.Convert(message, arg, paramInfo.ParameterType);
 					}
+					catch (UserException ex)
+					{
+						throw ex;
+					}
 					catch (Exception)
 					{
 						string hint = string.Empty;
@@ -181,7 +185,12 @@ namespace KupoNuts.Bot.Commands
 			}
 			else if (type == typeof(IEmote))
 			{
-				return Emote.Parse(arg);
+				Emote emote = Emote.Parse(arg);
+
+				if (!emote.IsAvailable())
+					throw new UserException("I'm sorry, I dont have that emote.");
+
+				return emote;
 			}
 			else if (type == typeof(IUser))
 			{

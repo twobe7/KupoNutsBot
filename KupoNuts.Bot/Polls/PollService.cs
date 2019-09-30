@@ -15,6 +15,8 @@ namespace KupoNuts.Bot.Polls
 
 	public class PollService : ServiceBase
 	{
+		private static readonly IEmote DefaultEmote = Emote.Parse("<:Yes:604942582866247690>");
+
 		private Dictionary<ulong, Poll> pollLookup = new Dictionary<ulong, Poll>();
 
 		private Database<Poll> pollDatabase = new Database<Poll>("Polls", 1);
@@ -49,18 +51,43 @@ namespace KupoNuts.Bot.Polls
 		}
 
 		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
+		public async Task HandlePoll(CommandMessage message, int count)
+		{
+			await this.SendPoll(message, DefaultEmote, count, (SocketTextChannel)message.Channel, null);
+		}
+
+		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
+		public async Task HandlePoll(CommandMessage message, int count, SocketTextChannel channel)
+		{
+			await this.SendPoll(message, DefaultEmote, count, channel, null);
+		}
+
+		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
+		public async Task HandlePoll(CommandMessage message, int count, SocketTextChannel channel, string comment)
+		{
+			await this.SendPoll(message, DefaultEmote, count, channel, comment);
+		}
+
+		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
 		public async Task HandlePoll(CommandMessage message, IEmote emote, int count, string comment)
 		{
-			await this.HandlePoll(message, emote, count, (SocketTextChannel)message.Channel, comment);
+			await this.SendPoll(message, emote, count, (SocketTextChannel)message.Channel, comment);
 		}
 
 		[Command("Poll", Permissions.Administrators, "Copies a range of messages to a new channel as a poll.")]
 		public async Task HandlePoll(CommandMessage message, IEmote emote, int count, SocketTextChannel channel, string comment)
 		{
+			await this.SendPoll(message, emote, count, channel, comment);
+		}
+
+		private async Task SendPoll(CommandMessage message, IEmote emote, int count, SocketTextChannel channel, string? comment)
+		{
 			Poll poll = await this.pollDatabase.CreateEntry();
 			poll.ChannelId = message.Channel.Id.ToString();
 
-			await channel.SendMessageAsync(comment);
+			if (comment != null)
+				await channel.SendMessageAsync(comment);
+
 			List<RestUserMessage> messages = await EchoService.Echo((SocketTextChannel)message.Channel, channel, message.Id, count);
 
 			poll.Options = new List<string>();
