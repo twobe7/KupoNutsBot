@@ -11,7 +11,18 @@ namespace XIVAPI
 
 	internal static class Request
 	{
-		private static string key = "4de52eac0f664097957216b24446e29b58219f2d348b482e94f6b53db1fa81d5";
+		private static string? key;
+
+		private static string? Key
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(key))
+					key = Settings.Load().XIVAPIKey;
+
+				return key;
+			}
+		}
 
 		internal static async Task<T> Send<T>(string route)
 			where T : ResponseBase
@@ -22,7 +33,7 @@ namespace XIVAPI
 			if (!route.Contains('?'))
 				route += '?';
 
-			string url = "https://xivapi.com" + route + "&private_key=" + key;
+			string url = "https://xivapi.com" + route + "&private_key=" + Key;
 
 			try
 			{

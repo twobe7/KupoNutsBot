@@ -43,6 +43,8 @@ namespace KupoNuts
 
 		public string? TwitterTokenSecret { get; set; }
 
+		public string? XIVAPIKey { get; set; }
+
 		public string? UserLogChannel { get; set; }
 
 		public string? LodestoneChannel { get; set; }
