@@ -103,6 +103,10 @@ namespace KupoNuts.Bot.Commands
 				string command = message.Content.Substring(prefix.Length);
 				command = command.TrimStart(' ', '	');
 
+				// replace funky quote-left and quote-right with normal quotes.
+				command = command.Replace('”', '"');
+				command = command.Replace('“', '"');
+
 				// command must contain an actual command (dont process "?" as a command)
 				if (command.Length <= 0)
 					continue;
