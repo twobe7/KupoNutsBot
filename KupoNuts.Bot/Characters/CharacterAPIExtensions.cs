@@ -34,6 +34,13 @@ namespace KupoNuts.Bot.Characters
 			builder.Title = titleBuilder.ToString();
 			builder.ImageUrl = self.Portrait;
 
+			builder.Footer = new EmbedFooterBuilder();
+			StringBuilder footerText = new StringBuilder();
+			footerText.Append("ID: ");
+			footerText.Append(self.ID?.ToString());
+			footerText.Append(" - XIVAPI.com");
+			builder.Footer.Text = footerText.ToString();
+
 			StringBuilder descriptionBuilder = new StringBuilder();
 
 			if (self.Race != null && self.Tribe != null)
@@ -104,6 +111,9 @@ namespace KupoNuts.Bot.Characters
 				return false;
 
 			if (self.Bio == "-")
+				return false;
+
+			if (string.IsNullOrWhiteSpace(self.Bio))
 				return false;
 
 			return true;

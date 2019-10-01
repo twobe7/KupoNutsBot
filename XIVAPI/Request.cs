@@ -50,6 +50,16 @@ namespace XIVAPI
 				result.Json = json;
 				return result;
 			}
+			catch (WebException webEx)
+			{
+				HttpWebResponse errorResponse = (HttpWebResponse)webEx.Response;
+				if (errorResponse.StatusCode == HttpStatusCode.NotFound)
+				{
+					return Activator.CreateInstance<T>();
+				}
+
+				throw webEx;
+			}
 			catch (Exception ex)
 			{
 				Log.Write("Error: " + ex.Message, "XIVAPI");
