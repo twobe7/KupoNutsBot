@@ -89,13 +89,20 @@ namespace KupoNuts.Bot.Services
 				if (commandString == "help")
 					continue;
 
-				builder.AppendLine(commandString);
-
-				/*string? help = GetHelp(commandString, permissions);
-				if (help != null)
+				int count = 0;
+				List<Command> commands = CommandsService.GetCommands(commandString);
+				foreach (Command command in commands)
 				{
-					builder.AppendLine(help);
-				}*/
+					if (command.Permission > permissions)
+						continue;
+
+					count++;
+				}
+
+				if (count <= 0)
+					continue;
+
+				builder.AppendLine(commandString);
 			}
 
 			EmbedBuilder embed = new EmbedBuilder();
