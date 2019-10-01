@@ -7,6 +7,7 @@ namespace KupoNuts.Bot.Commands
 	using System.Reflection;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Services;
 
@@ -16,6 +17,8 @@ namespace KupoNuts.Bot.Commands
 		public readonly Permissions Permission;
 		public readonly string Help;
 		public readonly WeakReference<object> Owner;
+
+		private const string WaitEmoji = "<a:spinner:628526494637096970>";
 
 		public Command(MethodInfo method, object owner, Permissions permissions, string help)
 		{
@@ -122,8 +125,27 @@ namespace KupoNuts.Bot.Commands
 			}
 			else if (returnObject is Task<Embed> tEmbed)
 			{
-				Embed embed = await tEmbed;
-				await message.Channel.SendMessageAsync(null, false, embed);
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.Title = message.Message.Content;
+				builder.Description = WaitEmoji;
+				builder.ThumbnailUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think2.png";
+				////builder.ImageUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think.png";
+				RestUserMessage tMessage = await message.Channel.SendMessageAsync(null, false, builder.Build());
+
+				try
+				{
+					Embed embed = await tEmbed;
+
+					await tMessage.ModifyAsync(x =>
+					{
+						x.Embed = embed;
+					});
+				}
+				catch (Exception ex)
+				{
+					await message.Channel.DeleteMessageAsync(tMessage);
+					throw ex;
+				}
 			}
 			else if (returnObject is Task task)
 			{
