@@ -12,6 +12,16 @@ namespace KupoNuts.Bot.Services
 
 	public class DebugService : ServiceBase
 	{
+		private static readonly List<string> GoodBotResponses = new List<string>()
+		{
+			"Thanks!",
+			"Thanks, you're a good human!",
+			"Sure, I guess...",
+			"yaay!",
+			"I try so hard!",
+			"It's nice to get some recognition around here.",
+		};
+
 		public override Task Initialize()
 		{
 			return Task.CompletedTask;
@@ -20,6 +30,13 @@ namespace KupoNuts.Bot.Services
 		public override Task Shutdown()
 		{
 			return Task.CompletedTask;
+		}
+
+		[Command("GoodBot", Permissions.Everyone, "Ye")]
+		public Task<string> GoodBot()
+		{
+			Random rn = new Random();
+			return Task.FromResult(GoodBotResponses[rn.Next(0, GoodBotResponses.Count)]);
 		}
 
 		[Command("Time", Permissions.Everyone, "Shows the current time in multiple time zones.")]
