@@ -85,13 +85,10 @@ namespace KupoNuts.Bot.Services
 				return -a.Count.CompareTo(b.Count);
 			});
 
-			int count = 10;
-			if (count > karmas.Count)
-				count = karmas.Count;
-
 			IGuild guild = message.Guild;
 
 			StringBuilder builder = new StringBuilder();
+			int count = 0;
 			foreach (Karma karma in karmas)
 			{
 				count++;
