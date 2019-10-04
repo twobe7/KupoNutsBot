@@ -191,7 +191,10 @@ namespace KupoNuts.Bot.Services
 				throw new UserException("You cant send karma to a bot... even me. The best bot.");
 
 			if (toUser.IsBot)
-				throw new UserException("You cant send karma to a bot!");
+				throw new UserException("You can't send karma to a bot!");
+
+			if (toUser.Id == fromUser.Id)
+				throw new UserException("you can't send karma to yourself!");
 
 			Karma toKarma = await this.karmaDatabase.LoadOrCreate(toUser.Id.ToString());
 
