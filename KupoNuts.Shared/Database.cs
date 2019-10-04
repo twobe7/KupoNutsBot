@@ -181,7 +181,7 @@ namespace KupoNuts
 				{
 					new KeySchemaElement("Id", KeyType.HASH),
 				},
-				ProvisionedThroughput = new ProvisionedThroughput(10, 10),
+				ProvisionedThroughput = new ProvisionedThroughput(1, 1),
 			};
 
 			try
