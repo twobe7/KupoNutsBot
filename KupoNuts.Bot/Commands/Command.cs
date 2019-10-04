@@ -150,6 +150,10 @@ namespace KupoNuts.Bot.Commands
 			else if (returnObject is Task task)
 			{
 				await task;
+
+				Random rn = new Random();
+				string str = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
+				await message.Channel.SendMessageAsync(str);
 			}
 		}
 

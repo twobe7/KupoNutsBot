@@ -21,6 +21,19 @@ namespace KupoNuts.Bot.Commands
 			"?",
 		};
 
+		public static readonly List<string> CommandResponses = new List<string>()
+		{
+			"You got it!",
+			"Done!",
+			"All done!",
+			"I did it!",
+			"All finished!",
+			"I'm the best!",
+			"Praise me!",
+			"Yep",
+			"Ah-huh",
+		};
+
 		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
 
 		public static void BindCommands(object obj)
