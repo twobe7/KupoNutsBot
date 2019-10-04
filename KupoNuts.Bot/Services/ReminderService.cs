@@ -76,7 +76,7 @@ namespace KupoNuts.Bot.Services
 				if (evt.Id == null)
 					continue;
 
-				Instant? nextOccurance = evt.GetNextOccurance();
+				Event.Occurance? nextOccurance = evt.GetNextOccurance();
 				if (nextOccurance == null)
 					continue;
 
@@ -92,7 +92,7 @@ namespace KupoNuts.Bot.Services
 						if (remindTime == null)
 							continue;
 
-						Instant? remindInstant = nextOccurance - remindTime;
+						Instant? remindInstant = nextOccurance.GetInstant() - remindTime;
 
 						if (remindInstant.Value < TimeUtils.Now)
 						{

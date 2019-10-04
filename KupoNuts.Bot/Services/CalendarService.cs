@@ -103,16 +103,17 @@ namespace KupoNuts.Bot.Services
 			List<Event> events = await EventsService.EventsDatabase.LoadAll();
 			foreach (Event evt in events)
 			{
-				List<Instant> occurances = evt.GetNextOccurances();
+				List<Event.Occurance> occurances = evt.GetNextOccurances();
 
-				foreach (Instant occurance in occurances)
+				foreach (Event.Occurance occurance in occurances)
 				{
-					int days = TimeUtils.GetDaysTill(occurance, zone);
+					Instant instant = occurance.GetInstant();
+					int days = TimeUtils.GetDaysTill(instant, zone);
 
 					if (!eventSchedule.ContainsKey(days))
 						eventSchedule.Add(days, new List<(Event, Instant)>());
 
-					eventSchedule[days].Add((evt, occurance));
+					eventSchedule[days].Add((evt, instant));
 				}
 			}
 

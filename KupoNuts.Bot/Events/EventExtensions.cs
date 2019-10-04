@@ -127,5 +127,60 @@ namespace KupoNuts.Bot.Events
 
 			return builder.ToString();
 		}
+
+		public static Duration? GetDurationTill(this Event self)
+		{
+			Event.Occurance? occurance = self.GetNextOccurance();
+			if (occurance == null)
+				return null;
+
+			return occurance.GetInstant() - TimeUtils.RoundInstant(TimeUtils.Now);
+		}
+
+		// 2 hours on Sunday, 6th October 2019:
+		// 8:00pm AWST - 9:30pm ACST - 10:00pm AEST - 1:00am NZST
+		public static string GetDisplayString(this Event.Occurance self)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append(TimeUtils.GetDurationString(self.Duration));
+			builder.Append(" on ");
+
+			Instant instant = self.GetInstant();
+			builder.AppendLine(TimeUtils.GetDateString(instant));
+			builder.AppendLine(TimeUtils.GetTimeString(instant));
+
+			return builder.ToString();
+		}
+
+		// Starting in 1 hour 45 minutes.
+		public static string GetWhenString(this Event self)
+		{
+			Event.Occurance? occurance = self.GetNextOccurance();
+			if (occurance == null)
+				return "Never";
+
+			Duration time = occurance.GetInstant() - TimeUtils.RoundInstant(TimeUtils.Now);
+
+			string str = "Starts ";
+
+			if (time.TotalSeconds < 0)
+			{
+				Instant now = TimeUtils.RoundInstant(TimeUtils.Now);
+				Instant instant = now + time + occurance.Duration;
+				Duration endsIn = instant - now;
+
+				time = endsIn;
+				str = "Ends ";
+			}
+
+			string? endsInStr = TimeUtils.GetDurationString(time);
+			if (endsInStr == null)
+				return "Unknown.";
+
+			if (endsInStr.Contains("now"))
+				return str + "now.";
+
+			return str + "in" + endsInStr + ".";
+		}
 	}
 }

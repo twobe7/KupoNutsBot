@@ -11,6 +11,7 @@ namespace KupoNuts.Bot.Events
 	using Discord.WebSocket;
 	using KupoNuts.Events;
 	using KupoNuts.Utils;
+	using NodaTime;
 
 	public static class NotificationExtensions
 	{
@@ -43,26 +44,24 @@ namespace KupoNuts.Bot.Events
 			builder.Footer.Text = footerBuilder.ToString();
 			builder.Timestamp = evt.NextOccurance();*/
 
-			StringBuilder timeBuilder = new StringBuilder();
-			timeBuilder.AppendLine(evt.GetWhenString());
-			timeBuilder.AppendLine();
-			timeBuilder.Append(TimeUtils.GetDurationString(evt.GetDuration()));
-			timeBuilder.Append(" ");
+			StringBuilder descBuilder = new StringBuilder();
 
-			string? repeat = evt.GetRepeatsString();
-			if (repeat != null)
+			// Starts in: 1 hour 45 minutes
+			descBuilder.Append("__");
+			descBuilder.Append(evt.GetWhenString());
+			descBuilder.AppendLine("__");
+			descBuilder.AppendLine();
+
+			Event.Occurance? occurance = evt.GetNextOccurance();
+			if (occurance != null)
 			{
-				timeBuilder.Append(repeat);
-				timeBuilder.AppendLine(" at ");
-				timeBuilder.Append(TimeUtils.GetTimeString(evt.GetNextOccurance()));
-			}
-			else
-			{
-				timeBuilder.Append(" on ");
-				timeBuilder.Append(TimeUtils.GetDateTimeString(evt.GetDateTime()));
+				descBuilder.AppendLine(occurance.GetDisplayString());
+				descBuilder.AppendLine();
 			}
 
-			builder.AddField("When", timeBuilder.ToString(), false);
+			// desc
+			descBuilder.AppendLine(evt.Description);
+			builder.Description = descBuilder.ToString();
 
 			if (evt.Statuses != null)
 			{

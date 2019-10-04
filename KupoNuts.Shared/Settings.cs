@@ -4,7 +4,7 @@ namespace KupoNuts
 {
 	using System;
 	using System.IO;
-	using Newtonsoft.Json;
+	using System.Text.Json;
 
 	[Serializable]
 	public class Settings
@@ -49,16 +49,8 @@ namespace KupoNuts
 
 		public string? LodestoneChannel { get; set; }
 
-		public static void Init()
-		{
-			JsonSerializerSettings settings = new JsonSerializerSettings();
-			JsonConvert.DefaultSettings = () => settings;
-		}
-
 		public static Settings Load()
 		{
-			Init();
-
 			if (!File.Exists(Location))
 			{
 				Settings settings = new Settings();
@@ -68,13 +60,13 @@ namespace KupoNuts
 			else
 			{
 				string json = File.ReadAllText(Location);
-				return JsonConvert.DeserializeObject<Settings>(json);
+				return JsonSerializer.Deserialize<Settings>(json);
 			}
 		}
 
 		public void Save()
 		{
-			string json = JsonConvert.SerializeObject(this, Formatting.Indented);
+			string json = JsonSerializer.Serialize(this);
 			File.WriteAllText(Location, json);
 		}
 	}

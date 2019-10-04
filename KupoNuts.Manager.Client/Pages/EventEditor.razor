@@ -1,5 +1,7 @@
 ﻿@using KupoNuts.Events;
 @using KupoNuts.Utils;
+@using NodaTime;
+@using NodaTime.Text;
 
 @inject HttpClient Http
 @inject IModalService Modal
@@ -9,14 +11,7 @@
 	<!-- Name -->
 	<div class="form-group col-md-6">
 		<label for="eventName">Name</label>
-		<input type="text" class="form-control @(((this.NameValid) ? "" : "is-invalid"))" id="eventName" name="eventName" placeholder="Enter event name" @bind="this.Name" />
-
-		@if (!NameValid)
-		{
-			<div class="invalid-feedback">
-				Invalid Name.
-			</div>
-		}
+		<input type="text" class="form-control" id="eventName" name="eventName" placeholder="Enter event name" @bind="this.evt.Name" />
 	</div>
 
 	<!--  Notify -->
@@ -35,7 +30,7 @@
 	<!--  Description -->
 	<div class="form-group col-md-12">
 		<label for="eventDesc">Description</label>
-		<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="this.Description"></textarea>
+		<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="this.evt.Description"></textarea>
 	</div>
 </div>
 
@@ -43,7 +38,7 @@
 	<!-- Short description-->
 	<div class="form-group col-md-12">
 		<label for="eventShortDesc">Short Description</label>
-		<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.ShortDescription" />
+		<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.evt.ShortDescription" />
 	</div>
 </div>
 
@@ -51,7 +46,7 @@
 	<!-- Image URL -->
 	<div class="form-group col-md-12">
 		<label for="eventImage">Image URL</label>
-		<input type="text" class="form-control" id="eventImage" name="eventImage" placeholder="Enter a URL to an image" @bind="this.Image" />
+		<input type="text" class="form-control" id="eventImage" name="eventImage" placeholder="Enter a URL to an image" @bind="this.evt.Image" />
 	</div>
 </div>
 
@@ -79,75 +74,13 @@
 	</div>
 </div>
 
-<div class="form-row">
-	<!--  Date -->
-	<div class="form-group col-md-4">
-		<label for="eventDate">Date</label>
-		<input type="date" class="form-control dateTime @(((this.DateTimeValid) ? "" : "is-invalid"))" id="eventDate" name="eventDate" @bind="this.Date" />
 
-		@if (!DateTimeValid)
-		{
-			<div class="invalid-feedback">
-				Invalid Date.
-			</div>
-		}
-	</div>
+@for (int i = 0; i < 8; i++)
+{
+	IsoDayOfWeek day = (IsoDayOfWeek)i;
+	<EventRepeatEditor Event="this.evt" Day="day"/>
+}
 
-	<!--  time -->
-	<div class="form-group col-md-4  is-invalid">
-		<label for="eventTime">Time</label>
-		<input type="time" class="form-control dateTime @(((this.DateTimeValid) ? "" : "is-invalid"))" id="eventTime" name="eventTime" @bind="this.Time" />
-
-		@if (!DateTimeValid)
-		{
-			<div class="invalid-feedback">
-				Invalid Time.
-			</div>
-		}
-	</div>
-
-	<!--  Duration -->
-	<div class="form-group col-md-4">
-		<label for="eventDuration">Duration</label>
-		<small id="emailHelp" class="form-text" style="margin-top:0px">@this.DurationString</small>
-		<input name="eventDuration" type="range" class="form-control-range" min="0.25" max="6" step="0.25" @bind-value="this.Duration" @oninput="OnDurationChanged" style="width:100%" />
-	</div>
-</div>
-
-<div class="form-row">
-	<!--  Repeat Days -->
-	<label>Repeats</label>
-	<div class="form-group col-md-12">
-		<div class="custom-control custom-checkbox custom-control-inline">
-			<input class="custom-control-input" type="checkbox" id="monCheckbox" value="true" @bind="this.Monday" />
-			<label class="custom-control-label" for="monCheckbox">Mon</label>
-		</div>
-		<div class="custom-control custom-checkbox custom-control-inline">
-			<input class="custom-control-input" type="checkbox" id="tueCheckbox" value="true" @bind="this.Tuesday" />
-			<label class="custom-control-label" for="tueCheckbox">Tue</label>
-		</div>
-		<div class="custom-control custom-checkbox custom-control-inline">
-			<input class="custom-control-input" type="checkbox" id="wedCheckbox" value="true" @bind="this.Wednesday" />
-			<label class="custom-control-label" for="wedCheckbox">Wed</label>
-		</div>
-		<div class="custom-control custom-checkbox custom-control-inline">
-			<input class="custom-control-input" type="checkbox" id="thuCheckbox" value="true" @bind="this.Thursday" />
-			<label class="custom-control-label" for="thuCheckbox">Thu</label>
-		</div>
-		<div class="custom-control custom-checkbox custom-control-inline">
-			<input class="custom-control-input" type="checkbox" id="friCheckbox" value="true" @bind="this.Friday" />
-			<label class="custom-control-label" for="friCheckbox">Fri</label>
-		</div>
-		<div class="custom-control custom-checkbox custom-control-inline">
-			<input class="custom-control-input" type="checkbox" id="satCheckbox" value="true" @bind="this.Saturday" />
-			<label class="custom-control-label" for="satCheckbox">Sat</label>
-		</div>
-		<div class="custom-control custom-checkbox custom-control-inline">
-			<input class="custom-control-input" type="checkbox" id="sunCheckbox" value="true" @bind="this.Sunday" />
-			<label class="custom-control-label" for="sunCheckbox">Sun</label>
-		</div>
-	</div>
-</div>
 
 <div class="modal-footer">
 	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
@@ -164,33 +97,47 @@
 	public List<String> ColorList { get; set; }
 	public Dictionary<string, double> NotifyList { get; set; }
 
-	public string Name;
-	public bool NameValid = true;
-	public string Description;
-	public string ShortDescription;
-	public string Image;
-	public string Channel;
-	public string Color;
-	public DateTime Date;
-	public string Time;
-	public bool DateTimeValid = true;
-	public double Duration;
-	public double NotifyDuration;
-	public bool Monday;
-	public bool Tuesday;
-	public bool Wednesday;
-	public bool Thursday;
-	public bool Friday;
-	public bool Saturday;
-	public bool Sunday;
-
 	private Event evt;
 
-	public string DurationString
+	public double NotifyDuration
 	{
 		get
 		{
-			return TimeUtils.GetDurationString(this.Duration);
+			return this.evt.GetNotifyDurationDouble();
+		}
+
+		set
+		{
+			this.evt.SetNotifyDuration(value);
+		}
+	}
+
+	public string Color
+	{
+		get
+		{
+			return this.evt.Color.ToString();
+		}
+
+		set
+		{
+			this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), value);
+		}
+	}
+
+	public string Channel
+	{
+		get
+		{
+			if (string.IsNullOrEmpty(this.evt.ChannelId))
+				return "0";
+
+			return this.evt.ChannelId;
+		}
+
+		set
+		{
+			this.evt.ChannelId = value == "0" ? null : value;
 		}
 	}
 
@@ -203,7 +150,7 @@
 		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
 
 		this.NotifyList = new Dictionary<string, double>()
-	{
+{
 			{ "Never", -1 },
 			{ "Immediatelly", 0},
 			{ "One Hour", 1 },
@@ -211,67 +158,17 @@
 		};
 
 		this.ChannelList = new List<Channel>()
-	{
+{
 			new Channel(0, "None", KupoNuts.Channel.Types.Unknown),
 		};
 
 		this.evt = Parameters.Get<Event>("Event");
 
-		this.Name = this.evt.Name;
-		this.Description = this.evt.Description;
-		this.ShortDescription = this.evt.ShortDescription;
-		this.Image = this.evt.Image;
-		this.Color = this.evt.Color.ToString();
-		this.evt.GetDateTime(out this.Date, out this.Time);
-		this.evt.GetDuration(out this.Duration);
-		this.evt.GetRepeats(out this.Monday, out this.Tuesday, out this.Wednesday, out this.Thursday, out this.Friday, out this.Saturday, out this.Sunday);
-		this.evt.GetNotifyDuration(out this.NotifyDuration);
 		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, KupoNuts.Channel.Types.Text));
-
-		this.Channel = this.evt.ChannelId;
-		if (string.IsNullOrEmpty(this.evt.ChannelId))
-		{
-			this.Channel = "0";
-		}
-	}
-
-	private void OnDurationChanged(ChangeEventArgs e)
-	{
-		this.Duration = double.Parse((string)e.Value);
 	}
 
 	private void OnSave()
 	{
-		try
-		{
-			this.evt.SetDateTime(this.Date, this.Time);
-		}
-		catch (Exception)
-		{
-			this.DateTimeValid = false;
-			return;
-		}
-
-		this.DateTimeValid = true;
-
-		if (string.IsNullOrEmpty(this.Name))
-		{
-			this.NameValid = false;
-			return;
-		}
-
-		this.NameValid = true;
-
-		this.evt.Name = this.Name;
-		this.evt.Description = this.Description;
-		this.evt.ShortDescription = this.ShortDescription;
-		this.evt.Image = this.Image;
-		this.evt.ChannelId = this.Channel == "0" ? null : this.Channel;
-		this.evt.SetDuration(this.Duration);
-		this.evt.SetNotifyDuration(this.NotifyDuration);
-		this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), this.Color);
-		this.evt.SetRepeats(this.Monday, this.Tuesday, this.Wednesday, this.Thursday, this.Friday, this.Saturday, this.Sunday);
-
 		this.Modal.Close(ModalResult.Ok(new DataAction<Event>(this.evt, Actions.Update)));
 	}
 

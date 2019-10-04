@@ -28,7 +28,7 @@ namespace KupoNuts.Bot.Events
 			if (user == null)
 				return "Unknown";
 
-			SocketGuild guild = Program.DiscordClient.GetGuild(evt.GetServerId());
+			SocketGuild guild = Program.DiscordClient.GetGuild(evt.ServerId);
 			if (guild != null)
 			{
 				SocketGuildUser guildUser = guild.GetUser(ulong.Parse(self.UserId));

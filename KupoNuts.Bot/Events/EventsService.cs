@@ -75,9 +75,9 @@ namespace KupoNuts.Bot.Events
 					continue;
 
 				// delete non repeating events that have passed
-				if (evt.Repeats == 0)
+				if (!evt.DoesRepeat())
 				{
-					Instant? next = evt.GetNextOccurance();
+					Event.Occurance? next = evt.GetNextOccurance();
 
 					// will never occur (past event)
 					if (next == null)
@@ -132,7 +132,7 @@ namespace KupoNuts.Bot.Events
 			if (timeTillEvent == null)
 				return false;
 
-			Duration? notifyDuration = evt.GetNotifyDuration();
+			Duration? notifyDuration = evt.NotifyDuration;
 
 			// never notify
 			if (notifyDuration == null)

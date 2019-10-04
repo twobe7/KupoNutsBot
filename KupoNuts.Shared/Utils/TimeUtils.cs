@@ -51,22 +51,6 @@ namespace KupoNuts.Utils
 			}
 		}
 
-		public static IsoDayOfWeek ToIsoDay(Event.Days day)
-		{
-			switch (day)
-			{
-				case Event.Days.Monday: return IsoDayOfWeek.Monday;
-				case Event.Days.Tuesday: return IsoDayOfWeek.Tuesday;
-				case Event.Days.Wednesday: return IsoDayOfWeek.Wednesday;
-				case Event.Days.Thursday: return IsoDayOfWeek.Thursday;
-				case Event.Days.Friday: return IsoDayOfWeek.Friday;
-				case Event.Days.Saturday: return IsoDayOfWeek.Saturday;
-				case Event.Days.Sunday: return IsoDayOfWeek.Sunday;
-			}
-
-			throw new Exception("Unknown day: " + day);
-		}
-
 		public static string GetDateTimeString(DateTimeOffset? dt)
 		{
 			if (dt == null)
@@ -89,6 +73,14 @@ namespace KupoNuts.Utils
 			builder.AppendLine(GetDateString(dt));
 			builder.Append(GetTimeString(dt));
 			return builder.ToString();
+		}
+
+		public static string GetDateString(Instant? dt)
+		{
+			if (dt == null)
+				return string.Empty;
+
+			return GetDateString((Instant)dt);
 		}
 
 		public static string GetDateString(Instant dt)
