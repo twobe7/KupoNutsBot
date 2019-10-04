@@ -117,44 +117,51 @@ namespace KupoNuts.Bot.Services
 
 		private async Task OnMessageReceived(SocketMessage message)
 		{
-			if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
-				return;
-
-			if (message.Author.IsBot)
-				return;
-
-			IMessage iMessage = await message.Channel.GetMessageAsync(message.Id);
-
-			if (iMessage is RestUserMessage restMessage)
+			try
 			{
-				Random rn = new Random();
-				double roll = rn.NextDouble();
-				if (roll < KarmaGenerationChance)
+				if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
+					return;
+
+				if (message.Author.IsBot)
+					return;
+
+				IMessage iMessage = await message.Channel.GetMessageAsync(message.Id);
+
+				if (iMessage is RestUserMessage restMessage)
 				{
-					IGuildUser toUser = message.GetAuthor();
+					Random rn = new Random();
+					double roll = rn.NextDouble();
+					if (roll < KarmaGenerationChance)
+					{
+						IGuildUser toUser = message.GetAuthor();
 
-					Log.Write(toUser.GetName() + " Generated Karma with message: \"" + message.Content + "\"", "Bot");
+						Log.Write(toUser.GetName() + " Generated Karma with message: \"" + message.Content + "\"", "Bot");
 
-					Karma toKarma = await this.karmaDatabase.LoadOrCreate(toUser.Id.ToString());
-					toKarma.Count++;
-					await this.karmaDatabase.Save(toKarma);
-					await restMessage.AddReactionAsync(karmaEmote);
+						Karma toKarma = await this.karmaDatabase.LoadOrCreate(toUser.Id.ToString());
+						toKarma.Count++;
+						await this.karmaDatabase.Save(toKarma);
+						await restMessage.AddReactionAsync(karmaEmote);
+					}
 				}
+			}
+			catch (Exception ex)
+			{
+				Log.Write(ex);
 			}
 		}
 
 		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (reaction.Emote.Name != karmaEmote.Name)
-				return;
-
-			if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
-				return;
-
-			IUserMessage userMessage = await message.GetOrDownloadAsync();
-
 			try
 			{
+				if (reaction.Emote.Name != karmaEmote.Name)
+					return;
+
+				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
+					return;
+
+				IUserMessage userMessage = await message.GetOrDownloadAsync();
+
 				IGuildUser toUser = userMessage.GetAuthor();
 
 				IGuild guild = userMessage.GetGuild();

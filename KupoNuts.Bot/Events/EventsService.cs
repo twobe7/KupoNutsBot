@@ -147,55 +147,62 @@ namespace KupoNuts.Bot.Events
 
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (!this.messageEventLookup.ContainsKey(message.Id.ToString()))
-				return;
-
-			// dont mark yourself as attending!
-			if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
-				return;
-
-			Event evt = await EventsDatabase.Load(this.messageEventLookup[message.Id.ToString()]);
-
-			if (evt.Notify == null)
-				return;
-
-			Event.Notification.Attendee? attendee = evt.GetAttendee(reaction.UserId);
-
-			if (attendee == null)
+			try
 			{
-				attendee = new Event.Notification.Attendee();
-				attendee.UserId = reaction.UserId.ToString();
-				evt.Notify.Attendees.Add(attendee);
-				await EventsDatabase.Save(evt);
-			}
+				if (!this.messageEventLookup.ContainsKey(message.Id.ToString()))
+					return;
 
-			if (!string.IsNullOrEmpty(evt.RemindMeEmote))
-			{
-				if (reaction.Emote.Name == evt.GetRemindMeEmote().Name)
+				// dont mark yourself as attending!
+				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
+					return;
+
+				Event evt = await EventsDatabase.Load(this.messageEventLookup[message.Id.ToString()]);
+
+				if (evt.Notify == null)
+					return;
+
+				Event.Notification.Attendee? attendee = evt.GetAttendee(reaction.UserId);
+
+				if (attendee == null)
 				{
-					ReminderService.SetReminder(evt, attendee);
+					attendee = new Event.Notification.Attendee();
+					attendee.UserId = reaction.UserId.ToString();
+					evt.Notify.Attendees.Add(attendee);
+					await EventsDatabase.Save(evt);
 				}
-			}
 
-			if (evt.Statuses != null)
-			{
-				for (int i = 0; i < evt.Statuses.Count; i++)
+				if (!string.IsNullOrEmpty(evt.RemindMeEmote))
 				{
-					Event.Status status = evt.Statuses[i];
-
-					if (reaction.Emote.Name == status.GetEmote().Name)
+					if (reaction.Emote.Name == evt.GetRemindMeEmote().Name)
 					{
-						evt.SetAttendeeStatus(reaction.UserId, i);
-						await EventsDatabase.Save(evt);
+						ReminderService.SetReminder(evt, attendee);
 					}
 				}
+
+				if (evt.Statuses != null)
+				{
+					for (int i = 0; i < evt.Statuses.Count; i++)
+					{
+						Event.Status status = evt.Statuses[i];
+
+						if (reaction.Emote.Name == status.GetEmote().Name)
+						{
+							evt.SetAttendeeStatus(reaction.UserId, i);
+							await EventsDatabase.Save(evt);
+						}
+					}
+				}
+
+				await evt.Notify.Post(evt);
+
+				RestUserMessage userMessage = (RestUserMessage)await channel.GetMessageAsync(message.Id);
+				SocketUser user = Program.DiscordClient.GetUser(reaction.UserId);
+				await userMessage.RemoveReactionAsync(reaction.Emote, user);
 			}
-
-			await evt.Notify.Post(evt);
-
-			RestUserMessage userMessage = (RestUserMessage)await channel.GetMessageAsync(message.Id);
-			SocketUser user = Program.DiscordClient.GetUser(reaction.UserId);
-			await userMessage.RemoveReactionAsync(reaction.Emote, user);
+			catch (Exception ex)
+			{
+				Log.Write(ex);
+			}
 		}
 	}
 }

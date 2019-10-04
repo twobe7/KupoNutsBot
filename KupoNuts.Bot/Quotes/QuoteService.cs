@@ -68,26 +68,33 @@ namespace KupoNuts.Bot.Quotes
 
 		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> messageCache, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (reaction.Emote.Name != "💬")
-				return;
-
-			if (channel is SocketGuildChannel guildChannel)
+			try
 			{
-				IUserMessage message = await messageCache.DownloadAsync();
-				await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-
-				if (string.IsNullOrEmpty(message.Content))
+				if (reaction.Emote.Name != "💬")
 					return;
 
-				Quote quote = await this.quoteDb.LoadOrCreate(message.Author.Id + "_" + message.Id);
-				quote.Content = message.Content;
-				quote.UserId = message.Author.Id;
-				quote.GuildId = guildChannel.Guild.Id;
-				quote.UserName = message.Author.Username;
-				quote.SetDateTime(message.CreatedAt);
-				await this.quoteDb.Save(quote);
+				if (channel is SocketGuildChannel guildChannel)
+				{
+					IUserMessage message = await messageCache.DownloadAsync();
+					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
 
-				Log.Write("Got quote: " + message.Content, "Bot");
+					if (string.IsNullOrEmpty(message.Content))
+						return;
+
+					Quote quote = await this.quoteDb.LoadOrCreate(message.Author.Id + "_" + message.Id);
+					quote.Content = message.Content;
+					quote.UserId = message.Author.Id;
+					quote.GuildId = guildChannel.Guild.Id;
+					quote.UserName = message.Author.Username;
+					quote.SetDateTime(message.CreatedAt);
+					await this.quoteDb.Save(quote);
+
+					Log.Write("Got quote: " + message.Content, "Bot");
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.Write(ex);
 			}
 		}
 	}

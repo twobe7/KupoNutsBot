@@ -118,30 +118,37 @@ namespace KupoNuts.Bot.Polls
 
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (!this.pollLookup.ContainsKey(message.Id))
-				return;
-
-			if (!reaction.User.IsSpecified)
-				return;
-
-			if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
-				return;
-
-			Poll poll = this.pollLookup[message.Id];
-
-			if (poll.Options != null)
+			try
 			{
-				foreach (string optionIdStr in poll.Options)
+				if (!this.pollLookup.ContainsKey(message.Id))
+					return;
+
+				if (!reaction.User.IsSpecified)
+					return;
+
+				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
+					return;
+
+				Poll poll = this.pollLookup[message.Id];
+
+				if (poll.Options != null)
 				{
-					if (!ulong.TryParse(optionIdStr, out ulong optionId))
-						continue;
+					foreach (string optionIdStr in poll.Options)
+					{
+						if (!ulong.TryParse(optionIdStr, out ulong optionId))
+							continue;
 
-					if (optionId == message.Id)
-						continue;
+						if (optionId == message.Id)
+							continue;
 
-					IUserMessage option = (IUserMessage)await channel.GetMessageAsync(optionId);
-					await option.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+						IUserMessage option = (IUserMessage)await channel.GetMessageAsync(optionId);
+						await option.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+					}
 				}
+			}
+			catch (Exception ex)
+			{
+				Log.Write(ex);
 			}
 		}
 	}
