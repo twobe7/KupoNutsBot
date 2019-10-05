@@ -68,7 +68,7 @@ namespace KupoNuts.Bot.RPG
 		}
 
 		[Command("SendKupoNuts", Permissions.Everyone, "Sends kupo nuts to the specified user")]
-		public async Task Karma(CommandMessage message, IGuildUser destinationUser, int count = 1)
+		public async Task SendNuts(CommandMessage message, IGuildUser destinationUser, int count = 1)
 		{
 			IGuildUser fromUser = message.Author;
 
@@ -81,7 +81,9 @@ namespace KupoNuts.Bot.RPG
 			messageBuilder.Append(destinationUser.Mention);
 			messageBuilder.Append(", ");
 			messageBuilder.Append(fromUser.Mention);
-			messageBuilder.Append(" has sent you a Kupo Nut! ");
+			messageBuilder.Append(" has sent you ");
+			messageBuilder.Append(count);
+			messageBuilder.Append(" ");
 			messageBuilder.Append(NutEmoteStr);
 
 			EmbedBuilder embedBuilder = new EmbedBuilder();
@@ -226,7 +228,7 @@ namespace KupoNuts.Bot.RPG
 		{
 			Status fromStatus = await this.rpgDatabase.LoadOrCreate(fromUser.Id.ToString());
 
-			if (fromStatus.Nuts <= count)
+			if (fromStatus.Nuts < count)
 				throw new UserException("You dont have any more kupo nuts to give!");
 
 			if (toUser.Id == Program.DiscordClient.CurrentUser.Id)
