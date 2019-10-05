@@ -16,11 +16,13 @@ namespace KupoNuts.Bot.RPG
 
 			StringBuilder descBuilder = new StringBuilder();
 			descBuilder.Append("Level: ");
-			descBuilder.AppendLine(status.Level.ToString());
+			descBuilder.Append(status.Level.ToString());
+			descBuilder.Append(Utils.Characters.DoubleTab);
 
 			descBuilder.Append(RPGService.NutEmoteStr);
 			descBuilder.Append(" ");
-			descBuilder.Append(status.Nuts);
+			descBuilder.AppendLine(status.Nuts.ToString());
+			descBuilder.AppendLine();
 
 			builder.Description = descBuilder.ToString();
 

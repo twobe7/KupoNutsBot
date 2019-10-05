@@ -17,19 +17,25 @@ namespace KupoNuts.Bot.Pages
 		private bool destroyed = false;
 		private Timer? timeout;
 		private Embed? destroyedEmbed;
+		private IGuildUser? user;
 
-		public IGuildUser? User
+		public IGuildUser User
 		{
-			get;
-			private set;
+			get
+			{
+				if (this.user == null)
+					throw new Exception("No User in Page Renderer");
+
+				return this.user;
+			}
 		}
 
 		public Task Create(ISocketMessageChannel channel, IGuildUser user, Embed? destroyedEmbed = null)
 		{
 			this.channel = channel;
-			this.User = user;
+			this.user = user;
 			this.destroyedEmbed = destroyedEmbed;
-			this.timeout = new Timer(10000);
+			this.timeout = new Timer(30 * 1000);
 			this.timeout.Elapsed += this.OnTimeout;
 			this.timeout.Start();
 
@@ -91,8 +97,8 @@ namespace KupoNuts.Bot.Pages
 				{
 					Navigation.Up.ToEmote(),
 					Navigation.Down.ToEmote(),
-					Navigation.Left.ToEmote(),
-					Navigation.Right.ToEmote(),
+					////Navigation.Left.ToEmote(),
+					////Navigation.Right.ToEmote(),
 					Navigation.Yes.ToEmote(),
 					Navigation.No.ToEmote(),
 				});
@@ -106,30 +112,37 @@ namespace KupoNuts.Bot.Pages
 
 		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
 		{
-			if (this.message == null || this.User == null || this.currentPage == null)
-				return;
-
-			if (message.Id != this.message.Id)
-				return;
-
-			if (reaction.UserId != Program.DiscordClient.CurrentUser.Id)
-				await this.message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-
-			if (reaction.UserId != this.User.Id)
-				return;
-
-			Navigation nav = NavigationExtensions.GetNavigation(reaction.Emote);
-			if (nav == Navigation.None)
-				return;
-
-			if (this.timeout != null)
+			try
 			{
-				this.timeout.Stop();
-				this.timeout.Start();
-			}
+				if (this.message == null || this.User == null || this.currentPage == null)
+					return;
 
-			await this.currentPage.Navigate(nav);
-			await this.Render();
+				if (message.Id != this.message.Id)
+					return;
+
+				if (reaction.UserId != Program.DiscordClient.CurrentUser.Id)
+					await this.message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+
+				if (reaction.UserId != this.User.Id)
+					return;
+
+				Navigation nav = NavigationExtensions.GetNavigation(reaction.Emote);
+				if (nav == Navigation.None)
+					return;
+
+				if (this.timeout != null)
+				{
+					this.timeout.Stop();
+					this.timeout.Start();
+				}
+
+				await this.currentPage.Navigate(nav);
+				await this.Render();
+			}
+			catch (Exception ex)
+			{
+				Log.Write(ex);
+			}
 		}
 
 		private void OnTimeout(object sender, ElapsedEventArgs e)

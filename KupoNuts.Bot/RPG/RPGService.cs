@@ -10,6 +10,8 @@ namespace KupoNuts.Bot.RPG
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
+	using KupoNuts.Bot.Pages;
+	using KupoNuts.Bot.RPG.ProfilePages;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.RPG;
 
@@ -29,6 +31,14 @@ namespace KupoNuts.Bot.RPG
 				throw new Exception("RPG Service is not running");
 
 			return await instance.rpgDatabase.LoadOrCreate(user.Id.ToString());
+		}
+
+		public static async Task<Status> GetStatus(string id)
+		{
+			if (instance == null)
+				throw new Exception("RPG Service is not running");
+
+			return await instance.rpgDatabase.LoadOrCreate(id);
 		}
 
 		public static async Task SaveStatus(Status status)
@@ -82,19 +92,26 @@ namespace KupoNuts.Bot.RPG
 		}
 
 		[Command("Shop", Permissions.Everyone, "opens the item shop")]
+		[Command("Store", Permissions.Everyone, "opens the item shop")]
 		public void Store(CommandMessage message)
 		{
 			RPG.Store.BeginStore(message.Channel, message.Author);
 		}
 
 		[Command("Profile", Permissions.Everyone, "Shows your current profile")]
-		public async Task<Embed> ShowProfile(CommandMessage message)
+		public async Task<bool> ShowProfile(CommandMessage message)
 		{
-			return await this.ShowProfile(message.Author);
+			Status status = await this.rpgDatabase.LoadOrCreate(message.Author.Id.ToString());
+
+			PageRenderer profileRenderer = new PageRenderer();
+			await profileRenderer.Create(message.Channel, message.Author, status.ToEmbed(message.Author));
+			await profileRenderer.SetPage(new ProfilePage(status));
+
+			return true;
 		}
 
 		[Command("Profile", Permissions.Everyone, "Shows the profile of the specified user")]
-		public async Task<Embed> ShowProfile(IGuildUser user)
+		public async Task<Embed> ShowProfile(CommandMessage message, IGuildUser user)
 		{
 			Status status = await this.rpgDatabase.LoadOrCreate(user.Id.ToString());
 			return status.ToEmbed(user);

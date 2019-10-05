@@ -18,11 +18,24 @@ namespace KupoNuts.Bot.RPG
 				return Task.FromResult(user.GetName() + " is now level " + status.Level);
 			}),
 
-			new StatusConsumable(0, "Level Up x10", "Increases your character level by 10", 100, (user, status) =>
+			new StatusConsumable(1, "Level Up x10", "Increases your character level by 10", 100, (user, status) =>
 			{
 				status.Level += 10;
 				return Task.FromResult(user.GetName() + " is now level " + status.Level);
 			}),
 		};
+
+		public static ItemBase GetItem(int id)
+		{
+			foreach (ItemBase item in Items)
+			{
+				if (item.Id == id)
+				{
+					return item;
+				}
+			}
+
+			throw new Exception("Unknown item: " + id);
+		}
 	}
 }

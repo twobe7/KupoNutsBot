@@ -27,6 +27,9 @@ namespace KupoNuts.Bot.Pages
 
 			if (nav == Navigation.Yes)
 			{
+				if (this.GetItemCount() <= 0)
+					return;
+
 				await this.Select(this.selectedIndex);
 			}
 		}
@@ -43,23 +46,31 @@ namespace KupoNuts.Bot.Pages
 		{
 			StringBuilder builder = new StringBuilder();
 
-			for (int i = 0; i < this.GetItemCount(); i++)
+			int count = this.GetItemCount();
+			if (count > 0)
 			{
-				if (i == this.selectedIndex)
+				for (int i = 0; i < this.GetItemCount(); i++)
 				{
-					builder.Append(cursorEmote);
-				}
-				else
-				{
-					builder.Append(Utils.Characters.DoubleTab);
-					builder.Append(Utils.Characters.Space);
+					if (i == this.selectedIndex)
+					{
+						builder.Append(cursorEmote);
+					}
+					else
+					{
+						builder.Append(Utils.Characters.DoubleTab);
+						builder.Append(Utils.Characters.Space);
+					}
+
+					builder.AppendLine(this.GetItemName(i));
 				}
 
-				builder.AppendLine(this.GetItemName(i));
+				builder.AppendLine();
+				builder.AppendLine(this.GetItemDesc(this.selectedIndex));
 			}
-
-			builder.AppendLine();
-			builder.AppendLine(this.GetItemDesc(this.selectedIndex));
+			else
+			{
+				builder.AppendLine("Empty");
+			}
 
 			return Task.FromResult(builder.ToString());
 		}

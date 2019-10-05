@@ -147,6 +147,10 @@ namespace KupoNuts.Bot.Commands
 					throw ex;
 				}
 			}
+			else if (returnObject is Task<bool> tBool)
+			{
+				bool result = await tBool;
+			}
 			else if (returnObject is Task task)
 			{
 				await task;

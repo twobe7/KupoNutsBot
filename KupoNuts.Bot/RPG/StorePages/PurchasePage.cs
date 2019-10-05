@@ -32,7 +32,9 @@ namespace KupoNuts.Bot.RPG.StorePages
 			else
 			{
 				this.status.Nuts -= this.item.Cost;
-				this.status.Inventory.Add(this.item.Id);
+
+				this.status.GetOrAddItems(this.item.Id).Count++;
+
 				await RPGService.SaveStatus(this.status);
 				await this.Renderer.SetPage(new PurchaseCompletePage(this.previousPage));
 			}
