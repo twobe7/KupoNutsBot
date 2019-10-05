@@ -15,6 +15,7 @@ namespace KupoNuts.Bot
 	using KupoNuts.Bot.Lodestone;
 	using KupoNuts.Bot.Polls;
 	using KupoNuts.Bot.Quotes;
+	using KupoNuts.Bot.RPG;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.Bot.Status;
 
@@ -78,7 +79,7 @@ namespace KupoNuts.Bot
 				await this.AddService<StatusService>();
 				await this.AddService<ReminderService>();
 				await this.AddService<EchoService>();
-				await this.AddService<KarmaService>();
+				await this.AddService<RPGService>();
 				await this.AddService<PollService>();
 				await this.AddService<CharacterService>();
 				await this.AddService<LodestoneService>();

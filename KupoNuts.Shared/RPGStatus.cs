@@ -2,8 +2,9 @@
 
 namespace KupoNuts
 {
-	public class Karma : EntryBase
+	public class RPGStatus : EntryBase
 	{
-		public int Count = 10;
+		public int Level = 1;
+		public int Nuts = 10;
 	}
 }
