@@ -2,22 +2,22 @@
 
 namespace KupoNuts.Bot.RPG
 {
-	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
 	using Discord;
-	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNuts.Bot.Pages;
+	using KupoNuts.Bot.RPG.StorePages;
+	using KupoNuts.RPG;
 
 	public class Store
 	{
-		public static IEmote CloseEmote = Emote.Parse("<:No:604942582589423618>");
-
 		private static List<Store> stores = new List<Store>();
 
 		private ISocketMessageChannel channel;
 		private IGuildUser user;
-		private RestUserMessage? message;
+
+		private PageRenderer pageRenderer = new PageRenderer();
 
 		public Store(ISocketMessageChannel channel, IGuildUser user)
 		{
@@ -35,35 +35,6 @@ namespace KupoNuts.Bot.RPG
 			store.Open();
 		}
 
-		public void Open()
-		{
-			Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
-
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = "Kupo Nut Shop - " + this.user.GetName();
-
-			this.UpdateStore(builder.Build());
-		}
-
-		public void Close()
-		{
-			Program.DiscordClient.ReactionAdded -= this.OnReactionAdded;
-
-			_ = Task.Run(async () =>
-			{
-				if (this.message == null)
-					return;
-
-				await this.message.ModifyAsync(x =>
-				{
-					x.Embed = null;
-					x.Content = "Thanks for shopping with Kupo Nuts!";
-				});
-
-				await this.message.RemoveAllReactionsAsync();
-			});
-		}
-
 		private static Store? GetStore(IGuildUser user)
 		{
 			foreach (Store store in stores)
@@ -77,48 +48,25 @@ namespace KupoNuts.Bot.RPG
 			return null;
 		}
 
-		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
-		{
-			if (this.message == null)
-				return;
-
-			if (message.Id != this.message.Id)
-				return;
-
-			if (reaction.UserId != Program.DiscordClient.CurrentUser.Id)
-				await this.message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-
-			if (reaction.UserId != this.user.Id)
-				return;
-
-			if (reaction.Emote.Name == CloseEmote.Name)
-			{
-				this.Close();
-			}
-		}
-
-		private void UpdateStore(Embed embed)
+		private void Open()
 		{
 			_ = Task.Run(async () =>
 			{
-				await this.UpdateStoreAsync(embed);
+				Status status = await RPGService.GetStatus(this.user);
+
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.Description = "Thanks for shopping with Kupo Nuts!";
+				builder.ThumbnailUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/bye.png";
+
+				await this.pageRenderer.Create(this.channel, this.user, builder.Build());
+				await this.pageRenderer.SetPage(new ItemsList(status));
 			});
 		}
 
-		private async Task UpdateStoreAsync(Embed embed)
+		private void Close()
 		{
-			if (this.message == null)
-			{
-				this.message = await this.channel.SendMessageAsync(null, false, embed);
-				await this.message.AddReactionsAsync(new IEmote[] { CloseEmote });
-			}
-			else
-			{
-				await this.message.ModifyAsync(x =>
-				{
-					x.Embed = embed;
-				});
-			}
+			_ = Task.Run(this.pageRenderer.Destroy);
+			stores.Remove(this);
 		}
 	}
 }

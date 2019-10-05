@@ -11,18 +11,38 @@ namespace KupoNuts.Bot.RPG
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.RPG;
 
 	public class RPGService : ServiceBase
 	{
 		public static string NutEmoteStr = "<:kupo_nut:629887117819904020>";
 		public static IEmote NutEmote = Emote.Parse(NutEmoteStr);
 
-		private const double KarmaGenerationChance = 0.05;
+		private const double GenerationChance = 0.05;
+		private static RPGService? instance;
 
-		private Database<RPGStatus> rpgDatabase = new Database<RPGStatus>("RPG", 1);
+		private Database<Status> rpgDatabase = new Database<Status>("RPG", 1);
+
+		public static async Task<Status> GetStatus(IGuildUser user)
+		{
+			if (instance == null)
+				throw new Exception("RPG Service is not running");
+
+			return await instance.rpgDatabase.LoadOrCreate(user.Id.ToString());
+		}
+
+		public static async Task SaveStatus(Status status)
+		{
+			if (instance == null)
+				throw new Exception("RPG Service is not running");
+
+			await instance.rpgDatabase.Save(status);
+		}
 
 		public override async Task Initialize()
 		{
+			instance = this;
+
 			await base.Initialize();
 			await this.rpgDatabase.Connect();
 
@@ -44,7 +64,7 @@ namespace KupoNuts.Bot.RPG
 
 			Log.Write(fromUser.GetName() + " sent a Kupo Nut to " + destinationUser.GetName() + " (command)", "Bot");
 
-			(RPGStatus fromKarma, RPGStatus toKarma) = await this.SendNut(fromUser, destinationUser, count);
+			(Status fromKarma, Status toKarma) = await this.SendNut(fromUser, destinationUser, count);
 
 			StringBuilder messageBuilder = new StringBuilder();
 			messageBuilder.Append("Hey ");
@@ -76,16 +96,16 @@ namespace KupoNuts.Bot.RPG
 		[Command("Profile", Permissions.Everyone, "Shows the profile of the specified user")]
 		public async Task<Embed> ShowProfile(IGuildUser user)
 		{
-			RPGStatus status = await this.rpgDatabase.LoadOrCreate(user.Id.ToString());
+			Status status = await this.rpgDatabase.LoadOrCreate(user.Id.ToString());
 			return status.ToEmbed(user);
 		}
 
 		[Command("KupoNuts", Permissions.Everyone, "Shows the kupo nut leaderboards")]
 		public async Task<Embed> ShowLeaders(CommandMessage message)
 		{
-			List<RPGStatus> statuses = await this.rpgDatabase.LoadAll();
+			List<Status> statuses = await this.rpgDatabase.LoadAll();
 
-			statuses.Sort((RPGStatus a, RPGStatus b) =>
+			statuses.Sort((Status a, Status b) =>
 			{
 				return -a.Nuts.CompareTo(b.Nuts);
 			});
@@ -94,7 +114,7 @@ namespace KupoNuts.Bot.RPG
 
 			StringBuilder builder = new StringBuilder();
 			int count = 0;
-			foreach (RPGStatus status in statuses)
+			foreach (Status status in statuses)
 			{
 				count++;
 
@@ -136,13 +156,13 @@ namespace KupoNuts.Bot.RPG
 				{
 					Random rn = new Random();
 					double roll = rn.NextDouble();
-					if (roll < KarmaGenerationChance)
+					if (roll < GenerationChance)
 					{
 						IGuildUser toUser = message.GetAuthor();
 
 						Log.Write(toUser.GetName() + " Found a Kupo Nut with message: \"" + message.Content + "\"", "Bot");
 
-						RPGStatus toKarma = await this.rpgDatabase.LoadOrCreate(toUser.Id.ToString());
+						Status toKarma = await this.rpgDatabase.LoadOrCreate(toUser.Id.ToString());
 						toKarma.Nuts++;
 						await this.rpgDatabase.Save(toKarma);
 						await restMessage.AddReactionAsync(NutEmote);
@@ -185,9 +205,9 @@ namespace KupoNuts.Bot.RPG
 			}
 		}
 
-		private async Task<(RPGStatus, RPGStatus)> SendNut(IGuildUser fromUser, IGuildUser toUser, int count)
+		private async Task<(Status, Status)> SendNut(IGuildUser fromUser, IGuildUser toUser, int count)
 		{
-			RPGStatus fromStatus = await this.rpgDatabase.LoadOrCreate(fromUser.Id.ToString());
+			Status fromStatus = await this.rpgDatabase.LoadOrCreate(fromUser.Id.ToString());
 
 			if (fromStatus.Nuts <= count)
 				throw new UserException("You dont have any more kupo nuts to give!");
@@ -201,7 +221,7 @@ namespace KupoNuts.Bot.RPG
 			if (toUser.Id == fromUser.Id)
 				throw new UserException("You can't send kupo nuts to yourself!");
 
-			RPGStatus toStatus = await this.rpgDatabase.LoadOrCreate(toUser.Id.ToString());
+			Status toStatus = await this.rpgDatabase.LoadOrCreate(toUser.Id.ToString());
 
 			fromStatus.Nuts--;
 			toStatus.Nuts++;

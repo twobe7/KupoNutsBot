@@ -4,10 +4,11 @@ namespace KupoNuts.Bot.RPG
 {
 	using System.Text;
 	using Discord;
+	using KupoNuts.RPG;
 
-	public static class RPGStatusExtensions
+	public static class StatusExtensions
 	{
-		public static Embed ToEmbed(this RPGStatus status, IGuildUser user)
+		public static Embed ToEmbed(this Status status, IGuildUser user)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 
