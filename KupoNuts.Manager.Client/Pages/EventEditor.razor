@@ -7,80 +7,88 @@
 @inject IModalService Modal
 @inject NavigationManager NavigationManager
 
-<div class="form-row">
-	<!-- Name -->
-	<div class="form-group col-md-6">
-		<label for="eventName">Name</label>
-		<input type="text" class="form-control" id="eventName" name="eventName" placeholder="Enter event name" @bind="this.evt.Name" />
-	</div>
-
-	<!--  Notify -->
-	<div class="form-group col-md-6">
-		<label for="channelSelect">Notification</label>
-		<select class="custom-select" id="notifySelect" name="notifySelect" @bind="this.NotifyDuration">
-			@foreach (KeyValuePair<string, double> notify in this.NotifyList)
-			{
-				<option value=@notify.Value>@notify.Key</option>
-			}
-		</select>
-	</div>
-</div>
-
-<div class="form-row">
-	<!--  Description -->
-	<div class="form-group col-md-12">
-		<label for="eventDesc">Description</label>
-		<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="this.evt.Description"></textarea>
-	</div>
-</div>
-
-<div class="form-row">
-	<!-- Short description-->
-	<div class="form-group col-md-12">
-		<label for="eventShortDesc">Short Description</label>
-		<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.evt.ShortDescription" />
-	</div>
-</div>
-
-<div class="form-row">
-	<!-- Image URL -->
-	<div class="form-group col-md-12">
-		<label for="eventImage">Image URL</label>
-		<input type="text" class="form-control" id="eventImage" name="eventImage" placeholder="Enter a URL to an image" @bind="this.evt.Image" />
-	</div>
-</div>
-
-<div class="form-row">
-	<!--  Channel -->
-	<div class="form-group col-md-6">
-		<label for="channelSelect">Discord Channel</label>
-		<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
-			@foreach (Channel channl in this.ChannelList)
-			{
-				<option value=@channl.DiscordId>@channl.Name</option>
-			}
-		</select>
-	</div>
-
-	<!--  Color -->
-	<div class="form-group col-md-6">
-		<label for="colorSelect">Color</label>
-		<select class="custom-select" id="colorSelect" name="colorSelect" @bind="this.Color">
-			@foreach (string color in this.ColorList)
-			{
-				<option value=@color>@color</option>
-			}
-		</select>
-	</div>
-</div>
-
-
-@for (int i = 0; i < 8; i++)
+@if (this.IsLoading)
 {
-	IsoDayOfWeek day = (IsoDayOfWeek)i;
-	<EventRepeatEditor Event="this.evt" Day="day"/>
+	<div class="form-row">
+		Loading
+	</div>
 }
+else
+{
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-6">
+			<label for="eventName">Name</label>
+			<input type="text" class="form-control" id="eventName" name="eventName" placeholder="Enter event name" @bind="this.evt.Name" />
+		</div>
 
+		<!--  Notify -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Notification</label>
+			<select class="custom-select" id="notifySelect" name="notifySelect" @bind="this.NotifyDuration">
+				@foreach (KeyValuePair<string, double> notify in this.NotifyList)
+				{
+					<option value=@notify.Value>@notify.Key</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Description -->
+		<div class="form-group col-md-12">
+			<label for="eventDesc">Description</label>
+			<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="this.evt.Description"></textarea>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Short description-->
+		<div class="form-group col-md-12">
+			<label for="eventShortDesc">Short Description</label>
+			<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.evt.ShortDescription" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Image URL -->
+		<div class="form-group col-md-12">
+			<label for="eventImage">Image URL</label>
+			<input type="text" class="form-control" id="eventImage" name="eventImage" placeholder="Enter a URL to an image" @bind="this.evt.Image" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Discord Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+
+		<!--  Color -->
+		<div class="form-group col-md-6">
+			<label for="colorSelect">Color</label>
+			<select class="custom-select" id="colorSelect" name="colorSelect" @bind="this.Color">
+				@foreach (string color in this.ColorList)
+				{
+					<option value=@color>@color</option>
+				}
+			</select>
+		</div>
+	</div>
+
+
+	@for (int i = 0; i < 8; i++)
+	{
+		IsoDayOfWeek day = (IsoDayOfWeek)i;
+		<EventRepeatEditor Event="this.evt" Day="day" />
+	}
+}
 
 <div class="modal-footer">
 	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
@@ -91,7 +99,10 @@
 
 
 @code {
-	[CascadingParameter] ModalParameters Parameters { get; set; }
+	[CascadingParameter]
+	ModalParameters Parameters { get; set; }
+
+	public bool IsLoading { get; set; }
 
 	public List<Channel> ChannelList { get; set; }
 	public List<String> ColorList { get; set; }
@@ -143,6 +154,7 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		this.IsLoading = true;
 		Authentication.Initialize(this.Http, this.NavigationManager);
 
 		await base.OnInitializedAsync();
@@ -158,13 +170,14 @@
 		};
 
 		this.ChannelList = new List<Channel>()
-{
+		{
 			new Channel(0, "None", KupoNuts.Channel.Types.Unknown),
 		};
 
 		this.evt = Parameters.Get<Event>("Event");
 
 		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, KupoNuts.Channel.Types.Text));
+		this.IsLoading = false;
 	}
 
 	private void OnSave()
@@ -181,4 +194,4 @@
 	{
 		this.Modal.Close(ModalResult.Ok(new DataAction<Event>(this.evt, Actions.Delete)));
 	}
-}
+	}
