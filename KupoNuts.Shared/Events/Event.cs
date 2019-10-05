@@ -45,6 +45,7 @@ namespace KupoNuts.Events
 		public string Name { get; set; } = "New Event";
 		public string? ShortDescription { get; set; }
 		public string? Description { get; set; }
+		public string? Message { get; set; }
 		public string? Image { get; set; }
 		public Colors Color { get; set; }
 

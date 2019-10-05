@@ -43,10 +43,16 @@ else
 	</div>
 
 	<div class="form-row">
-		<!-- Short description-->
-		<div class="form-group col-md-12">
+		<!-- Short description -->
+		<div class="form-group col-md-6">
 			<label for="eventShortDesc">Short Description</label>
 			<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.evt.ShortDescription" />
+		</div>
+
+		<!-- Message -->
+		<div class="form-group col-md-6">
+			<label for="eventMessage">Message</label>
+			<input type="text" class="form-control" id="eventMessage" name="eventMessage" @bind="this.evt.Message" />
 		</div>
 	</div>
 

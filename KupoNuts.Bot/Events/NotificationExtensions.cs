@@ -82,7 +82,7 @@ namespace KupoNuts.Bot.Events
 			RestUserMessage? message = await self.GetMessage(evt);
 			if (message is null)
 			{
-				message = await channel.SendMessageAsync(null, false, builder.Build());
+				message = await channel.SendMessageAsync(evt.Message, false, builder.Build());
 				self.MessageId = message.Id.ToString();
 
 				List<IEmote> reactions = new List<IEmote>();
@@ -107,6 +107,7 @@ namespace KupoNuts.Bot.Events
 				await message.ModifyAsync(x =>
 				{
 					x.Embed = builder.Build();
+					x.Content = evt.Message;
 				});
 			}
 		}
