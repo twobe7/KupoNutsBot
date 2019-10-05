@@ -14,15 +14,16 @@ namespace KupoNuts.Bot.RPG.StorePages
 	{
 		private readonly ItemBase item;
 		private readonly Status status;
+		private readonly PageBase previousPage;
 
 		public PurchasePage(ItemBase item, Status status, PageBase previousPage)
-			: base(previousPage)
 		{
 			this.item = item;
 			this.status = status;
+			this.previousPage = previousPage;
 		}
 
-		public override async Task Confirm()
+		protected override async Task Confirm()
 		{
 			if (this.item.Cost > this.status.Nuts)
 			{
@@ -30,8 +31,16 @@ namespace KupoNuts.Bot.RPG.StorePages
 			}
 			else
 			{
-				// do purchase...
+				this.status.Nuts -= this.item.Cost;
+				this.status.Inventory.Add(this.item.Id);
+				await RPGService.SaveStatus(this.status);
+				await this.Renderer.SetPage(new PurchaseCompletePage(this.previousPage));
 			}
+		}
+
+		protected override async Task Cancel()
+		{
+			await this.Renderer.SetPage(this.previousPage);
 		}
 
 		protected override string GetTitle()

@@ -54,6 +54,8 @@ namespace KupoNuts.Bot.RPG.StorePages
 
 			builder.Append(" ");
 			builder.Append(item.Cost);
+			builder.Append(" ");
+			builder.Append(RPGService.NutEmoteStr);
 
 			return builder.ToString();
 		}
@@ -69,7 +71,8 @@ namespace KupoNuts.Bot.RPG.StorePages
 
 			builder.Append("You have ");
 			builder.Append(this.status.Nuts.ToString());
-			builder.AppendLine(" Kupo Nuts");
+			builder.Append(" ");
+			builder.AppendLine(RPGService.NutEmoteStr);
 			builder.AppendLine();
 
 			builder.Append(await base.GetContent());

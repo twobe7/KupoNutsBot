@@ -6,13 +6,6 @@ namespace KupoNuts.Bot.Pages
 
 	public abstract class DialogPage : PageBase
 	{
-		private readonly PageBase previousPage;
-
-		public DialogPage(PageBase previousPage)
-		{
-			this.previousPage = previousPage;
-		}
-
 		public override async Task Navigate(Navigation nav)
 		{
 			if (nav == Navigation.Yes)
@@ -25,11 +18,8 @@ namespace KupoNuts.Bot.Pages
 			}
 		}
 
-		public abstract Task Confirm();
+		protected abstract Task Confirm();
 
-		protected async Task Cancel()
-		{
-			await this.Renderer.SetPage(this.previousPage);
-		}
+		protected abstract Task Cancel();
 	}
 }
