@@ -68,7 +68,7 @@ namespace KupoNuts.Bot.RPG
 		}
 
 		[Command("SendKupoNuts", Permissions.Everyone, "Sends kupo nuts to the specified user")]
-		public async Task SendNuts(CommandMessage message, IGuildUser destinationUser, int count = 1)
+		public async Task<(string, Embed)> SendNuts(CommandMessage message, IGuildUser destinationUser, int count = 1)
 		{
 			IGuildUser fromUser = message.Author;
 
@@ -90,7 +90,8 @@ namespace KupoNuts.Bot.RPG
 			embedBuilder.AddField(fromUser.GetName(), fromKarma.Nuts);
 			embedBuilder.AddField(destinationUser.GetName(), toKarma.Nuts);
 
-			await message.Channel.SendMessageAsync(messageBuilder.ToString(), false, embedBuilder.Build());
+			return (messageBuilder.ToString(), embedBuilder.Build());
+			////await message.Channel.SendMessageAsync(messageBuilder.ToString(), false, embedBuilder.Build());
 		}
 
 		[Command("Shop", Permissions.Everyone, "opens the item shop")]
