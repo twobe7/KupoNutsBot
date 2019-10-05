@@ -3,6 +3,7 @@
 namespace KupoNuts.Bot.Pages
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Threading.Tasks;
 	using System.Timers;
 	using Discord;
@@ -11,6 +12,8 @@ namespace KupoNuts.Bot.Pages
 
 	public class PageRenderer
 	{
+		private static List<PageRenderer> pageRenderers = new List<PageRenderer>();
+
 		private PageBase? currentPage;
 		private RestUserMessage? message;
 		private ISocketMessageChannel? channel;
@@ -30,8 +33,17 @@ namespace KupoNuts.Bot.Pages
 			}
 		}
 
-		public Task Create(ISocketMessageChannel channel, IGuildUser user, Embed? destroyedEmbed = null)
+		public async Task Create(ISocketMessageChannel channel, IGuildUser user, Embed? destroyedEmbed = null)
 		{
+			for (int i = pageRenderers.Count - 1; i >= 0; i--)
+			{
+				PageRenderer renderer = pageRenderers[i];
+				if (renderer.User == user)
+				{
+					await renderer.Destroy();
+				}
+			}
+
 			this.channel = channel;
 			this.user = user;
 			this.destroyedEmbed = destroyedEmbed;
@@ -39,9 +51,9 @@ namespace KupoNuts.Bot.Pages
 			this.timeout.Elapsed += this.OnTimeout;
 			this.timeout.Start();
 
-			Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
+			pageRenderers.Add(this);
 
-			return Task.CompletedTask;
+			Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
 		}
 
 		public async Task SetPage(PageBase page)
@@ -54,6 +66,9 @@ namespace KupoNuts.Bot.Pages
 
 		public async Task Destroy()
 		{
+			if (this.destroyed)
+				return;
+
 			this.destroyed = true;
 			Program.DiscordClient.ReactionAdded -= this.OnReactionAdded;
 
@@ -75,6 +90,8 @@ namespace KupoNuts.Bot.Pages
 					await this.message.DeleteAsync();
 				}
 			}
+
+			pageRenderers.Remove(this);
 		}
 
 		private async Task Render()
