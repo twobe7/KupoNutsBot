@@ -10,8 +10,7 @@ namespace KupoNuts.Bot.RPG
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
-	using KupoNuts.Bot.Pages;
-	using KupoNuts.Bot.RPG.ProfilePages;
+	using KupoNuts.Bot.RPG.Items;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.RPG;
 
@@ -102,15 +101,9 @@ namespace KupoNuts.Bot.RPG
 		}
 
 		[Command("Profile", Permissions.Everyone, "Shows your current profile")]
-		public async Task<bool> ShowProfile(CommandMessage message)
+		public async Task<Embed> ShowProfile(CommandMessage message)
 		{
-			Status status = await this.rpgDatabase.LoadOrCreate(message.Author.Id.ToString());
-
-			PageRenderer profileRenderer = new PageRenderer();
-			await profileRenderer.Create(message.Channel, message.Author, status.ToEmbed(message.Author));
-			await profileRenderer.SetPage(new ProfilePage(status));
-
-			return true;
+			return await this.ShowProfile(message, message.Author);
 		}
 
 		[Command("Profile", Permissions.Everyone, "Shows the profile of the specified user")]
@@ -158,6 +151,58 @@ namespace KupoNuts.Bot.RPG
 			embedBuilder.Title = "Kupo Nut Leaderboard";
 			embedBuilder.Description = builder.ToString();
 			return embedBuilder.Build();
+		}
+
+		[Command("UseItem", Permissions.Everyone, "Uses an item from your inventory")]
+		public async Task<string> UseItem(CommandMessage message, string itemName)
+		{
+			return await this.UseItem(message, itemName, message.Author);
+		}
+
+		[Command("UseItem", Permissions.Everyone, "Uses an item from your inventory")]
+		public async Task<string> UseItem(CommandMessage message, string itemName, IGuildUser target)
+		{
+			ItemBase item;
+			try
+			{
+				item = ItemDatabase.FindItem(itemName);
+			}
+			catch (Exception)
+			{
+				throw new UserException("I couldn't find the item: \"" + itemName + "\"");
+			}
+
+			return await this.UseItem(message, item.Id, target);
+		}
+
+		[Command("UseItem", Permissions.Everyone, "Uses an item from your inventory")]
+		public async Task<string> UseItem(CommandMessage message, int itemId, IGuildUser target)
+		{
+			Status status = await this.rpgDatabase.LoadOrCreate(message.Author.Id.ToString());
+
+			ItemBase item;
+			try
+			{
+				item = ItemDatabase.GetItem(itemId);
+			}
+			catch (Exception)
+			{
+				throw new UserException("I couldn't find the item: " + itemId);
+			}
+
+			Status.ItemStack? stack = status.GetItem(item.Id);
+
+			if (stack == null)
+				throw new UserException("You dont have any " + item.Name);
+
+			if (item is Consumable consume)
+			{
+				return await consume.Use(message.Author, target);
+			}
+			else
+			{
+				throw new UserException("That item cannot be consumed");
+			}
 		}
 
 		private async Task OnMessageReceived(SocketMessage message)

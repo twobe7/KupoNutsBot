@@ -23,7 +23,22 @@ namespace KupoNuts.Bot.RPG
 				status.Level += 10;
 				return Task.FromResult(user.GetName() + " is now level " + status.Level);
 			}),
+
+			new MacroItem(2, "Wet fish", "a slippery salmon", 1, "<me> hits <t> in the face with a wet fish!"),
 		};
+
+		public static ItemBase FindItem(string itemName)
+		{
+			foreach (ItemBase item in Items)
+			{
+				if (item.Name.ToLower() == itemName.ToLower())
+				{
+					return item;
+				}
+			}
+
+			throw new Exception("Unknown item: " + itemName);
+		}
 
 		public static ItemBase GetItem(int id)
 		{

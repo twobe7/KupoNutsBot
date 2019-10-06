@@ -2,8 +2,11 @@
 
 namespace KupoNuts.Bot.RPG
 {
+	using System.Collections.Generic;
 	using System.Text;
 	using Discord;
+	using KupoNuts.Bot.Commands;
+	using KupoNuts.Bot.RPG.Items;
 	using KupoNuts.RPG;
 
 	public static class StatusExtensions
@@ -24,9 +27,66 @@ namespace KupoNuts.Bot.RPG
 			descBuilder.AppendLine(status.Nuts.ToString());
 			descBuilder.AppendLine();
 
+			if (status.GetNumItems() > 0)
+			{
+				descBuilder.AppendLine("__Inventory__");
+				foreach (Status.ItemStack stack in status.Inventory)
+				{
+					if (stack.Count <= 0)
+						continue;
+
+					ItemBase item = ItemDatabase.GetItem(stack.ItemId);
+
+					descBuilder.Append(item.Name);
+
+					if (stack.Count > 1)
+					{
+						descBuilder.Append(" x");
+						descBuilder.Append(stack.Count);
+					}
+
+					descBuilder.AppendLine();
+				}
+
+				descBuilder.AppendLine();
+				descBuilder.Append("Use an item with the command: ");
+				descBuilder.Append(CommandsService.CommandPrefixes.GetRandom());
+				descBuilder.AppendLine("UseItem \"Item Name\" @target");
+			}
+
 			builder.Description = descBuilder.ToString();
 
 			return builder.Build();
+		}
+
+		public static int GetNumItems(this Status status)
+		{
+			int itemCount = 0;
+			foreach (Status.ItemStack stack in status.Inventory)
+			{
+				if (stack.Count <= 0)
+					continue;
+
+				itemCount++;
+			}
+
+			return itemCount;
+		}
+
+		public static Status.ItemStack? GetItem(this Status status, int id)
+		{
+			foreach (Status.ItemStack stack in status.Inventory)
+			{
+				if (stack.Count <= 0)
+					continue;
+
+				if (stack.ItemId == id)
+				{
+					return stack;
+				}
+			}
+
+			return null;
 		}
 	}
 }
