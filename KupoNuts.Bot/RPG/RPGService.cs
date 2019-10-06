@@ -102,8 +102,6 @@ namespace KupoNuts.Bot.RPG
 				return Task.FromResult(user.GetName() + " is now level " + status.Level);
 			}));
 
-			RPGService.Items.Add(new MacroItem("2", "Wet fish", "a slippery salmon", 1, "<me> hits <t> in the face with a wet fish!"));
-
 			List<Item> items = await this.itemDatabase.LoadAll();
 			foreach (Item item in items)
 			{

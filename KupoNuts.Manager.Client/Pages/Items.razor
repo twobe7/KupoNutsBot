@@ -60,10 +60,10 @@ else
 
 	protected void OnEdit(Item item)
 	{
-		/*ModalParameters parameters = new ModalParameters();
-		parameters.Add("Event", item);
-		this.Modal.Show("Edit Item", typeof(EventEditor), parameters);
-		this.Modal.OnClose += this.OnModalClosed;*/
+		ModalParameters parameters = new ModalParameters();
+		parameters.Add("Item", item);
+		this.Modal.Show("Edit Item", typeof(ItemEditor), parameters);
+		this.Modal.OnClose += this.OnModalClosed;
 	}
 
 	protected void OnCreateNew()
