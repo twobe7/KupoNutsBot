@@ -124,13 +124,28 @@ namespace KupoNuts.Events
 
 		public void GetRepeatOccurance(IsoDayOfWeek day, ref List<Occurance> occurances)
 		{
-			Occurance? occurance = this.GetRepeatOccurance(IsoDayOfWeek.Monday);
+			Occurance? occurance = this.GetRepeatOccurance(day);
 
 			if (occurance == null)
 				return;
 
-			if (occurance.GetInstant() < TimeUtils.Now)
+			Instant instant = occurance.GetInstant();
+			if (instant < TimeUtils.Now)
 				return;
+
+			// dont get repeats that are more than 7 days away (because they are todays!)
+			Duration durationTill = occurance.GetInstant() - TimeUtils.Now;
+			if (durationTill.Days >= 7)
+				return;
+
+			// Does this occurance happen to be the same as any other? skip.
+			foreach (Occurance existingOccurence in occurances)
+			{
+				if (existingOccurence.GetInstant() == instant)
+				{
+					return;
+				}
+			}
 
 			occurances.Add((Occurance)occurance);
 		}
