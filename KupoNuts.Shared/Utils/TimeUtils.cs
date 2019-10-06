@@ -8,6 +8,7 @@ namespace KupoNuts.Utils
 	using System.Text;
 	using KupoNuts.Events;
 	using NodaTime;
+	using NodaTime.TimeZones;
 
 	public static class TimeUtils
 	{
@@ -19,7 +20,7 @@ namespace KupoNuts.Utils
 			}
 		}
 
-		public static DateTimeZone NZST
+		public static DateTimeZone Aukland
 		{
 			get
 			{
@@ -27,7 +28,7 @@ namespace KupoNuts.Utils
 			}
 		}
 
-		public static DateTimeZone AWST
+		public static DateTimeZone Perth
 		{
 			get
 			{
@@ -35,7 +36,7 @@ namespace KupoNuts.Utils
 			}
 		}
 
-		public static DateTimeZone ACST
+		public static DateTimeZone Adelaide
 		{
 			get
 			{
@@ -43,7 +44,7 @@ namespace KupoNuts.Utils
 			}
 		}
 
-		public static DateTimeZone AEST
+		public static DateTimeZone Sydney
 		{
 			get
 			{
@@ -67,49 +68,76 @@ namespace KupoNuts.Utils
 			return GetDateString(Instant.FromDateTimeOffset((DateTimeOffset)dt));
 		}
 
-		public static string GetDateTimeString(Instant dt)
+		public static string GetDateTimeString(Instant dt, DateTimeZone? tz = null)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.AppendLine(GetDateString(dt));
-			builder.Append(GetTimeString(dt));
+			builder.AppendLine(GetDateString(dt, tz));
+			builder.Append(GetTimeString(dt, tz));
 			return builder.ToString();
 		}
 
-		public static string GetDateString(Instant? dt)
+		public static string GetDateString(Instant? dt, DateTimeZone? tz = null)
 		{
 			if (dt == null)
 				return string.Empty;
 
-			return GetDateString((Instant)dt);
+			return GetDateString((Instant)dt, tz);
 		}
 
-		public static string GetDateString(Instant dt)
+		public static string GetDateString(Instant dt, DateTimeZone? tz = null)
 		{
-			return dt.InZone(AEST).ToString("dddd dd MMMM, yyyy", CultureInfo.InvariantCulture);
+			if (tz == null)
+				tz = Sydney;
+
+			return dt.InZone(tz).ToString("dddd dd MMMM, yyyy", CultureInfo.InvariantCulture);
 		}
 
-		public static string GetTimeString(Instant? dt)
+		public static string GetTimeString(Instant? dt, DateTimeZone? tz = null)
 		{
 			if (dt == null)
 				return string.Empty;
 
+			if (tz == null)
+			{
+				return GetTimeString((Instant)dt);
+			}
+			else
+			{
+				return GetTimeString((Instant)dt, tz, tz.Id);
+			}
+		}
+
+		public static string GetTimeString(Instant dt)
+		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append(dt?.InZone(AWST).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt?.InZone(AWST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
-			builder.Append(" AWST");
+			builder.Append(GetTimeString(dt, Perth, IsStandardTime(dt, Perth) ? " AWST" : " AWDT"));
 			builder.Append(" - ");
-			builder.Append(dt?.InZone(ACST).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt?.InZone(ACST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
-			builder.Append(" ACST");
+			builder.Append(GetTimeString(dt, Adelaide, IsStandardTime(dt, Adelaide) ? " ACST" : " ACDT"));
 			builder.Append(" - ");
-			builder.Append(dt?.InZone(AEST).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt?.InZone(AEST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
-			builder.Append(" AEST");
+			builder.Append(GetTimeString(dt, Sydney, IsStandardTime(dt, Sydney) ? " AEST" : " AEDT"));
 			builder.Append(" - ");
-			builder.Append(dt?.InZone(NZST).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt?.InZone(NZST).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
-			builder.Append(" NZST");
+			builder.Append(GetTimeString(dt, Aukland, IsStandardTime(dt, Aukland) ? " NZST" : " NZDT"));
 			return builder.ToString();
+		}
+
+		public static string GetTimeString(Instant dt, DateTimeZone tz, string zoneName)
+		{
+			StringBuilder builder = new StringBuilder();
+			builder.Append(dt.InZone(tz).ToString("**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt.InZone(tz).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(" ");
+			builder.Append(zoneName);
+			return builder.ToString();
+		}
+
+		public static bool IsStandardTime(Instant instant, DateTimeZone zone)
+		{
+			ZoneInterval zoneInterval = zone.GetZoneInterval(instant);
+			Offset offset = zoneInterval.Savings;
+			if (offset.Seconds > 0)
+				return false;
+
+			return true;
 		}
 
 		public static string? GetDurationString(Duration? timeNull)
@@ -250,7 +278,7 @@ namespace KupoNuts.Utils
 			return builder.ToString();
 		}
 
-		private static DateTimeZone GetTimeZone(string id)
+		public static DateTimeZone GetTimeZone(string id)
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(id);
 			if (zone == null)

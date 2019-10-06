@@ -116,53 +116,76 @@ namespace KupoNuts.Bot.Commands
 			if (parameters.Count != allParamInfos.Length || argCount != args.Length || neededArgCount != args.Length)
 				throw new ParameterException("Incorrect number of parameters. I was expecting " + neededArgCount + ", but you sent me " + args.Length + "!");
 
-			object? returnObject = this.Method.Invoke(owner, parameters.ToArray());
-
-			if (returnObject is Task<string> tString)
+			try
 			{
-				string str = await tString;
-				await message.Channel.SendMessageAsync(str);
-			}
-			else if (returnObject is Task<Embed> tEmbed)
-			{
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.Title = message.Message.Content;
-				builder.Description = WaitEmoji;
-				builder.ThumbnailUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think2.png";
-				////builder.ImageUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think.png";
-				RestUserMessage tMessage = await message.Channel.SendMessageAsync(null, false, builder.Build());
+				object? returnObject;
 
 				try
 				{
-					Embed embed = await tEmbed;
-
-					await tMessage.ModifyAsync(x =>
-					{
-						x.Embed = embed;
-					});
+					returnObject = this.Method.Invoke(owner, parameters.ToArray());
 				}
-				catch (Exception ex)
+				catch (TargetInvocationException ex)
 				{
-					await message.Channel.DeleteMessageAsync(tMessage);
-					throw ex;
+					if (ex.InnerException == null)
+						throw ex;
+
+					throw (Exception)ex.InnerException;
+				}
+
+				if (returnObject is Task<Embed> tEmbed)
+				{
+					await this.HandleInvoke(message, tEmbed);
+				}
+				else if (returnObject is Task<string> tString)
+				{
+					string str = await tString;
+					await message.Channel.SendMessageAsync(str);
+				}
+				else if (returnObject is Task<bool> tBool)
+				{
+					bool result = await tBool;
+				}
+				else if (returnObject is Task<(string, Embed)> tBoth)
+				{
+					(string msg, Embed embed) = await tBoth;
+					await message.Channel.SendMessageAsync(msg, false, embed);
+				}
+				else if (returnObject is Task task)
+				{
+					await task;
+
+					Random rn = new Random();
+					string str = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
+					await message.Channel.SendMessageAsync(str);
 				}
 			}
-			else if (returnObject is Task<bool> tBool)
+			catch (UserException ex)
 			{
-				bool result = await tBool;
+				await message.Channel.SendMessageAsync(ex.Message);
 			}
-			else if (returnObject is Task<(string, Embed)> tBoth)
-			{
-				(string msg, Embed embed) = await tBoth;
-				await message.Channel.SendMessageAsync(msg, false, embed);
-			}
-			else if (returnObject is Task task)
-			{
-				await task;
+		}
 
-				Random rn = new Random();
-				string str = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
-				await message.Channel.SendMessageAsync(str);
+		private async Task HandleInvoke(CommandMessage message, Task<Embed> task)
+		{
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.Title = message.Message.Content;
+			builder.Description = WaitEmoji;
+			builder.ThumbnailUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think2.png";
+			RestUserMessage tMessage = await message.Channel.SendMessageAsync(null, false, builder.Build());
+
+			try
+			{
+				Embed embed = await task;
+
+				await tMessage.ModifyAsync(x =>
+				{
+					x.Embed = embed;
+				});
+			}
+			catch (Exception ex)
+			{
+				await message.Channel.DeleteMessageAsync(tMessage);
+				throw ex;
 			}
 		}
 

@@ -46,6 +46,24 @@ namespace KupoNuts.Bot.Services
 			return Task.FromResult("The time is: " + TimeUtils.GetDateTimeString(now));
 		}
 
+		[Command("Time", Permissions.Everyone, "Shows the current time in the given timezone")]
+		public Task<string> Time(string timezone)
+		{
+			DateTimeZone dtz;
+
+			try
+			{
+				dtz = TimeUtils.GetTimeZone(timezone);
+			}
+			catch (Exception)
+			{
+				throw new UserException("I couldn't find that timezone! Try \"Australia/Sydney\"");
+			}
+
+			Instant now = SystemClock.Instance.GetCurrentInstant();
+			return Task.FromResult("The time is: " + TimeUtils.GetDateTimeString(now, dtz));
+		}
+
 		[Command("Blame", Permissions.Everyone, "Blames someone")]
 		public Task<string> Blame(CommandMessage message)
 		{
