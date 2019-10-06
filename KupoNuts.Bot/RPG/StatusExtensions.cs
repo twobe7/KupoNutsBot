@@ -2,6 +2,7 @@
 
 namespace KupoNuts.Bot.RPG
 {
+	using System;
 	using System.Collections.Generic;
 	using System.Text;
 	using Discord;
@@ -35,7 +36,16 @@ namespace KupoNuts.Bot.RPG
 					if (stack.Count <= 0)
 						continue;
 
-					ItemBase item = RPGService.GetItem(stack.ItemId);
+					ItemBase item;
+
+					try
+					{
+						item = RPGService.GetItem(stack.ItemId);
+					}
+					catch (Exception)
+					{
+						continue;
+					}
 
 					descBuilder.Append(item.Name);
 

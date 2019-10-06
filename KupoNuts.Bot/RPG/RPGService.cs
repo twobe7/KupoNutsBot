@@ -227,6 +227,9 @@ namespace KupoNuts.Bot.RPG
 
 			if (item is Consumable consume)
 			{
+				stack.Count--;
+				await this.rpgDatabase.Save(status);
+
 				return await consume.Use(message.Author, target);
 			}
 			else
