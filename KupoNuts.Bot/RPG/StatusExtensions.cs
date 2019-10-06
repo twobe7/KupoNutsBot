@@ -77,6 +77,16 @@ namespace KupoNuts.Bot.RPG
 				if (stack.Count <= 0)
 					continue;
 
+				ItemBase item;
+				try
+				{
+					item = RPGService.GetItem(stack.ItemId);
+				}
+				catch (Exception)
+				{
+					continue;
+				}
+
 				itemCount++;
 			}
 
