@@ -12,7 +12,7 @@ namespace KupoNuts.Bot.RPG.Items
 	{
 		private Func<IGuildUser, IGuildUser, Task<string>> func;
 
-		public Consumable(int id, string name, string desc, int cost, Func<IGuildUser, IGuildUser, Task<string>> func)
+		public Consumable(string id, string name, string desc, int cost, Func<IGuildUser, IGuildUser, Task<string>> func)
 			: base(id, name, desc, cost)
 		{
 			this.func = func;

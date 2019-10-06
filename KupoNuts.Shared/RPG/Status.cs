@@ -11,7 +11,7 @@ namespace KupoNuts.RPG
 
 		public List<ItemStack> Inventory = new List<ItemStack>();
 
-		public ItemStack GetOrAddItems(int id)
+		public ItemStack GetOrAddItems(string id)
 		{
 			foreach (ItemStack stack in this.Inventory)
 			{
@@ -30,8 +30,8 @@ namespace KupoNuts.RPG
 
 		public class ItemStack
 		{
-			public int ItemId;
-			public int Count;
+			public string ItemId = string.Empty;
+			public int Count = 0;
 		}
 	}
 }

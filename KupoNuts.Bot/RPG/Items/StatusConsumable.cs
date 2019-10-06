@@ -11,7 +11,7 @@ namespace KupoNuts.Bot.RPG.Items
 
 	public class StatusConsumable : Consumable
 	{
-		public StatusConsumable(int id, string name, string desc, int cost, Func<IGuildUser, Status, Task<string>> func)
+		public StatusConsumable(string id, string name, string desc, int cost, Func<IGuildUser, Status, Task<string>> func)
 			: base(id, name, desc, cost, async (a, b) =>
 			{
 				Status status = await RPGService.GetStatus(b);

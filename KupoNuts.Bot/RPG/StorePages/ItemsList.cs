@@ -36,12 +36,12 @@ namespace KupoNuts.Bot.RPG.StorePages
 
 		protected override int GetItemCount()
 		{
-			return ItemDatabase.Items.Count;
+			return RPGService.Items.Count;
 		}
 
 		protected override string GetItemName(int index)
 		{
-			ItemBase item = ItemDatabase.Items[index];
+			ItemBase item = RPGService.Items[index];
 
 			int pad = 50 - Utils.Characters.GetWidth(item.Name);
 
@@ -62,7 +62,7 @@ namespace KupoNuts.Bot.RPG.StorePages
 
 		protected override string GetItemDesc(int index)
 		{
-			return ItemDatabase.Items[index].Description;
+			return RPGService.Items[index].Description;
 		}
 
 		protected override async Task<string> GetContent()
@@ -84,7 +84,7 @@ namespace KupoNuts.Bot.RPG.StorePages
 			if (this.Renderer == null)
 				return;
 
-			ItemBase item = ItemDatabase.Items[index];
+			ItemBase item = RPGService.Items[index];
 			await this.Renderer.SetPage(new PurchasePage(item, this.status, this));
 		}
 	}

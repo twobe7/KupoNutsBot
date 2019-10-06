@@ -19,10 +19,13 @@ namespace KupoNuts.Bot.RPG
 		public static string NutEmoteStr = "<:kupo_nut:629887117819904020>";
 		public static IEmote NutEmote = Emote.Parse(NutEmoteStr);
 
+		public static List<ItemBase> Items = new List<ItemBase>();
+
 		private const double GenerationChance = 0.05;
 		private static RPGService? instance;
 
 		private Database<Status> rpgDatabase = new Database<Status>("RPG", 1);
+		private Database<Item> itemDatabase = new Database<Item>("RPG_Items", 1);
 
 		public static async Task<Status> GetStatus(IGuildUser user)
 		{
@@ -48,15 +51,31 @@ namespace KupoNuts.Bot.RPG
 			await instance.rpgDatabase.Save(status);
 		}
 
+		public static ItemBase GetItem(string itemName)
+		{
+			foreach (ItemBase item in Items)
+			{
+				if (item.Name.ToLower() == itemName.ToLower() || item.Id == itemName)
+				{
+					return item;
+				}
+			}
+
+			throw new Exception("Unknown item: " + itemName);
+		}
+
 		public override async Task Initialize()
 		{
 			instance = this;
 
 			await base.Initialize();
 			await this.rpgDatabase.Connect();
+			await this.itemDatabase.Connect();
 
 			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
 			Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
+
+			await this.UpdateItemDatabase();
 		}
 
 		public override Task Shutdown()
@@ -64,6 +83,36 @@ namespace KupoNuts.Bot.RPG
 			Program.DiscordClient.ReactionAdded -= this.OnReactionAdded;
 			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
 			return base.Shutdown();
+		}
+
+		[Command("UpdateItems", Permissions.Administrators, "imports the items from the item database")]
+		public async Task UpdateItemDatabase()
+		{
+			RPGService.Items.Clear();
+
+			RPGService.Items.Add(new StatusConsumable("0", "Level Up", "Increases your character level by 1", 10, (user, status) =>
+			{
+				status.Level++;
+				return Task.FromResult(user.GetName() + " is now level " + status.Level);
+			}));
+
+			RPGService.Items.Add(new StatusConsumable("1", "Level Up x10", "Increases your character level by 10", 100, (user, status) =>
+			{
+				status.Level += 10;
+				return Task.FromResult(user.GetName() + " is now level " + status.Level);
+			}));
+
+			RPGService.Items.Add(new MacroItem("2", "Wet fish", "a slippery salmon", 1, "<me> hits <t> in the face with a wet fish!"));
+
+			List<Item> items = await this.itemDatabase.LoadAll();
+			foreach (Item item in items)
+			{
+				if (item.Id == null || item.Name == null || item.Description == null || item.Cost == null || item.Macro == null)
+					continue;
+
+				MacroItem macroItem = new MacroItem((string)item.Id, (string)item.Name, (string)item.Description, (int)item.Cost, (string)item.Macro);
+				RPGService.Items.Add(macroItem);
+			}
 		}
 
 		[Command("SendKupoNuts", Permissions.Everyone, "Sends kupo nuts to the specified user")]
@@ -165,31 +214,14 @@ namespace KupoNuts.Bot.RPG
 			ItemBase item;
 			try
 			{
-				item = ItemDatabase.FindItem(itemName);
+				item = GetItem(itemName);
 			}
 			catch (Exception)
 			{
 				throw new UserException("I couldn't find the item: \"" + itemName + "\"");
 			}
 
-			return await this.UseItem(message, item.Id, target);
-		}
-
-		[Command("UseItem", Permissions.Everyone, "Uses an item from your inventory")]
-		public async Task<string> UseItem(CommandMessage message, int itemId, IGuildUser target)
-		{
 			Status status = await this.rpgDatabase.LoadOrCreate(message.Author.Id.ToString());
-
-			ItemBase item;
-			try
-			{
-				item = ItemDatabase.GetItem(itemId);
-			}
-			catch (Exception)
-			{
-				throw new UserException("I couldn't find the item: " + itemId);
-			}
-
 			Status.ItemStack? stack = status.GetItem(item.Id);
 
 			if (stack == null)

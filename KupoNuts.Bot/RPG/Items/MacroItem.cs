@@ -6,7 +6,7 @@ namespace KupoNuts.Bot.RPG.Items
 
 	public class MacroItem : Consumable
 	{
-		public MacroItem(int id, string name, string desc, int cost, string macro)
+		public MacroItem(string id, string name, string desc, int cost, string macro)
 			: base(id, name, desc, cost, (a, b) =>
 			{
 				string message = macro;

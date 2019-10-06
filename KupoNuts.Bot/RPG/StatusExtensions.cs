@@ -35,7 +35,7 @@ namespace KupoNuts.Bot.RPG
 					if (stack.Count <= 0)
 						continue;
 
-					ItemBase item = ItemDatabase.GetItem(stack.ItemId);
+					ItemBase item = RPGService.GetItem(stack.ItemId);
 
 					descBuilder.Append(item.Name);
 
@@ -73,7 +73,7 @@ namespace KupoNuts.Bot.RPG
 			return itemCount;
 		}
 
-		public static Status.ItemStack? GetItem(this Status status, int id)
+		public static Status.ItemStack? GetItem(this Status status, string id)
 		{
 			foreach (Status.ItemStack stack in status.Inventory)
 			{
