@@ -147,12 +147,14 @@ namespace KupoNuts.Bot.RPG
 			RPG.Store.BeginStore(message.Channel, message.Author);
 		}
 
+		[Command("Inventory", Permissions.Everyone, "Shows your current profile")]
 		[Command("Profile", Permissions.Everyone, "Shows your current profile")]
 		public async Task<Embed> ShowProfile(CommandMessage message)
 		{
 			return await this.ShowProfile(message, message.Author);
 		}
 
+		[Command("Inventory", Permissions.Everyone, "Shows the profile of the specified user")]
 		[Command("Profile", Permissions.Everyone, "Shows the profile of the specified user")]
 		public async Task<Embed> ShowProfile(CommandMessage message, IGuildUser user)
 		{
