@@ -4,6 +4,7 @@ namespace KupoNuts.Bot.Commands
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Diagnostics;
 	using System.Reflection;
 	using System.Threading.Tasks;
 	using Discord;
@@ -18,6 +19,7 @@ namespace KupoNuts.Bot.Commands
 		public readonly string Help;
 		public readonly WeakReference<object> Owner;
 
+		private const int EmbedTaskTimeout = 30000;
 		private const string WaitEmoji = "<a:spinner:628526494637096970>";
 
 		public Command(MethodInfo method, object owner, Permissions permissions, string help)
@@ -173,7 +175,41 @@ namespace KupoNuts.Bot.Commands
 			builder.ThumbnailUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think2.png";
 			RestUserMessage tMessage = await message.Channel.SendMessageAsync(null, false, builder.Build());
 
-			try
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+
+			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < EmbedTaskTimeout)
+				await Task.Delay(10);
+
+			if (sw.ElapsedMilliseconds >= EmbedTaskTimeout)
+			{
+				builder.Description = "I'm sorry. I seem to have lost my train of thought...";
+
+				await tMessage.ModifyAsync(x =>
+				{
+					x.Embed = builder.Build();
+				});
+
+				Log.Write("Task timeout: " + message.Message.Content, "Bot");
+			}
+
+			if (task.IsFaulted)
+			{
+				await message.Channel.DeleteMessageAsync(tMessage);
+
+				if (task.Exception != null)
+				{
+					if (task.Exception.InnerException != null)
+						throw task.Exception.InnerException;
+
+					throw task.Exception;
+				}
+				else
+				{
+					throw new Exception("Task failed");
+				}
+			}
+			else
 			{
 				Embed embed = await task;
 
@@ -181,11 +217,6 @@ namespace KupoNuts.Bot.Commands
 				{
 					x.Embed = embed;
 				});
-			}
-			catch (Exception ex)
-			{
-				await message.Channel.DeleteMessageAsync(tMessage);
-				throw ex;
 			}
 		}
 
