@@ -5,6 +5,7 @@ namespace KupoNuts.Bot.Services
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using Discord;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Utils;
@@ -69,7 +70,8 @@ namespace KupoNuts.Bot.Services
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)
 			{
-				List<SocketGuildUser> targets = new List<SocketGuildUser>();
+				List<IGuildUser> targets = new List<IGuildUser>();
+				targets.Add(message.Author);
 
 				foreach (SocketGuildUser tTarget in guildChannel.Guild.Users)
 				{
@@ -79,20 +81,17 @@ namespace KupoNuts.Bot.Services
 					targets.Add(tTarget);
 				}
 
-				if (targets.Count <= 0)
-					throw new Exception("No administrators to blame!");
-
 				Random rnd = new Random();
 				int val = rnd.Next(targets.Count);
-				SocketGuildUser target = targets[val];
+				IGuildUser target = targets[val];
 
 				if (target.Id == Program.DiscordClient.CurrentUser.Id)
-					return Task.FromResult("This is my fault.\n>>BadBot");
+					return Task.FromResult("This is my fault. =(");
 
-				return Task.FromResult("This is your fault, " + target.Mention);
+				return Task.FromResult("This is your fault, " + target.GetName() + ".");
 			}
 
-			return Task.FromResult("This is your fault, " + message.Author.Mention);
+			return Task.FromResult("This is your fault, " + message.Author.GetName() + ".");
 		}
 	}
 }
