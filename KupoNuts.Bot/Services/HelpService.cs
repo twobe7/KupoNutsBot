@@ -55,7 +55,7 @@ namespace KupoNuts.Bot.Services
 			return Regex.Replace(name, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
 		}
 
-		public static async Task GetHelp(CommandMessage message, string? command = null)
+		public static Task<Embed> GetHelp(CommandMessage message, string? command = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			Permissions permissions = CommandsService.GetPermissions(message.Author);
@@ -69,15 +69,12 @@ namespace KupoNuts.Bot.Services
 			embed.Description = builder.ToString();
 
 			if (string.IsNullOrEmpty(embed.Description))
-			{
-				await message.Channel.SendMessageAsync("I'm sorry, you dont have permission to use that command.");
-				return;
-			}
+				throw new UserException("I'm sorry, you dont have permission to use that command.");
 
-			await message.Channel.SendMessageAsync(null, false, embed.Build());
+			return Task.FromResult(embed.Build());
 		}
 
-		public static async Task GetHelp(CommandMessage message, Permissions permissions)
+		public static Task<Embed> GetHelp(CommandMessage message, Permissions permissions)
 		{
 			StringBuilder builder = new StringBuilder();
 
@@ -102,27 +99,36 @@ namespace KupoNuts.Bot.Services
 				if (count <= 0)
 					continue;
 
-				builder.AppendLine(commandString);
+				builder.Append("__");
+				builder.Append(commandString);
+				builder.Append("__ - *x");
+				builder.Append(count);
+				builder.Append("* - ");
+				builder.Append(commands[0].Help);
+				builder.AppendLine();
 			}
+
+			builder.AppendLine();
+			builder.AppendLine();
+			builder.AppendLine("To get more information on a command, look it up directly, like `" + message.CommandPrefix + "help \"time\"` or `" + message.CommandPrefix + "goodbot ?`");
 
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
 
-			string messageStr = "To get more information on a specific command, look it up directly, like `" + message.CommandPrefix + "help \"time\"` or `" + message.CommandPrefix + "goodbot ?`";
-			await message.Channel.SendMessageAsync(messageStr, false, embed.Build());
+			return Task.FromResult(embed.Build());
 		}
 
 		[Command("Help", Permissions.Everyone, "really?")]
-		public async Task Help(CommandMessage message)
+		public async Task<Embed> Help(CommandMessage message)
 		{
 			Permissions permissions = CommandsService.GetPermissions(message.Author);
-			await GetHelp(message, permissions);
+			return await GetHelp(message, permissions);
 		}
 
 		[Command("Help", Permissions.Everyone, "really really?")]
-		public async Task Help(CommandMessage message, string command)
+		public async Task<Embed> Help(CommandMessage message, string command)
 		{
-			await GetHelp(message, command);
+			return await GetHelp(message, command);
 		}
 
 		private static string? GetHelp(string commandStr, string prefix, Permissions permissions)

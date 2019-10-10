@@ -162,7 +162,8 @@ namespace KupoNuts.Bot.Commands
 
 			if (args.Count == 1 && args[0] == "?")
 			{
-				await HelpService.GetHelp(cmdMessage);
+				Embed embed = await HelpService.GetHelp(cmdMessage);
+				await message.Channel.SendMessageAsync(null, false, embed);
 				return;
 			}
 
