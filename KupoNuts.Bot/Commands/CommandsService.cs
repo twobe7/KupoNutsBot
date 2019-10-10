@@ -124,9 +124,9 @@ namespace KupoNuts.Bot.Commands
 				if (command.Length <= 0)
 					continue;
 
-				// the first letter of the input must be a letter, or a space (dont process "?????" or ">>>" as a command)
+				// the first letter of the input must be a letter or a number (dont process "?????" or ">>>" as a command)
 				char first = command[0];
-				if (!char.IsLetter(first))
+				if (!char.IsLetter(first) && !char.IsNumber(first))
 					return;
 
 				await this.ProcessCommandInput(message, prefix, command);
