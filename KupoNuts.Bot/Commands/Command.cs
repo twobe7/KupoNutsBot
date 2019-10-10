@@ -169,6 +169,14 @@ namespace KupoNuts.Bot.Commands
 
 		private async Task HandleInvoke(CommandMessage message, Task<Embed> task)
 		{
+			// early out for instant tasks
+			if (task.IsCompleted && !task.IsFaulted)
+			{
+				Embed embed = await task;
+				await message.Channel.SendMessageAsync(null, false, embed);
+				return;
+			}
+
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Title = message.Message.Content;
 			builder.Description = WaitEmoji;
