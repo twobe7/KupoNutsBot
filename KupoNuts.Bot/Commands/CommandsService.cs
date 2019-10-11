@@ -10,6 +10,7 @@ namespace KupoNuts.Bot.Commands
 	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Services;
 
@@ -173,6 +174,18 @@ namespace KupoNuts.Bot.Commands
 
 		private async Task RunCommand(string commandStr, string[] args, CommandMessage message)
 		{
+			if (Program.Initializing)
+			{
+				IUserMessage waitMessage = await message.Channel.SendMessageAsync("Just drinking my morning coffee... Give me a minute...");
+
+				while (Program.Initializing)
+				{
+					await Task.Delay(1000);
+				}
+
+				await waitMessage.DeleteAsync();
+			}
+
 			if (commandHandlers.ContainsKey(commandStr))
 			{
 				SocketTextChannel? textChannel = message.Channel as SocketTextChannel;

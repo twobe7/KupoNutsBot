@@ -43,6 +43,12 @@ namespace KupoNuts.Bot
 			private set;
 		}
 
+		public static bool Initializing
+		{
+			get;
+			private set;
+		}
+
 		public static Task Run(string[] args)
 		{
 			Log.ExceptionLogged += Log_ExceptionLogged;
@@ -71,9 +77,9 @@ namespace KupoNuts.Bot
 			try
 			{
 				await this.AddService<LogService>();
+				await this.AddService<CommandsService>();
 				await this.AddService<EventsService>();
 				await this.AddService<CalendarService>();
-				await this.AddService<CommandsService>();
 				await this.AddService<HelpService>();
 				await this.AddService<DebugService>();
 				await this.AddService<StatusService>();
@@ -125,6 +131,7 @@ namespace KupoNuts.Bot
 			try
 			{
 				Running = true;
+				Initializing = true;
 				Log.Write("Kupo Nuts Bot booting..", "Bot");
 
 				string? token = Settings.Load().Token;
@@ -154,6 +161,8 @@ namespace KupoNuts.Bot
 
 					// boot the rest of the bot
 					await this.AddServices();
+
+					Initializing = false;
 
 					while (!exiting)
 					{
