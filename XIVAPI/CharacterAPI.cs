@@ -65,6 +65,8 @@ namespace XIVAPI
 			return await Request.Send<GetResponse>("/character/" + id + "?data=" + data + "&extended=true");
 		}
 
+		#pragma warning disable SA1516
+
 		[Serializable]
 		public class SearchResponse : ResponseBase
 		{
@@ -76,42 +78,42 @@ namespace XIVAPI
 		public class GetResponse : ResponseBase
 		{
 			////public ? Achievements;
-			public bool? AchievementsPublic;
-			public Character? Character;
+			public bool? AchievementsPublic { get; set; }
+			public Character? Character { get; set; }
 			////public ? FreeCompany;
-			public List<Member>? FreeCompanyMembers;
+			public List<Member>? FreeCompanyMembers { get; set; }
 			////public List<>? Friends;
-			public bool? FriendsPublic;
-			public uint? PvPTeam;
+			public bool? FriendsPublic { get; set; }
+			public uint? PvPTeam { get; set; }
 		}
 
 		[Serializable]
 		public class Character
 		{
-			public ClassJob? ActiveClassJob;
-			public string? Avatar;
-			public string? Bio;
-			public List<ClassJob>? ClassJobs;
-			public string? DC;
-			public string? FreeCompanyId;
+			public ClassJob? ActiveClassJob { get; set; }
+			public string Avatar { get; set; } = string.Empty;
+			public string Bio { get; set; } = string.Empty;
+			public List<ClassJob>? ClassJobs { get; set; }
+			public string DC { get; set; } = string.Empty;
+			public string FreeCompanyId { get; set; } = string.Empty;
 			////public ? GearSet;
-			public uint? Gender;
-			public GrandCompany? GrandCompany;
-			public Data? GuardianDeity;
-			public uint? ID;
+			public uint Gender { get; set; }
+			public GrandCompany? GrandCompany { get; set; }
+			public Data? GuardianDeity { get; set; }
+			public uint ID { get; set; }
 			////public List<>? Minions;
 			////public List<>? Mounts;
-			public string? Name;
-			public string? Nameday;
-			public uint? ParseDate;
-			public string? Portrait;
-			public uint? PvPTeamId;
-			public Data? Race;
-			public string? Server;
-			public Data? Title;
-			public bool TitleTop;
-			public Data? Town;
-			public Data? Tribe;
+			public string Name { get; set; } = string.Empty;
+			public string Nameday { get; set; } = string.Empty;
+			public uint ParseDate { get; set; }
+			public string Portrait { get; set; } = string.Empty;
+			public uint? PvPTeamId { get; set; }
+			public Data? Race { get; set; }
+			public string Server { get; set; } = string.Empty;
+			public Data? Title { get; set; }
+			public bool TitleTop { get; set; }
+			public Data? Town { get; set; }
+			public Data? Tribe { get; set; }
 
 			public override string? ToString()
 			{
@@ -122,22 +124,22 @@ namespace XIVAPI
 		[Serializable]
 		public class Data
 		{
-			public int ID;
-			public string? Name;
-			public string? Icon;
-			public string? Url;
+			public int ID { get; set; }
+			public string Name { get; set; } = string.Empty;
+			public string Icon { get; set; } = string.Empty;
+			public string Url { get; set; } = string.Empty;
 		}
 
 		[Serializable]
 		public class Member
 		{
-			public string? Avatar;
-			public uint? FeastMatches;
-			public uint? ID;
-			public string? Name;
-			public string? Rank;
-			public string? RankIcon;
-			public string? Server;
+			public string Avatar { get; set; } = string.Empty;
+			public uint FeastMatches { get; set; }
+			public uint ID { get; set; }
+			public string Name { get; set; } = string.Empty;
+			public string Rank { get; set; } = string.Empty;
+			public string RankIcon { get; set; } = string.Empty;
+			public string Server { get; set; } = string.Empty;
 
 			public override string? ToString()
 			{
@@ -148,32 +150,32 @@ namespace XIVAPI
 		[Serializable]
 		public class ClassJob
 		{
-			public Class? Class;
-			public ulong ExpLevel = 0;
-			public ulong ExpLevelMax = 0;
-			public ulong ExpLevelTogo = 0;
-			public bool IsSpecialised = false;
-			public Class? Job;
-			public int Level = 0;
-			public string Name = string.Empty;
+			public Class? Class { get; set; }
+			public ulong ExpLevel { get; set; } = 0;
+			public ulong ExpLevelMax { get; set; } = 0;
+			public ulong ExpLevelTogo { get; set; } = 0;
+			public bool IsSpecialised { get; set; } = false;
+			public Class? Job { get; set; }
+			public int Level { get; set; } = 0;
+			public string Name { get; set; } = string.Empty;
 		}
 
 		[Serializable]
 		public class Class
 		{
-			public string? Abbreviation;
+			public string Abbreviation { get; set; } = string.Empty;
 			//// public ? ClassJobCategory
-			public uint? ID;
-			public string? Icon;
-			public string? Name;
-			public string? Url;
+			public uint ID { get; set; }
+			public string Icon { get; set; } = string.Empty;
+			public string Name { get; set; } = string.Empty;
+			public string Url { get; set; } = string.Empty;
 		}
 
 		[Serializable]
 		public class GrandCompany
 		{
-			public uint? NameID;
-			public uint? RankID;
+			public uint NameID;
+			public uint RankID;
 		}
 	}
 }

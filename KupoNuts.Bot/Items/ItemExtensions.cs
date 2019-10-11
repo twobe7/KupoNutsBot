@@ -4,12 +4,13 @@ namespace KupoNuts.Bot.Items
 {
 	using System.Text;
 	using System.Text.RegularExpressions;
+	using System.Web;
 	using Discord;
 	using XIVAPI;
 
 	public static class ItemExtensions
 	{
-		public static EmbedBuilder ToEmbed(this ItemAPI.Item self)
+		public static EmbedBuilder ToEmbed(this Item self)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Title = self.Name;
@@ -22,12 +23,28 @@ namespace KupoNuts.Bot.Items
 			desc.Append(self.GetIconInfoString());
 			desc.AppendLine();
 			desc.Append(self.GetLevelClassString());
+			desc.AppendLine();
+
+			if (!string.IsNullOrEmpty(self.Description))
+			{
+				desc.AppendLine(self.GetDescription());
+				desc.AppendLine();
+			}
+
+			// Garland tools link
+			desc.Append("[Garland Tools Database](");
+			desc.Append("http://www.garlandtools.org/db/#item/");
+			desc.Append(self.ID);
+			desc.AppendLine(")");
+
+			// gamerescape link
+			desc.Append("[Gamer Escape](");
+			desc.Append("https://ffxiv.gamerescape.com/wiki/Special:Search/");
+			desc.Append(self.Name.Replace(" ", "%20"));
+			desc.AppendLine(")");
 
 			if (self.HasMainStats())
 				builder.AddField("Stats", self.GetMainStatsString());
-
-			if (!string.IsNullOrEmpty(self.Description))
-				desc.AppendLine(self.GetDescription());
 
 			if (self.HasSecondaryStats())
 				builder.AddField("Bonuses", self.GetSecondaryStatsString());
@@ -40,19 +57,18 @@ namespace KupoNuts.Bot.Items
 
 			StringBuilder footerText = new StringBuilder();
 			footerText.Append("ID: ");
-			footerText.Append(self.ID?.ToString());
+			footerText.Append(self.ID.ToString());
 			footerText.Append(" - XIVAPI.com - Universalis.app");
 
 			builder.Description = desc.ToString();
 			builder.Footer = new EmbedFooterBuilder();
 			builder.Footer.Text = footerText.ToString();
-			builder.Url = "http://www.garlandtools.org/db/#item/" + self.ID?.ToString();
 			builder.Color = Color.Teal;
 
 			return builder;
 		}
 
-		public static string GetDescription(this ItemAPI.Item self)
+		public static string GetDescription(this Item self)
 		{
 			if (self.Description == null)
 				return string.Empty;
@@ -66,7 +82,7 @@ namespace KupoNuts.Bot.Items
 			return desc;
 		}
 
-		public static string GetIconInfoString(this ItemAPI.Item self)
+		public static string GetIconInfoString(this Item self)
 		{
 			StringBuilder builder = new StringBuilder();
 
@@ -95,10 +111,13 @@ namespace KupoNuts.Bot.Items
 			if (self.HasMateria() && self.IsAdvancedMeldingPermitted != true)
 				builder.Append(ItemService.AdvancedMeldingForbiddenEmote);
 
+			if (self.IsCraftable())
+				builder.Append(ItemService.CraftableEmote);
+
 			return builder.ToString();
 		}
 
-		public static string GetLevelCategoryString(this ItemAPI.Item self)
+		public static string GetLevelCategoryString(this Item self)
 		{
 			StringBuilder builder = new StringBuilder();
 			if (self.ItemUICategory != null)
@@ -111,20 +130,20 @@ namespace KupoNuts.Bot.Items
 			else
 			{
 				builder.Append("Lv. ");
-				builder.Append(self.LevelEquip?.ToString());
+				builder.Append(self.LevelEquip.ToString());
 			}
 
 			return builder.ToString();
 		}
 
-		public static string GetLevelClassString(this ItemAPI.Item self)
+		public static string GetLevelClassString(this Item self)
 		{
 			if (self.LevelItem == 1)
 				return string.Empty;
 
 			StringBuilder builder = new StringBuilder();
 			builder.Append("iLv. ");
-			builder.Append(self.LevelItem?.ToString());
+			builder.Append(self.LevelItem.ToString());
 
 			if (self.ClassJobCategory != null)
 			{
@@ -137,12 +156,12 @@ namespace KupoNuts.Bot.Items
 			return builder.ToString();
 		}
 
-		public static bool HasMainStats(this ItemAPI.Item self)
+		public static bool HasMainStats(this Item self)
 		{
 			return self.DamageMag != 0 || self.DamagePhys != 0 || self.DefenseMag != 0 || self.DefensePhys != 0 || self.DelayMs != 0;
 		}
 
-		public static string GetMainStatsString(this ItemAPI.Item self)
+		public static string GetMainStatsString(this Item self)
 		{
 			StringBuilder builder = new StringBuilder();
 
@@ -198,12 +217,12 @@ namespace KupoNuts.Bot.Items
 			return builder.ToString();
 		}
 
-		public static bool HasSecondaryStats(this ItemAPI.Item self)
+		public static bool HasSecondaryStats(this Item self)
 		{
 			return self.BaseParam0 != null || self.BaseParam1 != null || self.BaseParam2 != null || self.BaseParam3 != null || self.BaseParam4 != null || self.BaseParam5 != null;
 		}
 
-		public static string GetSecondaryStatsString(this ItemAPI.Item self)
+		public static string GetSecondaryStatsString(this Item self)
 		{
 			StringBuilder builder = new StringBuilder();
 			if (self.BaseParam0 != null)
@@ -257,12 +276,12 @@ namespace KupoNuts.Bot.Items
 			return builder.ToString();
 		}
 
-		public static bool HasSpecialStats(this ItemAPI.Item self)
+		public static bool HasSpecialStats(this Item self)
 		{
 			return self.BaseParamSpecial0 != null || self.BaseParamSpecial1 != null || self.BaseParamSpecial2 != null || self.BaseParamSpecial3 != null || self.BaseParamSpecial4 != null || self.BaseParamSpecial5 != null;
 		}
 
-		public static string GetSpecialStatsName(this ItemAPI.Item self)
+		public static string GetSpecialStatsName(this Item self)
 		{
 			if (self.ItemSpecialBonus != null && !string.IsNullOrEmpty(self.ItemSpecialBonus.Name))
 				return self.ItemSpecialBonus.Name;
@@ -270,7 +289,7 @@ namespace KupoNuts.Bot.Items
 			return "Special Bonus";
 		}
 
-		public static string GetSpecialStatsString(this ItemAPI.Item self)
+		public static string GetSpecialStatsString(this Item self)
 		{
 			StringBuilder builder = new StringBuilder();
 			if (self.BaseParamSpecial0 != null)
@@ -323,12 +342,17 @@ namespace KupoNuts.Bot.Items
 			return builder.ToString();
 		}
 
-		public static bool HasMateria(this ItemAPI.Item self)
+		public static bool HasMateria(this Item self)
 		{
-			return self.MateriaSlotCount != null && self.MateriaSlotCount > 0;
+			return self.MateriaSlotCount > 0;
 		}
 
-		public static string GetMateriaString(this ItemAPI.Item self)
+		public static bool IsCraftable(this Item self)
+		{
+			return self.GameContentLinks != null && self.GameContentLinks.Recipe != null;
+		}
+
+		public static string GetMateriaString(this Item self)
 		{
 			StringBuilder builder = new StringBuilder();
 

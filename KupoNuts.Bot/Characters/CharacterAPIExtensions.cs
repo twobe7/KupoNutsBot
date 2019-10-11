@@ -37,7 +37,7 @@ namespace KupoNuts.Bot.Characters
 			builder.Footer = new EmbedFooterBuilder();
 			StringBuilder footerText = new StringBuilder();
 			footerText.Append("ID: ");
-			footerText.Append(self.ID?.ToString());
+			footerText.Append(self.ID.ToString());
 			footerText.Append(" - XIVAPI.com");
 			builder.Footer.Text = footerText.ToString();
 
@@ -136,7 +136,7 @@ namespace KupoNuts.Bot.Characters
 
 			foreach (CharacterAPI.ClassJob job in self.ClassJobs)
 			{
-				if (job.Job == null || job.Job.ID == null)
+				if (job.Job == null)
 					return null;
 
 				if (job.Job.ID != (uint)id)
@@ -151,7 +151,7 @@ namespace KupoNuts.Bot.Characters
 		public static string? GetDisplayString(this CharacterAPI.ClassJob self)
 		{
 			StringBuilder jobsBuilder = new StringBuilder();
-			if (self.Job == null || self.Job.ID == null)
+			if (self.Job == null)
 				return null;
 
 			Jobs job = (Jobs)(int)self.Job.ID;

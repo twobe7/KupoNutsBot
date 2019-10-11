@@ -26,6 +26,7 @@ namespace KupoNuts.Bot.Items
 		public static string GilEmote = "<:Gil:624582640493789184> ";
 		public static string HighQualityEmote = "<:hq:624587323887190025> ";
 		public static string NormalQualityEmote = "<:nq:624606645124857867> ";
+		public static string CraftableEmote = "<:craftable:632174512267329536>";
 
 		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
@@ -63,7 +64,7 @@ namespace KupoNuts.Bot.Items
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
 		public async Task<Embed> GetItem(ulong itemId)
 		{
-			ItemAPI.Item item = await ItemAPI.Get(itemId);
+			Item item = await ItemAPI.Get(itemId);
 
 			EmbedBuilder embed = item.ToEmbed();
 
