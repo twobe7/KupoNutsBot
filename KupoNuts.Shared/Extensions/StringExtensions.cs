@@ -12,5 +12,10 @@ namespace System
 		{
 			return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "...";
 		}
+
+		public static string RemoveLineBreaks(this string value)
+		{
+			return value.Replace("\n", " ").Replace("\r", " ");
+		}
 	}
 }

@@ -53,6 +53,12 @@ namespace KupoNuts.Bot.Quotes
 			return this.GetEmbed(quotes[index]);
 		}
 
+		[Command("Quote", Permissions.Everyone, "Gets a quote from yourself")]
+		public async Task<Embed> GetQuote(CommandMessage message, int id)
+		{
+			return await this.GetQuote(message, message.Author, id);
+		}
+
 		[Command("Quote", Permissions.Everyone, "Gets a random quote from a user")]
 		public async Task<Embed> GetQuote(CommandMessage message, IUser user)
 		{
@@ -101,6 +107,12 @@ namespace KupoNuts.Bot.Quotes
 			throw new UserException("I couldn't find a quote with that id.");
 		}
 
+		[Command("Quotes", Permissions.Everyone, "Lists all quotes from yourself")]
+		public async Task<Embed> GetQuotes(CommandMessage message)
+		{
+			return await this.GetQuotes(message, message.Author);
+		}
+
 		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user")]
 		public async Task<Embed> GetQuotes(CommandMessage message, IUser user)
 		{
@@ -133,7 +145,7 @@ namespace KupoNuts.Bot.Quotes
 			{
 				quotesList.Append(quote.QuoteId);
 				quotesList.Append(" - ");
-				quotesList.AppendLine(quote.Content.Truncate(30));
+				quotesList.AppendLine(quote.Content.RemoveLineBreaks().Truncate(30));
 			}
 
 			EmbedBuilder builder = new EmbedBuilder();
