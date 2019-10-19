@@ -11,7 +11,6 @@ namespace KupoNuts.Bot.Characters
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.Characters;
-	using XIVAPI;
 
 	public class CharacterService : ServiceBase
 	{
@@ -32,7 +31,7 @@ namespace KupoNuts.Bot.Characters
 		[Command("IAm", Permissions.Everyone, "Records who your character is")]
 		public async Task<Embed> IAm(CommandMessage message, string characterName, string? serverName)
 		{
-			CharacterAPI.SearchResponse response = await CharacterAPI.Search(characterName, serverName);
+			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
 
 			if (response.Pagination == null)
 				throw new Exception("No Pagination");
@@ -101,12 +100,14 @@ namespace KupoNuts.Bot.Characters
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by Lodestone Id")]
 		public async Task<Embed> WhoIs(uint characterId)
 		{
-			CharacterAPI.GetResponse response = await CharacterAPI.Get(characterId);
+			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId);
 
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			return response.Character.BuildEmbed();
+			FFXIVCollect.CharacterAPI.Character? collectChar = await FFXIVCollect.CharacterAPI.Get(characterId);
+
+			return response.Character.BuildEmbed(collectChar);
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
@@ -118,7 +119,7 @@ namespace KupoNuts.Bot.Characters
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
 		public async Task<Embed> WhoIs(string characterName, string? serverName)
 		{
-			CharacterAPI.SearchResponse response = await CharacterAPI.Search(characterName, serverName);
+			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
 
 			if (response.Pagination == null)
 				throw new Exception("No Pagination");

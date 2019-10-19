@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts.Characters
+namespace XIVAPI
 {
 	using System;
 	using System.Collections.Generic;
