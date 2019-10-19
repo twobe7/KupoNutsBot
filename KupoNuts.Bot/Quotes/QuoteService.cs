@@ -4,6 +4,7 @@ namespace KupoNuts.Bot.Quotes
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
@@ -30,9 +31,18 @@ namespace KupoNuts.Bot.Quotes
 		}
 
 		[Command("Quote", Permissions.Everyone, "Gets a random quote")]
-		public async Task<Embed> GetQuote()
+		public async Task<Embed> GetQuote(CommandMessage message)
 		{
-			List<Quote> quotes = await this.quoteDb.LoadAll();
+			List<Quote> allQuotes = await this.quoteDb.LoadAll();
+
+			List<Quote> quotes = new List<Quote>();
+			foreach (Quote quote in allQuotes)
+			{
+				if (quote.GuildId != message.Guild.Id)
+					continue;
+
+				quotes.Add(quote);
+			}
 
 			if (quotes.Count <= 0)
 				throw new UserException("There are no quotes yet! Try reacting to a message with a 💬!");
@@ -40,17 +50,20 @@ namespace KupoNuts.Bot.Quotes
 			Random rn = new Random();
 			int index = rn.Next(quotes.Count);
 
-			return quotes[index].ToEmbed();
+			return this.GetEmbed(quotes[index]);
 		}
 
 		[Command("Quote", Permissions.Everyone, "Gets a random quote from a user")]
-		public async Task<Embed> GetQuote(IUser user)
+		public async Task<Embed> GetQuote(CommandMessage message, IUser user)
 		{
 			List<Quote> allQuotes = await this.quoteDb.LoadAll();
 
 			List<Quote> quotes = new List<Quote>();
 			foreach (Quote quote in allQuotes)
 			{
+				if (quote.GuildId != message.Guild.Id)
+					continue;
+
 				if (quote.UserId != user.Id)
 					continue;
 
@@ -63,7 +76,72 @@ namespace KupoNuts.Bot.Quotes
 			Random rn = new Random();
 			int index = rn.Next(quotes.Count);
 
-			return quotes[index].ToEmbed();
+			return this.GetEmbed(quotes[index]);
+		}
+
+		[Command("Quote", Permissions.Everyone, "Gets a quote from a user")]
+		public async Task<Embed> GetQuote(CommandMessage message, IUser user, int id)
+		{
+			List<Quote> allQuotes = await this.quoteDb.LoadAll();
+
+			foreach (Quote quote in allQuotes)
+			{
+				if (quote.GuildId != message.Guild.Id)
+					continue;
+
+				if (quote.UserId != user.Id)
+					continue;
+
+				if (quote.QuoteId != id)
+					continue;
+
+				return this.GetEmbed(quote);
+			}
+
+			throw new UserException("I couldn't find a quote with that id.");
+		}
+
+		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user")]
+		public async Task<Embed> GetQuotes(CommandMessage message, IUser user)
+		{
+			List<Quote> allQuotes = await this.quoteDb.LoadAll();
+
+			List<Quote> quotes = new List<Quote>();
+			foreach (Quote quote in allQuotes)
+			{
+				if (quote.UserId != user.Id)
+					continue;
+
+				if (quote.GuildId != message.Guild.Id)
+					continue;
+
+				quotes.Add(quote);
+			}
+
+			if (quotes.Count <= 0)
+				throw new UserException("There are no quotes from that user yet! Try reacting to a message with a 💬!");
+
+			quotes.Sort((x, y) =>
+			{
+				return x.QuoteId.CompareTo(y.QuoteId);
+			});
+
+			IGuildUser guildUser = await message.Guild.GetUserAsync(user.Id);
+
+			StringBuilder quotesList = new StringBuilder();
+			foreach (Quote quote in quotes)
+			{
+				quotesList.Append(quote.QuoteId);
+				quotesList.Append(" - ");
+				quotesList.AppendLine(quote.Content.Truncate(30));
+			}
+
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.Author = new EmbedAuthorBuilder();
+			builder.Author.Name = guildUser.GetName();
+			builder.Author.IconUrl = guildUser.GetAvatarUrl();
+			builder.Description = quotesList.ToString();
+			return builder.Build();
 		}
 
 		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> messageCache, ISocketMessageChannel channel, SocketReaction reaction)
@@ -86,6 +164,7 @@ namespace KupoNuts.Bot.Quotes
 					quote.UserId = message.Author.Id;
 					quote.GuildId = guildChannel.Guild.Id;
 					quote.UserName = message.Author.Username;
+					quote.QuoteId = await this.GetNextQuoteId(message.GetAuthor());
 					quote.SetDateTime(message.CreatedAt);
 					await this.quoteDb.Save(quote);
 
@@ -96,6 +175,49 @@ namespace KupoNuts.Bot.Quotes
 			{
 				Log.Write(ex);
 			}
+		}
+
+		private async Task<int> GetNextQuoteId(IUser user)
+		{
+			return await this.GetNextQuoteId(user.Id);
+		}
+
+		private async Task<int> GetNextQuoteId(ulong userId)
+		{
+			List<Quote> allQuotes = await this.quoteDb.LoadAll();
+
+			int index = 0;
+			foreach (Quote quote in allQuotes)
+			{
+				if (quote.UserId != userId)
+					continue;
+
+				if (quote.QuoteId >= index)
+				{
+					index = quote.QuoteId + 1;
+				}
+			}
+
+			return index;
+		}
+
+		private Embed GetEmbed(Quote self)
+		{
+			SocketGuild guild = Program.DiscordClient.GetGuild((ulong)self.GuildId);
+			SocketGuildUser user = guild.GetUser((ulong)self.UserId);
+
+			EmbedBuilder builder = new EmbedBuilder();
+
+			builder.Author = new EmbedAuthorBuilder();
+			builder.Author.Name = user.GetName();
+			builder.Author.IconUrl = user.GetAvatarUrl();
+			builder.Description = self.Content;
+			builder.Timestamp = self.GetDateTime().ToDateTimeOffset();
+
+			builder.Footer = new EmbedFooterBuilder();
+			builder.Footer.Text = "Id: " + self.QuoteId;
+
+			return builder.Build();
 		}
 	}
 }
