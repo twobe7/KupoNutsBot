@@ -132,5 +132,23 @@ namespace KupoNuts.Bot.Services
 
 			throw new Exception("Failed to choose a valid option");
 		}
+
+		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.")]
+		public string Number(int max)
+		{
+			return this.Number(0, max);
+		}
+
+		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.")]
+		public string Number(int min, int max)
+		{
+			if (max <= min)
+				throw new UserException("Maximum must be greater than the Minimum!");
+
+			Random rn = new Random();
+			int value = rn.Next(min, max);
+
+			return value + "!";
+		}
 	}
 }
