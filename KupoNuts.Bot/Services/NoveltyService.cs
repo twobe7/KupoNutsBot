@@ -91,5 +91,46 @@ namespace KupoNuts.Bot.Services
 
 			return "You rolled: " + total.ToString();
 		}
+
+		[Command("Choose", Permissions.Everyone, "Let Kupo Nuts choose for you")]
+		public string Choose(string optionA, string optionB)
+		{
+			return this.DoChoose(optionA, optionB, null, null);
+		}
+
+		[Command("Choose", Permissions.Everyone, "Let Kupo Nuts choose for you")]
+		public string Choose(string optionA, string optionB, string optionC)
+		{
+			return this.DoChoose(optionA, optionB, optionC, null);
+		}
+
+		[Command("Choose", Permissions.Everyone, "Let Kupo Nuts choose for you")]
+		public string Choose(string optionA, string optionB, string optionC, string optionD)
+		{
+			return this.DoChoose(optionA, optionB, optionC, optionD);
+		}
+
+		public string DoChoose(string optionA, string optionB, string? optionC, string? optionD)
+		{
+			int count = 2;
+			if (!string.IsNullOrEmpty(optionC))
+				count = 3;
+
+			if (!string.IsNullOrEmpty(optionD))
+				count = 4;
+
+			Random rn = new Random();
+			int value = rn.Next(count);
+
+			switch (value)
+			{
+				case 0: return "I choose... " + optionA + "!";
+				case 1: return "I choose... " + optionB + "!";
+				case 2: return "I choose... " + optionC + "!";
+				case 3: return "I choose... " + optionD + "!";
+			}
+
+			throw new Exception("Failed to choose a valid option");
+		}
 	}
 }
