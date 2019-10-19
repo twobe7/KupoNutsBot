@@ -6,11 +6,12 @@ namespace KupoNuts.Bot.Characters
 	using System.Collections.Generic;
 	using System.Text;
 	using Discord;
+	using KupoNuts.Characters;
 	using XIVAPI;
 
 	public static class CharacterAPIExtensions
 	{
-		public static Embed BuildEmbed(this CharacterAPI.Character self)
+		public static Embed BuildEmbed(this Character self)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Color = Color.Blue;
@@ -105,7 +106,7 @@ namespace KupoNuts.Bot.Characters
 			return builder.Build();
 		}
 
-		public static bool HasBio(this CharacterAPI.Character self)
+		public static bool HasBio(this Character self)
 		{
 			if (string.IsNullOrEmpty(self.Bio))
 				return false;
@@ -119,9 +120,9 @@ namespace KupoNuts.Bot.Characters
 			return true;
 		}
 
-		public static string GetJobString(this CharacterAPI.Character self, Jobs id)
+		public static string GetJobString(this Character self, Jobs id)
 		{
-			CharacterAPI.ClassJob? classJob = self.GetClassJob(id);
+			ClassJob? classJob = self.GetClassJob(id);
 
 			if (classJob == null)
 				return string.Empty;
@@ -129,12 +130,12 @@ namespace KupoNuts.Bot.Characters
 			return classJob.GetDisplayString() + Utils.Characters.Tab;
 		}
 
-		public static CharacterAPI.ClassJob? GetClassJob(this CharacterAPI.Character self, Jobs id)
+		public static ClassJob? GetClassJob(this Character self, Jobs id)
 		{
 			if (self.ClassJobs == null)
 				return null;
 
-			foreach (CharacterAPI.ClassJob job in self.ClassJobs)
+			foreach (ClassJob job in self.ClassJobs)
 			{
 				if (job.Job == null)
 					return null;
@@ -148,7 +149,7 @@ namespace KupoNuts.Bot.Characters
 			return null;
 		}
 
-		public static string? GetDisplayString(this CharacterAPI.ClassJob self)
+		public static string? GetDisplayString(this ClassJob self)
 		{
 			StringBuilder jobsBuilder = new StringBuilder();
 			if (self.Job == null)
