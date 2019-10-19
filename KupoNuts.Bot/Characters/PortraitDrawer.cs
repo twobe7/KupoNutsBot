@@ -24,7 +24,8 @@ namespace KupoNuts.Bot.Characters
 
 		private static FontCollection fonts = new FontCollection();
 		private static FontFamily axisRegular = fonts.Install(PathUtils.Current + "/Assets/Axis-Regular.ttf");
-		private static FontFamily optimusPrincepsSemiBold = fonts.Install(PathUtils.Current + "/Assets/OptimusPrincepsSemiBold.ttf");
+		private static FontFamily optimuSemiBold = fonts.Install(PathUtils.Current + "/Assets/OptimusPrincepsSemiBold.ttf");
+		private static FontFamily jupiterPro = fonts.Install(PathUtils.Current + "/Assets/JupiterProFixed.ttf");
 
 		public static async Task<string> Draw(Character character)
 		{
@@ -39,8 +40,9 @@ namespace KupoNuts.Bot.Characters
 			Image<Rgba32> finalImg = new Image<Rgba32>(1024, 512);
 			finalImg.Mutate(x => x.DrawImage(charImg, 1.0f));
 			finalImg.Mutate(x => x.DrawImage(overlayImg, 1.0f));
-			finalImg.Mutate(x => x.DrawText(centerText, character.Name, optimusPrincepsSemiBold.CreateFont(45), Color.White, new PointF(768, 40)));
-			finalImg.Mutate(x => x.DrawText(centerText, character.Title?.Name, axisRegular.CreateFont(25), Color.White, new PointF(768, 80)));
+			finalImg.Mutate(x => x.DrawText(centerText, character.Name, jupiterPro.CreateFont(45), Color.White, new PointF(182, 455)));
+			finalImg.Mutate(x => x.DrawText(centerText, character.Title?.Name, axisRegular.CreateFont(25), Color.White, new PointF(182, 420)));
+			finalImg.Mutate(x => x.DrawText(centerText, character.Race?.Name, axisRegular.CreateFont(22), Color.White, new PointF(182, 485)));
 
 			string outputPath = PathUtils.Current + "/Temp/" + character.ID + "_render.jpg";
 			finalImg.Save(outputPath);
