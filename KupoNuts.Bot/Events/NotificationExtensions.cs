@@ -21,8 +21,6 @@ namespace KupoNuts.Bot.Events
 			if (channel is null)
 				return;
 
-			Log.Write("Posting notification: \"" + evt.Name + "\" (" + evt.Id + ") in channel: \"" + channel.Name + "\" (" + channel.Id + ")", "Bot");
-
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Color = evt.Color.ToDiscordColor();
 			builder.Title = evt.Name;
@@ -82,6 +80,8 @@ namespace KupoNuts.Bot.Events
 			RestUserMessage? message = await self.GetMessage(evt);
 			if (message is null)
 			{
+				Log.Write("Posting notification: \"" + evt.Name + "\" (" + evt.Id + ") in channel: \"" + channel.Name + "\" (" + channel.Id + ")", "Bot");
+
 				message = await channel.SendMessageAsync(evt.Message, false, builder.Build());
 				self.MessageId = message.Id.ToString();
 
@@ -104,6 +104,8 @@ namespace KupoNuts.Bot.Events
 			}
 			else
 			{
+				Log.Write("Updating notification: \"" + evt.Name + "\" (" + evt.Id + ") in channel: \"" + channel.Name + "\" (" + channel.Id + ")", "Bot");
+
 				await message.ModifyAsync(x =>
 				{
 					x.Embed = builder.Build();

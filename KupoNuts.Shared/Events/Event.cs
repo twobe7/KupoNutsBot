@@ -117,7 +117,16 @@ namespace KupoNuts.Events
 				return null;
 
 			LocalDateTime nowLocal = TimeUtils.Now.InUtc().LocalDateTime;
-			LocalDate nextDay = nowLocal.Next(day).Date;
+
+			LocalDate nextDay;
+			if (nowLocal.DayOfWeek == day)
+			{
+				nextDay = nowLocal.Date;
+			}
+			else
+			{
+				nextDay = nowLocal.Next(day).Date;
+			}
 
 			return new Occurance(repeat, nextDay, this.BaseOccurance);
 		}
