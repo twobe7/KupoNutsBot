@@ -47,7 +47,7 @@ namespace KupoNuts.Manager.Server.Controllers
 				responseString = await response.Content.ReadAsStringAsync();
 				DiscordMeResponse discordMeResponse = JsonConvert.DeserializeObject<DiscordMeResponse>(responseString);
 
-				if (!this.GetIsUserAdmin(discordMeResponse.id))
+				if (string.IsNullOrEmpty(discordMeResponse.id) || !this.GetIsUserAdmin(discordMeResponse.id))
 				{
 					request.Message = "You must be an administrator to access this page.";
 					return request;
@@ -66,6 +66,9 @@ namespace KupoNuts.Manager.Server.Controllers
 
 		private bool GetIsUserAdmin(string userId)
 		{
+			if (string.IsNullOrEmpty(userId))
+				throw new ArgumentNullException("userId");
+
 			foreach (SocketGuild guild in DiscordAPI.Client.Guilds)
 			{
 				SocketGuildUser guildUser = guild.GetUser(ulong.Parse(userId));
