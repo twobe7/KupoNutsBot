@@ -24,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Universalis", "Universalis\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Twitter", "Twitter\Twitter.csproj", "{869DBBF6-932E-415B-8F15-6D13EC131586}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFXIVCollect", "FFXIVCollect\FFXIVCollect.csproj", "{47A14D54-9BAC-4782-A564-628943C09BC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVCollect", "FFXIVCollect\FFXIVCollect.csproj", "{47A14D54-9BAC-4782-A564-628943C09BC4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

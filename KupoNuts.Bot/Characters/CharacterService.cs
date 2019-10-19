@@ -22,6 +22,19 @@ namespace KupoNuts.Bot.Characters
 			await this.characterDb.Connect();
 		}
 
+		[Command("portrait", Permissions.Everyone, "looks up a character profile by character name")]
+		public async Task<bool> Portrait(CommandMessage message, uint characterId)
+		{
+			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId);
+
+			if (response.Character == null)
+				throw new UserException("I couldn't find that character.");
+
+			string file = await PortraitDrawer.Draw(response.Character);
+			await message.Channel.SendFileAsync(file);
+			return true;
+		}
+
 		[Command("IAm", Permissions.Everyone, "looks up a character profile by character name")]
 		public async Task<Embed> IAm(CommandMessage message, string characterName)
 		{
