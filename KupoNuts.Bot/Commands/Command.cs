@@ -147,25 +147,37 @@ namespace KupoNuts.Bot.Commands
 				throw (Exception)ex.InnerException;
 			}
 
-			if (returnObject is Task<Embed> tEmbed)
+			if (returnObject is null)
+				return;
+
+			if (returnObject is string rString)
+			{
+				await message.Channel.SendMessageAsync(rString);
+				return;
+			}
+			else if (returnObject is Task<Embed> tEmbed)
 			{
 				Stopwatch sw = new Stopwatch();
 				sw.Start();
 				await this.InvokeEmbedTask(message, tEmbed);
+				return;
 			}
 			else if (returnObject is Task<string> tString)
 			{
 				string str = await tString;
 				await message.Channel.SendMessageAsync(str);
+				return;
 			}
 			else if (returnObject is Task<bool> tBool)
 			{
 				bool result = await tBool;
+				return;
 			}
 			else if (returnObject is Task<(string, Embed)> tBoth)
 			{
 				(string msg, Embed embed) = await tBoth;
 				await message.Channel.SendMessageAsync(msg, false, embed);
+				return;
 			}
 			else if (returnObject is Task task)
 			{
@@ -174,7 +186,10 @@ namespace KupoNuts.Bot.Commands
 				Random rn = new Random();
 				string str = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
 				await message.Channel.SendMessageAsync(str);
+				return;
 			}
+
+			throw new Exception("Unknown command return type: " + returnObject.GetType());
 		}
 
 		private async Task InvokeEmbedTask(CommandMessage message, Task<Embed> task)
