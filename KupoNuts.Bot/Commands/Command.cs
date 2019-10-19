@@ -19,7 +19,8 @@ namespace KupoNuts.Bot.Commands
 		public readonly string Help;
 		public readonly WeakReference<object> Owner;
 
-		private const int EmbedTaskTimeout = 30000;
+		private const int TaskTimeout = 30000;
+		private const int EmbedThinkDelay = 500;
 		private const string WaitEmoji = "<a:spinner:628526494637096970>";
 
 		public Command(MethodInfo method, object owner, Permissions permissions, string help)
@@ -28,6 +29,8 @@ namespace KupoNuts.Bot.Commands
 			this.Permission = permissions;
 			this.Help = help;
 			this.Owner = new WeakReference<object>(owner);
+
+			RequestOptions.Default.RetryMode = RetryMode.AlwaysRetry;
 		}
 
 		public List<ParameterInfo> GetNeededParams()
@@ -120,46 +123,7 @@ namespace KupoNuts.Bot.Commands
 
 			try
 			{
-				object? returnObject;
-
-				try
-				{
-					returnObject = this.Method.Invoke(owner, parameters.ToArray());
-				}
-				catch (TargetInvocationException ex)
-				{
-					if (ex.InnerException == null)
-						throw ex;
-
-					throw (Exception)ex.InnerException;
-				}
-
-				if (returnObject is Task<Embed> tEmbed)
-				{
-					await this.HandleInvoke(message, tEmbed);
-				}
-				else if (returnObject is Task<string> tString)
-				{
-					string str = await tString;
-					await message.Channel.SendMessageAsync(str);
-				}
-				else if (returnObject is Task<bool> tBool)
-				{
-					bool result = await tBool;
-				}
-				else if (returnObject is Task<(string, Embed)> tBoth)
-				{
-					(string msg, Embed embed) = await tBoth;
-					await message.Channel.SendMessageAsync(msg, false, embed);
-				}
-				else if (returnObject is Task task)
-				{
-					await task;
-
-					Random rn = new Random();
-					string str = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
-					await message.Channel.SendMessageAsync(str);
-				}
+				await this.Invoke(message, owner, parameters.ToArray());
 			}
 			catch (UserException ex)
 			{
@@ -167,7 +131,53 @@ namespace KupoNuts.Bot.Commands
 			}
 		}
 
-		private async Task HandleInvoke(CommandMessage message, Task<Embed> task)
+		private async Task Invoke(CommandMessage message, object? owner, object[] param)
+		{
+			object? returnObject;
+
+			try
+			{
+				returnObject = this.Method.Invoke(owner, param);
+			}
+			catch (TargetInvocationException ex)
+			{
+				if (ex.InnerException == null)
+					throw ex;
+
+				throw (Exception)ex.InnerException;
+			}
+
+			if (returnObject is Task<Embed> tEmbed)
+			{
+				Stopwatch sw = new Stopwatch();
+				sw.Start();
+				await this.InvokeEmbedTask(message, tEmbed);
+			}
+			else if (returnObject is Task<string> tString)
+			{
+				string str = await tString;
+				await message.Channel.SendMessageAsync(str);
+			}
+			else if (returnObject is Task<bool> tBool)
+			{
+				bool result = await tBool;
+			}
+			else if (returnObject is Task<(string, Embed)> tBoth)
+			{
+				(string msg, Embed embed) = await tBoth;
+				await message.Channel.SendMessageAsync(msg, false, embed);
+			}
+			else if (returnObject is Task task)
+			{
+				await task;
+
+				Random rn = new Random();
+				string str = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
+				await message.Channel.SendMessageAsync(str);
+			}
+		}
+
+		private async Task InvokeEmbedTask(CommandMessage message, Task<Embed> task)
 		{
 			// early out for instant tasks
 			if (task.IsCompleted && !task.IsFaulted)
@@ -177,23 +187,35 @@ namespace KupoNuts.Bot.Commands
 				return;
 			}
 
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = message.Message.Content;
-			builder.Description = WaitEmoji;
-			builder.ThumbnailUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think2.png";
-			RestUserMessage tMessage = await message.Channel.SendMessageAsync(null, false, builder.Build());
-
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
-			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < EmbedTaskTimeout)
+			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < EmbedThinkDelay)
 				await Task.Delay(10);
 
-			if (sw.ElapsedMilliseconds >= EmbedTaskTimeout)
+			RestUserMessage? thinkMessage = null;
+			if (!task.IsCompleted && !task.IsFaulted)
 			{
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.Title = message.Message.Content;
+				builder.Description = WaitEmoji;
+				builder.ThumbnailUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think2.png";
+				thinkMessage = await message.Channel.SendMessageAsync(null, false, builder.Build());
+
+				// Discord doesn't like it when we edit embed to soon after posting them, as the edit
+				// someints doesnt 'stick'.
+				await Task.Delay(250);
+			}
+
+			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < TaskTimeout)
+				await Task.Delay(10);
+
+			if (sw.ElapsedMilliseconds >= TaskTimeout && thinkMessage != null)
+			{
+				EmbedBuilder builder = new EmbedBuilder();
 				builder.Description = "I'm sorry. I seem to have lost my train of thought...";
 
-				await tMessage.ModifyAsync(x =>
+				await thinkMessage.ModifyAsync(x =>
 				{
 					x.Embed = builder.Build();
 				});
@@ -203,7 +225,8 @@ namespace KupoNuts.Bot.Commands
 
 			if (task.IsFaulted)
 			{
-				await message.Channel.DeleteMessageAsync(tMessage);
+				if (thinkMessage != null)
+					await message.Channel.DeleteMessageAsync(thinkMessage);
 
 				if (task.Exception != null)
 				{
@@ -221,10 +244,17 @@ namespace KupoNuts.Bot.Commands
 			{
 				Embed embed = await task;
 
-				await tMessage.ModifyAsync(x =>
+				if (thinkMessage != null)
 				{
-					x.Embed = embed;
-				});
+					await thinkMessage.ModifyAsync(x =>
+					{
+						x.Embed = embed;
+					});
+				}
+				else
+				{
+					await message.Channel.SendMessageAsync(null, false, embed);
+				}
 			}
 		}
 
