@@ -22,8 +22,8 @@ namespace KupoNuts.Bot.Characters
 		};
 
 		private static FontCollection fonts = new FontCollection();
-		private static FontFamily axisRegular = fonts.Install("Assets/Axis-Regular.ttf");
-		private static FontFamily optimusPrincepsSemiBold = fonts.Install("Assets/OptimusPrincepsSemiBold.ttf");
+		private static FontFamily axisRegular = fonts.Install("./Assets/Axis-Regular.ttf");
+		private static FontFamily optimusPrincepsSemiBold = fonts.Install("./Assets/OptimusPrincepsSemiBold.ttf");
 
 		public static async Task<string> Draw(Character character)
 		{
@@ -33,7 +33,7 @@ namespace KupoNuts.Bot.Characters
 			Image<Rgba32> charImg = Image.Load<Rgba32>(portraitPath);
 			charImg.Mutate(x => x.Resize(375, 512));
 
-			Image<Rgba32> overlayImg = Image.Load<Rgba32>("Assets/overlay.png");
+			Image<Rgba32> overlayImg = Image.Load<Rgba32>("./Assets/overlay.png");
 
 			Image<Rgba32> finalImg = new Image<Rgba32>(1024, 512);
 			finalImg.Mutate(x => x.DrawImage(charImg, 1.0f));
