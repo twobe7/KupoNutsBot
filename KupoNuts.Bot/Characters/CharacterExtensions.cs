@@ -173,7 +173,7 @@ namespace KupoNuts.Bot.Characters
 
 			if (collect.Triad != null && collect.Triad.Count != 0)
 			{
-				builder.Append("Tripple Triad Cards: ");
+				builder.Append("Triple Triad Cards: ");
 				builder.AppendLine(collect.Triad.GetContent());
 			}
 
