@@ -32,7 +32,7 @@ namespace KupoNuts.Bot.Services
 				if (entry.Id == null)
 					continue;
 
-				FashionReportEntry saved = await this.db.Load(entry.Id);
+				FashionReportEntry? saved = await this.db.Load(entry.Id);
 				if (saved == null)
 				{
 					await this.Post(entry);

@@ -156,7 +156,18 @@ namespace KupoNuts.Bot.Events
 				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
 					return;
 
-				Event evt = await EventsDatabase.Load(this.messageEventLookup[message.Id.ToString()]);
+				string eventId = this.messageEventLookup[message.Id.ToString()];
+				Event? evt = await EventsDatabase.Load(eventId);
+
+				if (evt is null)
+				{
+					// this event was deleted while the notification was up.
+					// we need to detect this case in the 'Update' loop to clear old notifications.
+					// but for now, we'll handle it when someone reacts.
+					this.messageEventLookup.Remove(message.Id.ToString());
+					await channel.DeleteMessageAsync(message.Value);
+					return;
+				}
 
 				if (evt.Notify == null)
 					return;

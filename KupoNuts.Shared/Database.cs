@@ -100,7 +100,7 @@ namespace KupoNuts
 			return guid;
 		}
 
-		public async Task<T> Load(string key)
+		public async Task<T?> Load(string key)
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
@@ -110,7 +110,7 @@ namespace KupoNuts
 
 		public async Task<T> LoadOrCreate(string key)
 		{
-			T entry = await this.Load(key);
+			T? entry = await this.Load(key);
 
 			if (entry is null)
 				entry = await this.CreateEntry(key);

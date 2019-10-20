@@ -273,10 +273,14 @@ namespace KupoNuts.Bot.Services
 
 			public async Task SetDelay(Duration? time)
 			{
-				Event evt = await EventsService.EventsDatabase.Load(this.EventId);
+				Event? evt = await EventsService.EventsDatabase.Load(this.EventId);
+
+				if (evt is null)
+					return;
+
 				Event.Notification.Attendee? attendee = evt.GetAttendee(this.UserId);
 
-				if (attendee == null)
+				if (attendee is null)
 					return;
 
 				attendee.SetRemindTime(time);
