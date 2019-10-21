@@ -11,7 +11,7 @@ namespace XIVAPI
 	[Serializable]
 	public class GrandCompany
 	{
-		public uint NameID { get; set; }
-		public uint RankID { get; set; }
+		public Data? Company { get; set; }
+		public Data? Rank { get; set; }
 	}
 }

@@ -25,12 +25,12 @@ namespace KupoNuts.Bot.Characters
 		[Command("portrait", Permissions.Everyone, "looks up a character profile by character name")]
 		public async Task<bool> Portrait(CommandMessage message, uint characterId)
 		{
-			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId);
+			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
 
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await PortraitDrawer.Draw(response.Character);
+			string file = await PortraitDrawer.Draw(response.Character, response.FreeCompany);
 			await message.Channel.SendFileAsync(file);
 			return true;
 		}

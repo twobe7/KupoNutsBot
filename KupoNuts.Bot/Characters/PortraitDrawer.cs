@@ -30,12 +30,19 @@ namespace KupoNuts.Bot.Characters
 			VerticalAlignment = VerticalAlignment.Top,
 		};
 
+		private static TextGraphicsOptions rightText = new TextGraphicsOptions()
+		{
+			Antialias = true,
+			HorizontalAlignment = HorizontalAlignment.Right,
+			VerticalAlignment = VerticalAlignment.Top,
+		};
+
 		private static FontCollection fonts = new FontCollection();
 		private static FontFamily axisRegular = fonts.Install(PathUtils.Current + "/Assets/Axis-Regular.ttf");
 		private static FontFamily optimuSemiBold = fonts.Install(PathUtils.Current + "/Assets/OptimusPrincepsSemiBold.ttf");
 		private static FontFamily jupiterPro = fonts.Install(PathUtils.Current + "/Assets/JupiterProFixed.ttf");
 
-		public static async Task<string> Draw(Character character)
+		public static async Task<string> Draw(Character character, FreeCompany? freeCompany)
 		{
 			string portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
 			await FileDownloader.Download(character.Portrait, portraitPath);
@@ -48,6 +55,37 @@ namespace KupoNuts.Bot.Characters
 			Image<Rgba32> finalImg = new Image<Rgba32>(1024, 512);
 			finalImg.Mutate(x => x.DrawImage(charImg, 1.0f));
 			finalImg.Mutate(x => x.DrawImage(overlayImg, 1.0f));
+
+			// Grand Company
+			Image<Rgba32> gcImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/" + character.GrandCompany?.Company?.ID + ".png");
+			finalImg.Mutate(x => x.DrawImage(gcImg, 1.0f));
+			gcImg.Dispose();
+
+			Image<Rgba32> rankImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/Ranks/" + character.GrandCompany?.Rank?.Icon.Replace("/i/083000/", string.Empty));
+			finalImg.Mutate(x => x.DrawImage(rankImg, new Point(370, 55), 1.0f));
+			rankImg.Dispose();
+			finalImg.Mutate(x => x.DrawText(leftText, character.GrandCompany?.Rank?.Name, axisRegular.CreateFont(20), Color.White, new Point(420, 64)));
+
+			// Free Company
+			if (freeCompany != null)
+			{
+				foreach (string crestPart in freeCompany.Crest)
+				{
+					string name = Path.GetFileName(crestPart);
+					string crestPath = PathUtils.Current + "/Crests/" + name;
+
+					if (!File.Exists(crestPath))
+						await FileDownloader.Download(crestPart, crestPath);
+
+					Image<Rgba32> crestImg = Image.Load<Rgba32>(crestPath);
+					crestImg.Mutate(x => x.Resize(75, 75));
+					finalImg.Mutate(x => x.DrawImage(crestImg, new Point(936, 12), 1.0f));
+					crestImg.Dispose();
+				}
+
+				finalImg.Mutate(x => x.DrawText(rightText, "<" + freeCompany.Tag + ">", axisRegular.CreateFont(20), Color.White, new Point(925, 40)));
+				finalImg.Mutate(x => x.DrawText(rightText, freeCompany.Name, axisRegular.CreateFont(20), Color.White, new Point(925, 64)));
+			}
 
 			// Name / Bio
 			finalImg.Mutate(x => x.DrawTextAnySize(centerText, character.Name, optimuSemiBold, Color.White, new Rectangle(182, 450, 350, 50)));
@@ -89,7 +127,7 @@ namespace KupoNuts.Bot.Characters
 			// Server
 			finalImg.Mutate(x => x.DrawText(leftText, character.Server + " - " + character.DC, axisRegular.CreateFont(18), new Color(new Argb32(1f, 1f, 1f, 0.5f)), new PointF(40, 10)));
 
-			string outputPath = PathUtils.Current + "/Temp/" + character.ID + "_render.jpg";
+			string outputPath = PathUtils.Current + "/Temp/" + character.ID + "_render.png";
 			finalImg.Save(outputPath);
 
 			charImg.Dispose();

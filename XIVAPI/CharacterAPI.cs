@@ -81,7 +81,7 @@ namespace XIVAPI
 			////public ? Achievements;
 			public bool? AchievementsPublic { get; set; }
 			public Character? Character { get; set; }
-			////public ? FreeCompany;
+			public FreeCompany? FreeCompany { get; set; }
 			public List<Member>? FreeCompanyMembers { get; set; }
 			////public List<>? Friends;
 			public bool? FriendsPublic { get; set; }
