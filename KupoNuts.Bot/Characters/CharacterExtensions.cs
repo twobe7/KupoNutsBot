@@ -109,16 +109,22 @@ namespace KupoNuts.Bot.Characters
 			StringBuilder linkBuilder = new StringBuilder();
 
 			// lodestone
-			linkBuilder.Append("[Lodestone](");
-			linkBuilder.Append("https://eu.finalfantasyxiv.com/lodestone/character/");
+			linkBuilder.Append("[Lodestone](https://eu.finalfantasyxiv.com/lodestone/character/");
 			linkBuilder.Append(self.ID);
 			linkBuilder.AppendLine(")");
 
 			// ffxivcollect
-			linkBuilder.Append("[FFXIV Collect](");
-			linkBuilder.Append("https://ffxivcollect.com/characters/");
-			linkBuilder.Append(self.ID);
-			linkBuilder.AppendLine(")");
+			if (collect == null)
+			{
+				linkBuilder.Append("Track achievements and more with ");
+				linkBuilder.Append("[FFXIV Collect](https://ffxivcollect.com)");
+			}
+			else
+			{
+				linkBuilder.Append("[FFXIV Collect](https://ffxivcollect.com/characters/");
+				linkBuilder.Append(self.ID);
+				linkBuilder.AppendLine(")");
+			}
 
 			builder.AddField("Links", linkBuilder.ToString());
 
