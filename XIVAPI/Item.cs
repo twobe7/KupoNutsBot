@@ -59,6 +59,7 @@ namespace XIVAPI
 		public int MateriaSlotCount { get; set; }
 		public bool IsAdvancedMeldingPermitted { get; set; }
 		public SalvageInfo? Salvage { get; set; }
+		public StatBonuses? Bonuses { get; set; }
 
 		[Serializable]
 		public class ItemCategory
@@ -107,6 +108,36 @@ namespace XIVAPI
 				public List<int> Item { get; set; } = new List<int>();
 				public List<int> ItemResult { get; set; } = new List<int>();
 			}
+		}
+
+		[Serializable]
+		public class StatBonuses
+		{
+			public StatBonus? Piety { get; set; }
+			public StatBonus? SpellSpeed { get; set; }
+			public StatBonus? Vitality { get; set; }
+			public StatBonus? Tenacity { get; set; }
+			public StatBonus? Determination { get; set; }
+			public StatBonus? DirectHit { get; set; }
+			public StatBonus? SkillSpeed { get; set; }
+			public StatBonus? CriticalHit { get; set; }
+			public StatBonus? CP { get; set; }
+			public StatBonus? Control { get; set; }
+			public StatBonus? Perception { get; set; }
+			public StatBonus? GP { get; set; }
+			public StatBonus? Gathering { get; set; }
+			public StatBonus? Craftsmanship { get; set; }
+		}
+
+		[Serializable]
+		public class StatBonus
+		{
+			public int Id;
+			public int Max;
+			public int MaxHq;
+			public bool Relative;
+			public int Value;
+			public int ValueHq;
 		}
 	}
 }

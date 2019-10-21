@@ -76,10 +76,10 @@ namespace KupoNuts.Bot.Items
 				{
 					StringBuilder builder = new StringBuilder();
 					if (hq != null)
-						builder.AppendLine(hq.ToStringEx());
+						builder.Append(hq.ToStringEx());
 
 					if (nm != null)
-						builder.AppendLine(nm.ToStringEx());
+						builder.Append(nm.ToStringEx());
 
 					embed.AddField("Best Marketboard Prices", builder.ToString());
 				}

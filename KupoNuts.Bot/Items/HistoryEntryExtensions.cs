@@ -22,6 +22,7 @@ namespace KupoNuts.Bot.Items
 			builder.Append(self.pricePerUnit?.ToString("N0"));
 			builder.Append("g - ");
 			builder.Append(self.worldName);
+			builder.Append(" ");
 
 			return builder.ToString();
 		}

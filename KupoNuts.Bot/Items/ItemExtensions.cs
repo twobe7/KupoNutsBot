@@ -55,6 +55,9 @@ namespace KupoNuts.Bot.Items
 			if (self.HasMateria())
 				builder.AddField("Materia", self.GetMateriaString());
 
+			if (self.HasBonuses())
+				builder.AddField("Bonuses", self.GetBonuses());
+
 			StringBuilder footerText = new StringBuilder();
 			footerText.Append("ID: ");
 			footerText.Append(self.ID.ToString());
@@ -362,6 +365,80 @@ namespace KupoNuts.Bot.Items
 			builder.AppendLine();
 
 			return builder.ToString();
+		}
+
+		public static bool HasBonuses(this Item self)
+		{
+			if (self.Bonuses == null)
+				return false;
+
+			bool hasBonus = false;
+			hasBonus |= self.Bonuses.Piety != null;
+			hasBonus |= self.Bonuses.SpellSpeed != null;
+			hasBonus |= self.Bonuses.Vitality != null;
+			hasBonus |= self.Bonuses.Tenacity != null;
+			hasBonus |= self.Bonuses.Determination != null;
+			hasBonus |= self.Bonuses.DirectHit != null;
+			hasBonus |= self.Bonuses.SkillSpeed != null;
+			hasBonus |= self.Bonuses.CriticalHit != null;
+			hasBonus |= self.Bonuses.CP != null;
+			hasBonus |= self.Bonuses.Control != null;
+			hasBonus |= self.Bonuses.Perception != null;
+			hasBonus |= self.Bonuses.GP != null;
+			hasBonus |= self.Bonuses.Gathering != null;
+			hasBonus |= self.Bonuses.Craftsmanship != null;
+
+			return hasBonus;
+		}
+
+		public static string GetBonuses(this Item self)
+		{
+			StringBuilder builder = new StringBuilder();
+
+			self.Bonuses?.Piety?.GetBonus(ref builder, "Piety");
+			self.Bonuses?.SpellSpeed?.GetBonus(ref builder, "Spell Speed");
+			self.Bonuses?.Vitality?.GetBonus(ref builder, "Vitality");
+			self.Bonuses?.Tenacity?.GetBonus(ref builder, "Tenacity");
+			self.Bonuses?.Determination?.GetBonus(ref builder, "Determination");
+			self.Bonuses?.DirectHit?.GetBonus(ref builder, "Direct Hit");
+			self.Bonuses?.SkillSpeed?.GetBonus(ref builder, "Skill Speed");
+			self.Bonuses?.CriticalHit?.GetBonus(ref builder, "Critical Hit");
+			self.Bonuses?.CP?.GetBonus(ref builder, "CP");
+			self.Bonuses?.Control?.GetBonus(ref builder, "Control");
+			self.Bonuses?.Perception?.GetBonus(ref builder, "Perception");
+			self.Bonuses?.GP?.GetBonus(ref builder, "GP");
+			self.Bonuses?.Gathering?.GetBonus(ref builder, "Gathering");
+			self.Bonuses?.Craftsmanship?.GetBonus(ref builder, "Craftsmanship");
+
+			return builder.ToString();
+		}
+
+		private static void GetBonus(this Item.StatBonus bonus, ref StringBuilder builder, string name)
+		{
+			builder.Append(name);
+			builder.Append(": ");
+
+			builder.Append(ItemService.HighQualityEmote);
+			builder.Append(" ");
+			builder.Append(bonus.ValueHq);
+
+			if (bonus.Relative)
+				builder.Append("%");
+
+			builder.Append(" (Max: ");
+			builder.Append(bonus.MaxHq);
+			builder.Append(") ");
+
+			builder.Append(ItemService.NormalQualityEmote);
+			builder.Append(" ");
+			builder.Append(bonus.Value);
+
+			if (bonus.Relative)
+				builder.Append("%");
+
+			builder.Append(" (Max: ");
+			builder.Append(bonus.Max);
+			builder.AppendLine(")");
 		}
 	}
 }
