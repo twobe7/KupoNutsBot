@@ -3,14 +3,17 @@
 namespace KupoNuts.Bot.Characters
 {
 	using System;
+	using System.Buffers;
 	using System.IO;
 	using System.Threading.Tasks;
 	using KupoNuts.Bot.Utils;
 	using KupoNuts.Utils;
 	using SixLabors.Fonts;
 	using SixLabors.ImageSharp;
+	using SixLabors.ImageSharp.Memory;
 	using SixLabors.ImageSharp.PixelFormats;
 	using SixLabors.ImageSharp.Processing;
+	using SixLabors.ImageSharp.Processing.Processors;
 	using SixLabors.Primitives;
 	using XIVAPI;
 
@@ -62,13 +65,17 @@ namespace KupoNuts.Bot.Characters
 			gcImg.Dispose();
 
 			Image<Rgba32> rankImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/Ranks/" + character.GrandCompany?.Rank?.Icon.Replace("/i/083000/", string.Empty));
-			finalImg.Mutate(x => x.DrawImage(rankImg, new Point(370, 55), 1.0f));
+			finalImg.Mutate(x => x.DrawImage(rankImg, new Point(370, 152), 1.0f));
 			rankImg.Dispose();
-			finalImg.Mutate(x => x.DrawText(leftText, character.GrandCompany?.Rank?.Name, axisRegular.CreateFont(20), Color.White, new Point(420, 64)));
+			finalImg.Mutate(x => x.DrawText(leftText, character.GrandCompany?.Rank?.Name, axisRegular.CreateFont(18), Color.White, new Point(412, 163)));
+
+			// Server
+			finalImg.Mutate(x => x.DrawText(leftText, character.Server + " - " + character.DC, axisRegular.CreateFont(18), Color.White, new Point(412, 196)));
 
 			// Free Company
 			if (freeCompany != null)
 			{
+				Image<Rgba32> crestFinal = new Image<Rgba32>(128, 128);
 				foreach (string crestPart in freeCompany.Crest)
 				{
 					string name = Path.GetFileName(crestPart);
@@ -78,55 +85,89 @@ namespace KupoNuts.Bot.Characters
 						await FileDownloader.Download(crestPart, crestPath);
 
 					Image<Rgba32> crestImg = Image.Load<Rgba32>(crestPath);
-					crestImg.Mutate(x => x.Resize(75, 75));
-					finalImg.Mutate(x => x.DrawImage(crestImg, new Point(936, 12), 1.0f));
+					crestFinal.Mutate(x => x.DrawImage(crestImg, 1.0f));
 					crestImg.Dispose();
 				}
 
-				finalImg.Mutate(x => x.DrawText(rightText, "<" + freeCompany.Tag + ">", axisRegular.CreateFont(20), Color.White, new Point(925, 40)));
-				finalImg.Mutate(x => x.DrawText(rightText, freeCompany.Name, axisRegular.CreateFont(20), Color.White, new Point(925, 64)));
+				for (int y = 0; y < crestFinal.Height; y++)
+				{
+					for (int x = 0; x < crestFinal.Width; x++)
+					{
+						Rgba32 pixel = crestFinal[x, y];
+
+						if (pixel.R == 64 && pixel.G == 64 && pixel.B == 64)
+							pixel.A = 0;
+
+						crestFinal[x, y] = pixel;
+					}
+				}
+
+				crestFinal.Mutate(x => x.Resize(64, 64));
+				finalImg.Mutate(x => x.DrawImage(crestFinal, new Point(364, 270), 1.0f));
+				crestFinal.Dispose();
+
+				finalImg.Mutate(x => x.DrawText(leftText, "<" + freeCompany.Tag + ">", axisRegular.CreateFont(24), Color.White, new Point(431, 300)));
+				finalImg.Mutate(x => x.DrawTextAnySize(leftText, freeCompany.Name, axisRegular, Color.White, new Rectangle(431, 280, 158, 32)));
 			}
 
 			// Name / Bio
-			finalImg.Mutate(x => x.DrawTextAnySize(centerText, character.Name, optimuSemiBold, Color.White, new Rectangle(182, 450, 350, 50)));
-			finalImg.Mutate(x => x.DrawText(centerText, character.Title?.Name, axisRegular.CreateFont(22), Color.White, new PointF(182, 420)));
-			finalImg.Mutate(x => x.DrawText(centerText, character.Race?.Name + " (" + character.Tribe?.Name + ")", axisRegular.CreateFont(20), Color.White, new PointF(182, 485)));
-			finalImg.Mutate(x => x.DrawText(leftText, character.Bio, axisRegular.CreateFont(20), Color.White, new Rectangle(370, 425, 630, 74)));
+			finalImg.Mutate(x => x.DrawTextAnySize(centerText, character.Name, optimuSemiBold, Color.White, new Rectangle(680, 70, 660, 55)));
+			finalImg.Mutate(x => x.DrawText(centerText, character.Title?.Name, axisRegular.CreateFont(22), Color.White, new PointF(680, 35)));
+			finalImg.Mutate(x => x.DrawText(centerText, character.Race?.Name + " (" + character.Tribe?.Name + ")", axisRegular.CreateFont(20), Color.White, new PointF(680, 110)));
+
+			// Birthday (1st Sun of the 1st Astral Moon)
+			Image<Rgba32> moonImg;
+			if (character.Nameday.Contains("Astral"))
+			{
+				moonImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Moons/Astral.png");
+			}
+			else
+			{
+				moonImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Moons/Umbral.png");
+			}
+
+			finalImg.Mutate(x => x.DrawImage(moonImg, new Point(907, 122), 1.0f));
+			moonImg.Dispose();
+
+			Image<Rgba32> dietyImage = Image.Load<Rgba32>(PathUtils.Current + character.GuardianDeity?.Icon.Replace("/i/061000/", "/Assets/Twelve/"));
+			finalImg.Mutate(x => x.DrawImage(dietyImage, new Point(907, 122), 1.0f));
+			dietyImage.Dispose();
+
+			finalImg.Mutate(x => x.DrawText(leftText, character.Nameday, axisRegular.CreateFont(16), Color.White, new Point(700, 196)));
+			finalImg.Mutate(x => x.DrawText(leftText, character.GuardianDeity?.Name, jupiterPro.CreateFont(18), Color.White, new Point(700, 170)));
 
 			// Jobs
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Paladin), axisRegular.CreateFont(20), Color.White, new PointF(631, 225)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Warrior), axisRegular.CreateFont(20), Color.White, new PointF(690, 225)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Darkknight), axisRegular.CreateFont(20), Color.White, new PointF(749, 225)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Gunbreaker), axisRegular.CreateFont(20), Color.White, new PointF(810, 225)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Whitemage), axisRegular.CreateFont(20), Color.White, new PointF(865, 225)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Scholar), axisRegular.CreateFont(20), Color.White, new PointF(925, 225)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Astrologian), axisRegular.CreateFont(20), Color.White, new PointF(985, 225)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Dragoon), axisRegular.CreateFont(20), Color.White, new PointF(395, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Monk), axisRegular.CreateFont(20), Color.White, new PointF(454, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Ninja), axisRegular.CreateFont(20), Color.White, new PointF(513, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Samurai), axisRegular.CreateFont(20), Color.White, new PointF(572, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Bard), axisRegular.CreateFont(20), Color.White, new PointF(631, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Machinist), axisRegular.CreateFont(20), Color.White, new PointF(690, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Dancer), axisRegular.CreateFont(20), Color.White, new PointF(749, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Blackmage), axisRegular.CreateFont(20), Color.White, new PointF(810, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Summoner), axisRegular.CreateFont(20), Color.White, new PointF(865, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Redmage), axisRegular.CreateFont(20), Color.White, new PointF(925, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Bluemage), axisRegular.CreateFont(20), Color.White, new PointF(985, 310)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Botanist), axisRegular.CreateFont(20), Color.White, new PointF(395, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Fisher), axisRegular.CreateFont(20), Color.White, new PointF(454, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Miner), axisRegular.CreateFont(20), Color.White, new PointF(513, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Alchemist), axisRegular.CreateFont(20), Color.White, new PointF(572, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Armorer), axisRegular.CreateFont(20), Color.White, new PointF(631, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Blacksmith), axisRegular.CreateFont(20), Color.White, new PointF(690, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Carpenter), axisRegular.CreateFont(20), Color.White, new PointF(749, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Culinarian), axisRegular.CreateFont(20), Color.White, new PointF(810, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Goldsmith), axisRegular.CreateFont(20), Color.White, new PointF(865, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Leatherworker), axisRegular.CreateFont(20), Color.White, new PointF(925, 395)));
-			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Weaver), axisRegular.CreateFont(20), Color.White, new PointF(985, 395)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Paladin), axisRegular.CreateFont(20), Color.White, new PointF(631, 330)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Warrior), axisRegular.CreateFont(20), Color.White, new PointF(690, 330)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Darkknight), axisRegular.CreateFont(20), Color.White, new PointF(749, 330)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Gunbreaker), axisRegular.CreateFont(20), Color.White, new PointF(808, 330)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Whitemage), axisRegular.CreateFont(20), Color.White, new PointF(865, 330)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Scholar), axisRegular.CreateFont(20), Color.White, new PointF(925, 330)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Astrologian), axisRegular.CreateFont(20), Color.White, new PointF(985, 330)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Dragoon), axisRegular.CreateFont(20), Color.White, new PointF(395, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Monk), axisRegular.CreateFont(20), Color.White, new PointF(454, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Ninja), axisRegular.CreateFont(20), Color.White, new PointF(513, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Samurai), axisRegular.CreateFont(20), Color.White, new PointF(572, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Bard), axisRegular.CreateFont(20), Color.White, new PointF(631, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Machinist), axisRegular.CreateFont(20), Color.White, new PointF(690, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Dancer), axisRegular.CreateFont(20), Color.White, new PointF(749, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Blackmage), axisRegular.CreateFont(20), Color.White, new PointF(808, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Summoner), axisRegular.CreateFont(20), Color.White, new PointF(865, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Redmage), axisRegular.CreateFont(20), Color.White, new PointF(925, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Bluemage), axisRegular.CreateFont(20), Color.White, new PointF(985, 406)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Botanist), axisRegular.CreateFont(20), Color.White, new PointF(395, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Fisher), axisRegular.CreateFont(20), Color.White, new PointF(454, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Miner), axisRegular.CreateFont(20), Color.White, new PointF(513, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Alchemist), axisRegular.CreateFont(20), Color.White, new PointF(572, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Armorer), axisRegular.CreateFont(20), Color.White, new PointF(631, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Blacksmith), axisRegular.CreateFont(20), Color.White, new PointF(690, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Carpenter), axisRegular.CreateFont(20), Color.White, new PointF(749, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Culinarian), axisRegular.CreateFont(20), Color.White, new PointF(808, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Goldsmith), axisRegular.CreateFont(20), Color.White, new PointF(865, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Leatherworker), axisRegular.CreateFont(20), Color.White, new PointF(925, 480)));
+			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Weaver), axisRegular.CreateFont(20), Color.White, new PointF(985, 480)));
 
-			// Server
-			finalImg.Mutate(x => x.DrawText(leftText, character.Server + " - " + character.DC, axisRegular.CreateFont(18), new Color(new Argb32(1f, 1f, 1f, 0.5f)), new PointF(40, 10)));
-
+			// Save
 			string outputPath = PathUtils.Current + "/Temp/" + character.ID + "_render.png";
 			finalImg.Save(outputPath);
 
