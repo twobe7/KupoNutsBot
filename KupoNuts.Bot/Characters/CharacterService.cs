@@ -22,8 +22,7 @@ namespace KupoNuts.Bot.Characters
 			await this.characterDb.Connect();
 		}
 
-		[Command("portrait", Permissions.Everyone, "looks up a character profile by character name")]
-		public async Task<bool> Portrait(CommandMessage message, uint characterId)
+		public async Task<bool> WhoIs(CommandMessage message, uint characterId)
 		{
 			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
 
@@ -96,43 +95,30 @@ namespace KupoNuts.Bot.Characters
 		}
 
 		[Command("WhoAmI", Permissions.Everyone, "displays your character")]
-		public async Task<Embed> WhoAmI(CommandMessage message)
+		public async Task<bool> WhoAmI(CommandMessage message)
 		{
 			IGuildUser user = message.Author;
 			IGuild guild = message.Guild;
 
 			CharacterLink link = await this.GetLink(user, guild, false);
-			return await this.WhoIs(link.CharacterId);
+			return await this.WhoIs(message, link.CharacterId);
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "looks up a linked character")]
-		public async Task<Embed> WhoIs(CommandMessage message, IGuildUser user)
+		public async Task<bool> WhoIs(CommandMessage message, IGuildUser user)
 		{
 			CharacterLink link = await this.GetLink(user, message.Guild, false);
-			return await this.WhoIs(link.CharacterId);
-		}
-
-		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by Lodestone Id")]
-		public async Task<Embed> WhoIs(uint characterId)
-		{
-			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId);
-
-			if (response.Character == null)
-				throw new UserException("I couldn't find that character.");
-
-			FFXIVCollect.CharacterAPI.Character? collectChar = await FFXIVCollect.CharacterAPI.Get(characterId);
-
-			return response.Character.BuildEmbed(collectChar);
+			return await this.WhoIs(message, link.CharacterId);
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
-		public async Task<Embed> WhoIs(string characterName)
+		public async Task<bool> WhoIs(CommandMessage message, string characterName)
 		{
-			return await this.WhoIs(characterName, null);
+			return await this.WhoIs(message, characterName, null);
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
-		public async Task<Embed> WhoIs(string characterName, string? serverName)
+		public async Task<bool> WhoIs(CommandMessage message, string characterName, string? serverName)
 		{
 			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
 
@@ -146,7 +132,7 @@ namespace KupoNuts.Bot.Characters
 			else if (response.Results.Count == 1)
 			{
 				uint id = response.Results[0].ID;
-				return await this.WhoIs(id);
+				return await this.WhoIs(message, id);
 			}
 			else
 			{
@@ -162,7 +148,9 @@ namespace KupoNuts.Bot.Characters
 				embed.Description = description.ToString();
 				Embed embedAc = embed.Build();
 
-				return embedAc;
+				await message.Channel.SendMessageAsync(null, false, embedAc);
+
+				return true;
 			}
 		}
 
