@@ -136,7 +136,7 @@ namespace KupoNuts.Bot.Characters
 			dietyImage.Dispose();
 
 			finalImg.Mutate(x => x.DrawText(leftText, character.Nameday, axisRegular.CreateFont(16), Color.White, new Point(700, 196)));
-			finalImg.Mutate(x => x.DrawText(leftText, character.GuardianDeity?.Name, jupiterPro.CreateFont(18), Color.White, new Point(700, 170)));
+			finalImg.Mutate(x => x.DrawText(leftText, character.GuardianDeity?.Name, axisRegular.CreateFont(20), Color.White, new Point(700, 168)));
 
 			// Jobs
 			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Paladin), axisRegular.CreateFont(20), Color.White, new PointF(631, 330)));
