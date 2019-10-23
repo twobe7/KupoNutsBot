@@ -30,7 +30,9 @@ namespace KupoNuts.Bot.Characters
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await PortraitDrawer.Draw(response.Character, response.FreeCompany);
+			FFXIVCollect.CharacterAPI.Character? collectChar = await FFXIVCollect.CharacterAPI.Get(characterId);
+
+			string file = await PortraitDrawer.Draw(response.Character, response.FreeCompany, collectChar);
 			await message.Channel.SendFileAsync(file);
 			return true;
 		}

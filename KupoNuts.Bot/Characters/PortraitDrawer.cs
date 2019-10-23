@@ -17,6 +17,8 @@ namespace KupoNuts.Bot.Characters
 	using SixLabors.Primitives;
 	using XIVAPI;
 
+	using CollectCharacter = FFXIVCollect.CharacterAPI.Character;
+
 	public static class PortraitDrawer
 	{
 		private static TextGraphicsOptions centerText = new TextGraphicsOptions()
@@ -45,7 +47,7 @@ namespace KupoNuts.Bot.Characters
 		private static FontFamily optimuSemiBold = fonts.Install(PathUtils.Current + "/Assets/OptimusPrincepsSemiBold.ttf");
 		private static FontFamily jupiterPro = fonts.Install(PathUtils.Current + "/Assets/JupiterProFixed.ttf");
 
-		public static async Task<string> Draw(Character character, FreeCompany? freeCompany)
+		public static async Task<string> Draw(Character character, FreeCompany? freeCompany, CollectCharacter? collectCharacter)
 		{
 			string portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
 			await FileDownloader.Download(character.Portrait, portraitPath);
@@ -166,6 +168,49 @@ namespace KupoNuts.Bot.Characters
 			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Goldsmith), axisRegular.CreateFont(20), Color.White, new PointF(865, 480)));
 			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Leatherworker), axisRegular.CreateFont(20), Color.White, new PointF(925, 480)));
 			finalImg.Mutate(x => x.DrawText(centerText, GetJob(character, Jobs.Weaver), axisRegular.CreateFont(20), Color.White, new PointF(985, 480)));
+
+			// Progress
+			if (collectCharacter != null)
+			{
+				if (collectCharacter.Mounts != null)
+				{
+					string mountsStr = collectCharacter.Mounts.Count + " / " + collectCharacter.Mounts.Total;
+					float p = (float)collectCharacter.Mounts.Count / (float)collectCharacter.Mounts.Total;
+
+					Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
+					float width = p * barImg.Width;
+					barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
+					finalImg.Mutate(x => x.DrawImage(barImg, new Point(404, 234), 1.0f));
+					barImg.Dispose();
+					finalImg.Mutate(x => x.DrawText(leftText, mountsStr, axisRegular.CreateFont(16), Color.White, new Point(408, 237)));
+				}
+
+				if (collectCharacter.Minions != null)
+				{
+					string minionsStr = collectCharacter.Minions.Count + " / " + collectCharacter.Minions.Total;
+					float p = (float)collectCharacter.Minions.Count / (float)collectCharacter.Minions.Total;
+
+					Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
+					float width = p * barImg.Width;
+					barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
+					finalImg.Mutate(x => x.DrawImage(barImg, new Point(616, 234), 1.0f));
+					barImg.Dispose();
+					finalImg.Mutate(x => x.DrawText(leftText, minionsStr, axisRegular.CreateFont(16), Color.White, new Point(620, 237)));
+				}
+
+				if (collectCharacter.Achievements != null)
+				{
+					string achieveStr = collectCharacter.Achievements.Count + " / " + collectCharacter.Achievements.Total;
+					float p = (float)collectCharacter.Achievements.Count / (float)collectCharacter.Achievements.Total;
+
+					Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
+					float width = p * barImg.Width;
+					barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
+					finalImg.Mutate(x => x.DrawImage(barImg, new Point(838, 234), 1.0f));
+					barImg.Dispose();
+					finalImg.Mutate(x => x.DrawText(leftText, achieveStr, axisRegular.CreateFont(16), Color.White, new Point(842, 237)));
+				}
+			}
 
 			// Save
 			string outputPath = PathUtils.Current + "/Temp/" + character.ID + "_render.png";
