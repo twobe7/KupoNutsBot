@@ -4,7 +4,7 @@
 
 * Install .NET Core SDK 3 and your favourite Visual Studio equivalent (VS2019 and Rider work fine)
 * Open `KupoNutsBot.sln` and build the solution so it grabs all the NuGet dependencies
-* Run the `KupoNutsBoot` target, you should get a console that spits errors and cries about stuff - this is acceptable. Your new Kupo Nuts bot must learn the pains of The Void before it can integrate with the human world.
+* Run the `KupoNuts.Boot` target, you should get a console that spits errors and cries about stuff - this is acceptable. Your new Kupo Nuts bot must learn the pains of The Void before it can integrate with the human world.
 * Kill the program (Ctrl+C the console app it spawns) and open `./bin/settings.json`
 
 ```json
@@ -36,3 +36,5 @@
 > TODO: Decipher the hidden meaning of the other token keys, and write a templating file or script to generate it easily.
 
 * Once configured correctly, run the `KupoNutsBoot` target again, and check the manager console on `http://localhost:5000`. If nothing in the spawned console crashes you're good to go!
+
+* Press [ESC] to shut the bot down safely.
