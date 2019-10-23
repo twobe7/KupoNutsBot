@@ -20,7 +20,7 @@ namespace KupoNuts.Bot.Commands
 		public readonly WeakReference<object> Owner;
 
 		private const int TaskTimeout = 30000;
-		private const int EmbedThinkDelay = 500;
+		private const int ThinkDelay = 500;
 		private const string WaitEmoji = "<a:spinner:628526494637096970>";
 
 		public Command(MethodInfo method, object owner, Permissions permissions, string help)
@@ -155,57 +155,30 @@ namespace KupoNuts.Bot.Commands
 				await message.Channel.SendMessageAsync(rString);
 				return;
 			}
-			else if (returnObject is Task<Embed> tEmbed)
-			{
-				Stopwatch sw = new Stopwatch();
-				sw.Start();
-				await this.InvokeEmbedTask(message, tEmbed);
-				return;
-			}
-			else if (returnObject is Task<string> tString)
-			{
-				string str = await tString;
-				await message.Channel.SendMessageAsync(str);
-				return;
-			}
-			else if (returnObject is Task<bool> tBool)
-			{
-				bool result = await tBool;
-				return;
-			}
-			else if (returnObject is Task<(string, Embed)> tBoth)
-			{
-				(string msg, Embed embed) = await tBoth;
-				await message.Channel.SendMessageAsync(msg, false, embed);
-				return;
-			}
 			else if (returnObject is Task task)
 			{
-				await task;
-
-				Random rn = new Random();
-				string str = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
-				await message.Channel.SendMessageAsync(str);
+				await this.HandleTask(message, task);
 				return;
 			}
 
 			throw new Exception("Unknown command return type: " + returnObject.GetType());
 		}
 
-		private async Task InvokeEmbedTask(CommandMessage message, Task<Embed> task)
+		private async Task HandleTask(CommandMessage message, Task task)
 		{
 			// early out for instant tasks
 			if (task.IsCompleted && !task.IsFaulted)
 			{
-				Embed embed = await task;
-				await message.Channel.SendMessageAsync(null, false, embed);
+				await task;
+				await this.HandleTaskResult(message, null, task);
 				return;
 			}
 
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
-			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < EmbedThinkDelay)
+			// if we take too long, pos the think message.
+			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < ThinkDelay)
 				await Task.Delay(10);
 
 			RestUserMessage? thinkMessage = null;
@@ -222,22 +195,23 @@ namespace KupoNuts.Bot.Commands
 				await Task.Delay(250);
 			}
 
+			// If we take way too long, post an abort message.
 			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < TaskTimeout)
 				await Task.Delay(10);
 
 			if (sw.ElapsedMilliseconds >= TaskTimeout && thinkMessage != null)
 			{
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.Description = "I'm sorry. I seem to have lost my train of thought...";
-
 				await thinkMessage.ModifyAsync(x =>
 				{
-					x.Embed = builder.Build();
+					x.Content = "I'm sorry. I seem to have lost my train of thought...";
+					x.Embed = null;
 				});
 
 				Log.Write("Task timeout: " + message.Message.Content, "Bot");
+				return;
 			}
 
+			// Handle tasks that have gone poorly.
 			if (task.IsFaulted)
 			{
 				if (thinkMessage != null)
@@ -255,20 +229,61 @@ namespace KupoNuts.Bot.Commands
 					throw new Exception("Task failed");
 				}
 			}
+
+			await this.HandleTaskResult(message, thinkMessage, task);
+		}
+
+		private async Task HandleTaskResult(CommandMessage message, RestUserMessage? editMessage, Task task)
+		{
+			string? resultMessage = null;
+			Embed? resultEmbed = null;
+
+			if (task is Task<Embed> embedTask)
+			{
+				resultEmbed = embedTask.Result;
+			}
+			else if (task is Task<string> stringTask)
+			{
+				resultMessage = stringTask.Result;
+			}
+			else if (task is Task<bool> boolTask)
+			{
+				// nothing to do here...
+			}
+			else if (task is Task<(string, Embed)> bothTask)
+			{
+				(string taskMessage, Embed taskEmbed) = bothTask.Result;
+				resultMessage = taskMessage;
+				resultEmbed = taskEmbed;
+			}
 			else
 			{
-				Embed embed = await task;
+				Random rn = new Random();
+				resultMessage = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
+			}
 
-				if (thinkMessage != null)
+			if (editMessage != null)
+			{
+				if (resultMessage == null && resultEmbed == null)
 				{
-					await thinkMessage.ModifyAsync(x =>
-					{
-						x.Embed = embed;
-					});
+					await editMessage.DeleteAsync();
 				}
 				else
 				{
-					await message.Channel.SendMessageAsync(null, false, embed);
+					await editMessage.ModifyAsync(x =>
+					{
+						x.Content = resultMessage;
+						x.Embed = resultEmbed;
+					});
+				}
+
+				return;
+			}
+			else
+			{
+				if (resultMessage != null || resultEmbed != null)
+				{
+					await message.Channel.SendMessageAsync(resultMessage, false, resultEmbed);
 				}
 			}
 		}
