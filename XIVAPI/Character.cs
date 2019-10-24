@@ -28,7 +28,7 @@ namespace XIVAPI
 		public string Nameday { get; set; } = string.Empty;
 		public uint ParseDate { get; set; }
 		public string Portrait { get; set; } = string.Empty;
-		public uint? PvPTeamId { get; set; }
+		////public uint? PvPTeamId { get; set; }
 		public Data? Race { get; set; }
 		public string Server { get; set; } = string.Empty;
 		public Data? Title { get; set; }

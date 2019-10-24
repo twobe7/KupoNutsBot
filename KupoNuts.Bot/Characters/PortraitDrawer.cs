@@ -62,14 +62,20 @@ namespace KupoNuts.Bot.Characters
 			finalImg.Mutate(x => x.DrawImage(overlayImg, 1.0f));
 
 			// Grand Company
-			Image<Rgba32> gcImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/" + character.GrandCompany?.Company?.ID + ".png");
-			finalImg.Mutate(x => x.DrawImage(gcImg, 1.0f));
-			gcImg.Dispose();
+			if (character.GrandCompany != null)
+			{
+				Image<Rgba32> gcImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/" + character.GrandCompany.Company?.ID + ".png");
+				finalImg.Mutate(x => x.DrawImage(gcImg, 1.0f));
+				gcImg.Dispose();
 
-			Image<Rgba32> rankImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/Ranks/" + character.GrandCompany?.Rank?.Icon.Replace("/i/083000/", string.Empty));
-			finalImg.Mutate(x => x.DrawImage(rankImg, new Point(370, 152), 1.0f));
-			rankImg.Dispose();
-			finalImg.Mutate(x => x.DrawText(leftText, character.GrandCompany?.Rank?.Name, axisRegular.CreateFont(18), Color.White, new Point(412, 163)));
+				if (character.GrandCompany.Rank != null)
+				{
+					Image<Rgba32> rankImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/Ranks/" + character.GrandCompany.Rank.Icon.Replace("/i/083000/", string.Empty));
+					finalImg.Mutate(x => x.DrawImage(rankImg, new Point(370, 152), 1.0f));
+					rankImg.Dispose();
+					finalImg.Mutate(x => x.DrawText(leftText, character.GrandCompany?.Rank?.Name, axisRegular.CreateFont(18), Color.White, new Point(412, 163)));
+				}
+			}
 
 			// Server
 			finalImg.Mutate(x => x.DrawText(leftText, character.Server + " - " + character.DC, axisRegular.CreateFont(18), Color.White, new Point(412, 196)));
