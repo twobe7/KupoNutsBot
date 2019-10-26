@@ -68,7 +68,7 @@ namespace KupoNuts.Utils
 			return GetDateString(Instant.FromDateTimeOffset((DateTimeOffset)dt));
 		}
 
-		public static string GetDateTimeString(Instant dt, DateTimeZone? tz = null)
+		public static string GetDateTimeString(Instant? dt, DateTimeZone? tz = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.AppendLine(GetDateString(dt, tz));

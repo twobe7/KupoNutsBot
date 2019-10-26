@@ -39,6 +39,22 @@ namespace KupoNuts.Bot.Lodestone
 			return InstantPattern.ExtendedIso.Parse(self.time).Value;
 		}
 
+		public static Instant? GetStart(this NewsItem self)
+		{
+			if (self.start == null)
+				return null;
+
+			return InstantPattern.ExtendedIso.Parse(self.start).Value;
+		}
+
+		public static Instant? GetEnd(this NewsItem self)
+		{
+			if (self.end == null)
+				return null;
+
+			return InstantPattern.ExtendedIso.Parse(self.end).Value;
+		}
+
 		public static Color GetColor(this NewsItem self)
 		{
 			switch (self.category)

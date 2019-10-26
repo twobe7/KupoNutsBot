@@ -8,13 +8,14 @@ namespace Lodestone.News
 	public class NewsItem
 	{
 		#pragma warning disable
-		public string? id;
-		public string? url;
-		public string? title;
-		public string? time;
-		public Categories category;
-		public string? image;
-		public string? description;
-		#pragma warning restore
+		public string? id { get; set; } = string.Empty;
+		public string? url { get; set; } = string.Empty;
+		public string title { get; set; } = string.Empty;
+		public string time { get; set; } = string.Empty;
+		public Categories category { get; set; }
+		public string? image { get; set; }
+		public string? description { get; set; }
+		public string? start { get; set; }
+		public string? end { get; set; }
 	}
 }
