@@ -93,5 +93,12 @@ namespace KupoNuts.Bot.Services
 
 			return Task.FromResult("This is your fault, " + message.Author.GetName() + ".");
 		}
+
+		[Command("Confus", Permissions.Administrators, "??")]
+		public async Task<bool> Confus(CommandMessage message)
+		{
+			await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/confus.jpg");
+			return true;
+		}
 	}
 }

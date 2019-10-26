@@ -52,6 +52,9 @@
 		<None Update="Assets\Bar.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="Assets\confus.jpg">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="Assets\GrandCompanies\Ranks\083001.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
