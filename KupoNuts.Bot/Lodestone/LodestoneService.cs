@@ -33,7 +33,7 @@ namespace KupoNuts.Bot.Lodestone
 
 			Instant now = TimeUtils.Now;
 			NewsItem? nextMaint = null;
-			Duration? bestTimeTill = null;
+			Instant? bestStart = null;
 			foreach (NewsItem item in items)
 			{
 				Instant? start = item.GetStart();
@@ -42,23 +42,13 @@ namespace KupoNuts.Bot.Lodestone
 				if (start == null || end == null)
 					continue;
 
-				Duration timeTill = (Duration)(start - now);
-
-				if (timeTill.TotalMinutes < 0)
+				if (!item.title.Contains("All Worlds"))
 					continue;
 
-				if (!item.title.Contains("All Worlds Maintenance"))
+				if (start < bestStart)
 					continue;
 
-				if (bestTimeTill != null)
-				{
-					if (timeTill > bestTimeTill)
-					{
-						continue;
-					}
-				}
-
-				bestTimeTill = timeTill;
+				bestStart = start;
 				nextMaint = item;
 			}
 
