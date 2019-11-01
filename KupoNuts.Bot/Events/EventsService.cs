@@ -126,6 +126,9 @@ namespace KupoNuts.Bot.Events
 
 		private bool ShouldNotify(Event evt)
 		{
+			if (evt.GetIsOccuring())
+				return true;
+
 			Duration? timeTillEvent = evt.GetDurationTill();
 
 			// Event in the past.

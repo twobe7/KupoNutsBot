@@ -122,6 +122,11 @@ namespace KupoNuts.Events
 			if (nowLocal.DayOfWeek == day)
 			{
 				nextDay = nowLocal.Date;
+
+				if (repeat.GetInstant(nextDay) < TimeUtils.Now)
+				{
+					nextDay = nowLocal.Next(day).Date;
+				}
 			}
 			else
 			{

@@ -137,6 +137,27 @@ namespace KupoNuts.Bot.Events
 			return occurance.GetInstant() - TimeUtils.RoundInstant(TimeUtils.Now);
 		}
 
+		public static bool GetIsOccuring(this Event self)
+		{
+			ZonedDateTime zdt = TimeUtils.Now.InZone(TimeUtils.Sydney);
+
+			IsoDayOfWeek day = zdt.DayOfWeek;
+			Event.Occurance? occurance = self.GetRepeatOccurance(day);
+
+			if (occurance == null)
+				return false;
+
+			Instant starts = occurance.GetInstant(zdt.Date, zdt.TimeOfDay);
+			Instant ends = starts + occurance.Duration;
+
+			if (starts < TimeUtils.Now && ends > TimeUtils.Now)
+			{
+				return true;
+			}
+
+			return false;
+		}
+
 		// 2 hours on Sunday, 6th October 2019:
 		// 8:00pm AWST - 9:30pm ACST - 10:00pm AEST - 1:00am NZST
 		public static string GetDisplayString(this Event.Occurance self)
