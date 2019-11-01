@@ -202,6 +202,46 @@ namespace KupoNuts.Bot.RPG
 			return embedBuilder.Build();
 		}
 
+		[Command("Levels", Permissions.Everyone, "Shows the level leaderboards")]
+		public async Task<Embed> ShowLevelLeaders(CommandMessage message)
+		{
+			List<Status> statuses = await this.rpgDatabase.LoadAll();
+
+			statuses.Sort((Status a, Status b) =>
+			{
+				return -a.Level.CompareTo(b.Level);
+			});
+
+			IGuild guild = message.Guild;
+
+			StringBuilder builder = new StringBuilder();
+			int count = 0;
+			foreach (Status status in statuses)
+			{
+				count++;
+
+				if (count > 10)
+					break;
+
+				if (status.Id == null)
+					continue;
+
+				IGuildUser user = await guild.GetUserAsync(ulong.Parse(status.Id));
+
+				if (user == null)
+					continue;
+
+				builder.Append(status.Level);
+				builder.Append(" - ");
+				builder.AppendLine(user.GetName());
+			}
+
+			EmbedBuilder embedBuilder = new EmbedBuilder();
+			embedBuilder.Title = "Level Leaderboard";
+			embedBuilder.Description = builder.ToString();
+			return embedBuilder.Build();
+		}
+
 		[Command("UseItem", Permissions.Everyone, "Uses an item from your inventory")]
 		public async Task<string> UseItem(CommandMessage message, string itemName)
 		{
