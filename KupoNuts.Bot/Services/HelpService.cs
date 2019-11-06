@@ -192,7 +192,7 @@ namespace KupoNuts.Bot.Services
 				for (int i = 0; i < parameters.Count; i++)
 				{
 					if (i != 0)
-						builder.Append(", ");
+						builder.Append(" ");
 
 					builder.Append(GetParam(parameters[i]));
 				}
