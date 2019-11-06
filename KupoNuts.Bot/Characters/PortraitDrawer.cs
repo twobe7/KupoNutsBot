@@ -62,9 +62,9 @@ namespace KupoNuts.Bot.Characters
 			finalImg.Mutate(x => x.DrawImage(overlayImg, 1.0f));
 
 			// Grand Company
-			if (character.GrandCompany != null)
+			if (character.GrandCompany != null && character.GrandCompany.Company != null)
 			{
-				Image<Rgba32> gcImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/" + character.GrandCompany.Company?.ID + ".png");
+				Image<Rgba32> gcImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/" + character.GrandCompany.Company.ID + ".png");
 				finalImg.Mutate(x => x.DrawImage(gcImg, 1.0f));
 				gcImg.Dispose();
 
