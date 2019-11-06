@@ -224,6 +224,7 @@ namespace KupoNuts.Bot.Commands
 						else if (lastException is ParameterException paramEx)
 						{
 							await message.Channel.SendMessageAsync(paramEx.Message);
+							await message.Channel.SendMessageAsync(null, false, await HelpService.GetHelp(message, commandStr));
 						}
 						else if (lastException is NotImplementedException)
 						{

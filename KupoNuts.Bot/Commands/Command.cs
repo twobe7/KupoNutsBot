@@ -111,7 +111,7 @@ namespace KupoNuts.Bot.Commands
 						if (paramInfo.ParameterType == typeof(string))
 							hint = "\n(Strings should have \"quotes\" around them, Kupo!)";
 
-						throw new ParameterException("I didn't understand the parameter: " + arg + ".\nWas that was supposed to be a " + HelpService.GetTypeName(paramInfo.ParameterType) + " for " + HelpService.GetParamName(paramInfo.Name) + "?" + hint);
+						throw new ParameterException("I didn't understand the parameter: " + arg + ".\nWas that was supposed to be a " + HelpService.GetTypeName(paramInfo.ParameterType) + " for " + HelpService.GetParam(paramInfo) + "?" + hint);
 					}
 
 					parameters.Add(param);

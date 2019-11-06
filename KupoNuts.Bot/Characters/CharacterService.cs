@@ -45,13 +45,13 @@ namespace KupoNuts.Bot.Characters
 			return true;
 		}
 
-		[Command("IAm", Permissions.Everyone, "looks up a character profile by character name")]
+		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
 		public async Task<Embed> IAm(CommandMessage message, string characterName)
 		{
 			return await this.IAm(message, characterName, null);
 		}
 
-		[Command("IAm", Permissions.Everyone, "Records who your character is")]
+		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
 		public async Task<Embed> IAm(CommandMessage message, string characterName, string? serverName)
 		{
 			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
@@ -86,7 +86,7 @@ namespace KupoNuts.Bot.Characters
 			}
 		}
 
-		[Command("IAm", Permissions.Everyone, "Records who your character is")]
+		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
 		public async Task<Embed> IAm(CommandMessage message, uint characterId)
 		{
 			IGuildUser user = message.Author;
@@ -103,7 +103,7 @@ namespace KupoNuts.Bot.Characters
 			return embed.Build();
 		}
 
-		[Command("WhoAmI", Permissions.Everyone, "displays your character")]
+		[Command("WhoAmI", Permissions.Everyone, "displays your linked character")]
 		public async Task<bool> WhoAmI(CommandMessage message)
 		{
 			IGuildUser user = message.Author;

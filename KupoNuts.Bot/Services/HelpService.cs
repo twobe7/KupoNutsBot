@@ -47,12 +47,27 @@ namespace KupoNuts.Bot.Services
 			return type.Name;
 		}
 
-		public static string GetParamName(string? name)
+		public static string GetParam(ParameterInfo param)
 		{
+			string? name = param.Name;
+			Type type = param.ParameterType;
+
 			if (name == null)
 				return "unknown";
 
-			return Regex.Replace(name, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
+			name = Regex.Replace(name, "([A-Z])", " $1", RegexOptions.Compiled).Trim();
+			name = "[" + name + "]";
+
+			if (type == typeof(string))
+				name = "\"" + name + "\"";
+
+			if (type == typeof(IEmote))
+				name = ":" + name + ":";
+
+			if (type == typeof(IUser) || type == typeof(IGuildUser))
+				name = "@" + name;
+
+			return name;
 		}
 
 		public static Task<Embed> GetHelp(CommandMessage message, string? command = null)
@@ -179,11 +194,7 @@ namespace KupoNuts.Bot.Services
 					if (i != 0)
 						builder.Append(", ");
 
-					ParameterInfo param = parameters[i];
-
-					builder.Append('[');
-					builder.Append(GetParamName(param.Name));
-					builder.Append(']');
+					builder.Append(GetParam(parameters[i]));
 				}
 
 				builder.Append("**");
