@@ -11,6 +11,7 @@ namespace KupoNuts.Bot.Characters
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
 	using KupoNuts.Characters;
+	using KupoNuts.Utils;
 
 	public class CharacterService : ServiceBase
 	{
@@ -24,6 +25,14 @@ namespace KupoNuts.Bot.Characters
 
 		public async Task<bool> WhoIs(CommandMessage message, uint characterId)
 		{
+			// Sepcial case to jsut laod Kupo Nuts' portrait from disk.
+			if (characterId == 24960538)
+			{
+				await message.Channel.SendMessageAsync("Thats me!");
+				await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/self.png");
+				return true;
+			}
+
 			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
 
 			if (response.Character == null)
@@ -107,6 +116,12 @@ namespace KupoNuts.Bot.Characters
 		[Command("WhoIs", Permissions.Everyone, "looks up a linked character")]
 		public async Task<bool> WhoIs(CommandMessage message, IGuildUser user)
 		{
+			// Special case to handle ?WhoIs @KupoNuts to resolve her own character.
+			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			{
+				return await this.WhoIs(message, 24960538);
+			}
+
 			CharacterLink link = await this.GetLink(user, message.Guild, false);
 			return await this.WhoIs(message, link.CharacterId);
 		}
