@@ -8,6 +8,7 @@ namespace KupoNuts.Bot.Services
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
+	using KupoNuts.Bot.Commands;
 	using Twitter;
 
 	public class FashionReportService : ServiceBase
@@ -22,6 +23,27 @@ namespace KupoNuts.Bot.Services
 
 			await this.Update();
 			Scheduler.RunOnSchedule(this.Update, 60);
+		}
+
+		[Command("FashionReport", Permissions.Everyone, "Gets the latest Fashion Report post")]
+		[Command("fr", Permissions.Everyone, "Gets the latest Fashion Report post")]
+		public async Task<Embed> GetFashionReport()
+		{
+			List<FashionReportEntry> reports = await FashionReportAPI.Get();
+			reports.Sort((a, b) =>
+			{
+				return a.Time.CompareTo(b.Time);
+			});
+
+			foreach (FashionReportEntry entry in reports)
+			{
+				if (entry.Id == null)
+					continue;
+
+				return this.GetEmbed(entry);
+			}
+
+			throw new UserException("I couldn't find any Fashion Report posts.");
 		}
 
 		private async Task Update()
@@ -52,6 +74,11 @@ namespace KupoNuts.Bot.Services
 			ulong channelId = ulong.Parse(channelIdStr);
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
 
+			await channel.SendMessageAsync(null, false, this.GetEmbed(entry));
+		}
+
+		private Embed GetEmbed(FashionReportEntry entry)
+		{
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Author = new EmbedAuthorBuilder();
 			builder.Author.IconUrl = entry.AuthorImageUrl;
@@ -59,8 +86,8 @@ namespace KupoNuts.Bot.Services
 			builder.ImageUrl = entry.ImageUrl;
 			builder.Description = entry.Content;
 			builder.Color = Color.Magenta;
-
-			await channel.SendMessageAsync(null, false, builder.Build());
+			builder.Timestamp = entry.Time;
+			return builder.Build();
 		}
 	}
 }

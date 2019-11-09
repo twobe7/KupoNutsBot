@@ -6,14 +6,14 @@ namespace KupoNuts
 
 	public class FashionReportEntry : EntryBase
 	{
-		public DateTime? Time { get; set; }
+		public DateTime Time { get; set; }
 
-		public string? Content { get; set; }
+		public string Content { get; set; } = string.Empty;
 
-		public string? ImageUrl { get; set; }
+		public string ImageUrl { get; set; } = string.Empty;
 
-		public string? Author { get; set; }
+		public string Author { get; set; } = string.Empty;
 
-		public string? AuthorImageUrl { get; set; }
+		public string AuthorImageUrl { get; set; } = string.Empty;
 	}
 }
