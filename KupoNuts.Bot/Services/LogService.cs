@@ -43,12 +43,6 @@ namespace KupoNuts.Bot.Services
 			await base.Shutdown();
 		}
 
-		[Command("LogMe", Permissions.Administrators, "Test a user join log message.")]
-		public async Task LogMe(CommandMessage message)
-		{
-			await this.PostMessage(message.Author, Color.Purple, "Is testing");
-		}
-
 		[Command("Log", Permissions.Administrators, "posts the bot log")]
 		public async Task PostLog(CommandMessage message)
 		{
@@ -103,7 +97,7 @@ namespace KupoNuts.Bot.Services
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Color = color;
-			builder.Title = user.Username + " " + message;
+			builder.Title = user.Username + " " + message + " " + user.Guild.Name;
 			builder.Timestamp = DateTimeOffset.Now;
 			builder.ThumbnailUrl = user.GetAvatarUrl();
 
