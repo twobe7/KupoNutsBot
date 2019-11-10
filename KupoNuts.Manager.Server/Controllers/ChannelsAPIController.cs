@@ -18,6 +18,10 @@ namespace KupoNuts.Manager.Server.Controllers
 				return null;
 
 			List<Channel> results = new List<Channel>();
+
+			if (DiscordAPI.Client == null)
+				return results;
+
 			foreach (SocketGuild guild in DiscordAPI.Client.Guilds)
 			{
 				foreach (SocketGuildChannel channel in guild.Channels)
