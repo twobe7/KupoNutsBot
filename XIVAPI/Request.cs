@@ -46,6 +46,9 @@ namespace XIVAPI
 
 				Log.Write("Response: " + json.Length + " characters", "XIVAPI");
 
+				// dirty hack to handle GameContentLinks being sometimes an array, and sometimes an object...
+				json = json.Replace("\"GameContentLinks\":[]", "\"GameContentLinks\":null");
+
 				T result = JsonConvert.DeserializeObject<T>(json);
 				result.Json = json;
 				return result;
