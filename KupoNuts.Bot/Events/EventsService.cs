@@ -145,7 +145,7 @@ namespace KupoNuts.Bot.Events
 			if (notifyDuration.Value.TotalSeconds == 0)
 				return true;
 
-			return timeTillEvent.Value < notifyDuration.Value;
+			return timeTillEvent.Value <= notifyDuration.Value;
 		}
 
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
