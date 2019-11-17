@@ -189,6 +189,11 @@ namespace KupoNuts.Events
 			if (occurances == null || occurances.Count <= 0)
 				return null;
 
+			occurances.Sort((a, b) =>
+			{
+				return a.GetInstant().CompareTo(b.GetInstant());
+			});
+
 			return occurances[0];
 		}
 
