@@ -85,6 +85,19 @@ else
 	</div>
 
 	<div class="form-row">
+		<!--  Sunday Funday Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Sunday Funday Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.settings.SundayFundayChannel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
 		<!-- Name -->
 		<div class="form-group col-md-12">
 			<label for="eventName">Discord Token</label>

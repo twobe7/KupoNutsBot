@@ -1,0 +1,116 @@
+﻿@page "/sundayFunday"
+@using KupoNuts.RPG;
+@using KupoNuts.Utils;
+@using NodaTime;
+@using System.Globalization;
+
+@inject HttpClient Http
+@inject IModalService Modal
+@inject NavigationManager NavigationManager
+
+@if (this.AllItems == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<div class="wrapper">
+		<table class="table table-dark">
+			<thead>
+				<tr>
+					<th width="15%">Name</th>
+					<th>Description</th>
+					<th width="15%">Current Week</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (SundayFundayEvent item in this.AllItems)
+				{
+					<tr @onclick="() => this.OnEdit(item)" class="table-clickable">
+						<td>@item.Name</td>
+						<td>@item.Description</td>
+						<td>@item.CurrentWeek</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+
+		<div class="push"></div>
+	</div>
+	<div class="footer">
+		<div class="footer-content">
+			<button class="btn btn-primary" @onclick="this.OnCreateNew">New</button>
+		</div>
+	</div>
+}
+
+@code {
+
+	public List<SundayFundayEvent> AllItems;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (!Authentication.Initialize(this.Http, this.NavigationManager))
+			return;
+
+		await base.OnInitializedAsync();
+
+		this.AllItems = await this.Http.GetJsonAsync<List<SundayFundayEvent>>("SundayFundayEventsAPI");
+	}
+
+	protected void OnEdit(SundayFundayEvent item)
+	{
+		ModalParameters parameters = new ModalParameters();
+		parameters.Add("Event", item);
+		this.Modal.Show("Edit Event", typeof(SundayFundayEventEditor), parameters);
+		this.Modal.OnClose += this.OnModalClosed;
+	}
+
+	protected void OnCreateNew()
+	{
+		SundayFundayEvent item = new SundayFundayEvent();
+		item.Id = Guid.NewGuid().ToString();
+		OnEdit(item);
+	}
+
+	private async void OnModalClosed(ModalResult result)
+	{
+		Modal.OnClose -= this.OnModalClosed;
+
+		if (result.Data is DataAction<SundayFundayEvent> itemAction)
+		{
+			switch (itemAction.Action)
+			{
+				case Actions.Nothing:
+				{
+					break;
+				}
+				case Actions.Update:
+				{
+					await this.Http.PostJsonAsync("SundayFundayEventsAPI", itemAction);
+					this.AllItems = await this.Http.GetJsonAsync<List<SundayFundayEvent>>("SundayFundayEventsAPI");
+					this.StateHasChanged();
+					break;
+				}
+				case Actions.Delete:
+				{
+					ModalParameters parameters = new ModalParameters();
+					parameters.Add("Content", itemAction.Data.Name);
+					this.Modal.Show("Delete Item", typeof(ConfirmDelete), parameters);
+					this.Modal.OnClose += async (ModalResult res) =>
+					{
+						if (!res.Cancelled)
+						{
+							await this.Http.PostJsonAsync("SundayFundayEventsAPI", itemAction);
+							this.AllItems = await this.Http.GetJsonAsync<List<SundayFundayEvent>>("SundayFundayEventsAPI");
+							this.StateHasChanged();
+						}
+					};
+
+					break;
+				}
+			}
+		}
+
+	}
+}

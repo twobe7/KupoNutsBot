@@ -25,6 +25,12 @@ namespace KupoNuts
 
 		public string? CalendarMessage2 { get; set; }
 
+		public string? SundayFundayChannel { get; set; }
+
+		public string? SundayFundayMessage { get; set; }
+
+		public int SundayFundayWeek { get; set; } = 0;
+
 		public string? FashionReportChannel { get; set; }
 
 		public string? DBKey { get; set; }

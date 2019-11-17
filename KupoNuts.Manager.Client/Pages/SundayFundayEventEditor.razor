@@ -1,0 +1,65 @@
+﻿@using KupoNuts.RPG;
+@using KupoNuts.Utils;
+@using NodaTime;
+@using NodaTime.Text;
+
+@inject HttpClient Http
+@inject IModalService Modal
+@inject NavigationManager NavigationManager
+
+
+<div class="form-row">
+	<!-- Name -->
+	<div class="form-group col-md-4">
+		<label for="eventName">Name</label>
+		<input type="text" class="form-control" id="eventName" name="eventName" @bind="this.item.Name" />
+	</div>
+
+	<!-- Short description -->
+	<div class="form-group col-md-8">
+		<label for="eventShortDesc">Description</label>
+		<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.item.Description" />
+	</div>
+	
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+
+@code {
+	[CascadingParameter]
+	ModalParameters Parameters { get; set; }
+
+	public bool IsLoading { get; set; }
+
+	private SundayFundayEvent item;
+
+	protected override async Task OnInitializedAsync()
+	{
+		Authentication.Initialize(this.Http, this.NavigationManager);
+
+		await base.OnInitializedAsync();
+
+		this.item = Parameters.Get<SundayFundayEvent>("Event");
+	}
+
+	private void OnSave()
+	{
+		this.Modal.Close(ModalResult.Ok(new DataAction<SundayFundayEvent>(this.item, Actions.Update)));
+	}
+
+	private void OnClose()
+	{
+		this.Modal.Close(ModalResult.Ok(new DataAction<SundayFundayEvent>(this.item, Actions.Nothing)));
+	}
+
+	private void OnDelete()
+	{
+		this.Modal.Close(ModalResult.Ok(new DataAction<SundayFundayEvent>(this.item, Actions.Delete)));
+	}
+}
