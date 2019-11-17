@@ -7,7 +7,7 @@ namespace KupoNuts
 	[Serializable]
 	public abstract class EntryBase
 	{
-		public string? Id { get; set; }
+		public string Id { get; set; } = string.Empty;
 
 		public DateTime? Updated { get; set; }
 

@@ -12,6 +12,7 @@ namespace KupoNuts.Bot.Services
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Utils;
 	using NodaTime;
+	using NodaTime.Calendars;
 
 	public class SundayFundayService : ServiceBase
 	{
@@ -30,6 +31,7 @@ namespace KupoNuts.Bot.Services
 
 		private Database<SundayFundayEvent> database = new Database<SundayFundayEvent>("SundayFunday", 0);
 		private ulong messageId;
+		private Dictionary<string, string> reactionEventLookup = new Dictionary<string, string>();
 
 		public override async Task Initialize()
 		{
@@ -53,7 +55,11 @@ namespace KupoNuts.Bot.Services
 
 			Settings settings = Settings.Load();
 
-			if (settings.SundayFundayWeek < 0)
+			Instant now = TimeUtils.Now;
+			Instant next = this.GetNextInstant(now);
+			Duration timeTill = next - TimeUtils.RoundInstant(now);
+
+			if (settings.SundayFundayWeek < 0 && timeTill.TotalSeconds < -(60 * 60 * 2))
 				await this.AdvanceWeek();
 
 			ulong channelId = 0;
@@ -67,7 +73,7 @@ namespace KupoNuts.Bot.Services
 
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
 
-			Embed embed = await this.Generate();
+			Embed embed = await this.Generate(timeTill);
 			RestUserMessage? message = null;
 
 			if (messageId != 0)
@@ -117,7 +123,7 @@ namespace KupoNuts.Bot.Services
 				if (evt.CurrentWeek != lastWeek)
 					continue;
 
-				int votes = evt.CountVotes(lastWeek);
+				int votes = evt.Votes.Count;
 				if (votes > topVotes)
 				{
 					topVotes = votes;
@@ -145,37 +151,57 @@ namespace KupoNuts.Bot.Services
 			ZonedDateTime zdt = from.InZone(TimeUtils.Sydney);
 			LocalDateTime ldt = zdt.LocalDateTime;
 			ldt = new LocalDateTime(ldt.Year, ldt.Month, ldt.Day, 20, 00);
-			LocalDateTime sundayLdt = ldt.Next(IsoDayOfWeek.Sunday);
-			ZonedDateTime sundayZdt = sundayLdt.InZoneLeniently(TimeUtils.Sydney);
-			return sundayZdt.ToInstant();
+
+			if (ldt.DayOfWeek != IsoDayOfWeek.Sunday)
+				ldt = ldt.Next(IsoDayOfWeek.Sunday);
+
+			zdt = ldt.InZoneLeniently(TimeUtils.Sydney);
+			return zdt.ToInstant();
 		}
 
-		private async Task<Embed> Generate()
+		private async Task<Embed> Generate(Duration timeTill)
 		{
 			int currentWeek = Settings.Load().SundayFundayWeek;
 
-			Instant now = TimeUtils.Now;
-			Instant next = this.GetNextInstant(now);
-			Duration timeTill = next - TimeUtils.RoundInstant(now);
+			bool running = timeTill.TotalSeconds <= 0;
+			if (running)
+			{
+				Instant now = TimeUtils.Now;
+				Instant next = this.GetNextInstant(now);
+				next += Duration.FromHours(2);
+				timeTill = next - TimeUtils.RoundInstant(now);
+			}
 
 			StringBuilder description = new StringBuilder();
 
 			description.AppendLine("Its Sunday funday! Vote for an event each week!");
 			description.AppendLine();
-			description.Append("Starts in ");
+			description.Append(running ? "Ends in " : "Starts in ");
 			description.AppendLine(TimeUtils.GetDurationString(timeTill));
 			description.AppendLine();
 
+			this.reactionEventLookup.Clear();
+
 			List<SundayFundayEvent> events = await this.database.LoadAll();
 			int count = 0;
+			SundayFundayEvent? winner = null;
+			int topVotes = -1;
 			foreach (SundayFundayEvent evt in events)
 			{
 				if (evt.CurrentWeek != currentWeek)
 					continue;
 
-				int votes = evt.CountVotes(currentWeek);
+				int votes = evt.Votes.Count;
+				string str = ListEmotes[count];
+				this.reactionEventLookup.Add(str, evt.Id);
 
-				description.Append(ListEmotes[count]);
+				if (votes > topVotes)
+				{
+					topVotes = votes;
+					winner = evt;
+				}
+
+				description.Append(str);
 				description.Append(" - *");
 				description.Append(votes.ToString());
 				description.Append(" votes* - ");
@@ -184,21 +210,64 @@ namespace KupoNuts.Bot.Services
 				count++;
 			}
 
+			description.AppendLine();
+			description.Append("Dont want to do ");
+			description.Append(winner?.Name);
+			description.Append("? Vote now!");
+
 			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = "Sunday Funday: Week " + currentWeek;
+			builder.Title = "Sunday Funday: " + winner?.Name + " (" + topVotes + " votes)";
 			builder.Description = description.ToString();
 			return builder.Build();
 		}
 
-		private Task DiscordClient_ReactionAdded(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
+		private async Task DiscordClient_ReactionAdded(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
 		{
 			if (arg1.Id != this.messageId)
-				return Task.CompletedTask;
+				return;
 
-			if (!ListEmotes.Contains(arg3.Emote.Name))
-				return Task.CompletedTask;
+			if (!arg3.User.IsSpecified)
+				return;
 
-			return Task.CompletedTask;
+			if (arg3.UserId == Program.DiscordClient.CurrentUser.Id)
+				return;
+
+			IUserMessage msg = await arg1.GetOrDownloadAsync();
+			await msg.RemoveReactionAsync(arg3.Emote, arg3.User.Value);
+
+			if (!this.reactionEventLookup.ContainsKey(arg3.Emote.Name))
+				return;
+
+			string eventId = this.reactionEventLookup[arg3.Emote.Name];
+			SundayFundayEvent? evt = await this.database.Load(eventId);
+
+			if (evt == null)
+				throw new Exception("Missing event id: \"" + eventId + "\"");
+
+			string userId = arg3.UserId.ToString();
+
+			////if (evt.HasVoted(userId))
+			////	return;
+
+			// Remove other votes
+			List<SundayFundayEvent> events = await this.database.LoadAll();
+			foreach (SundayFundayEvent otherEvent in events)
+			{
+				if (otherEvent.RemoveVote(userId))
+				{
+					await this.database.Save(otherEvent);
+				}
+			}
+
+			if (evt.HasVoted(userId))
+				return;
+
+			// apply this vote
+			evt.AddVote(userId);
+			await this.database.Save(evt);
+
+			// update post
+			_ = Task.Run(this.Update);
 		}
 	}
 }
