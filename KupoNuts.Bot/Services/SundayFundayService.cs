@@ -59,7 +59,7 @@ namespace KupoNuts.Bot.Services
 			Instant next = this.GetNextInstant(now);
 			Duration timeTill = next - TimeUtils.RoundInstant(now);
 
-			if (settings.SundayFundayWeek < 0 && timeTill.TotalSeconds < -(60 * 60 * 2))
+			if (settings.SundayFundayWeek < 0)
 				await this.AdvanceWeek();
 
 			ulong channelId = 0;
@@ -218,6 +218,8 @@ namespace KupoNuts.Bot.Services
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Title = "Sunday Funday: " + winner?.Name + " (" + topVotes + " votes)";
 			builder.Description = description.ToString();
+			builder.Footer = new EmbedFooterBuilder();
+			builder.Footer.Text = "or dont, I'm a bot, not a cop.";
 			return builder.Build();
 		}
 
