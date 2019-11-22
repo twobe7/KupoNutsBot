@@ -8,6 +8,8 @@ namespace KupoNuts.Bot.Services
 	using System.Threading.Tasks;
 	using Discord;
 	using KupoNuts.Bot.Commands;
+	using NodaTime;
+	using NodaTime.Extensions;
 
 	public class NoveltyService : ServiceBase
 	{
@@ -149,6 +151,21 @@ namespace KupoNuts.Bot.Services
 			int value = rn.Next(min, max);
 
 			return value + "!";
+		}
+
+		[Command("et", Permissions.Everyone, "Gets the current Eorzean Time")]
+		[Command("EorzeaTime", Permissions.Everyone, "Gets the current Eorzean Time")]
+		public string EorzeanTime()
+		{
+			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
+			double eorzeaConstant = 20.571428571428573;
+			double offset = 19 * 60; // time is off by 19 minutes?
+
+			double timeSeconds = (DateTime.Now.ToUniversalTime() - epoch).TotalSeconds;
+			double eorzeaSeconds = (timeSeconds * eorzeaConstant) + offset;
+			DateTime et = epoch + TimeSpan.FromSeconds(eorzeaSeconds);
+
+			return "It is currently: " + et.Hour + ":" + et.Minute;
 		}
 	}
 }
