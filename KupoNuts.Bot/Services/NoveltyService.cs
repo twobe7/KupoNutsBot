@@ -171,7 +171,7 @@ namespace KupoNuts.Bot.Services
 			double eorzeaSeconds = (timeSeconds * eorzeaConstant) + offset;
 			DateTime et = epoch + TimeSpan.FromSeconds(eorzeaSeconds);
 
-			return "It is currently: " + et.Hour + ":" + et.Minute;
+			return "It is currently: " + et.ToString("HH:mm");
 		}
 	}
 }
