@@ -4,8 +4,8 @@ namespace KupoNuts.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
-    using System.Runtime.InteropServices;
-    using System.Text;
+	using System.Runtime.InteropServices;
+	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
 	using KupoNuts.Bot.Commands;
@@ -163,6 +163,7 @@ namespace KupoNuts.Bot.Services
 
 			// time is off by 19 minutes on windows, but not linux...
 			double offset = 19 * 60;
+
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				offset = 0;
 
