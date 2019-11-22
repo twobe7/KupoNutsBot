@@ -4,7 +4,8 @@ namespace KupoNuts.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Text;
+    using System.Runtime.InteropServices;
+    using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
 	using KupoNuts.Bot.Commands;
@@ -159,7 +160,11 @@ namespace KupoNuts.Bot.Services
 		{
 			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
 			double eorzeaConstant = 20.571428571428573;
-			double offset = 19 * 60; // time is off by 19 minutes?
+
+			// time is off by 19 minutes on windows, but not linux...
+			double offset = 19 * 60;
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				offset = 0;
 
 			double timeSeconds = (DateTime.Now.ToUniversalTime() - epoch).TotalSeconds;
 			double eorzeaSeconds = (timeSeconds * eorzeaConstant) + offset;
