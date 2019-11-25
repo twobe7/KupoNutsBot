@@ -151,22 +151,137 @@ namespace KupoNuts.Bot.Characters
 			}
 			else
 			{
-				EmbedBuilder embed = new EmbedBuilder();
-
-				StringBuilder description = new StringBuilder();
-				for (int i = 0; i < Math.Min(response.Results.Count, 10); i++)
-				{
-					description.AppendLine(response.Results[i].ID + " - " + response.Results[i].Name);
-				}
-
-				embed.Title = response.Results.Count + " results found";
-				embed.Description = description.ToString();
-				Embed embedAc = embed.Build();
-
-				await message.Channel.SendMessageAsync(null, false, embedAc);
-
+				Embed embed = this.GetTooManyResultsEmbed(response);
+				await message.Channel.SendMessageAsync(null, false, embed);
 				return true;
 			}
+		}
+
+		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		public async Task<Embed> Gear(CommandMessage message, string characterName)
+		{
+			return await this.Gear(message, characterName, null);
+		}
+
+		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		public async Task<Embed> Gear(CommandMessage message, IGuildUser user)
+		{
+			CharacterLink link = await this.GetLink(user, message.Guild, false);
+			return await this.Gear(message, link.CharacterId);
+		}
+
+		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		public async Task<Embed> Gear(CommandMessage message)
+		{
+			CharacterLink link = await this.GetLink(message.Author, message.Guild, false);
+			return await this.Gear(message, link.CharacterId);
+		}
+
+		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		public async Task<Embed> Gear(CommandMessage message, string characterName, string? serverName)
+		{
+			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
+
+			if (response.Pagination == null)
+				throw new Exception("No Pagination");
+
+			if (response.Results == null)
+			{
+				throw new Exception("No Results");
+			}
+			else if (response.Results.Count == 1)
+			{
+				uint id = response.Results[0].ID;
+				return await this.Gear(message, id);
+			}
+			else
+			{
+				return this.GetTooManyResultsEmbed(response);
+			}
+		}
+
+		public async Task<Embed> Gear(CommandMessage message, uint characterId)
+		{
+			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
+
+			if (response.Character == null)
+				throw new UserException("I couldn't find that character.");
+
+			return response.Character.GetGear();
+		}
+
+		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		public async Task<Embed> Stats(CommandMessage message, string characterName)
+		{
+			return await this.Stats(message, characterName, null);
+		}
+
+		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		public async Task<Embed> Stats(CommandMessage message, IGuildUser user)
+		{
+			CharacterLink link = await this.GetLink(user, message.Guild, false);
+			return await this.Stats(message, link.CharacterId);
+		}
+
+		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		public async Task<Embed> Stats(CommandMessage message)
+		{
+			CharacterLink link = await this.GetLink(message.Author, message.Guild, false);
+			return await this.Stats(message, link.CharacterId);
+		}
+
+		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		public async Task<Embed> Stats(CommandMessage message, string characterName, string? serverName)
+		{
+			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
+
+			if (response.Pagination == null)
+				throw new Exception("No Pagination");
+
+			if (response.Results == null)
+			{
+				throw new Exception("No Results");
+			}
+			else if (response.Results.Count == 1)
+			{
+				uint id = response.Results[0].ID;
+				return await this.Stats(message, id);
+			}
+			else
+			{
+				return this.GetTooManyResultsEmbed(response);
+			}
+		}
+
+		public async Task<Embed> Stats(CommandMessage message, uint characterId)
+		{
+			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
+
+			if (response.Character == null)
+				throw new UserException("I couldn't find that character.");
+
+			return response.Character.GetAttributtes();
+		}
+
+		private Embed GetTooManyResultsEmbed(XIVAPI.CharacterAPI.SearchResponse response)
+		{
+			if (response.Pagination == null)
+				throw new Exception("No Pagination");
+
+			if (response.Results == null)
+				throw new Exception("No Results");
+
+			EmbedBuilder embed = new EmbedBuilder();
+
+			StringBuilder description = new StringBuilder();
+			for (int i = 0; i < Math.Min(response.Results.Count, 10); i++)
+			{
+				description.AppendLine(response.Results[i].ID + " - " + response.Results[i].Name);
+			}
+
+			embed.Title = response.Results.Count + " results found";
+			embed.Description = description.ToString();
+			return embed.Build();
 		}
 
 		private async Task<CharacterLink> GetLink(IGuildUser user, IGuild guild, bool create)

@@ -17,7 +17,7 @@ namespace XIVAPI
 		public List<ClassJob>? ClassJobs { get; set; }
 		public string DC { get; set; } = string.Empty;
 		public string FreeCompanyId { get; set; } = string.Empty;
-		////public ? GearSet;
+		public GearSet? GearSet { get; set; }
 		public uint Gender { get; set; }
 		public GrandCompany? GrandCompany { get; set; }
 		public Data? GuardianDeity { get; set; }

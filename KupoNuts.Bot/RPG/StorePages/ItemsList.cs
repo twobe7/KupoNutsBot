@@ -43,13 +43,11 @@ namespace KupoNuts.Bot.RPG.StorePages
 		{
 			ItemBase item = RPGService.Items[index];
 
-			int pad = 50 - Utils.Characters.GetWidth(item.Name);
-
 			StringBuilder builder = new StringBuilder();
 			builder.Append(item.Name);
 			builder.Append(" ");
 
-			for (int i = 0; i < pad; i++)
+			for (int i = 0; i < 10; i++)
 				builder.Append('.');
 
 			builder.Append(" ");

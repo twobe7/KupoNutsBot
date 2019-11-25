@@ -100,5 +100,15 @@ namespace KupoNuts.Bot.Services
 			await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/confus.jpg");
 			return true;
 		}
+
+		[Command("Alphabet", Permissions.Administrators, "I know my ABC's!")]
+		public Task<Embed> Alphabet()
+		{
+			EmbedBuilder builder = new EmbedBuilder();
+
+			builder.Description = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 .";
+
+			return Task.FromResult(builder.Build());
+		}
 	}
 }
