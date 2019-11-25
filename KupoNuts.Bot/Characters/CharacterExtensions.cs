@@ -38,6 +38,8 @@ namespace KupoNuts.Bot.Characters
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.ImageUrl = self.Portrait;
 			builder.ThumbnailUrl = "https://xivapi.com/" + self.GearSet.Gear.MainHand?.Item?.Icon;
+			builder.Title = self.Name;
+			builder.Description = "Average item level: " + self.GetAverageLevel().ToString();
 
 			builder.AddField("Main Hand", self.GearSet.Gear.MainHand?.GetString(), false);
 
@@ -58,6 +60,31 @@ namespace KupoNuts.Bot.Characters
 			builder.AddField("Ring", self.GearSet.Gear.Ring2?.GetString(), true);
 
 			return builder.Build();
+		}
+
+		public static int GetAverageLevel(this XIVAPICharacter self)
+		{
+			if (self.GearSet == null || self.GearSet.Gear == null)
+				throw new Exception("No gear set on character.");
+
+			int total = 0;
+			int count = 0;
+			count += AddItemlevel(self.GearSet.Gear.Body?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Bracelets?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Earrings?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Feet?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Hands?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Head?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Legs?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.MainHand?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Necklace?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.OffHand?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Ring1?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Ring2?.Item, ref total) ? 1 : 0;
+			count += AddItemlevel(self.GearSet.Gear.Waist?.Item, ref total) ? 1 : 0;
+
+			total /= count;
+			return total;
 		}
 
 		public static Embed GetAttributtes(this XIVAPICharacter self)
@@ -133,6 +160,15 @@ namespace KupoNuts.Bot.Characters
 			}
 
 			return result;
+		}
+
+		private static bool AddItemlevel(Item? item, ref int total)
+		{
+			if (item == null)
+				return false;
+
+			total += item.LevelItem;
+			return true;
 		}
 	}
 }
