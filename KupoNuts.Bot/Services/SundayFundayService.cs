@@ -4,6 +4,7 @@ namespace KupoNuts.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Globalization;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
@@ -33,6 +34,16 @@ namespace KupoNuts.Bot.Services
 		private ulong messageId;
 		private Dictionary<string, string> reactionEventLookup = new Dictionary<string, string>();
 
+		public static int CurrentWeek
+		{
+			get
+			{
+				GregorianCalendar calw = new GregorianCalendar(GregorianCalendarTypes.Localized);
+				int week = calw.GetWeekOfYear(DateTime.Now, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+				return week;
+			}
+		}
+
 		public override async Task Initialize()
 		{
 			await this.database.Connect();
@@ -59,7 +70,7 @@ namespace KupoNuts.Bot.Services
 			Instant next = this.GetNextInstant(now);
 			Duration timeTill = next - TimeUtils.RoundInstant(now);
 
-			if (settings.SundayFundayWeek < 0)
+			if (settings.SundayFundayWeek != CurrentWeek)
 				await this.AdvanceWeek();
 
 			ulong channelId = 0;
@@ -109,8 +120,7 @@ namespace KupoNuts.Bot.Services
 
 			Settings settings = Settings.Load();
 			int lastWeek = settings.SundayFundayWeek;
-			settings.SundayFundayWeek++;
-			int currentWeek = settings.SundayFundayWeek;
+			settings.SundayFundayWeek = CurrentWeek;
 			settings.Save();
 
 			SundayFundayEvent? lastWinner = null;
@@ -133,6 +143,13 @@ namespace KupoNuts.Bot.Services
 				evt.CurrentWeek = -1;
 			}
 
+			foreach (SundayFundayEvent evt in events)
+			{
+				evt.CurrentWeek = -1;
+				evt.Votes.Clear();
+				await this.database.Save(evt);
+			}
+
 			if (lastWinner != null)
 				events.Remove(lastWinner);
 
@@ -140,7 +157,7 @@ namespace KupoNuts.Bot.Services
 			for (int i = 0; i < NumberOfEvents; i++)
 			{
 				SundayFundayEvent evt = events.GetRandom();
-				evt.CurrentWeek = currentWeek;
+				evt.CurrentWeek = CurrentWeek;
 				await this.database.Save(evt);
 				events.Remove(evt);
 			}
@@ -208,6 +225,14 @@ namespace KupoNuts.Bot.Services
 				description.AppendLine(evt.Name);
 
 				count++;
+			}
+
+			if (winner != null)
+			{
+				description.AppendLine();
+				description.Append("Current winner: ");
+				description.AppendLine(winner.Name);
+				description.AppendLine(winner.Description);
 			}
 
 			description.AppendLine();
