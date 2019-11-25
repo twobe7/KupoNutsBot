@@ -111,11 +111,11 @@ namespace KupoNuts.Utils
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append(GetTimeString(dt, Perth, IsStandardTime(dt, Perth) ? " AWST" : " AWDT"));
-			builder.Append(" - ");
+			builder.Append(" | ");
 			builder.Append(GetTimeString(dt, Adelaide, IsStandardTime(dt, Adelaide) ? " ACST" : " ACDT"));
-			builder.Append(" - ");
+			builder.Append(" | ");
 			builder.Append(GetTimeString(dt, Sydney, IsStandardTime(dt, Sydney) ? " AEST" : " AEDT"));
-			builder.Append(" - ");
+			builder.Append(" | ");
 			builder.Append(GetTimeString(dt, Aukland, IsStandardTime(dt, Aukland) ? " NZST" : " NZDT"));
 			return builder.ToString();
 		}
