@@ -118,12 +118,11 @@ namespace KupoNuts
 			return entry;
 		}
 
-		public async Task<List<T>> LoadAll()
+		public async Task<List<T>> LoadAll(params ScanCondition[] conditions)
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
-			List<ScanCondition> conditions = new List<ScanCondition>();
 			AsyncSearch<T> search = this.context.ScanAsync<T>(conditions, this.operationConfig);
 			return await search.GetRemainingAsync();
 		}

@@ -5,7 +5,6 @@ namespace XIVAPI
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
-	using KupoNuts.Characters;
 
 	public static class CharacterAPI
 	{

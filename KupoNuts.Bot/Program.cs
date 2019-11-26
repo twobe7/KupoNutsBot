@@ -76,6 +76,7 @@ namespace KupoNuts.Bot
 		{
 			try
 			{
+				await this.AddService<UserService>();
 				await this.AddService<LogService>();
 				await this.AddService<CommandsService>();
 				await this.AddService<EventsService>();

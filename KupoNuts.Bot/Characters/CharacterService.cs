@@ -10,17 +10,14 @@ namespace KupoNuts.Bot.Characters
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
-	using KupoNuts.Characters;
 	using KupoNuts.Utils;
 
+	#pragma warning disable
 	public class CharacterService : ServiceBase
 	{
-		private Database<CharacterLink> characterDb = new Database<CharacterLink>("Characters", 0);
-
 		public override async Task Initialize()
 		{
 			await base.Initialize();
-			await this.characterDb.Connect();
 		}
 
 		public async Task<bool> WhoIs(CommandMessage message, uint characterId)
@@ -89,31 +86,26 @@ namespace KupoNuts.Bot.Characters
 		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
 		public async Task<Embed> IAm(CommandMessage message, uint characterId)
 		{
-			IGuildUser user = message.Author;
-			IGuild guild = message.Guild;
-
-			CharacterLink link = await this.GetLink(user, guild, true);
-			link.UserId = user.Id;
-			link.GuildId = guild.Id;
-			link.CharacterId = characterId;
-			await this.characterDb.Save(link);
+			UserService.User userEntry = await this.GetuserEntry(message.Author, true);
+			userEntry.FFXIVCharacterId = characterId;
+			await UserService.SaveUser(userEntry);
 
 			EmbedBuilder embed = new EmbedBuilder();
-			embed.Description = "Character linked!";
+			embed.Description = "Character userEntryed!";
 			return embed.Build();
 		}
 
-		[Command("WhoAmI", Permissions.Everyone, "displays your linked character")]
+		[Command("WhoAmI", Permissions.Everyone, "displays your userEntryed character")]
 		public async Task<bool> WhoAmI(CommandMessage message)
 		{
 			IGuildUser user = message.Author;
 			IGuild guild = message.Guild;
 
-			CharacterLink link = await this.GetLink(user, guild, false);
-			return await this.WhoIs(message, link.CharacterId);
+			UserService.User userEntry = await this.GetuserEntry(user, false);
+			return await this.WhoIs(message, userEntry.FFXIVCharacterId);
 		}
 
-		[Command("WhoIs", Permissions.Everyone, "looks up a linked character")]
+		[Command("WhoIs", Permissions.Everyone, "looks up a userEntryed character")]
 		public async Task<bool> WhoIs(CommandMessage message, IGuildUser user)
 		{
 			// Special case to handle ?WhoIs @KupoNuts to resolve her own character.
@@ -122,8 +114,8 @@ namespace KupoNuts.Bot.Characters
 				return await this.WhoIs(message, 24960538);
 			}
 
-			CharacterLink link = await this.GetLink(user, message.Guild, false);
-			return await this.WhoIs(message, link.CharacterId);
+			UserService.User userEntry = await this.GetuserEntry(user, false);
+			return await this.WhoIs(message, userEntry.FFXIVCharacterId);
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
@@ -166,15 +158,15 @@ namespace KupoNuts.Bot.Characters
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
 		public async Task<Embed> Gear(CommandMessage message, IGuildUser user)
 		{
-			CharacterLink link = await this.GetLink(user, message.Guild, false);
-			return await this.Gear(message, link.CharacterId);
+			UserService.User userEntry = await this.GetuserEntry(user, false);
+			return await this.Gear(message, userEntry.FFXIVCharacterId);
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
 		public async Task<Embed> Gear(CommandMessage message)
 		{
-			CharacterLink link = await this.GetLink(message.Author, message.Guild, false);
-			return await this.Gear(message, link.CharacterId);
+			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
+			return await this.Gear(message, userEntry.FFXIVCharacterId);
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
@@ -219,15 +211,15 @@ namespace KupoNuts.Bot.Characters
 		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
 		public async Task<Embed> Stats(CommandMessage message, IGuildUser user)
 		{
-			CharacterLink link = await this.GetLink(user, message.Guild, false);
-			return await this.Stats(message, link.CharacterId);
+			UserService.User userEntry = await this.GetuserEntry(user, false);
+			return await this.Stats(message, userEntry.FFXIVCharacterId);
 		}
 
 		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
 		public async Task<Embed> Stats(CommandMessage message)
 		{
-			CharacterLink link = await this.GetLink(message.Author, message.Guild, false);
-			return await this.Stats(message, link.CharacterId);
+			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
+			return await this.Stats(message, userEntry.FFXIVCharacterId);
 		}
 
 		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
@@ -284,24 +276,14 @@ namespace KupoNuts.Bot.Characters
 			return embed.Build();
 		}
 
-		private async Task<CharacterLink> GetLink(IGuildUser user, IGuild guild, bool create)
+		private async Task<UserService.User> GetuserEntry(IGuildUser user, bool create)
 		{
-			string id = "Guild:" + guild.Id.ToString() + "_User:" + user.Id;
-			CharacterLink? link = await this.characterDb.Load(id);
+			UserService.User userEntry = await UserService.GetUser(user);
 
-			if (link is null)
-			{
-				if (!create)
-				{
-					throw new UserException("No character linked! Use `IAm` to link your character.");
-				}
-				else
-				{
-					link = await this.characterDb.CreateEntry(id);
-				}
-			}
+			if (userEntry.FFXIVCharacterId == 0 && !create)
+				throw new UserException("No character userEntryed! Use `IAm` to userEntry your character.");
 
-			return link;
+			return userEntry;
 		}
 	}
 }
