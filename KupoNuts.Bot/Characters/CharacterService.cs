@@ -281,7 +281,7 @@ namespace KupoNuts.Bot.Characters
 			UserService.User userEntry = await UserService.GetUser(user);
 
 			if (userEntry.FFXIVCharacterId == 0 && !create)
-				throw new UserException("No character userEntryed! Use `IAm` to userEntry your character.");
+				throw new UserException("No character userEntryed! Use `IAm` to link your character.");
 
 			return userEntry;
 		}
