@@ -66,7 +66,7 @@ namespace KupoNuts.Bot.Polls
 			if (!self.Closed())
 			{
 				description.Append("__Poll closes in ");
-				description.AppendLine(TimeUtils.GetDurationString(self.ClosesInstant));
+				description.Append(TimeUtils.GetDurationString(self.ClosesInstant));
 				description.AppendLine("__");
 				description.AppendLine();
 			}
