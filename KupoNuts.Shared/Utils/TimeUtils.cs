@@ -140,6 +140,12 @@ namespace KupoNuts.Utils
 			return true;
 		}
 
+		public static string? GetDurationString(Instant tillInstant)
+		{
+			Duration timeTillStart = tillInstant - TimeUtils.RoundInstant(TimeUtils.Now);
+			return TimeUtils.GetDurationString(timeTillStart);
+		}
+
 		public static string? GetDurationString(Duration? timeNull)
 		{
 			if (timeNull == null)

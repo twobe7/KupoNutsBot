@@ -11,15 +11,25 @@ namespace KupoNuts.Bot.Polls
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.Utils;
 	using NodaTime;
 
 	public class PollService : ServiceBase
 	{
-		private static readonly IEmote DefaultEmote = Emote.Parse("<:Yes:604942582866247690>");
+		public static readonly List<string> ListEmotes = new List<string>()
+		{
+			"🇦",
+			"🇧",
+			"🇨",
+			"🇩",
+			"🇪",
+			"🇫",
+			"🇬",
+		};
 
-		private Dictionary<ulong, Poll> pollLookup = new Dictionary<ulong, Poll>();
+		private Dictionary<ulong, string> pollLookup = new Dictionary<ulong, string>();
 
-		private Database<Poll> pollDatabase = new Database<Poll>("Polls", 1);
+		private Database<Poll> pollDatabase = new Database<Poll>("Polls", 2);
 
 		public override async Task Initialize()
 		{
@@ -39,7 +49,9 @@ namespace KupoNuts.Bot.Polls
 				}
 				else
 				{
+					await poll.UpdateMessage();
 					this.WatchPoll(poll);
+					await this.pollDatabase.Save(poll);
 				}
 			}
 		}
@@ -50,56 +62,64 @@ namespace KupoNuts.Bot.Polls
 			return Task.CompletedTask;
 		}
 
-		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
-		public async Task HandlePoll(CommandMessage message, int count)
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b)
 		{
-			await this.SendPoll(message, DefaultEmote, count, (SocketTextChannel)message.Channel, null);
+			return await this.SendPoll(message, (SocketTextChannel)message.Channel, comment, a, b, null, null);
 		}
 
-		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
-		public async Task HandlePoll(CommandMessage message, int count, SocketTextChannel channel)
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, SocketTextChannel channel)
 		{
-			await this.SendPoll(message, DefaultEmote, count, channel, null);
+			return await this.SendPoll(message, channel, comment, a, b, null, null);
 		}
 
-		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
-		public async Task HandlePoll(CommandMessage message, int count, SocketTextChannel channel, string comment)
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c)
 		{
-			await this.SendPoll(message, DefaultEmote, count, channel, comment);
+			return await this.SendPoll(message, (SocketTextChannel)message.Channel, comment, a, b, c, null);
 		}
 
-		[Command("Poll", Permissions.Administrators, "Copies a range of messages as a poll.")]
-		public async Task HandlePoll(CommandMessage message, IEmote emote, int count, string comment)
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, SocketTextChannel channel)
 		{
-			await this.SendPoll(message, emote, count, (SocketTextChannel)message.Channel, comment);
+			return await this.SendPoll(message, channel, comment, a, b, c, null);
 		}
 
-		[Command("Poll", Permissions.Administrators, "Copies a range of messages to a new channel as a poll.")]
-		public async Task HandlePoll(CommandMessage message, IEmote emote, int count, SocketTextChannel channel, string comment)
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, string d)
 		{
-			await this.SendPoll(message, emote, count, channel, comment);
+			return await this.SendPoll(message, (SocketTextChannel)message.Channel, comment, a, b, c, d);
 		}
 
-		private async Task SendPoll(CommandMessage message, IEmote emote, int count, SocketTextChannel channel, string? comment)
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, string d, SocketTextChannel channel)
+		{
+			return await this.SendPoll(message, channel, comment, a, b, c, d);
+		}
+
+		private async Task<bool> SendPoll(CommandMessage message, SocketTextChannel channel, string comment, string a, string b, string? c, string? d)
 		{
 			Poll poll = await this.pollDatabase.CreateEntry();
-			poll.ChannelId = message.Channel.Id.ToString();
+			poll.Comment = comment;
+			poll.ChannelId = channel.Id;
+			poll.ClosesInstant = TimeUtils.RoundInstant(TimeUtils.Now + Duration.FromDays(1));
+			poll.Options.Add(new Poll.Option(a));
+			poll.Options.Add(new Poll.Option(b));
 
-			if (comment != null)
-				await channel.SendMessageAsync(comment);
+			if (c != null)
+				poll.Options.Add(new Poll.Option(c));
 
-			List<RestUserMessage> messages = await EchoService.Echo((SocketTextChannel)message.Channel, channel, message.Id, count);
+			if (d != null)
+				poll.Options.Add(new Poll.Option(d));
 
-			poll.Options = new List<string>();
-			foreach (RestUserMessage pollMessage in messages)
-			{
-				poll.Options.Add(pollMessage.Id.ToString());
-				await pollMessage.AddReactionAsync(emote);
-			}
-
+			await poll.UpdateMessage();
+			this.WatchPoll(poll);
 			await this.pollDatabase.Save(poll);
 
-			this.WatchPoll(poll);
+			await message.Message.DeleteAsync();
+
+			return true;
 		}
 
 		private void WatchPoll(Poll poll)
@@ -107,13 +127,7 @@ namespace KupoNuts.Bot.Polls
 			if (poll.Options == null)
 				return;
 
-			foreach (string option in poll.Options)
-			{
-				if (!ulong.TryParse(option, out ulong messageID))
-					continue;
-
-				this.pollLookup.Add(messageID, poll);
-			}
+			this.pollLookup.Add(poll.MessageId, poll.Id);
 		}
 
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
@@ -129,22 +143,22 @@ namespace KupoNuts.Bot.Polls
 				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
 					return;
 
-				Poll poll = this.pollLookup[message.Id];
+				string pollId = this.pollLookup[message.Id];
 
-				if (poll.Options != null)
-				{
-					foreach (string optionIdStr in poll.Options)
-					{
-						if (!ulong.TryParse(optionIdStr, out ulong optionId))
-							continue;
+				IUserMessage userMessage = await message.GetOrDownloadAsync();
+				await userMessage.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
 
-						if (optionId == message.Id)
-							continue;
+				int optionIndex = PollService.ListEmotes.IndexOf(reaction.Emote.Name);
+				if (optionIndex < 0)
+					return;
 
-						IUserMessage option = (IUserMessage)await channel.GetMessageAsync(optionId);
-						await option.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-					}
-				}
+				Poll? poll = await this.pollDatabase.Load(pollId);
+				if (poll == null)
+					throw new Exception("Missing poll from database: \"" + pollId + "\"");
+
+				poll.Vote(reaction.UserId, optionIndex);
+				await this.pollDatabase.Save(poll);
+				_ = Task.Run(poll.UpdateMessage);
 			}
 			catch (Exception ex)
 			{
