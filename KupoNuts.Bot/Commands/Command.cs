@@ -293,7 +293,7 @@ namespace KupoNuts.Bot.Commands
 
 		private async Task<object> Convert(CommandMessage message, string arg, Type type)
 		{
-			#pragma warning disable SA1121
+			#pragma warning disable SA1121, IDE0049
 			if (type == typeof(string))
 			{
 				if (!arg.Contains("\""))

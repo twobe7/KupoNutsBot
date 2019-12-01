@@ -89,13 +89,15 @@ namespace KupoNuts.Bot.Services
 			return Task.FromResult(embed.Build());
 		}
 
-		public static Task<Embed> GetHelp(CommandMessage message, Permissions permissions)
+		public static async Task<bool> GetHelp(CommandMessage message, Permissions permissions)
 		{
+			EmbedBuilder embed = new EmbedBuilder();
 			StringBuilder builder = new StringBuilder();
 
 			List<string> commandStrings = new List<string>(CommandsService.GetCommands());
 			commandStrings.Sort();
 
+			int commandCount = 0;
 			foreach (string commandString in commandStrings)
 			{
 				if (commandString == "help")
@@ -116,25 +118,36 @@ namespace KupoNuts.Bot.Services
 
 				builder.Append("__");
 				builder.Append(commandString);
-				builder.Append("__ - *x");
+				builder.Append("__ - *+");
 				builder.Append(count);
 				builder.Append("* - ");
 				builder.Append(commands[0].Help);
 				builder.AppendLine();
+
+				commandCount++;
+
+				if (commandCount >= 20)
+				{
+					embed = new EmbedBuilder();
+					embed.Description = builder.ToString();
+					await message.Channel.SendMessageAsync(null, false, embed.Build());
+					builder.Clear();
+					commandCount = 0;
+				}
 			}
 
 			builder.AppendLine();
 			builder.AppendLine();
-			builder.AppendLine("To get more information on a command, look it up directly, like `" + message.CommandPrefix + "help \"time\"` or `" + message.CommandPrefix + "goodbot ?`");
+			builder.AppendLine("To get more information on a command, look it up directly, like `" + message.CommandPrefix + "help \"time\"` or `" + message.CommandPrefix + "et ?`");
 
-			EmbedBuilder embed = new EmbedBuilder();
+			embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
-
-			return Task.FromResult(embed.Build());
+			await message.Channel.SendMessageAsync(null, false, embed.Build());
+			return true;
 		}
 
 		[Command("Help", Permissions.Everyone, "really?")]
-		public async Task<Embed> Help(CommandMessage message)
+		public async Task<bool> Help(CommandMessage message)
 		{
 			Permissions permissions = CommandsService.GetPermissions(message.Author);
 			return await GetHelp(message, permissions);
