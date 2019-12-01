@@ -7,8 +7,10 @@ namespace KupoNuts.Bot.Polls
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Commands;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using KupoNuts.Bot.Commands;
 	using KupoNuts.Utils;
 	using NodaTime;
 
@@ -102,7 +104,29 @@ namespace KupoNuts.Bot.Polls
 				}
 			}
 
+			StringBuilder title = new StringBuilder();
+			SocketGuildUser? author = channel.GetUser(self.Author);
+
+			if (author != null && CommandsService.GetPermissions(author) == Permissions.Administrators)
+			{
+				title.Append("Kupo Nuts");
+			}
+			else
+			{
+				title.Append(author == null ? "Someone" : author.GetName());
+			}
+
+			if (self.Closed())
+			{
+				title.Append(" asked:");
+			}
+			else
+			{
+				title.Append(" asks:");
+			}
+
 			EmbedBuilder builder = new EmbedBuilder();
+			builder.Title = title.ToString();
 			builder.Footer = new EmbedFooterBuilder();
 			builder.Footer.Text = self.Closed() ? "Poll closed. thanks for voting!" : "Vote for an option by selecting a reaction below";
 			builder.Description = description.ToString();

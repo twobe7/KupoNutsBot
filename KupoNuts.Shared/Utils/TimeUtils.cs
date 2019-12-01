@@ -142,7 +142,7 @@ namespace KupoNuts.Utils
 
 		public static string? GetDurationString(Instant tillInstant)
 		{
-			Duration timeTillStart = tillInstant - TimeUtils.RoundInstant(TimeUtils.Now);
+			Duration timeTillStart = TimeUtils.RoundInstant(tillInstant) - TimeUtils.RoundInstant(TimeUtils.Now);
 			return TimeUtils.GetDurationString(timeTillStart);
 		}
 

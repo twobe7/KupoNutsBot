@@ -47,43 +47,70 @@ namespace KupoNuts.Bot.Polls
 			return Task.CompletedTask;
 		}
 
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll")]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b });
 		}
 
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll")]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c });
 		}
 
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll")]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d });
 		}
 
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll")]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e });
 		}
 
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll")]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e, string f)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e, f });
 		}
 
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll")]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e, string f, string g)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e, f, g });
 		}
 
-		private async Task UpdatePolls()
+		[Command("ClosePoll", Permissions.Everyone, "Immediatelly closes a poll")]
+		public async Task ClosePoll(CommandMessage message, ulong messageId)
+		{
+			if (!this.pollLookup.ContainsKey(messageId))
+				throw new UserException("I couldn't find that poll");
+
+			string pollId = this.pollLookup[messageId];
+			Poll? poll = await this.pollDatabase.Load(pollId);
+
+			if (poll == null)
+				throw new Exception("Poll missing from database: \"" + pollId + "\"");
+
+			if (CommandsService.GetPermissions(message.Author) == Permissions.Everyone)
+			{
+				if (poll.Author != message.Author.Id)
+				{
+					throw new UserException("I'm sorry, only the polls author, or an administrator can do that.");
+				}
+			}
+
+			await poll.Close();
+			this.pollLookup.Remove(poll.MessageId);
+			await this.pollDatabase.Delete(poll);
+			await poll.UpdateMessage();
+		}
+
+		[Command("Polls", Permissions.Administrators, "Updates all active polls")]
+		public async Task UpdatePolls()
 		{
 			List<Poll> polls = await this.pollDatabase.LoadAll();
 			foreach (Poll poll in polls)
@@ -95,19 +122,21 @@ namespace KupoNuts.Bot.Polls
 				}
 				else
 				{
-					await poll.UpdateMessage();
-					this.WatchPoll(poll);
-					await this.pollDatabase.Save(poll);
+					await this.UpdatePoll(poll);
 				}
 			}
 		}
 
 		private async Task<bool> SendPoll(CommandMessage message, Duration duration, string comment, List<string> options)
 		{
+			if (duration < Duration.FromMinutes(1))
+				throw new UserException("Polls must run for at least 1 minute");
+
 			Poll poll = await this.pollDatabase.CreateEntry();
+			poll.Author = message.Author.Id;
 			poll.Comment = comment;
 			poll.ChannelId = message.Channel.Id;
-			poll.ClosesInstant = TimeUtils.RoundInstant(TimeUtils.Now + duration);
+			poll.ClosesInstant = TimeUtils.Now + duration;
 
 			foreach (string op in options)
 				poll.Options.Add(new Poll.Option(op));
@@ -167,8 +196,12 @@ namespace KupoNuts.Bot.Polls
 				if (poll == null)
 					throw new Exception("Missing poll from database: \"" + pollId + "\"");
 
-				poll.Vote(reaction.UserId, optionIndex);
-				await this.pollDatabase.Save(poll);
+				if (!poll.Closed())
+				{
+					poll.Vote(reaction.UserId, optionIndex);
+					await this.pollDatabase.Save(poll);
+				}
+
 				_ = Task.Run(async () => { await this.UpdatePoll(poll); });
 			}
 			catch (Exception ex)

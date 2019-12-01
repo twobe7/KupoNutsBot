@@ -16,6 +16,8 @@ namespace KupoNuts
 
 		public ulong ChannelId { get; set; } = 0;
 
+		public ulong Author { get; set; } = 0;
+
 		public string Comment { get; set; } = string.Empty;
 
 		public bool Anon { get; set; } = false;
@@ -40,7 +42,7 @@ namespace KupoNuts
 
 		public bool Closed()
 		{
-			Duration timeTillClosed = this.ClosesInstant - TimeUtils.RoundInstant(TimeUtils.Now);
+			Duration timeTillClosed = this.ClosesInstant - TimeUtils.Now;
 			return timeTillClosed.TotalSeconds <= 0;
 		}
 
