@@ -5,6 +5,7 @@ namespace KupoNuts
 	using System;
 	using System.Collections.Generic;
 	using Amazon.DynamoDBv2.DataModel;
+	using KupoNuts.Utils;
 	using NodaTime;
 	using NodaTime.Text;
 
@@ -35,6 +36,12 @@ namespace KupoNuts
 			{
 				this.Closes = InstantPattern.General.Format(value);
 			}
+		}
+
+		public bool Closed()
+		{
+			Duration timeTillClosed = this.ClosesInstant - TimeUtils.RoundInstant(TimeUtils.Now);
+			return timeTillClosed.TotalSeconds <= 0;
 		}
 
 		public int CountTotalVotes()

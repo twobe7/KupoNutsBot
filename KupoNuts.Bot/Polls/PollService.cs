@@ -37,12 +37,58 @@ namespace KupoNuts.Bot.Polls
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
 
-			List<Poll> polls = await this.pollDatabase.LoadAll();
+			Scheduler.RunOnSchedule(this.UpdatePolls, 15);
+			await this.UpdatePolls();
+		}
 
+		public override Task Shutdown()
+		{
+			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
+			return Task.CompletedTask;
+		}
+
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b)
+		{
+			return await this.SendPoll(message, comment, new List<string>() { a, b });
+		}
+
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c)
+		{
+			return await this.SendPoll(message, comment, new List<string>() { a, b, c });
+		}
+
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, string d)
+		{
+			return await this.SendPoll(message, comment, new List<string>() { a, b, c, d });
+		}
+
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, string d, string e)
+		{
+			return await this.SendPoll(message, comment, new List<string>() { a, b, c, d, e });
+		}
+
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, string d, string e, string f)
+		{
+			return await this.SendPoll(message, comment, new List<string>() { a, b, c, d, e, f });
+		}
+
+		[Command("Poll", Permissions.Administrators, "Creates a poll")]
+		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, string d, string e, string f, string g)
+		{
+			return await this.SendPoll(message, comment, new List<string>() { a, b, c, d, e, f, g });
+		}
+
+		private async Task UpdatePolls()
+		{
+			List<Poll> polls = await this.pollDatabase.LoadAll();
 			foreach (Poll poll in polls)
 			{
 				bool valid = await poll.IsValid();
-
 				if (!valid)
 				{
 					await this.pollDatabase.Delete(poll);
@@ -56,66 +102,17 @@ namespace KupoNuts.Bot.Polls
 			}
 		}
 
-		public override Task Shutdown()
-		{
-			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
-			return Task.CompletedTask;
-		}
-
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
-		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b)
-		{
-			return await this.SendPoll(message, (SocketTextChannel)message.Channel, comment, a, b, null, null);
-		}
-
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
-		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, SocketTextChannel channel)
-		{
-			return await this.SendPoll(message, channel, comment, a, b, null, null);
-		}
-
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
-		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c)
-		{
-			return await this.SendPoll(message, (SocketTextChannel)message.Channel, comment, a, b, c, null);
-		}
-
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
-		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, SocketTextChannel channel)
-		{
-			return await this.SendPoll(message, channel, comment, a, b, c, null);
-		}
-
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
-		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, string d)
-		{
-			return await this.SendPoll(message, (SocketTextChannel)message.Channel, comment, a, b, c, d);
-		}
-
-		[Command("Poll", Permissions.Administrators, "Creates a poll")]
-		public async Task<bool> HandlePoll(CommandMessage message, string comment, string a, string b, string c, string d, SocketTextChannel channel)
-		{
-			return await this.SendPoll(message, channel, comment, a, b, c, d);
-		}
-
-		private async Task<bool> SendPoll(CommandMessage message, SocketTextChannel channel, string comment, string a, string b, string? c, string? d)
+		private async Task<bool> SendPoll(CommandMessage message, string comment, List<string> options)
 		{
 			Poll poll = await this.pollDatabase.CreateEntry();
 			poll.Comment = comment;
-			poll.ChannelId = channel.Id;
+			poll.ChannelId = message.Channel.Id;
 			poll.ClosesInstant = TimeUtils.RoundInstant(TimeUtils.Now + Duration.FromDays(1));
-			poll.Options.Add(new Poll.Option(a));
-			poll.Options.Add(new Poll.Option(b));
 
-			if (c != null)
-				poll.Options.Add(new Poll.Option(c));
+			foreach (string op in options)
+				poll.Options.Add(new Poll.Option(op));
 
-			if (d != null)
-				poll.Options.Add(new Poll.Option(d));
-
-			await poll.UpdateMessage();
-			this.WatchPoll(poll);
-			await this.pollDatabase.Save(poll);
+			await this.UpdatePoll(poll);
 
 			await message.Message.DeleteAsync();
 
@@ -128,6 +125,20 @@ namespace KupoNuts.Bot.Polls
 				return;
 
 			this.pollLookup.Add(poll.MessageId, poll.Id);
+		}
+
+		private async Task UpdatePoll(Poll poll)
+		{
+			if (poll.Closed())
+			{
+				await poll.Close();
+				this.pollLookup.Remove(poll.MessageId);
+				await this.pollDatabase.Delete(poll);
+			}
+
+			await poll.UpdateMessage();
+			this.WatchPoll(poll);
+			await this.pollDatabase.Save(poll);
 		}
 
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
@@ -158,7 +169,7 @@ namespace KupoNuts.Bot.Polls
 
 				poll.Vote(reaction.UserId, optionIndex);
 				await this.pollDatabase.Save(poll);
-				_ = Task.Run(poll.UpdateMessage);
+				_ = Task.Run(async () => { await this.UpdatePoll(poll); });
 			}
 			catch (Exception ex)
 			{

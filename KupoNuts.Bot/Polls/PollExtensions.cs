@@ -10,6 +10,7 @@ namespace KupoNuts.Bot.Polls
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Utils;
+	using NodaTime;
 
 	public static class PollExtensions
 	{
@@ -31,6 +32,21 @@ namespace KupoNuts.Bot.Polls
 			return true;
 		}
 
+		public static async Task Close(this Poll self)
+		{
+			Log.Write("Closing poll: \"" + self.Comment + "\" (" + self.Id + ")", "Bot");
+
+			SocketTextChannel? channel = Program.DiscordClient.GetChannel(self.ChannelId) as SocketTextChannel;
+			if (channel is null)
+				return;
+
+			RestUserMessage? pollMessage = await channel.GetMessageAsync(self.MessageId) as RestUserMessage;
+			if (pollMessage != null)
+				await pollMessage.RemoveAllReactionsAsync();
+
+			self.ClosesInstant = TimeUtils.Now;
+		}
+
 		public static Task<Embed> ToEmbed(this Poll self)
 		{
 			SocketTextChannel? channel = Program.DiscordClient.GetChannel(self.ChannelId) as SocketTextChannel;
@@ -42,9 +58,12 @@ namespace KupoNuts.Bot.Polls
 
 			StringBuilder description = new StringBuilder();
 
-			description.Append("__Poll closes in ");
-			description.AppendLine(TimeUtils.GetDurationString(self.ClosesInstant));
-			description.AppendLine("__");
+			if (!self.Closed())
+			{
+				description.Append("__Poll closes in ");
+				description.AppendLine(TimeUtils.GetDurationString(self.ClosesInstant));
+				description.AppendLine("__");
+			}
 
 			description.AppendLine(self.Comment);
 			description.AppendLine();
@@ -85,7 +104,7 @@ namespace KupoNuts.Bot.Polls
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = "Vote for an option by selecting a reaction below";
+			builder.Footer.Text = self.Closed() ? "Poll closed. thanks for voting!" : "Vote for an option by selecting a reaction below";
 			builder.Description = description.ToString();
 
 			return Task.FromResult(builder.Build());
@@ -93,7 +112,7 @@ namespace KupoNuts.Bot.Polls
 
 		public static async Task UpdateMessage(this Poll self)
 		{
-			Log.Write("Updating poll: \"" + self.Id + "\"", "Bot");
+			Log.Write("Updating poll: \"" + self.Comment + "\" (" + self.Id + ")", "Bot");
 			SocketTextChannel? channel = Program.DiscordClient.GetChannel(self.ChannelId) as SocketTextChannel;
 
 			if (channel == null)
