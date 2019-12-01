@@ -95,7 +95,7 @@ namespace KupoNuts.Bot.Characters
 			return embed.Build();
 		}
 
-		[Command("WhoAmI", Permissions.Everyone, "displays your userEntryed character")]
+		[Command("WhoAmI", Permissions.Everyone, "displays your linked character")]
 		public async Task<bool> WhoAmI(CommandMessage message)
 		{
 			IGuildUser user = message.Author;
@@ -105,7 +105,7 @@ namespace KupoNuts.Bot.Characters
 			return await this.WhoIs(message, userEntry.FFXIVCharacterId);
 		}
 
-		[Command("WhoIs", Permissions.Everyone, "looks up a userEntryed character")]
+		[Command("WhoIs", Permissions.Everyone, "looks up a linked character")]
 		public async Task<bool> WhoIs(CommandMessage message, IGuildUser user)
 		{
 			// Special case to handle ?WhoIs @KupoNuts to resolve her own character.
@@ -281,7 +281,7 @@ namespace KupoNuts.Bot.Characters
 			UserService.User userEntry = await UserService.GetUser(user);
 
 			if (userEntry.FFXIVCharacterId == 0 && !create)
-				throw new UserException("No character userEntryed! Use `IAm` to link your character.");
+				throw new UserException("No character linked! Use `IAm` to link your character.");
 
 			return userEntry;
 		}
