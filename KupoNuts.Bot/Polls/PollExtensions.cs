@@ -60,15 +60,16 @@ namespace KupoNuts.Bot.Polls
 
 			StringBuilder description = new StringBuilder();
 
+			description.AppendLine(self.Comment);
+			description.AppendLine();
+
 			if (!self.Closed())
 			{
 				description.Append("__Poll closes in ");
 				description.AppendLine(TimeUtils.GetDurationString(self.ClosesInstant));
 				description.AppendLine("__");
+				description.AppendLine();
 			}
-
-			description.AppendLine(self.Comment);
-			description.AppendLine();
 
 			for (int i = 0; i < self.Options.Count; i++)
 			{
