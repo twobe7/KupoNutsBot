@@ -6,6 +6,7 @@ namespace KupoNuts.Bot.Commands
 	using System.Collections.Generic;
 	using System.Diagnostics;
 	using System.Reflection;
+	using System.Runtime.ExceptionServices;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.Rest;
@@ -219,10 +220,12 @@ namespace KupoNuts.Bot.Commands
 
 				if (task.Exception != null)
 				{
-					if (task.Exception.InnerException != null)
-						throw task.Exception.InnerException;
+					Exception ex = task.Exception;
 
-					throw task.Exception;
+					if (task.Exception.InnerException != null)
+						ex = task.Exception.InnerException;
+
+					ExceptionDispatchInfo.Capture(ex).Throw();
 				}
 				else
 				{
