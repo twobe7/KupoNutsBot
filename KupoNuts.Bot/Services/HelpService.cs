@@ -11,6 +11,7 @@ namespace KupoNuts.Bot.Services
 	using Discord;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
+	using NodaTime;
 
 	public class HelpService : ServiceBase
 	{
@@ -43,6 +44,9 @@ namespace KupoNuts.Bot.Services
 
 			if (type == typeof(IGuildUser))
 				return "@user";
+
+			if (type == typeof(Duration))
+				return "duration (1d:1h:1m:1s)";
 
 			return type.Name;
 		}

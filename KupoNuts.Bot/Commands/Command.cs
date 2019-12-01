@@ -7,11 +7,14 @@ namespace KupoNuts.Bot.Commands
 	using System.Diagnostics;
 	using System.Reflection;
 	using System.Runtime.ExceptionServices;
+	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Services;
+	using NodaTime;
+	using NodaTime.Text;
 
 	public class Command
 	{
@@ -383,6 +386,39 @@ namespace KupoNuts.Bot.Commands
 					throw new Exception("Invalid user Id: " + arg);
 
 				return user;
+			}
+			else if (type == typeof(Duration))
+			{
+				string str = arg.ToLower();
+				string[] parts = Regex.Split(str, @"(?<=[dhms])");
+
+				Duration duration = Duration.FromSeconds(0);
+
+				foreach (string part in parts)
+				{
+					if (part.Contains('d'))
+					{
+						int val = int.Parse(part.Replace('d', '\0'));
+						duration += Duration.FromDays(val);
+					}
+					else if (part.Contains('h'))
+					{
+						int val = int.Parse(part.Replace('h', '\0'));
+						duration += Duration.FromHours(val);
+					}
+					else if (part.Contains('m'))
+					{
+						int val = int.Parse(part.Replace('m', '\0'));
+						duration += Duration.FromMinutes(val);
+					}
+					else if (part.Contains('s'))
+					{
+						int val = int.Parse(part.Replace('s', '\0'));
+						duration += Duration.FromSeconds(val);
+					}
+				}
+
+				return duration;
 			}
 
 			throw new Exception("Unsupported parameter type: \"" + type + "\"");
