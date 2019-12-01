@@ -91,7 +91,7 @@ namespace KupoNuts.Bot.Characters
 			await UserService.SaveUser(userEntry);
 
 			EmbedBuilder embed = new EmbedBuilder();
-			embed.Description = "Character userEntryed!";
+			embed.Description = "Character linked!";
 			return embed.Build();
 		}
 
