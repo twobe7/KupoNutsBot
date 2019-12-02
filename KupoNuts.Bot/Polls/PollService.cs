@@ -153,6 +153,9 @@ namespace KupoNuts.Bot.Polls
 			if (poll.Options == null)
 				return;
 
+			if (this.pollLookup.ContainsKey(poll.MessageId))
+				this.pollLookup.Remove(poll.MessageId);
+
 			this.pollLookup.Add(poll.MessageId, poll.Id);
 		}
 
