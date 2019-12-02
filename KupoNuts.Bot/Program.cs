@@ -11,6 +11,7 @@ namespace KupoNuts.Bot
 	using KupoNuts.Bot.Characters;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Events;
+	using KupoNuts.Bot.Guild;
 	using KupoNuts.Bot.Items;
 	using KupoNuts.Bot.Lodestone;
 	using KupoNuts.Bot.Polls;
@@ -96,6 +97,7 @@ namespace KupoNuts.Bot
 				await this.AddService<FashionReportService>();
 				await this.AddService<NoveltyService>();
 				await this.AddService<SundayFundayService>();
+				await this.AddService<GuildService>();
 			}
 			catch (Exception ex)
 			{

@@ -42,7 +42,7 @@ namespace KupoNuts.Bot.Characters
 			return true;
 		}
 
-		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
+        [Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
 		public async Task<Embed> IAm(CommandMessage message, string characterName)
 		{
 			return await this.IAm(message, characterName, null);
@@ -58,6 +58,7 @@ namespace KupoNuts.Bot.Characters
 
 			if (response.Results == null)
 			{
+
 				throw new Exception("No Results");
 			}
 			else if (response.Results.Count == 1)
@@ -147,6 +148,24 @@ namespace KupoNuts.Bot.Characters
 				await message.Channel.SendMessageAsync(null, false, embed);
 				return true;
 			}
+		}
+
+		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait")]
+		public async Task<bool> Portrait(CommandMessage message)
+		{
+			IGuildUser user = message.Author;
+			IGuild guild = message.Guild;
+
+			UserService.User userEntry = await this.GetuserEntry(user, false);
+
+			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(userEntry.FFXIVCharacterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
+
+			if (response.Character == null)
+				throw new UserException("I couldn't find that character.");
+
+			string file = await PortraitDrawer.Draw(response.Character, null, null, true);
+			await message.Channel.SendFileAsync(file);
+			return true;
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
