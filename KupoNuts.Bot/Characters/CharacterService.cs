@@ -10,6 +10,7 @@ namespace KupoNuts.Bot.Characters
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.Bot.Utils;
 	using KupoNuts.Utils;
 
 	#pragma warning disable
@@ -58,6 +59,7 @@ namespace KupoNuts.Bot.Characters
 
 			if (response.Results == null)
 			{
+
 				throw new Exception("No Results");
 			}
 			else if (response.Results.Count == 1)
@@ -147,6 +149,26 @@ namespace KupoNuts.Bot.Characters
 				await message.Channel.SendMessageAsync(null, false, embed);
 				return true;
 			}
+		}
+
+		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait")]
+		public async Task<bool> Portrait(CommandMessage message)
+		{
+			IGuildUser user = message.Author;
+			IGuild guild = message.Guild;
+
+			UserService.User userEntry = await this.GetuserEntry(user, false);
+
+			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(userEntry.FFXIVCharacterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
+
+			if (response.Character == null)
+				throw new UserException("I couldn't find that character.");
+
+			string portraitPath = PathUtils.Current + "/Temp/" + response.Character.ID + ".jpg";
+			await FileDownloader.Download(response.Character.Portrait, portraitPath);
+
+			await message.Channel.SendFileAsync(portraitPath);
+			return true;
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
