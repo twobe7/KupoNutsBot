@@ -25,12 +25,12 @@ namespace KupoNuts.Bot.Guild
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)
 			{
-				var users = guildChannel.Guild.Users.OrderBy(x => x.JoinedAt).Take(1);
+				IEnumerable<SocketGuildUser> users = guildChannel.Guild.Users.OrderBy(x => x.JoinedAt).Take(1);
 
 				string oldestString = string.Empty;
 				int order = 1;
 
-				foreach (var user in users)
+				foreach (SocketGuildUser user in users)
 				{
 					oldestString += string.Format("{0}. {1}\n", order, user.GetName());
 				}
@@ -49,12 +49,12 @@ namespace KupoNuts.Bot.Guild
 				// Put a cap on the return amount for now
 				numberToReturn = numberToReturn > 15 ? 15 : numberToReturn;
 
-				var users = guildChannel.Guild.Users.OrderBy(x => x.JoinedAt).Take(numberToReturn);
+				IEnumerable<SocketGuildUser> users = guildChannel.Guild.Users.OrderBy(x => x.JoinedAt).Take(numberToReturn);
 
 				string oldestString = string.Empty;
 				int order = 1;
 
-				foreach (var user in users)
+				foreach (SocketGuildUser user in users)
 				{
 					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
 				}
@@ -70,12 +70,12 @@ namespace KupoNuts.Bot.Guild
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)
 			{
-				var users = guildChannel.Guild.Users.OrderByDescending(x => x.JoinedAt).Take(1);
+				IEnumerable<SocketGuildUser> users = guildChannel.Guild.Users.OrderByDescending(x => x.JoinedAt).Take(1);
 
 				string oldestString = string.Empty;
 				int order = 1;
 
-				foreach (var user in users)
+				foreach (SocketGuildUser user in users)
 				{
 					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
 				}
@@ -94,12 +94,12 @@ namespace KupoNuts.Bot.Guild
 				// Put a cap on the return amount for now
 				numberToReturn = numberToReturn > 15 ? 15 : numberToReturn;
 
-				var users = guildChannel.Guild.Users.OrderByDescending(x => x.JoinedAt).Take(numberToReturn);
+				IEnumerable<SocketGuildUser> users = guildChannel.Guild.Users.OrderByDescending(x => x.JoinedAt).Take(numberToReturn);
 
 				string oldestString = string.Empty;
 				int order = 1;
 
-				foreach (var user in users)
+				foreach (SocketGuildUser user in users)
 				{
 					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
 				}

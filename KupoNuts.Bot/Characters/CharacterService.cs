@@ -10,6 +10,7 @@ namespace KupoNuts.Bot.Characters
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.Bot.Utils;
 	using KupoNuts.Utils;
 
 	#pragma warning disable
@@ -42,7 +43,7 @@ namespace KupoNuts.Bot.Characters
 			return true;
 		}
 
-        [Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
+		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
 		public async Task<Embed> IAm(CommandMessage message, string characterName)
 		{
 			return await this.IAm(message, characterName, null);
@@ -163,8 +164,10 @@ namespace KupoNuts.Bot.Characters
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await PortraitDrawer.Draw(response.Character, null, null, true);
-			await message.Channel.SendFileAsync(file);
+			string portraitPath = PathUtils.Current + "/Temp/" + response.Character.ID + ".jpg";
+			await FileDownloader.Download(response.Character.Portrait, portraitPath);
+
+			await message.Channel.SendFileAsync(portraitPath);
 			return true;
 		}
 

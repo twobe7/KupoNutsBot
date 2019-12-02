@@ -47,13 +47,10 @@ namespace KupoNuts.Bot.Characters
 		private static FontFamily optimuSemiBold = fonts.Install(PathUtils.Current + "/Assets/OptimusPrincepsSemiBold.ttf");
 		private static FontFamily jupiterPro = fonts.Install(PathUtils.Current + "/Assets/JupiterProFixed.ttf");
 
-		public static async Task<string> Draw(Character character, FreeCompany? freeCompany, CollectCharacter? collectCharacter, bool portraitOnly = false)
+		public static async Task<string> Draw(Character character, FreeCompany? freeCompany, CollectCharacter? collectCharacter)
 		{
 			string portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
 			await FileDownloader.Download(character.Portrait, portraitPath);
-
-			if (portraitOnly)
-				return portraitPath;
 
 			Image<Rgba32> charImg = Image.Load<Rgba32>(portraitPath);
 			charImg.Mutate(x => x.Resize(375, 512));
