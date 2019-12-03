@@ -115,7 +115,7 @@ namespace KupoNuts.Bot.Characters
 				crestFinal.Dispose();
 
 				finalImg.Mutate(x => x.DrawText(leftText, "<" + freeCompany.Tag + ">", axisRegular.CreateFont(24), Color.White, new Point(431, 300)));
-				finalImg.Mutate(x => x.DrawTextAnySize(leftText, freeCompany.Name, axisRegular, Color.White, new Rectangle(431, 280, 158, 32)));
+				finalImg.Mutate(x => x.DrawTextAnySize(leftText, freeCompany.Name, axisRegular, Color.White, new Rectangle(431, 280, 158, 22)));
 			}
 
 			// Name / Bio
