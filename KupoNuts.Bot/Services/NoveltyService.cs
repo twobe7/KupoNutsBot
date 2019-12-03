@@ -173,5 +173,73 @@ namespace KupoNuts.Bot.Services
 
 			return "It is currently: " + et.ToString("HH:mm");
 		}
+
+		[Command("Flip", Permissions.Everyone, "Flips user")]
+		public string Flip(CommandMessage message, IGuildUser user)
+		{
+			string flipName = string.Empty;
+
+			// Trying to flip Kupo Nuts
+			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			{
+				flipName = message.Author.Nickname ?? message.Author.Username;
+			}
+			else
+			{
+				flipName = user.Nickname ?? user.Username;
+			}
+
+			// Reverse string
+			char[] array = flipName.ToCharArray();
+			Array.Reverse(array);
+
+			string name = new string(array)
+								.Replace("a", "ɐ", true, null)
+								.Replace("b", "q", true, null)
+								.Replace("c", "ɔ", true, null)
+								.Replace("d", "p", true, null)
+								.Replace("e", "ǝ", true, null)
+								.Replace("f", "ɟ", true, null)
+								.Replace("g", "ƃ", true, null)
+								.Replace("h", "ɥ", true, null)
+								.Replace("i", "ᴉ", true, null)
+								.Replace("j", "ɾ", true, null)
+								.Replace("k", "ʞ", true, null)
+								.Replace("l", "l", true, null)
+								.Replace("m", "ɯ", true, null)
+								.Replace("n", "u", true, null)
+								.Replace("o", "o", true, null)
+								.Replace("p", "d", true, null)
+								.Replace("q", "b", true, null)
+								.Replace("r", "ɹ", true, null)
+								.Replace("s", "s", true, null)
+								.Replace("t", "ʇ", true, null)
+								.Replace("u", "n", true, null)
+								.Replace("v", "ʌ", true, null)
+								.Replace("w", "ʍ", true, null)
+								.Replace("x", "x", true, null)
+								.Replace("y", "ʎ", true, null)
+								.Replace("z", "z", true, null);
+
+			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			{
+				return "I don't think so!\n\n(╯°□°）╯︵ " + name;
+			}
+			else
+			{
+				return "(╯°□°）╯︵ " + name;
+			}
+		}
+
+		[Command("Unflip", Permissions.Everyone, "Unflips user")]
+		public string Unflip(CommandMessage message, IGuildUser user)
+		{
+			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			{
+				return ":woman_gesturing_no:";
+			}
+
+			return user.Nickname + "ノ( º _ ºノ)";
+		}
 	}
 }

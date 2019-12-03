@@ -46,6 +46,7 @@ namespace KupoNuts.Bot.Characters
 		private static FontFamily axisRegular = fonts.Install(PathUtils.Current + "/Assets/Axis-Regular.ttf");
 		private static FontFamily optimuSemiBold = fonts.Install(PathUtils.Current + "/Assets/OptimusPrincepsSemiBold.ttf");
 		private static FontFamily jupiterPro = fonts.Install(PathUtils.Current + "/Assets/JupiterProFixed.ttf");
+		private static FontFamily eorzea = fonts.Install(PathUtils.Current + "/Assets/Eorzea.ttf");
 
 		public static async Task<string> Draw(Character character, FreeCompany? freeCompany, CollectCharacter? collectCharacter)
 		{
@@ -225,6 +226,34 @@ namespace KupoNuts.Bot.Characters
 			charImg.Dispose();
 			overlayImg.Dispose();
 			finalImg.Dispose();
+
+			return outputPath;
+		}
+
+		public static async Task<string> PortraitDraw(Character character)
+		{
+			string portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
+			await FileDownloader.Download(character.Portrait, portraitPath);
+
+			Image<Rgba32> charImg = Image.Load<Rgba32>(portraitPath);
+			/*charImg.Mutate(x => x.Resize(375, 512));
+			 charImg.Mutate(x => x.D) */
+
+			Image<Rgba32> finalImg = new Image<Rgba32>(charImg.Width, charImg.Height);
+			finalImg.Mutate(x => x.DrawImage(charImg, 1.0f));
+
+			PointF boxA = new PointF(5, charImg.Height - 120);
+			PointF boxB = new PointF(finalImg.Width - 5, charImg.Height - 120);
+			PointF boxC = new PointF(finalImg.Width - 5, charImg.Height - 5);
+			PointF boxD = new PointF(5, charImg.Height - 5);
+
+			finalImg.Mutate(x => x.FillPolygon(Brushes.Solid(Color.Black.WithAlpha(0.4F)), boxA, boxB, boxC, boxD));
+			finalImg.Mutate(x => x.DrawText(centerText, character.Server + " - " + character.DC, axisRegular.CreateFont(26), Color.White, new Point(finalImg.Width / 2, charImg.Height - 95)));
+			finalImg.Mutate(x => x.DrawTextAnySize(centerText, character.Name, optimuSemiBold, Color.White, new Rectangle(finalImg.Width / 2, finalImg.Height - 50, 600, 70)));
+
+			// Save
+			string outputPath = PathUtils.Current + "/Temp/" + character.ID + "_render.png";
+			finalImg.Save(outputPath);
 
 			return outputPath;
 		}
