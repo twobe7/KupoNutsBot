@@ -40,6 +40,19 @@ namespace KupoNuts.Bot.Services
 			"Very doubtful.",
 		};
 
+		public static readonly List<string> Hugs = new List<string>()
+		{
+			"(づ｡◕‿‿◕｡)づ",
+			"(づ￣ ³￣)づ",
+			"(っ´▽｀)っ",
+			"(っಠ‿ಠ)っ",
+			"(.づ◡﹏◡)づ.",
+			"(っ˘̩╭╮˘̩)っ",
+			"＼(^o^)／",
+			"(つ◉益◉)つ",
+			"(oﾟ▽ﾟ)o",
+		};
+
 		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~")]
 		public Task<Embed> Ask(string message)
 		{
@@ -182,11 +195,11 @@ namespace KupoNuts.Bot.Services
 			// Trying to flip Kupo Nuts
 			if (user.Id == Program.DiscordClient.CurrentUser.Id)
 			{
-				flipName = message.Author.Nickname ?? message.Author.Username;
+				flipName = message.Author.GetName();
 			}
 			else
 			{
-				flipName = user.Nickname ?? user.Username;
+				flipName = user.GetName();
 			}
 
 			// Reverse string
@@ -239,7 +252,13 @@ namespace KupoNuts.Bot.Services
 				return ":woman_gesturing_no:";
 			}
 
-			return user.Nickname + "ノ( º _ ºノ)";
+			return user.GetName() + "ノ( º _ ºノ)";
+		}
+
+		[Command("Hug", Permissions.Everyone, "Hugs a user")]
+		public string Hug(CommandMessage message, IGuildUser user)
+		{
+			return string.Format("{0} **{1}**", Hugs.GetRandom(), user.GetName());
 		}
 	}
 }
