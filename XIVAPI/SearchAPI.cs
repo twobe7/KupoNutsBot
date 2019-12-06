@@ -26,6 +26,13 @@ namespace XIVAPI
 
 			string route = "/search?string=" + name;
 
+			// XIVAPI returns all actions, including non active actions
+			// Best guess is anything with ClassJobLevel = 0 is inactive so filter these out
+			if (type.ToLower() == "action")
+			{
+				route += "&filters=ClassJobLevel>0";
+			}
+
 			SearchResponse response = await Request.Send<SearchResponse>(route);
 
 			if (response.Results != null)

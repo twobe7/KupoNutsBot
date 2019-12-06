@@ -8,6 +8,7 @@ namespace KupoNuts.Bot
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
+	using KupoNuts.Bot.Actions;
 	using KupoNuts.Bot.Characters;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Events;
@@ -98,6 +99,7 @@ namespace KupoNuts.Bot
 				await this.AddService<NoveltyService>();
 				await this.AddService<SundayFundayService>();
 				await this.AddService<GuildService>();
+				await this.AddService<ActionService>();
 			}
 			catch (Exception ex)
 			{
