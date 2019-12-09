@@ -181,7 +181,7 @@ namespace KupoNuts.Bot.Commands
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
-			// if we take too long, pos the think message.
+			// if we take too long, post the think message.
 			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < ThinkDelay)
 				await Task.Delay(10);
 
@@ -195,7 +195,7 @@ namespace KupoNuts.Bot.Commands
 				thinkMessage = await message.Channel.SendMessageAsync(null, false, builder.Build());
 
 				// Discord doesn't like it when we edit embed to soon after posting them, as the edit
-				// someints doesnt 'stick'.
+				// sometimes doesn't 'stick'.
 				await Task.Delay(250);
 			}
 
@@ -351,7 +351,7 @@ namespace KupoNuts.Bot.Commands
 				Emote emote = Emote.Parse(arg);
 
 				if (!emote.IsAvailable())
-					throw new UserException("I'm sorry, I dont have that emote.");
+					throw new UserException("I'm sorry, I don't have that emote.");
 
 				return emote;
 			}

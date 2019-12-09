@@ -7,13 +7,11 @@ namespace KupoNuts.Bot.Commands
 
 	public class CommandMessage
 	{
-		public readonly string CommandPrefix;
 		public readonly string Command;
 		public readonly SocketMessage Message;
 
-		public CommandMessage(string commandPrefix, string command, SocketMessage message)
+		public CommandMessage(string command, SocketMessage message)
 		{
-			this.CommandPrefix = commandPrefix;
 			this.Command = command;
 			this.Message = message;
 		}

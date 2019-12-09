@@ -82,13 +82,13 @@ namespace KupoNuts.Bot.Services
 			if (command == null)
 				command = message.Command;
 
-			builder.AppendLine(GetHelp(command, message.CommandPrefix, permissions));
+			builder.AppendLine(GetHelp(command, permissions));
 
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
 
 			if (string.IsNullOrEmpty(embed.Description))
-				throw new UserException("I'm sorry, you dont have permission to use that command.");
+				throw new UserException("I'm sorry, you don't have permission to use that command.");
 
 			return Task.FromResult(embed.Build());
 		}
@@ -142,7 +142,7 @@ namespace KupoNuts.Bot.Services
 
 			builder.AppendLine();
 			builder.AppendLine();
-			builder.AppendLine("To get more information on a command, look it up directly, like `" + message.CommandPrefix + "help \"time\"` or `" + message.CommandPrefix + "et ?`");
+			builder.AppendLine("To get more information on a command, look it up directly, like `" + CommandsService.CommandPrefix + "help \"time\"` or `" + CommandsService.CommandPrefix + "et ?`");
 
 			embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
@@ -157,13 +157,13 @@ namespace KupoNuts.Bot.Services
 			return await GetHelp(message, permissions);
 		}
 
-		[Command("Help", Permissions.Everyone, "really really?")]
+		[Command("Help", Permissions.Everyone, @"really really?")]
 		public async Task<Embed> Help(CommandMessage message, string command)
 		{
 			return await GetHelp(message, command);
 		}
 
-		private static string? GetHelp(string commandStr, string prefix, Permissions permissions)
+		private static string? GetHelp(string commandStr, Permissions permissions)
 		{
 			StringBuilder builder = new StringBuilder();
 			List<Command> commands = CommandsService.GetCommands(commandStr);
@@ -202,7 +202,7 @@ namespace KupoNuts.Bot.Services
 
 				builder.Append("**");
 				builder.Append(Utils.Characters.Tab);
-				builder.Append(prefix);
+				builder.Append(CommandsService.CommandPrefix);
 				builder.Append(commandStr);
 				builder.Append(" ");
 

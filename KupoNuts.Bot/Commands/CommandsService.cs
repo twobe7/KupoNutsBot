@@ -16,12 +16,6 @@ namespace KupoNuts.Bot.Commands
 
 	public class CommandsService : ServiceBase
 	{
-		public static readonly List<string> CommandPrefixes = new List<string>()
-		{
-			">>",
-			"?",
-		};
-
 		public static readonly List<string> CommandResponses = new List<string>()
 		{
 			"You got it!",
@@ -36,6 +30,18 @@ namespace KupoNuts.Bot.Commands
 		};
 
 		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
+		private static string commandPrefix = string.Empty;
+
+		public static string CommandPrefix
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(commandPrefix))
+					commandPrefix = Settings.Load().CommandPrefix;
+
+				return commandPrefix;
+			}
+		}
 
 		public static void BindCommands(object obj)
 		{
@@ -108,34 +114,30 @@ namespace KupoNuts.Bot.Commands
 			if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
 				return;
 
-			foreach (string prefix in CommandPrefixes)
-			{
-				// Ignore messages that do not start with the command character
-				if (!message.Content.StartsWith(prefix))
-					continue;
-
-				string command = message.Content.Substring(prefix.Length);
-				command = command.TrimStart(' ', '	');
-
-				// replace funky quote-left and quote-right with normal quotes.
-				command = command.Replace('”', '"');
-				command = command.Replace('“', '"');
-
-				// command must contain an actual command (dont process "?" as a command)
-				if (command.Length <= 0)
-					continue;
-
-				// the first letter of the input must be a letter or a number (dont process "?????" or ">>>" as a command)
-				char first = command[0];
-				if (!char.IsLetter(first) && !char.IsNumber(first))
-					return;
-
-				await this.ProcessCommandInput(message, prefix, command);
+			// Ignore messages that do not start with the command character
+			if (!message.Content.StartsWith(CommandPrefix))
 				return;
-			}
+
+			string command = message.Content.Substring(CommandPrefix.Length);
+			command = command.TrimStart(' ', '	');
+
+			// replace funky quote-left and quote-right with normal quotes.
+			command = command.Replace('”', '"');
+			command = command.Replace('“', '"');
+
+			// command must contain an actual command (dont process "?" as a command)
+			if (command.Length <= 0)
+				return;
+
+			// the first letter of the input must be a letter or a number (dont process "?????" or ">>>" as a command)
+			char first = command[0];
+			if (!char.IsLetter(first) && !char.IsNumber(first))
+				return;
+
+			await this.ProcessCommandInput(message, command);
 		}
 
-		private async Task ProcessCommandInput(SocketMessage message, string prefixUsed, string command)
+		private async Task ProcessCommandInput(SocketMessage message, string command)
 		{
 			string[] parts = Regex.Split(command, "(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 			////string[] parts = command.Split(" ", StringSplitOptions.RemoveEmptyEntries);
@@ -159,7 +161,7 @@ namespace KupoNuts.Bot.Commands
 			}
 
 			command = command.ToLower();
-			CommandMessage cmdMessage = new CommandMessage(prefixUsed, command, message);
+			CommandMessage cmdMessage = new CommandMessage(command, message);
 
 			if (args.Count == 1 && args[0] == "?")
 			{
