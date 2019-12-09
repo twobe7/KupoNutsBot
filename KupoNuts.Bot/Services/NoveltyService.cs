@@ -42,15 +42,15 @@ namespace KupoNuts.Bot.Services
 
 		public static readonly List<string> Hugs = new List<string>()
 		{
-			"(づ｡◕‿‿◕｡)づ",
-			"(づ￣ ³￣)づ",
-			"(っ´▽｀)っ",
-			"(っಠ‿ಠ)っ",
-			"(.づ◡﹏◡)づ.",
-			"(っ˘̩╭╮˘̩)っ",
-			"＼(^o^)／",
-			"(つ◉益◉)つ",
-			"(oﾟ▽ﾟ)o",
+			@"(づ｡◕‿‿◕｡)づ",
+			@"(づ￣ ³￣)づ",
+			@"(っ`▽｀)っ",
+			@"(っಠ‿ಠ)っ",
+			@"(.づ◡﹏◡)づ.",
+			@"(っ˘̩╭╮˘̩)っ",
+			@"＼(^o^)／",
+			@"(つ◉益◉)つ",
+			@"(oﾟ▽ﾟ)o",
 		};
 
 		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~")]
@@ -86,17 +86,17 @@ namespace KupoNuts.Bot.Services
 
 			int count = 0;
 			if (!int.TryParse(parts[0], out count))
-				throw new UserException("I didn't udnerstand the dice number: \"" + parts[0] + "\", was that a number?");
+				throw new UserException("I didn't understand the dice number: \"" + parts[0] + "\", was that a number?");
 
 			int faces = 0;
 			if (!int.TryParse(parts[1], out faces))
-				throw new UserException("I didn't udnerstand the dice faces: \"" + parts[1] + "\", was that a number?");
+				throw new UserException("I didn't understand the dice faces: \"" + parts[1] + "\", was that a number?");
 
 			if (count <= 0)
-				throw new UserException("Number of dice has to be mroe than 0!");
+				throw new UserException("Number of dice has to be more than 0!");
 
 			if (faces <= 0)
-				throw new UserException("Number of faces has to be mroe than 0!");
+				throw new UserException("Number of faces has to be more than 0!");
 
 			int total = 0;
 			Random rn = new Random();
@@ -174,7 +174,7 @@ namespace KupoNuts.Bot.Services
 			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
 			double eorzeaConstant = 20.571428571428573;
 
-			// time is off by 19 minutes on windows, but not linux...
+			// time is off by 19 minutes on windows, but not Linux...
 			double offset = 19 * 60;
 
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -244,7 +244,7 @@ namespace KupoNuts.Bot.Services
 			}
 		}
 
-		[Command("Unflip", Permissions.Everyone, "Unflips user")]
+		[Command(@"Unflip", Permissions.Everyone, @"Unflips user")]
 		public string Unflip(CommandMessage message, IGuildUser user)
 		{
 			if (user.Id == Program.DiscordClient.CurrentUser.Id)
@@ -252,7 +252,7 @@ namespace KupoNuts.Bot.Services
 				return ":woman_gesturing_no:";
 			}
 
-			return user.GetName() + "ノ( º _ ºノ)";
+			return user.GetName() + @" ノ( º _ ºノ)";
 		}
 
 		[Command("Hug", Permissions.Everyone, "Hugs a user")]

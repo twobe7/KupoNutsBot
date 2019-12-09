@@ -48,7 +48,7 @@ namespace KupoNuts.Bot.Services
 			db.Save();
 		}
 
-		private string GetEventString(Event evt, int daysTill, Instant occurance)
+		private string GetEventString(Event evt, int daysTill, Instant occurrence)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.Append(Utils.Characters.Tab);
@@ -80,7 +80,7 @@ namespace KupoNuts.Bot.Services
 			{
 				builder.AppendLine();
 				builder.Append(Utils.Characters.Tab);
-				builder.AppendLine(TimeUtils.GetTimeString(occurance));
+				builder.AppendLine(TimeUtils.GetTimeString(occurrence));
 			}*/
 
 			return builder.ToString();

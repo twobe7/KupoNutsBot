@@ -154,7 +154,7 @@ namespace KupoNuts.Bot.Services
 
 			if (attendee.RemindTime != null)
 			{
-				messageBuilder.Append("You're already set to recieve a reminder");
+				messageBuilder.Append("You're already set to receive a reminder");
 				messageBuilder.Append(TimeUtils.GetDurationString(attendee.GetRemindTime()));
 				messageBuilder.Append(" before the event ");
 				messageBuilder.Append(eventName);

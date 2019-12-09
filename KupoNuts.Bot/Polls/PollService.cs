@@ -84,7 +84,7 @@ namespace KupoNuts.Bot.Polls
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e, f, g });
 		}
 
-		[Command("ClosePoll", Permissions.Everyone, "Immediatelly closes a poll. Only the poll author or administrators can do this.")]
+		[Command("ClosePoll", Permissions.Everyone, "Immediately closes a poll. Only the poll author or administrators can do this.")]
 		public async Task ClosePoll(CommandMessage message, ulong messageId)
 		{
 			if (!this.pollLookup.ContainsKey(messageId))

@@ -37,7 +37,7 @@ namespace KupoNuts.Bot.Items
 			desc.Append(self.ID);
 			desc.AppendLine(")");
 
-			// gamerescape link
+			// gamer escape link
 			desc.Append("[Gamer Escape](");
 			desc.Append("https://ffxiv.gamerescape.com/wiki/Special:Search/");
 			desc.Append(self.Name.Replace(" ", "%20"));
@@ -53,7 +53,7 @@ namespace KupoNuts.Bot.Items
 				builder.AddField(self.GetSpecialStatsName(), self.GetSpecialStatsString());
 
 			if (self.HasMateria())
-				builder.AddField("Materia", self.GetMateriaString());
+				builder.AddField(@"Materia", self.GetMateriaString());
 
 			if (self.HasBonuses())
 				builder.AddField("Bonuses", self.GetBonuses());
@@ -125,14 +125,14 @@ namespace KupoNuts.Bot.Items
 			StringBuilder builder = new StringBuilder();
 			if (self.ItemUICategory != null)
 			{
-				builder.Append("Lv. ");
+				builder.Append(@"Lv. ");
 				builder.Append(self.LevelEquip);
 				builder.Append(" - ");
 				builder.Append(self.ItemUICategory?.Name);
 			}
 			else
 			{
-				builder.Append("Lv. ");
+				builder.Append(@"Lv. ");
 				builder.Append(self.LevelEquip.ToString());
 			}
 

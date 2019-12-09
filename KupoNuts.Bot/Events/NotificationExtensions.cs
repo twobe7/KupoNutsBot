@@ -28,8 +28,8 @@ namespace KupoNuts.Bot.Events
 			builder.ImageUrl = evt.Image;
 
 			/*
-			 * Due to a bug on Android, we cannot use the Timestamp field for dates in teh future.
-			 * If discord ever fixes this, we should use timestamps as thay automatically adjust to the clients
+			 * Due to a bug on Android, we cannot use the Timestamp field for dates in the future.
+			 * If discord ever fixes this, we should use timestamps as they automatically adjust to the clients
 			 * time zone.
 			 * https://trello.com/c/RO4zrt25
 			 */
@@ -57,7 +57,7 @@ namespace KupoNuts.Bot.Events
 				descBuilder.AppendLine();
 			}
 
-			// desc
+			// description
 			descBuilder.AppendLine(evt.Description);
 			builder.Description = descBuilder.ToString();
 

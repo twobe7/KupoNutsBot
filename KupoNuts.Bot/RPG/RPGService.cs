@@ -55,7 +55,7 @@ namespace KupoNuts.Bot.RPG
 			throw new NotImplementedException();
 		}
 
-		[Command("KupoNuts", Permissions.Everyone, "Shows the kupo nut leaderboards")]
+		[Command("KupoNuts", Permissions.Everyone, "Shows the kupo nut leader boards")]
 		public async Task<Embed> ShowLeaders(CommandMessage message)
 		{
 			List<UserService.User> users = await UserService.GetAllUsers();

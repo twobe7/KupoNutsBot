@@ -25,7 +25,7 @@ namespace KupoNuts.Bot
 
 				await method.Invoke();
 
-				// Wait 2 minutes before anythign else.
+				// Wait 2 minutes before anything else.
 				await Task.Delay(new TimeSpan(0, 2, 0));
 			}
 		}

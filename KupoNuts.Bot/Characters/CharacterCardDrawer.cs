@@ -122,7 +122,7 @@ namespace KupoNuts.Bot.Characters
 				finalImg.Mutate(x => x.DrawTextAnySize(leftText, freeCompany.Name, axisRegular, Color.White, new Rectangle(431, 280, 158, 22)));
 			}
 
-			// Name / Bio
+			// Name
 			finalImg.Mutate(x => x.DrawTextAnySize(centerText, character.Name, optimuSemiBold, Color.White, new Rectangle(680, 70, 660, 55)));
 			finalImg.Mutate(x => x.DrawText(centerText, character.Title?.Name, axisRegular.CreateFont(22), Color.White, new PointF(680, 35)));
 			finalImg.Mutate(x => x.DrawText(centerText, character.Race?.Name + " (" + character.Tribe?.Name + ")", axisRegular.CreateFont(20), Color.White, new PointF(680, 110)));

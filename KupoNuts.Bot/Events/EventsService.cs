@@ -68,7 +68,7 @@ namespace KupoNuts.Bot.Events
 		[Command("Events", Permissions.Administrators, "Checks event notifications")]
 		public async Task Update()
 		{
-			// todo: store event ID's in a seperate table so we aren't scanning the entire events db each update.
+			// TODO: store event ID's in a separate table so we aren't scanning the entire events db each update.
 			List<Event> events = await EventsDatabase.LoadAll();
 			foreach (Event evt in events)
 			{
@@ -156,7 +156,7 @@ namespace KupoNuts.Bot.Events
 				if (!this.messageEventLookup.ContainsKey(message.Id.ToString()))
 					return;
 
-				// dont mark yourself as attending!
+				// don't mark yourself as attending!
 				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
 					return;
 

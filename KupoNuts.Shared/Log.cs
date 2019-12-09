@@ -15,7 +15,7 @@ namespace KupoNuts
 
 		public static void Write(string message, string category)
 		{
-			string str = "[" + DateTime.Now.ToString("HH:mm:ss") + "][" + category + "] " + message;
+			string str = "[" + DateTime.Now.ToString(@"HH:mm:ss") + "][" + category + "] " + message;
 			Console.WriteLine(str);
 			MessageLogged?.Invoke(str);
 		}

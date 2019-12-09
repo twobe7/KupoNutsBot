@@ -17,9 +17,9 @@ namespace KupoNuts.Manager.Client
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 			ZonedDateTime zdt = self.InZone(zone);
 			StringBuilder builder = new StringBuilder();
-			builder.Append(zdt.ToString("hh:mm ", CultureInfo.InvariantCulture));
-			builder.Append(zdt.ToString("tt", CultureInfo.InvariantCulture).ToLower());
-			builder.Append(zdt.ToString(" dd/MM/yyyy", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(zdt.ToString(@"hh:mm ", CultureInfo.InvariantCulture));
+			builder.Append(zdt.ToString(@"tt", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(zdt.ToString(@" dd/MM/yyyy", CultureInfo.InvariantCulture).ToLower());
 			return builder.ToString();
 		}
 	}

@@ -23,7 +23,7 @@ namespace KupoNuts.Bot.Characters
 
 		public async Task<bool> WhoIs(CommandMessage message, uint characterId)
 		{
-			// Sepcial case to jsut laod Kupo Nuts' portrait from disk.
+			// Special case to just load Kupo Nuts' portrait from disk.
 			if (characterId == 24960538)
 			{
 				await message.Channel.SendMessageAsync("Thats me!");

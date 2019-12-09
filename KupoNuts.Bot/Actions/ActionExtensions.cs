@@ -35,7 +35,7 @@ namespace KupoNuts.Bot.Actions
 			desc.Append(self.ID);
 			desc.AppendLine(")");
 
-			// gamerescape link
+			// gamer escape link
 			desc.Append("[Gamer Escape](");
 			desc.Append("https://ffxiv.gamerescape.com/wiki/Special:Search/");
 			desc.Append(self.Name.Replace(" ", "%20"));

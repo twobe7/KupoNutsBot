@@ -89,7 +89,7 @@ namespace KupoNuts.Utils
 			if (tz == null)
 				tz = Sydney;
 
-			return dt.InZone(tz).ToString("dddd dd MMMM, yyyy", CultureInfo.InvariantCulture);
+			return dt.InZone(tz).ToString(@"dddd dd MMMM, yyyy", CultureInfo.InvariantCulture);
 		}
 
 		public static string GetTimeString(Instant? dt, DateTimeZone? tz = null)
@@ -123,8 +123,8 @@ namespace KupoNuts.Utils
 		public static string GetTimeString(Instant dt, DateTimeZone tz, string zoneName)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append(dt.InZone(tz).ToString("**h:mm", CultureInfo.InvariantCulture));
-			builder.Append(dt.InZone(tz).ToString("tt**", CultureInfo.InvariantCulture).ToLower());
+			builder.Append(dt.InZone(tz).ToString(@"**h:mm", CultureInfo.InvariantCulture));
+			builder.Append(dt.InZone(tz).ToString(@"tt**", CultureInfo.InvariantCulture).ToLower());
 			builder.Append(" ");
 			builder.Append(zoneName);
 			return builder.ToString();

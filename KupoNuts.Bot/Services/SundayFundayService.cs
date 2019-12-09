@@ -60,10 +60,10 @@ namespace KupoNuts.Bot.Services
 			return base.Shutdown();
 		}
 
-		[Command("SundayFunday", Permissions.Administrators, "Updates the sunday funday post")]
+		[Command(@"SundayFunday", Permissions.Administrators, @"Updates the Sunday funday post")]
 		public async Task Update()
 		{
-			Log.Write("Updating Sunday Funday", "Bot");
+			Log.Write(@"Updating Sunday Funday", "Bot");
 
 			Settings settings = Settings.Load();
 
@@ -114,10 +114,10 @@ namespace KupoNuts.Bot.Services
 			this.messageId = message.Id;
 		}
 
-		[Command("SundayFundayAdvance", Permissions.Administrators, "Advances sunday funday by one week post")]
+		[Command("SundayFundayAdvance", Permissions.Administrators, @"Advances Sunday funday by one week post")]
 		public async Task AdvanceWeek()
 		{
-			Log.Write("Advancing Sunday Funday Week", "Bot");
+			Log.Write(@"Advancing Sunday Funday Week", "Bot");
 
 			Settings settings = Settings.Load();
 			int lastWeek = settings.SundayFundayWeek;
@@ -192,7 +192,7 @@ namespace KupoNuts.Bot.Services
 
 			StringBuilder description = new StringBuilder();
 
-			description.AppendLine("Its Sunday funday! Vote for an event each week!");
+			description.AppendLine(@"Its Sunday funday! Vote for an event each week!");
 			description.AppendLine();
 			description.Append(running ? "Ends in " : "Starts in ");
 			description.AppendLine(TimeUtils.GetDurationString(timeTill));
@@ -237,15 +237,15 @@ namespace KupoNuts.Bot.Services
 			}
 
 			description.AppendLine();
-			description.Append("Dont want to do ");
+			description.Append("Don't want to do ");
 			description.Append(winner?.Name);
 			description.Append("? Vote now!");
 
 			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = "Sunday Funday: " + winner?.Name + " (" + topVotes + " votes)";
+			builder.Title = @"Sunday Funday: " + winner?.Name + " (" + topVotes + " votes)";
 			builder.Description = description.ToString();
 			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = "or dont, I'm a bot, not a cop.";
+			builder.Footer.Text = "or don't, I'm a bot, not a cop.";
 			return builder.Build();
 		}
 

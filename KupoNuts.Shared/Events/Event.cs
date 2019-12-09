@@ -147,12 +147,12 @@ namespace KupoNuts.Events
 			if (instant < TimeUtils.Now)
 				return;
 
-			// dont get repeats that are more than 7 days away (because they are todays!)
+			// don't get repeats that are more than 7 days away (because they are todays!)
 			Duration durationTill = occurance.GetInstant() - TimeUtils.Now;
 			if (durationTill.Days >= 7)
 				return;
 
-			// Does this occurance happen to be the same as any other? skip.
+			// Does this occurrence happen to be the same as any other? skip.
 			foreach (Occurance existingOccurence in occurances)
 			{
 				if (existingOccurence.GetInstant() == instant)
@@ -168,7 +168,7 @@ namespace KupoNuts.Events
 		{
 			List<Occurance> occurances = new List<Occurance>();
 
-			// Is the original occurance in the future? add it.
+			// Is the original occurrence in the future? add it.
 			if (this.BaseOccurance != null && this.BaseOccurance.GetInstant() > TimeUtils.Now)
 				occurances.Add(this.BaseOccurance);
 
@@ -342,10 +342,10 @@ namespace KupoNuts.Events
 				LocalTime? time = this.Time ?? defaultTime;
 
 				if (date == null)
-					throw new Exception("No Date in event occurance");
+					throw new Exception("No Date in event occurrence");
 
 				if (time == null)
-					throw new Exception("No Time in event occurance");
+					throw new Exception("No Time in event occurrence");
 
 				LocalDateTime ldt = (LocalDate)date + (LocalTime)time;
 				return ldt.InUtc().ToInstant();

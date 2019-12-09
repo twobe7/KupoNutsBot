@@ -18,7 +18,7 @@ namespace KupoNuts.Bot.Services
 			"Thanks!",
 			"Thanks, you're a good human!",
 			"Sure, I guess...",
-			"yaay!",
+			@"yaay!",
 			"I try so hard!",
 			"It's nice to get some recognition around here.",
 		};
@@ -100,7 +100,7 @@ namespace KupoNuts.Bot.Services
 			return Task.FromResult("This is your fault, " + message.Author.GetName() + ".");
 		}
 
-		[Command("Confus", Permissions.Administrators, "??")]
+		[Command(@"Confus", Permissions.Administrators, "??")]
 		public async Task<bool> Confus(CommandMessage message)
 		{
 			await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/confus.jpg");

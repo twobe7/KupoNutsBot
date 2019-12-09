@@ -69,7 +69,7 @@ namespace KupoNuts.Bot.Commands
 		public static List<Command> GetCommands(string command)
 		{
 			if (!commandHandlers.ContainsKey(command.ToLower()))
-				throw new UserException("I dont know that command.");
+				throw new UserException("I don't know that command.");
 
 			return commandHandlers[command.ToLower()];
 		}
@@ -125,11 +125,11 @@ namespace KupoNuts.Bot.Commands
 			command = command.Replace('”', '"');
 			command = command.Replace('“', '"');
 
-			// command must contain an actual command (dont process "?" as a command)
+			// command must contain an actual command (don't process "?" as a command)
 			if (command.Length <= 0)
 				return;
 
-			// the first letter of the input must be a letter or a number (dont process "?????" or ">>>" as a command)
+			// the first letter of the input must be a letter or a number (don't process "?????" or ">>>" as a command)
 			char first = command[0];
 			if (!char.IsLetter(first) && !char.IsNumber(first))
 				return;
@@ -170,7 +170,7 @@ namespace KupoNuts.Bot.Commands
 				return;
 			}
 
-			Log.Write("Recieved command: " + command + " with " + message.Content + " From user: " + message.Author.Id, "Bot");
+			Log.Write("Received command: " + command + " with " + message.Content + " From user: " + message.Author.Id, "Bot");
 			_ = Task.Run(async () => await this.RunCommand(command, args.ToArray(), cmdMessage));
 		}
 
@@ -230,7 +230,7 @@ namespace KupoNuts.Bot.Commands
 						}
 						else if (lastException is NotImplementedException)
 						{
-							await message.Channel.SendMessageAsync("I'm sorry, seems like I dont quite know how to do that yet.");
+							await message.Channel.SendMessageAsync("I'm sorry, seems like I don't quite know how to do that yet.");
 						}
 						else
 						{
