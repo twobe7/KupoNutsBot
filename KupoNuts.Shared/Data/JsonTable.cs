@@ -131,6 +131,12 @@ namespace KupoNuts.Data
 
 		private string GetEntryPath(string key)
 		{
+			// replace bad characters with "-".
+			foreach (char c in Path.GetInvalidFileNameChars())
+			{
+				key = key.Replace(c, '-');
+			}
+
 			return this.DirectoryPath + key + ".json";
 		}
 	}
