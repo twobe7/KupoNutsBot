@@ -118,7 +118,7 @@ namespace KupoNuts.Bot.Lodestone
 
 		public class PostedNews : EntryBase
 		{
-			public bool IsPosted;
+			public bool IsPosted { get; set; }
 		}
 	}
 }
