@@ -39,10 +39,13 @@ namespace KupoNuts.Bot.Events
 
 			SocketChannel channel = Program.DiscordClient.GetChannel(id);
 
+			if (channel is null)
+				return null;
+
 			if (channel is SocketTextChannel textChannel)
 				return textChannel;
 
-			throw new Exception("Channel: \"" + self.ChannelId + "\" is not a text channel");
+			throw new Exception("Channel: \"" + self.ChannelId + "\" for event: \"" + self.Name + "\" is not a text channel");
 		}
 
 		public static void SetAttendeeStatus(this Event self, ulong userId, int status)

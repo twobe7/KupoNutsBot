@@ -52,6 +52,9 @@
 		<None Update="Assets\Bar.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="Assets\CharacterCardBackground.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="Assets\confus.jpg">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -262,7 +265,7 @@
 		<None Update="Assets\OptimusPrincepsSemiBold.ttf">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="Assets\overlay.png">
+		<None Update="Assets\CharacterCardOverlay.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="Assets\self.png">

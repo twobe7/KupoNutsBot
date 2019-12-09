@@ -38,7 +38,7 @@ namespace KupoNuts.Bot.Characters
 
 			FFXIVCollect.CharacterAPI.Character? collectChar = await FFXIVCollect.CharacterAPI.Get(characterId);
 
-			string file = await PortraitDrawer.Draw(response.Character, response.FreeCompany, collectChar);
+			string file = await CharacterCardDrawer.Draw(response.Character, response.FreeCompany, collectChar);
 			await message.Channel.SendFileAsync(file);
 			return true;
 		}
@@ -161,7 +161,7 @@ namespace KupoNuts.Bot.Characters
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await PortraitDrawer.PortraitDraw(response.Character);
+			string file = await CharacterCardDrawer.PortraitDraw(response.Character);
 
 			await message.Channel.SendFileAsync(file);
 			return true;
@@ -177,7 +177,7 @@ namespace KupoNuts.Bot.Characters
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await PortraitDrawer.PortraitDraw(response.Character);
+			string file = await CharacterCardDrawer.PortraitDraw(response.Character);
 
 			await message.Channel.SendFileAsync(file);
 			return true;
@@ -222,7 +222,7 @@ namespace KupoNuts.Bot.Characters
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await PortraitDrawer.PortraitDraw(response.Character);
+			string file = await CharacterCardDrawer.PortraitDraw(response.Character);
 
 			await message.Channel.SendFileAsync(file);
 			return true;

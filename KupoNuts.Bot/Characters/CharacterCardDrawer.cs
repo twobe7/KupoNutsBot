@@ -19,7 +19,7 @@ namespace KupoNuts.Bot.Characters
 
 	using CollectCharacter = FFXIVCollect.CharacterAPI.Character;
 
-	public static class PortraitDrawer
+	public static class CharacterCardDrawer
 	{
 		private static TextGraphicsOptions centerText = new TextGraphicsOptions()
 		{
@@ -53,12 +53,15 @@ namespace KupoNuts.Bot.Characters
 			string portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
 			await FileDownloader.Download(character.Portrait, portraitPath);
 
+			Image<Rgba32> backgroundImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/CharacterCardBackground.png");
+
 			Image<Rgba32> charImg = Image.Load<Rgba32>(portraitPath);
 			charImg.Mutate(x => x.Resize(375, 512));
 
-			Image<Rgba32> overlayImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/overlay.png");
+			Image<Rgba32> overlayImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/CharacterCardOverlay.png");
 
 			Image<Rgba32> finalImg = new Image<Rgba32>(1024, 512);
+			finalImg.Mutate(x => x.DrawImage(backgroundImg, 1.0f));
 			finalImg.Mutate(x => x.DrawImage(charImg, 1.0f));
 			finalImg.Mutate(x => x.DrawImage(overlayImg, 1.0f));
 
