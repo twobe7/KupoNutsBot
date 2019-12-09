@@ -169,6 +169,7 @@ namespace KupoNuts.Bot
 					await this.AddServices();
 
 					Initializing = false;
+					Log.Write("Initialization complete", "Bot");
 
 					while (!exiting)
 					{
