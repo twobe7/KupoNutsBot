@@ -9,11 +9,12 @@ namespace KupoNuts.Bot.Services
 	using Discord;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
+	using KupoNuts.Data;
 	using Twitter;
 
 	public class FashionReportService : ServiceBase
 	{
-		private Database<FashionReportEntry> db = new Database<FashionReportEntry>("FashionReport", 0);
+		private Table<FashionReportEntry> db = Table<FashionReportEntry>.Create("FashionReport", 0);
 
 		public override async Task Initialize()
 		{

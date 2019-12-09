@@ -10,12 +10,13 @@ namespace KupoNuts.Bot.Quotes
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.Data;
 	using KupoNuts.Quotes;
 	using NodaTime;
 
 	public class QuoteService : ServiceBase
 	{
-		private Database<Quote> quoteDb = new Database<Quote>("Quotes", Quote.Version);
+		private Table<Quote> quoteDb = Table<Quote>.Create("Quotes", Quote.Version);
 
 		public override async Task Initialize()
 		{

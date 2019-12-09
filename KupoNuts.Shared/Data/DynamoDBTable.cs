@@ -1,6 +1,6 @@
 ﻿// This document is intended for use by Kupo Nut Brigade developers.
 
-namespace KupoNuts
+namespace KupoNuts.Data
 {
 	using System;
 	using System.Collections.Generic;
@@ -8,34 +8,23 @@ namespace KupoNuts
 	using Amazon;
 	using Amazon.DynamoDBv2;
 	using Amazon.DynamoDBv2.DataModel;
+	using Amazon.DynamoDBv2.DocumentModel;
 	using Amazon.DynamoDBv2.Model;
 	using Amazon.Runtime.CredentialManagement;
 
-	public class Database<T>
+	public class DynamoDBTable<T> : Table<T>
 		where T : EntryBase, new()
 	{
-		public readonly string Name;
-		public readonly int Version;
-
 		private AmazonDynamoDBClient? client;
 		private DynamoDBContext? context;
 		private DynamoDBOperationConfig? operationConfig;
 
-		public Database(string databaseName, int version)
+		internal DynamoDBTable(string databaseName, int version)
+			: base(databaseName, version)
 		{
-			this.Name = databaseName;
-			this.Version = version;
 		}
 
-		private string InternalName
-		{
-			get
-			{
-				return Settings.Load().DatabasePrefix + "_" + this.Name + "_" + this.Version;
-			}
-		}
-
-		public async Task Connect()
+		public override async Task Connect()
 		{
 			CredentialProfileOptions options = new CredentialProfileOptions();
 
@@ -70,7 +59,7 @@ namespace KupoNuts
 			this.operationConfig.OverrideTableName = this.InternalName;
 		}
 
-		public async Task<T> CreateEntry(string? id = null)
+		public override async Task<T> CreateEntry(string? id = null)
 		{
 			if (id == null)
 				id = await this.GetNewID();
@@ -81,12 +70,8 @@ namespace KupoNuts
 			return t;
 		}
 
-		public async Task<string> GetNewID()
+		public override async Task<string> GetNewID()
 		{
-			// Probably faster to use sequential id,s and just get the next highest from the db? but
-			// guid collisions are super improbable, so this might actually be faster?
-			// It might be possible to ignore the check, and just hope the guid is clear, _or_ we could
-			// load all the guids into a hashtable in memory and compare there instead.
 			bool valid = false;
 			string guid;
 
@@ -100,7 +85,7 @@ namespace KupoNuts
 			return guid;
 		}
 
-		public async Task<T?> Load(string key)
+		public override async Task<T?> Load(string key)
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
@@ -108,7 +93,7 @@ namespace KupoNuts
 			return await this.context.LoadAsync<T>(key, this.operationConfig);
 		}
 
-		public async Task<T> LoadOrCreate(string key)
+		public override async Task<T> LoadOrCreate(string key)
 		{
 			T? entry = await this.Load(key);
 
@@ -118,23 +103,23 @@ namespace KupoNuts
 			return entry;
 		}
 
-		public async Task<List<T>> LoadAll(params ScanCondition[] conditions)
+		public override async Task<List<T>> LoadAll(Dictionary<string, object>? conditions = null)
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
 			try
 			{
-				AsyncSearch<T> search = this.context.ScanAsync<T>(conditions, this.operationConfig);
+				AsyncSearch<T> search = this.context.ScanAsync<T>(ToScanConditions(conditions), this.operationConfig);
 				return await search.GetRemainingAsync();
 			}
 			catch (ResourceNotFoundException)
 			{
-				throw new Exception("Database table not found. This may be caused by new tables not propogating immediatelly.");
+				throw new Exception("Database table not found. This may be caused by new tables not propagating immediately.");
 			}
 		}
 
-		public async Task Delete(T entry)
+		public override async Task Delete(T entry)
 		{
 			if (entry.Id == null)
 				return;
@@ -142,7 +127,7 @@ namespace KupoNuts
 			await this.Delete(entry.Id);
 		}
 
-		public async Task Delete(string key)
+		public override async Task Delete(string key)
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
@@ -150,13 +135,28 @@ namespace KupoNuts
 			await this.context.DeleteAsync<T>(key, this.operationConfig);
 		}
 
-		public Task Save(T document)
+		public override Task Save(T document)
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
 			document.Updated = DateTime.UtcNow;
 			return this.context.SaveAsync(document, this.operationConfig);
+		}
+
+		private static List<ScanCondition> ToScanConditions(Dictionary<string, object>? conditions)
+		{
+			List<ScanCondition> scanConditions = new List<ScanCondition>();
+
+			if (conditions == null)
+				return scanConditions;
+
+			foreach ((string propertyName, object value) in conditions)
+			{
+				scanConditions.Add(new ScanCondition(propertyName, ScanOperator.Equal, value));
+			}
+
+			return scanConditions;
 		}
 
 		private async Task EnsureTable()
@@ -167,14 +167,7 @@ namespace KupoNuts
 			ListTablesResponse listTablesResponse = await this.client.ListTablesAsync();
 
 			if (listTablesResponse.TableNames.Contains(this.InternalName))
-			{
 				return;
-				/*Log.Write("A table named: \"" + this.InternalName + "\" already exists. Deleting...");
-
-				DeleteTableRequest deleteRequest = new DeleteTableRequest();
-				deleteRequest.TableName = this.InternalName;
-				await this.client.DeleteTableAsync(deleteRequest);*/
-			}
 
 			CreateTableRequest request = new CreateTableRequest
 			{

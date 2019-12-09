@@ -9,12 +9,13 @@ namespace KupoNuts.Bot.Lodestone
 	using global::Lodestone.News;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.Data;
 	using KupoNuts.Utils;
 	using NodaTime;
 
 	public class LodestoneService : ServiceBase
 	{
-		private Database<PostedNews> newsDb = new Database<PostedNews>("News", 0);
+		private Table<PostedNews> newsDb = Table<PostedNews>.Create("News", 0);
 
 		public override async Task Initialize()
 		{
@@ -25,8 +26,8 @@ namespace KupoNuts.Bot.Lodestone
 			Scheduler.RunOnSchedule(this.Update, 15);
 		}
 
-		[Command("maintenance", Permissions.Everyone, "Gets info about the next maintanance window.")]
-		[Command("maint", Permissions.Everyone, "Gets info about the next maintanance window.")]
+		[Command("maintenance", Permissions.Everyone, "Gets info about the next maintenance window.")]
+		[Command("maint", Permissions.Everyone, "Gets info about the next maintenance window.")]
 		public async Task<Embed> GetMaintenance()
 		{
 			List<NewsItem> items = await NewsAPI.Latest(Categories.Maintenance);

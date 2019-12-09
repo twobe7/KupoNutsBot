@@ -11,6 +11,7 @@ namespace KupoNuts.Bot.Polls
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.Data;
 	using KupoNuts.Utils;
 	using NodaTime;
 
@@ -29,7 +30,7 @@ namespace KupoNuts.Bot.Polls
 
 		private Dictionary<ulong, string> pollLookup = new Dictionary<ulong, string>();
 
-		private Database<Poll> pollDatabase = new Database<Poll>("Polls", 2);
+		private Table<Poll> pollDatabase = Table<Poll>.Create("Polls", 2);
 
 		public override async Task Initialize()
 		{

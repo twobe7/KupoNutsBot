@@ -9,13 +9,14 @@ namespace KupoNuts.Bot.Services
 	using Amazon.DynamoDBv2.DataModel;
 	using Amazon.DynamoDBv2.DocumentModel;
 	using Discord;
+	using KupoNuts.Data;
 
 	public class UserService : ServiceBase
 	{
 		private static UserService? instance;
 
 		private Dictionary<ulong, Dictionary<ulong, string>> userIdLookup = new Dictionary<ulong, Dictionary<ulong, string>>();
-		private Database<User> userDb = new Database<User>("Users", 0);
+		private Table<User> userDb = Table<User>.Create("Users", 0);
 
 		public static async Task<User> GetUser(IGuildUser user)
 		{
@@ -66,8 +67,11 @@ namespace KupoNuts.Bot.Services
 			if (!this.userIdLookup[guildId].ContainsKey(userId))
 			{
 				List<User> users = await this.userDb.LoadAll(
-					new ScanCondition("DiscordUserId", ScanOperator.Equal, userId),
-					new ScanCondition("DiscordGuildId", ScanOperator.Equal, guildId));
+					new Dictionary<string, object>()
+					{
+						{ "DiscordUserId",  userId },
+						{ "DiscordGuildId", guildId },
+					});
 
 				if (users.Count > 1)
 					throw new Exception("Multiple users with same discord user and guild!");

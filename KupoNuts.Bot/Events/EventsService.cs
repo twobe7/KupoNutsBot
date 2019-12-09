@@ -12,12 +12,13 @@ namespace KupoNuts.Bot.Events
 	using KupoNuts.Bot.Commands;
 	using KupoNuts.Bot.Events;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.Data;
 	using KupoNuts.Events;
 	using NodaTime;
 
 	public class EventsService : ServiceBase
 	{
-		public static Database<Event> EventsDatabase = new Database<Event>("Events", 1);
+		public static Table<Event> EventsDatabase = Table<Event>.Create("Events", 1);
 
 		private static EventsService? instance;
 		private Dictionary<string, string> messageEventLookup = new Dictionary<string, string>();

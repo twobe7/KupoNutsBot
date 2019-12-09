@@ -4,6 +4,7 @@ namespace KupoNuts.Manager.Server.Controllers
 {
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using KupoNuts.Data;
 	using KupoNuts.Events;
 	using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +18,7 @@ namespace KupoNuts.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return null;
 
-			Database<Event> eventsDb = new Database<Event>("Events", 1);
+			Table<Event> eventsDb = Table<Event>.Create("Events", 1);
 			await eventsDb.Connect();
 			List<Event> events = await eventsDb.LoadAll();
 			return events;
@@ -29,7 +30,7 @@ namespace KupoNuts.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return;
 
-			Database<Event> eventsDb = new Database<Event>("Events", 1);
+			Table<Event> eventsDb = Table<Event>.Create("Events", 1);
 			await eventsDb.Connect();
 
 			switch (evt.Action)

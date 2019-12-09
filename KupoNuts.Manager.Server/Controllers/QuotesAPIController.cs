@@ -4,6 +4,7 @@ namespace KupoNuts.Manager.Server.Controllers
 {
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using KupoNuts.Data;
 	using KupoNuts.Quotes;
 	using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +18,7 @@ namespace KupoNuts.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return null;
 
-			Database<Quote> quotesDb = new Database<Quote>("Quotes", Quote.Version);
+			Table<Quote> quotesDb = Table<Quote>.Create("Quotes", Quote.Version);
 			await quotesDb.Connect();
 			List<Quote> events = await quotesDb.LoadAll();
 			return events;
@@ -29,7 +30,7 @@ namespace KupoNuts.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return;
 
-			Database<Quote> quotesDb = new Database<Quote>("Quotes", Quote.Version);
+			Table<Quote> quotesDb = Table<Quote>.Create("Quotes", Quote.Version);
 			await quotesDb.Connect();
 
 			switch (action.Action)

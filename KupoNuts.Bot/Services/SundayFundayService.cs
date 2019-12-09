@@ -11,6 +11,7 @@ namespace KupoNuts.Bot.Services
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
+	using KupoNuts.Data;
 	using KupoNuts.Utils;
 	using NodaTime;
 	using NodaTime.Calendars;
@@ -30,7 +31,7 @@ namespace KupoNuts.Bot.Services
 			"🇬",
 		};
 
-		private Database<SundayFundayEvent> database = new Database<SundayFundayEvent>("SundayFunday", 0);
+		private Table<SundayFundayEvent> database = Table<SundayFundayEvent>.Create("SundayFunday", 0);
 		private ulong messageId;
 		private Dictionary<string, string> reactionEventLookup = new Dictionary<string, string>();
 
