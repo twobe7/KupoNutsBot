@@ -29,13 +29,13 @@ namespace KupoNuts.Data
 
 		public static Table<T> Create(string databaseName, int version)
 		{
-			if (string.IsNullOrEmpty(Settings.Load().DBKey))
+			if (Settings.Load().UseDynamoDb)
 			{
-				return new JsonTable<T>(databaseName, version);
+				return new DynamoDBTable<T>(databaseName, version);
 			}
 			else
 			{
-				return new DynamoDBTable<T>(databaseName, version);
+				return new JsonTable<T>(databaseName, version);
 			}
 		}
 

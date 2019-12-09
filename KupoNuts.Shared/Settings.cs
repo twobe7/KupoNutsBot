@@ -37,8 +37,12 @@ namespace KupoNuts
 
 		public string? FashionReportChannel { get; set; }
 
+		public bool UseDynamoDb { get; set; } = false;
+
+		// only needed when running outside of an amazon EC2 instance, and if UseDynamoDB is true.
 		public string? DBKey { get; set; }
 
+		// only needed when running outside of an amazon EC2 instance, and if UseDynamoDB is true.
 		public string? DBSecret { get; set; }
 
 		public string? DiscordKey { get; set; }
