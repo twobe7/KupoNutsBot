@@ -16,7 +16,7 @@ namespace KupoNuts.Bot.Utils
 			if (dir is null)
 				throw new Exception("Failed to get director at path: \"" + path + "\"");
 
-			if (!Directory.Exists(dir))
+			if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 
 			using (WebClient client = new WebClient())

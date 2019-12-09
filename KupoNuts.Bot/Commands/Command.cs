@@ -5,6 +5,7 @@ namespace KupoNuts.Bot.Commands
 	using System;
 	using System.Collections.Generic;
 	using System.Diagnostics;
+	using System.Linq;
 	using System.Reflection;
 	using System.Runtime.ExceptionServices;
 	using System.Text.RegularExpressions;
@@ -85,6 +86,11 @@ namespace KupoNuts.Bot.Commands
 				else if (paramInfo.ParameterType == typeof(string[]))
 				{
 					parameters.Add(args);
+					neededArgCount--;
+				}
+				else if (paramInfo.ParameterType == typeof(Attachment) && message.Message.Attachments.Count == 1)
+				{
+					parameters.Add(message.Message.Attachments.FirstOrDefault());
 					neededArgCount--;
 				}
 				else
