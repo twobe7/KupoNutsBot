@@ -13,29 +13,23 @@ namespace KupoNuts.Data
 	public class JsonTable<T> : Table<T>
 		where T : EntryBase, new()
 	{
-		private Dictionary<string, T> data = new Dictionary<string, T>();
-
 		internal JsonTable(string databaseName, int version)
 			: base(databaseName, version)
 		{
 		}
 
-		public string Path
+		public string DirectoryPath
 		{
 			get
 			{
-				return "Database/" + this.InternalName + ".json";
+				return "Database/" + this.InternalName + "/";
 			}
 		}
 
 		public override Task Connect()
 		{
-			if (File.Exists(this.Path))
-			{
-				string json = File.ReadAllText(this.Path);
-				TableData td = JsonSerializer.Deserialize<TableData>(json);
-				this.data = td.Data;
-			}
+			if (!Directory.Exists(this.DirectoryPath))
+				Directory.CreateDirectory(this.DirectoryPath);
 
 			return Task.CompletedTask;
 		}
@@ -47,8 +41,7 @@ namespace KupoNuts.Data
 
 			T entry = Activator.CreateInstance<T>();
 			entry.Id = id;
-			this.data.Add(id, entry);
-			this.Save();
+			this.Save(entry);
 			return Task.FromResult(entry);
 		}
 
@@ -59,11 +52,12 @@ namespace KupoNuts.Data
 
 		public override Task Delete(string key)
 		{
-			if (!this.data.ContainsKey(key))
+			string path = this.GetEntryPath(key);
+
+			if (!File.Exists(path))
 				return Task.CompletedTask;
 
-			this.data.Remove(key);
-			this.Save();
+			File.Delete(path);
 			return Task.CompletedTask;
 		}
 
@@ -74,18 +68,28 @@ namespace KupoNuts.Data
 
 		public override Task<T?> Load(string key)
 		{
-			if (!this.data.ContainsKey(key))
+			string path = this.GetEntryPath(key);
+
+			if (!File.Exists(path))
 				return Task.FromResult<T?>(null);
 
-			return Task.FromResult((T?)this.data[key]);
+			string json = File.ReadAllText(path);
+			T? entry = JsonSerializer.Deserialize<T>(json);
+
+			return Task.FromResult((T?)entry);
 		}
 
 		public override Task<List<T>> LoadAll(Dictionary<string, object>? conditions = null)
 		{
 			List<T> results = new List<T>();
 
-			foreach ((string key, T entry) in this.data)
+			string[] files = Directory.GetFiles(this.DirectoryPath, "*.json");
+
+			foreach (string path in files)
 			{
+				string json = File.ReadAllText(path);
+				T entry = JsonSerializer.Deserialize<T>(json);
+
 				if (conditions != null)
 				{
 					foreach ((string propertyName, object value) in conditions)
@@ -115,33 +119,19 @@ namespace KupoNuts.Data
 			return result;
 		}
 
-		public override Task Save(T document)
+		public override Task Save(T entry)
 		{
-			if (!this.data.ContainsKey(document.Id))
-				this.data.Add(document.Id, document);
+			string path = this.GetEntryPath(entry.Id);
 
-			this.data[document.Id] = document;
+			string json = JsonSerializer.Serialize(entry);
+			File.WriteAllText(path, json);
 
-			this.Save();
 			return Task.CompletedTask;
 		}
 
-		private void Save()
+		private string GetEntryPath(string key)
 		{
-			string dir = System.IO.Path.GetDirectoryName(this.Path);
-			if (!Directory.Exists(dir))
-				Directory.CreateDirectory(dir);
-
-			TableData td = new TableData();
-			td.Data = this.data;
-			string json = JsonSerializer.Serialize(td);
-			File.WriteAllText(this.Path, json);
-		}
-
-		[Serializable]
-		private class TableData
-		{
-			public Dictionary<string, T> Data { get; set; } = new Dictionary<string, T>();
+			return this.DirectoryPath + key + ".json";
 		}
 	}
 }
