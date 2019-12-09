@@ -31,7 +31,7 @@ namespace KupoNuts
 		{
 			get
 			{
-				return "KupoNuts_" + this.Name + "_" + this.Version;
+				return Settings.Load().DatabasePrefix + "_" + this.Name + "_" + this.Version;
 			}
 		}
 
@@ -123,8 +123,15 @@ namespace KupoNuts
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
-			AsyncSearch<T> search = this.context.ScanAsync<T>(conditions, this.operationConfig);
-			return await search.GetRemainingAsync();
+			try
+			{
+				AsyncSearch<T> search = this.context.ScanAsync<T>(conditions, this.operationConfig);
+				return await search.GetRemainingAsync();
+			}
+			catch (ResourceNotFoundException)
+			{
+				throw new Exception("Database table not found. This may be caused by new tables not propogating immediatelly.");
+			}
 		}
 
 		public async Task Delete(T entry)

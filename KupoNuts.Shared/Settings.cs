@@ -11,6 +11,8 @@ namespace KupoNuts
 	{
 		public const string Location = "Settings.json";
 
+		public string DatabasePrefix { get; set; } = "KupoNuts_";
+
 		public string? Token { get; set; }
 
 		public string? LogChannel { get; set; }
