@@ -52,6 +52,9 @@
 		<None Update="Assets\Bar.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="Assets\CharacterPortraitBackground.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="Assets\CharacterCardBackground.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

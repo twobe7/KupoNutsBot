@@ -43,7 +43,7 @@ namespace KupoNuts.Bot.Characters
 
 			FFXIVCollect.CharacterAPI.Character? collectChar = await FFXIVCollect.CharacterAPI.Get(characterId);
 
-			string file = await CharacterCardDrawer.Draw(response.Character, response.FreeCompany, collectChar);
+			string file = await CharacterCard.Draw(response.Character, response.FreeCompany, collectChar);
 			await message.Channel.SendFileAsync(file);
 			return true;
 		}
@@ -156,6 +156,20 @@ namespace KupoNuts.Bot.Characters
 		}
 
 		[Command("CustomPortrait", Permissions.Everyone, "Sets a custom portrait image for your linked character (for best results: 375x512 " + @"png)")]
+		public async Task<string> SetCustomPortrait(CommandMessage message)
+		{
+			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
+
+			string path = "CustomPortraits/" + userEntry.FFXIVCharacterId + ".png";
+
+			if (!File.Exists(path))
+				throw new UserException("No custom portrait set. Use \"" + CommandsService.CommandPrefix + "CustomPortrait\" as the comment on an uploaded image to set a custom portrait.");
+
+			File.Delete(path);
+			return "Custom portrait cleared.";
+		}
+
+		[Command("CustomPortrait", Permissions.Everyone, "Sets a custom portrait image for your linked character (for best results: 375x512 " + @"png)")]
 		public async Task<string> SetCustomPortrait(CommandMessage message, Attachment file)
 		{
 			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
@@ -174,7 +188,7 @@ namespace KupoNuts.Bot.Characters
 
 			File.Delete(temp);
 
-			return "Portrait updated!";
+			return "Portrait updated.";
 		}
 
 		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait")]
@@ -187,7 +201,7 @@ namespace KupoNuts.Bot.Characters
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await CharacterCardDrawer.PortraitDraw(response.Character);
+			string file = await CharacterPortrait.Draw(response.Character);
 
 			await message.Channel.SendFileAsync(file);
 			return true;
@@ -203,7 +217,7 @@ namespace KupoNuts.Bot.Characters
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await CharacterCardDrawer.PortraitDraw(response.Character);
+			string file = await CharacterPortrait.Draw(response.Character);
 
 			await message.Channel.SendFileAsync(file);
 			return true;
@@ -248,7 +262,7 @@ namespace KupoNuts.Bot.Characters
 			if (response.Character == null)
 				throw new UserException("I couldn't find that character.");
 
-			string file = await CharacterCardDrawer.PortraitDraw(response.Character);
+			string file = await CharacterPortrait.Draw(response.Character);
 
 			await message.Channel.SendFileAsync(file);
 			return true;
