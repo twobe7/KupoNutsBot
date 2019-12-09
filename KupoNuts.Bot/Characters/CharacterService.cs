@@ -155,7 +155,7 @@ namespace KupoNuts.Bot.Characters
 			}
 		}
 
-		[Command("CustomPortrait", Permissions.Everyone, "Sets a custom portrait image for your linked character (for best results: 375x512 " + @"png)")]
+		[Command("ClearCustomPortrait", Permissions.Everyone, "clears the custom portrait image for your linked character")]
 		public async Task<string> SetCustomPortrait(CommandMessage message)
 		{
 			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
