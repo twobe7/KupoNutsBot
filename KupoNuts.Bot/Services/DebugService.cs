@@ -33,6 +33,12 @@ namespace KupoNuts.Bot.Services
 			return Task.CompletedTask;
 		}
 
+		[Command("Developer", Permissions.Everyone, "Join the developer discord!")]
+		public Task<string> Developer()
+		{
+			return Task.FromResult("Join in on the developer discussion: https://discord.gg/ZtfBTAz");
+		}
+
 		[Command("GoodBot", Permissions.Everyone, "Ye")]
 		public Task<string> GoodBot()
 		{
