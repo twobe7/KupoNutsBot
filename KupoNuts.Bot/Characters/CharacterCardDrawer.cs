@@ -50,8 +50,12 @@ namespace KupoNuts.Bot.Characters
 
 		public static async Task<string> Draw(Character character, FreeCompany? freeCompany, CollectCharacter? collectCharacter)
 		{
-			string portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
-			await FileDownloader.Download(character.Portrait, portraitPath);
+			string portraitPath = "CustomPortraits/" + character.ID + ".png";
+			if (!File.Exists(portraitPath))
+			{
+				portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
+				await FileDownloader.Download(character.Portrait, portraitPath);
+			}
 
 			Image<Rgba32> backgroundImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/CharacterCardBackground.png");
 

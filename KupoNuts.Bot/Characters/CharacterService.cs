@@ -4,6 +4,7 @@ namespace KupoNuts.Bot.Characters
 {
 	using System;
 	using System.Collections.Generic;
+	using System.IO;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
@@ -12,6 +13,11 @@ namespace KupoNuts.Bot.Characters
 	using KupoNuts.Bot.Services;
 	using KupoNuts.Bot.Utils;
 	using KupoNuts.Utils;
+	using SixLabors.ImageSharp;
+	using SixLabors.ImageSharp.PixelFormats;
+	using SixLabors.ImageSharp.Processing;
+	using XIVAPI;
+	using Image = SixLabors.ImageSharp.Image;
 
 	public class CharacterService : ServiceBase
 	{
@@ -147,6 +153,28 @@ namespace KupoNuts.Bot.Characters
 				await message.Channel.SendMessageAsync(null, false, embed);
 				return true;
 			}
+		}
+
+		[Command("CustomPortrait", Permissions.Everyone, "Sets a custom portrait image for your linked character (for best results: 375x512 " + @"png)")]
+		public async Task<string> SetCustomPortrait(CommandMessage message, Attachment file)
+		{
+			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
+
+			string temp = "Temp/" + file.Filename;
+			string path = "CustomPortraits/" + userEntry.FFXIVCharacterId + ".png";
+
+			if (!Directory.Exists("CustomPortraits/"))
+				Directory.CreateDirectory("CustomPortraits/");
+
+			await FileDownloader.Download(file.Url, temp);
+
+			Image<Rgba32> charImg = Image.Load<Rgba32>(temp);
+			charImg.Mutate(x => x.Resize(375, 512));
+			charImg.Save(path);
+
+			File.Delete(temp);
+
+			return "Portrait updated!";
 		}
 
 		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait")]
