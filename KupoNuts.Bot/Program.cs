@@ -168,6 +168,8 @@ namespace KupoNuts.Bot
 					// boot the rest of the bot
 					await this.AddServices();
 
+					await DiscordClient.SetActivityAsync(new BotActivity());
+
 					Initializing = false;
 					Log.Write("Initialization complete", "Bot");
 
@@ -210,6 +212,25 @@ namespace KupoNuts.Bot
 		{
 			Log.Write(log.ToString(), "Bot");
 			return Task.CompletedTask;
+		}
+
+		private class BotActivity : IActivity
+		{
+			public string Name
+			{
+				get
+				{
+					return "'" + CommandsService.CommandPrefix + "help'";
+				}
+			}
+
+			public ActivityType Type
+			{
+				get
+				{
+					return ActivityType.Listening;
+				}
+			}
 		}
 	}
 }
