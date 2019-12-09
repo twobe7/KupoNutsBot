@@ -13,7 +13,6 @@ namespace KupoNuts.Bot.Characters
 	using KupoNuts.Bot.Utils;
 	using KupoNuts.Utils;
 
-	#pragma warning disable
 	public class CharacterService : ServiceBase
 	{
 		public override async Task Initialize()
@@ -59,7 +58,6 @@ namespace KupoNuts.Bot.Characters
 
 			if (response.Results == null)
 			{
-
 				throw new Exception("No Results");
 			}
 			else if (response.Results.Count == 1)
@@ -166,7 +164,7 @@ namespace KupoNuts.Bot.Characters
 			await message.Channel.SendFileAsync(file);
 			return true;
 		}
-		
+
 		[Command("Portrait", Permissions.Everyone, "Shows another user's linked character portrait")]
 		public async Task<bool> Portrait(CommandMessage message, IGuildUser user)
 		{
