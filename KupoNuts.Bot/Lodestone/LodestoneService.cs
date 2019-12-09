@@ -27,7 +27,7 @@ namespace KupoNuts.Bot.Lodestone
 		}
 
 		[Command("maintenance", Permissions.Everyone, "Gets info about the next maintenance window.")]
-		[Command("maint", Permissions.Everyone, "Gets info about the next maintenance window.")]
+		[Command(@"maint", Permissions.Everyone, "Gets info about the next maintenance window.")]
 		public async Task<Embed> GetMaintenance()
 		{
 			List<NewsItem> items = await NewsAPI.Latest(Categories.Maintenance);
@@ -82,10 +82,11 @@ namespace KupoNuts.Bot.Lodestone
 				return builder.Build();
 			}
 
-			throw new UserException("I couldn't find any maintanance.");
+			throw new UserException("I couldn't find any maintenance.");
 		}
 
-		private async Task Update()
+		[Command("news", Permissions.Administrators, "Updates lodestone news")]
+		public async Task Update()
 		{
 			Log.Write("Updating lodestone news", "Bot");
 
@@ -103,13 +104,13 @@ namespace KupoNuts.Bot.Lodestone
 
 				if (!entry.IsPosted)
 				{
-					Log.Write("Posintg Lodestone news: " + item.title, "Bot");
+					Log.Write("Posting Lodestone news: " + item.title, "Bot");
 					await item.Post(channelId);
 
 					entry.IsPosted = true;
 					await this.newsDb.Save(entry);
 
-					// dont flood channel!
+					// don't flood channel!
 					await Task.Delay(500);
 				}
 			}
