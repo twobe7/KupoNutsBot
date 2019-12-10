@@ -5,6 +5,7 @@ namespace KupoNuts.Bot.Commands
 	using System;
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
+	using System.Net;
 	using System.Reflection;
 	using System.Text;
 	using System.Text.RegularExpressions;
@@ -231,6 +232,19 @@ namespace KupoNuts.Bot.Commands
 						else if (lastException is NotImplementedException)
 						{
 							await message.Channel.SendMessageAsync("I'm sorry, seems like I don't quite know how to do that yet.");
+						}
+						else if (lastException is WebException webEx)
+						{
+							HttpStatusCode? status = (webEx.Response as HttpWebResponse)?.StatusCode;
+							if (status == null || status != HttpStatusCode.ServiceUnavailable)
+							{
+								Log.Write(lastException);
+								await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+							}
+							else
+							{
+								await message.Channel.SendMessageAsync("I'm sorry, the service is unavailable right now.");
+							}
 						}
 						else
 						{
