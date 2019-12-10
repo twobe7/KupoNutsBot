@@ -192,7 +192,7 @@ namespace KupoNuts.Bot.Services
 
 			StringBuilder description = new StringBuilder();
 
-			description.AppendLine(@"Its Sunday funday! Vote for an event each week!");
+			description.AppendLine(@"It's Sunday funday! Vote for an event each week!");
 			description.AppendLine();
 			description.Append(running ? "Ends in " : "Starts in ");
 			description.AppendLine(TimeUtils.GetDurationString(timeTill));
@@ -245,7 +245,7 @@ namespace KupoNuts.Bot.Services
 			builder.Title = @"Sunday Funday: " + winner?.Name + " (" + topVotes + " votes)";
 			builder.Description = description.ToString();
 			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = "or don't, I'm a bot, not a cop.";
+			builder.Footer.Text = "Or don't; I'm a bot, not a cop.";
 			return builder.Build();
 		}
 
