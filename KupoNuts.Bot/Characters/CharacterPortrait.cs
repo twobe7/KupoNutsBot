@@ -3,9 +3,7 @@
 namespace KupoNuts.Bot.Characters
 {
 	using System;
-	using System.Collections.Generic;
 	using System.IO;
-	using System.Text;
 	using System.Threading.Tasks;
 	using KupoNuts.Bot.ImageSharp;
 	using KupoNuts.Bot.Utils;
@@ -15,16 +13,18 @@ namespace KupoNuts.Bot.Characters
 	using SixLabors.ImageSharp.PixelFormats;
 	using SixLabors.ImageSharp.Processing;
 	using SixLabors.Primitives;
-	using XIVAPI;
 
 	public static class CharacterPortrait
 	{
-		public static async Task<string> Draw(Character character)
+		public static async Task<string> Draw(CharacterInfo character)
 		{
-			string portraitPath = "CustomPortraits/" + character.ID + ".png";
+			string portraitPath = "CustomPortraits/" + character.Id + ".png";
 			if (!File.Exists(portraitPath))
 			{
-				portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
+				if (character.Portrait == null)
+					throw new Exception("Character has no portrait");
+
+				portraitPath = PathUtils.Current + "/Temp/" + character.Id + ".jpg";
 				await FileDownloader.Download(character.Portrait, portraitPath);
 			}
 
@@ -43,11 +43,11 @@ namespace KupoNuts.Bot.Characters
 			PointF boxD = new PointF(5, charImg.Height - 5);
 
 			finalImg.Mutate(x => x.FillPolygon(Brushes.Solid(Color.Black.WithAlpha(0.4F)), boxA, boxB, boxC, boxD));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Server + " - " + character.DC, Fonts.AxisRegular.CreateFont(26), Color.White, new Point(finalImg.Width / 2, charImg.Height - 95)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Server + " - " + character.DataCenter, Fonts.AxisRegular.CreateFont(26), Color.White, new Point(finalImg.Width / 2, charImg.Height - 95)));
 			finalImg.Mutate(x => x.DrawTextAnySize(FontStyles.CenterText, character.Name, Fonts.OptimuSemiBold, Color.White, new Rectangle(finalImg.Width / 2, finalImg.Height - 50, 600, 70)));
 
 			// Save
-			string outputPath = PathUtils.Current + "/Temp/" + character.ID + "_render.png";
+			string outputPath = PathUtils.Current + "/Temp/" + character.Id + "_render.png";
 			finalImg.Save(outputPath);
 
 			return outputPath;

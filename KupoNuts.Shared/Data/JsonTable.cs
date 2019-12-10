@@ -90,6 +90,7 @@ namespace KupoNuts.Data
 				string json = File.ReadAllText(path);
 				T entry = JsonSerializer.Deserialize<T>(json);
 
+				bool meetsConditions = true;
 				if (conditions != null)
 				{
 					foreach ((string propertyName, object value) in conditions)
@@ -97,12 +98,16 @@ namespace KupoNuts.Data
 						PropertyInfo info = entry.GetType().GetProperty(propertyName);
 						object val = info.GetValue(entry);
 
-						if (val != value)
+						if (!val.Equals(value))
 						{
+							meetsConditions = false;
 							continue;
 						}
 					}
 				}
+
+				if (!meetsConditions)
+					continue;
 
 				results.Add(entry);
 			}

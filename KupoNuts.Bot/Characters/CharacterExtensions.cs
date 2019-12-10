@@ -30,16 +30,6 @@ namespace KupoNuts.Bot.Characters
 			return null;
 		}
 
-		public static string GetJobLevel(this XIVAPICharacter self, Jobs job)
-		{
-			ClassJob? classJob = self.GetClassJob(job);
-
-			if (classJob == null)
-				return string.Empty;
-
-			return classJob.Level.ToString();
-		}
-
 		public static Embed GetGear(this XIVAPICharacter self)
 		{
 			if (self.GearSet == null || self.GearSet.Gear == null)

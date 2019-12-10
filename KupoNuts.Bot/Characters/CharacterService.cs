@@ -17,13 +17,80 @@ namespace KupoNuts.Bot.Characters
 	using SixLabors.ImageSharp.PixelFormats;
 	using SixLabors.ImageSharp.Processing;
 	using XIVAPI;
+
+	using FFXIVCollectCharacter = FFXIVCollect.CharacterAPI.Character;
 	using Image = SixLabors.ImageSharp.Image;
+	using XIVAPICharacter = XIVAPI.Character;
 
 	public class CharacterService : ServiceBase
 	{
 		public override async Task Initialize()
 		{
 			await base.Initialize();
+		}
+
+		[Command("Lodestone", Permissions.Everyone, "links to your lodestone page")]
+		public async Task<string> Lodestone(CommandMessage message)
+		{
+			UserService.User userEntry = await this.GetUserEntry(message.Author);
+			return "https://eu.finalfantasyxiv.com/lodestone/character/" + userEntry.FFXIVCharacterId + "/";
+		}
+
+		[Command("Lodestone", Permissions.Everyone, "links to a users lodestone page")]
+		public async Task<string> Lodestone(IGuildUser user)
+		{
+			UserService.User userEntry = await this.GetUserEntry(user);
+			return "https://eu.finalfantasyxiv.com/lodestone/character/" + userEntry.FFXIVCharacterId + "/";
+		}
+
+		[Command("Lodestone", Permissions.Everyone, "links to a characters lodestone page")]
+		public async Task<string> Lodestone(CommandMessage message, string characterName, string serverName)
+		{
+			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
+			return "https://eu.finalfantasyxiv.com/lodestone/character/" + character.Id + "/";
+		}
+
+		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
+		public async Task<string> IAm(CommandMessage message, string characterName, string serverName)
+		{
+			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
+
+			UserService.User userEntry = await UserService.GetUser(message.Author);
+			bool hadCharacter = userEntry.FFXIVCharacterId != 0;
+			userEntry.FFXIVCharacterId = character.Id;
+			await UserService.SaveUser(userEntry);
+
+			return hadCharacter ? "Character updated!" : "Character linked!";
+		}
+
+		[Command("WhoAmI", Permissions.Everyone, "displays your linked character")]
+		public async Task WhoAmI(CommandMessage message)
+		{
+			UserService.User userEntry = await this.GetUserEntry(message.Author);
+			await this.WhoIs(message, userEntry.FFXIVCharacterId);
+		}
+
+		[Command("WhoIs", Permissions.Everyone, "looks up a linked character")]
+		public async Task WhoIs(CommandMessage message, IGuildUser user)
+		{
+			// Special case to handle ?WhoIs @KupoNuts to resolve her own character.
+			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			{
+				await this.WhoIs(message, 24960538);
+			}
+			else
+			{
+				UserService.User userEntry = await this.GetUserEntry(user);
+				await this.WhoIs(message, userEntry.FFXIVCharacterId);
+			}
+		}
+
+		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character and server name")]
+		public async Task WhoIs(CommandMessage message, string characterName, string serverName)
+		{
+			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
+			string file = await CharacterCard.Draw(character);
+			await message.Channel.SendFileAsync(file);
 		}
 
 		public async Task<bool> WhoIs(CommandMessage message, uint characterId)
@@ -36,129 +103,16 @@ namespace KupoNuts.Bot.Characters
 				return true;
 			}
 
-			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
-
-			if (response.Character == null)
-				throw new UserException("I couldn't find that character.");
-
-			FFXIVCollect.CharacterAPI.Character? collectChar = await FFXIVCollect.CharacterAPI.Get(characterId);
-
-			string file = await CharacterCard.Draw(response.Character, response.FreeCompany, collectChar);
+			CharacterInfo character = await this.GetCharacterInfo(characterId);
+			string file = await CharacterCard.Draw(character);
 			await message.Channel.SendFileAsync(file);
 			return true;
-		}
-
-		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
-		public async Task<Embed> IAm(CommandMessage message, string characterName)
-		{
-			return await this.IAm(message, characterName, null);
-		}
-
-		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
-		public async Task<Embed> IAm(CommandMessage message, string characterName, string? serverName)
-		{
-			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
-
-			if (response.Pagination == null)
-				throw new Exception("No Pagination");
-
-			if (response.Results == null)
-			{
-				throw new Exception("No Results");
-			}
-			else if (response.Results.Count == 1)
-			{
-				uint id = response.Results[0].ID;
-				return await this.IAm(message, id);
-			}
-			else
-			{
-				EmbedBuilder embed = new EmbedBuilder();
-
-				StringBuilder description = new StringBuilder();
-				for (int i = 0; i < Math.Min(response.Results.Count, 10); i++)
-				{
-					description.AppendLine(response.Results[i].ID + " - " + response.Results[i].Name);
-				}
-
-				embed.Title = response.Results.Count + " results found";
-				embed.Description = description.ToString();
-				Embed embedAc = embed.Build();
-
-				return embedAc;
-			}
-		}
-
-		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
-		public async Task<Embed> IAm(CommandMessage message, uint characterId)
-		{
-			UserService.User userEntry = await this.GetuserEntry(message.Author, true);
-			userEntry.FFXIVCharacterId = characterId;
-			await UserService.SaveUser(userEntry);
-
-			EmbedBuilder embed = new EmbedBuilder();
-			embed.Description = "Character linked!";
-			return embed.Build();
-		}
-
-		[Command("WhoAmI", Permissions.Everyone, "displays your linked character")]
-		public async Task<bool> WhoAmI(CommandMessage message)
-		{
-			IGuildUser user = message.Author;
-			IGuild guild = message.Guild;
-
-			UserService.User userEntry = await this.GetuserEntry(user, false);
-			return await this.WhoIs(message, userEntry.FFXIVCharacterId);
-		}
-
-		[Command("WhoIs", Permissions.Everyone, "looks up a linked character")]
-		public async Task<bool> WhoIs(CommandMessage message, IGuildUser user)
-		{
-			// Special case to handle ?WhoIs @KupoNuts to resolve her own character.
-			if (user.Id == Program.DiscordClient.CurrentUser.Id)
-			{
-				return await this.WhoIs(message, 24960538);
-			}
-
-			UserService.User userEntry = await this.GetuserEntry(user, false);
-			return await this.WhoIs(message, userEntry.FFXIVCharacterId);
-		}
-
-		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
-		public async Task<bool> WhoIs(CommandMessage message, string characterName)
-		{
-			return await this.WhoIs(message, characterName, null);
-		}
-
-		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character name")]
-		public async Task<bool> WhoIs(CommandMessage message, string characterName, string? serverName)
-		{
-			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
-
-			if (response.Pagination == null)
-				throw new Exception("No Pagination");
-
-			if (response.Results == null)
-			{
-				throw new Exception("No Results");
-			}
-			else if (response.Results.Count == 1)
-			{
-				uint id = response.Results[0].ID;
-				return await this.WhoIs(message, id);
-			}
-			else
-			{
-				Embed embed = this.GetTooManyResultsEmbed(response);
-				await message.Channel.SendMessageAsync(null, false, embed);
-				return true;
-			}
 		}
 
 		[Command("ClearCustomPortrait", Permissions.Everyone, "clears the custom portrait image for your linked character")]
 		public async Task<string> SetCustomPortrait(CommandMessage message)
 		{
-			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
+			UserService.User userEntry = await this.GetUserEntry(message.Author);
 
 			string path = "CustomPortraits/" + userEntry.FFXIVCharacterId + ".png";
 
@@ -172,7 +126,7 @@ namespace KupoNuts.Bot.Characters
 		[Command("CustomPortrait", Permissions.Everyone, "Sets a custom portrait image for your linked character (for best results: 375x512 " + @"png)")]
 		public async Task<string> SetCustomPortrait(CommandMessage message, Attachment file)
 		{
-			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
+			UserService.User userEntry = await this.GetUserEntry(message.Author);
 
 			string temp = "Temp/" + file.Filename;
 			string path = "CustomPortraits/" + userEntry.FFXIVCharacterId + ".png";
@@ -192,157 +146,84 @@ namespace KupoNuts.Bot.Characters
 		}
 
 		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait")]
-		public async Task<bool> Portrait(CommandMessage message)
+		public async Task Portrait(CommandMessage message)
 		{
-			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
-
-			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(userEntry.FFXIVCharacterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
-
-			if (response.Character == null)
-				throw new UserException("I couldn't find that character.");
-
-			string file = await CharacterPortrait.Draw(response.Character);
+			CharacterInfo character = await this.GetCharacterInfo(message.Author);
+			string file = await CharacterPortrait.Draw(character);
 
 			await message.Channel.SendFileAsync(file);
-			return true;
 		}
 
 		[Command("Portrait", Permissions.Everyone, "Shows another user's linked character portrait")]
-		public async Task<bool> Portrait(CommandMessage message, IGuildUser user)
+		public async Task Portrait(CommandMessage message, IGuildUser user)
 		{
-			UserService.User userEntry = await this.GetuserEntry(user, false);
-
-			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(userEntry.FFXIVCharacterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
-
-			if (response.Character == null)
-				throw new UserException("I couldn't find that character.");
-
-			string file = await CharacterPortrait.Draw(response.Character);
+			CharacterInfo character = await this.GetCharacterInfo(user);
+			string file = await CharacterPortrait.Draw(character);
 
 			await message.Channel.SendFileAsync(file);
-			return true;
 		}
 
-		[Command("Portrait", Permissions.Everyone, "Looks up a character profile by character name")]
-		public async Task<bool> Portrait(CommandMessage message, string characterName)
+		[Command("Portrait", Permissions.Everyone, "Looks up a character profile by character name and server name")]
+		public async Task Portrait(CommandMessage message, string characterName, string serverName)
 		{
-			return await this.Portrait(message, characterName, null);
-		}
-
-		[Command("Portrait", Permissions.Everyone, "Looks up a character profile by character name and server")]
-		public async Task<bool> Portrait(CommandMessage message, string characterName, string? serverName)
-		{
-			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
-
-			if (response.Pagination == null)
-				throw new Exception("No Pagination");
-
-			if (response.Results == null)
-			{
-				throw new Exception("No Results");
-			}
-			else if (response.Results.Count == 1)
-			{
-				uint id = response.Results[0].ID;
-				return await this.Portrait(message, id);
-			}
-			else
-			{
-				Embed embed = this.GetTooManyResultsEmbed(response);
-				await message.Channel.SendMessageAsync(null, false, embed);
-				return true;
-			}
-		}
-
-		[Command("Portrait", Permissions.Everyone, "Looks up a character profile by character name and server")]
-		public async Task<bool> Portrait(CommandMessage message, uint characterId)
-		{
-			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId);
-
-			if (response.Character == null)
-				throw new UserException("I couldn't find that character.");
-
-			string file = await CharacterPortrait.Draw(response.Character);
-
-			await message.Channel.SendFileAsync(file);
-			return true;
-		}
-
-		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
-		public async Task<Embed> Gear(CommandMessage message, string characterName)
-		{
-			return await this.Gear(message, characterName, null);
+			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
+			string file = await CharacterPortrait.Draw(character);
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
 		public async Task<Embed> Gear(CommandMessage message, IGuildUser user)
 		{
-			UserService.User userEntry = await this.GetuserEntry(user, false);
-			return await this.Gear(message, userEntry.FFXIVCharacterId);
+			CharacterInfo info = await this.GetCharacterInfo(user);
+			return info.GetGearEmbed();
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
 		public async Task<Embed> Gear(CommandMessage message)
 		{
-			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
-			return await this.Gear(message, userEntry.FFXIVCharacterId);
+			CharacterInfo info = await this.GetCharacterInfo(message.Author);
+			return info.GetGearEmbed();
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
-		public async Task<Embed> Gear(CommandMessage message, string characterName, string? serverName)
+		public async Task<Embed> Gear(CommandMessage message, string characterName, string serverName)
 		{
-			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
-
-			if (response.Pagination == null)
-				throw new Exception("No Pagination");
-
-			if (response.Results == null)
-			{
-				throw new Exception("No Results");
-			}
-			else if (response.Results.Count == 1)
-			{
-				uint id = response.Results[0].ID;
-				return await this.Gear(message, id);
-			}
-			else
-			{
-				return this.GetTooManyResultsEmbed(response);
-			}
-		}
-
-		public async Task<Embed> Gear(CommandMessage message, uint characterId)
-		{
-			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
-
-			if (response.Character == null)
-				throw new UserException("I couldn't find that character.");
-
-			return response.Character.GetGear();
+			CharacterInfo info = await this.GetCharacterInfo(characterName, serverName);
+			return info.GetGearEmbed();
 		}
 
 		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
-		public async Task<Embed> Stats(CommandMessage message, string characterName)
+		public async Task<Embed> Stats(IGuildUser user)
 		{
-			return await this.Stats(message, characterName, null);
+			CharacterInfo info = await this.GetCharacterInfo(user);
+			return info.GetAttributesEmbed();
 		}
 
-		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
-		public async Task<Embed> Stats(CommandMessage message, IGuildUser user)
-		{
-			UserService.User userEntry = await this.GetuserEntry(user, false);
-			return await this.Stats(message, userEntry.FFXIVCharacterId);
-		}
-
-		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of your linked character")]
 		public async Task<Embed> Stats(CommandMessage message)
 		{
-			UserService.User userEntry = await this.GetuserEntry(message.Author, false);
-			return await this.Stats(message, userEntry.FFXIVCharacterId);
+			CharacterInfo info = await this.GetCharacterInfo(message.Author);
+			return info.GetAttributesEmbed();
 		}
 
 		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
-		public async Task<Embed> Stats(CommandMessage message, string characterName, string? serverName)
+		public async Task<Embed> Stats(string characterName, string serverName)
+		{
+			CharacterInfo info = await this.GetCharacterInfo(characterName, serverName);
+			return info.GetAttributesEmbed();
+		}
+
+		private async Task<CharacterInfo> GetCharacterInfo(IGuildUser guildUser)
+		{
+			UserService.User user = await this.GetUserEntry(guildUser);
+			return await this.GetCharacterInfo(user.FFXIVCharacterId);
+		}
+
+		private async Task<CharacterInfo> GetCharacterInfo(UserService.User user)
+		{
+			return await this.GetCharacterInfo(user.FFXIVCharacterId);
+		}
+
+		private async Task<CharacterInfo> GetCharacterInfo(string characterName, string serverName)
 		{
 			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
 
@@ -353,53 +234,32 @@ namespace KupoNuts.Bot.Characters
 			{
 				throw new Exception("No Results");
 			}
-			else if (response.Results.Count == 1)
+			else if (response.Results.Count == 0)
 			{
-				uint id = response.Results[0].ID;
-				return await this.Stats(message, id);
+				throw new UserException("I couldn't find a character with that name.");
+			}
+			else if (response.Results.Count != 1)
+			{
+				throw new UserException("I found " + response.Results.Count + " characters with that name.");
 			}
 			else
 			{
-				return this.GetTooManyResultsEmbed(response);
+				return await this.GetCharacterInfo(response.Results[0].ID);
 			}
 		}
 
-		public async Task<Embed> Stats(CommandMessage message, uint characterId)
+		private async Task<CharacterInfo> GetCharacterInfo(uint id)
 		{
-			XIVAPI.CharacterAPI.GetResponse response = await XIVAPI.CharacterAPI.Get(characterId, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
-
-			if (response.Character == null)
-				throw new UserException("I couldn't find that character.");
-
-			return response.Character.GetAttributtes();
+			CharacterInfo info = new CharacterInfo(id);
+			await info.Update();
+			return info;
 		}
 
-		private Embed GetTooManyResultsEmbed(XIVAPI.CharacterAPI.SearchResponse response)
-		{
-			if (response.Pagination == null)
-				throw new Exception("No Pagination");
-
-			if (response.Results == null)
-				throw new Exception("No Results");
-
-			EmbedBuilder embed = new EmbedBuilder();
-
-			StringBuilder description = new StringBuilder();
-			for (int i = 0; i < Math.Min(response.Results.Count, 10); i++)
-			{
-				description.AppendLine(response.Results[i].ID + " - " + response.Results[i].Name);
-			}
-
-			embed.Title = response.Results.Count + " results found";
-			embed.Description = description.ToString();
-			return embed.Build();
-		}
-
-		private async Task<UserService.User> GetuserEntry(IGuildUser user, bool create)
+		private async Task<UserService.User> GetUserEntry(IGuildUser user)
 		{
 			UserService.User userEntry = await UserService.GetUser(user);
 
-			if (userEntry.FFXIVCharacterId == 0 && !create)
+			if (userEntry.FFXIVCharacterId == 0)
 				throw new UserException("No character linked! Use `IAm` to link your character.");
 
 			return userEntry;

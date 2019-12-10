@@ -3,7 +3,6 @@
 namespace KupoNuts.Bot.Characters
 {
 	using System;
-	using System.Buffers;
 	using System.IO;
 	using System.Threading.Tasks;
 	using KupoNuts.Bot.ImageSharp;
@@ -11,23 +10,21 @@ namespace KupoNuts.Bot.Characters
 	using KupoNuts.Utils;
 	using SixLabors.Fonts;
 	using SixLabors.ImageSharp;
-	using SixLabors.ImageSharp.Memory;
 	using SixLabors.ImageSharp.PixelFormats;
 	using SixLabors.ImageSharp.Processing;
-	using SixLabors.ImageSharp.Processing.Processors;
 	using SixLabors.Primitives;
-	using XIVAPI;
-
-	using CollectCharacter = FFXIVCollect.CharacterAPI.Character;
 
 	public static class CharacterCard
 	{
-		public static async Task<string> Draw(Character character, FreeCompany? freeCompany, CollectCharacter? collectCharacter)
+		public static async Task<string> Draw(CharacterInfo character)
 		{
-			string portraitPath = "CustomPortraits/" + character.ID + ".png";
+			string portraitPath = "CustomPortraits/" + character.Id + ".png";
 			if (!File.Exists(portraitPath))
 			{
-				portraitPath = PathUtils.Current + "/Temp/" + character.ID + ".jpg";
+				if (character.Portrait == null)
+					throw new Exception("Character has no portrait");
+
+				portraitPath = PathUtils.Current + "/Temp/" + character.Id + ".jpg";
 				await FileDownloader.Download(character.Portrait, portraitPath);
 			}
 
@@ -60,13 +57,13 @@ namespace KupoNuts.Bot.Characters
 			}
 
 			// Server
-			finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, character.Server + " - " + character.DC, Fonts.AxisRegular.CreateFont(18), Color.White, new Point(412, 196)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, character.Server + " - " + character.DataCenter, Fonts.AxisRegular.CreateFont(18), Color.White, new Point(412, 196)));
 
 			// Free Company
-			if (freeCompany != null)
+			if (character.FreeCompany != null)
 			{
 				Image<Rgba32> crestFinal = new Image<Rgba32>(128, 128);
-				foreach (string crestPart in freeCompany.Crest)
+				foreach (string crestPart in character.FreeCompany.Crest)
 				{
 					string name = Path.GetFileName(crestPart);
 					string crestPath = PathUtils.Current + "/Crests/" + name;
@@ -96,34 +93,37 @@ namespace KupoNuts.Bot.Characters
 				finalImg.Mutate(x => x.DrawImage(crestFinal, new Point(364, 270), 1.0f));
 				crestFinal.Dispose();
 
-				finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, "<" + freeCompany.Tag + ">", Fonts.AxisRegular.CreateFont(24), Color.White, new Point(431, 300)));
-				finalImg.Mutate(x => x.DrawTextAnySize(FontStyles.LeftText, freeCompany.Name, Fonts.AxisRegular, Color.White, new Rectangle(431, 280, 158, 22)));
+				finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, "<" + character.FreeCompany.Tag + ">", Fonts.AxisRegular.CreateFont(24), Color.White, new Point(431, 300)));
+				finalImg.Mutate(x => x.DrawTextAnySize(FontStyles.LeftText, character.FreeCompany.Name, Fonts.AxisRegular, Color.White, new Rectangle(431, 280, 158, 22)));
 			}
 
 			// Name
 			finalImg.Mutate(x => x.DrawTextAnySize(FontStyles.CenterText, character.Name, Fonts.OptimuSemiBold, Color.White, new Rectangle(680, 70, 660, 55)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Title?.Name, Fonts.AxisRegular.CreateFont(22), Color.White, new PointF(680, 35)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Race?.Name + " (" + character.Tribe?.Name + ")", Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(680, 110)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Title, Fonts.AxisRegular.CreateFont(22), Color.White, new PointF(680, 35)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Race + " (" + character.Tribe + ")", Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(680, 110)));
 
 			// Birthday (1st Sun of the 1st Astral Moon)
-			Image<Rgba32> moonImg;
-			if (character.Nameday.Contains("Astral"))
+			if (character.NameDay != null)
 			{
-				moonImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Moons/Astral.png");
-			}
-			else
-			{
-				moonImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Moons/Umbral.png");
-			}
+				Image<Rgba32> moonImg;
+				if (character.NameDay.Contains("Astral"))
+				{
+					moonImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Moons/Astral.png");
+				}
+				else
+				{
+					moonImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Moons/Umbral.png");
+				}
 
-			finalImg.Mutate(x => x.DrawImage(moonImg, new Point(907, 122), 1.0f));
-			moonImg.Dispose();
+				finalImg.Mutate(x => x.DrawImage(moonImg, new Point(907, 122), 1.0f));
+				moonImg.Dispose();
+			}
 
 			Image<Rgba32> dietyImage = Image.Load<Rgba32>(PathUtils.Current + character.GuardianDeity?.Icon.Replace("/i/061000/", "/Assets/Twelve/"));
 			finalImg.Mutate(x => x.DrawImage(dietyImage, new Point(907, 122), 1.0f));
 			dietyImage.Dispose();
 
-			finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, character.Nameday, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(700, 196)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, character.NameDay, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(700, 196)));
 			finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, character.GuardianDeity?.Name, Fonts.AxisRegular.CreateFont(20), Color.White, new Point(700, 168)));
 
 			// Jobs
@@ -158,50 +158,47 @@ namespace KupoNuts.Bot.Characters
 			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Weaver), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(985, 480)));
 
 			// Progress
-			if (collectCharacter != null)
+			if (character.HasMounts)
 			{
-				if (collectCharacter.Mounts != null)
-				{
-					string mountsStr = collectCharacter.Mounts.Count + " / " + collectCharacter.Mounts.Total;
-					float p = (float)collectCharacter.Mounts.Count / (float)collectCharacter.Mounts.Total;
+				string mountsStr = character.Mounts.Count + " / " + character.Mounts.Total;
+				float p = (float)character.Mounts.Count / (float)character.Mounts.Total;
 
-					Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
-					float width = p * barImg.Width;
-					barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
-					finalImg.Mutate(x => x.DrawImage(barImg, new Point(404, 234), 1.0f));
-					barImg.Dispose();
-					finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, mountsStr, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(408, 237)));
-				}
+				Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
+				float width = p * barImg.Width;
+				barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
+				finalImg.Mutate(x => x.DrawImage(barImg, new Point(404, 234), 1.0f));
+				barImg.Dispose();
+				finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, mountsStr, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(408, 237)));
+			}
 
-				if (collectCharacter.Minions != null)
-				{
-					string minionsStr = collectCharacter.Minions.Count + " / " + collectCharacter.Minions.Total;
-					float p = (float)collectCharacter.Minions.Count / (float)collectCharacter.Minions.Total;
+			if (character.HasMinions)
+			{
+				string minionsStr = character.Minions.Count + " / " + character.Minions.Total;
+				float p = (float)character.Minions.Count / (float)character.Minions.Total;
 
-					Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
-					float width = p * barImg.Width;
-					barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
-					finalImg.Mutate(x => x.DrawImage(barImg, new Point(616, 234), 1.0f));
-					barImg.Dispose();
-					finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, minionsStr, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(620, 237)));
-				}
+				Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
+				float width = p * barImg.Width;
+				barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
+				finalImg.Mutate(x => x.DrawImage(barImg, new Point(616, 234), 1.0f));
+				barImg.Dispose();
+				finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, minionsStr, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(620, 237)));
+			}
 
-				if (collectCharacter.Achievements != null)
-				{
-					string achieveStr = collectCharacter.Achievements.Count + " / " + collectCharacter.Achievements.Total;
-					float p = (float)collectCharacter.Achievements.Count / (float)collectCharacter.Achievements.Total;
+			if (character.HasAchievements)
+			{
+				string achieveStr = character.Achievements.Count + " / " + character.Achievements.Total;
+				float p = (float)character.Achievements.Count / (float)character.Achievements.Total;
 
-					Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
-					float width = p * barImg.Width;
-					barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
-					finalImg.Mutate(x => x.DrawImage(barImg, new Point(838, 234), 1.0f));
-					barImg.Dispose();
-					finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, achieveStr, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(842, 237)));
-				}
+				Image<Rgba32> barImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
+				float width = p * barImg.Width;
+				barImg.Mutate(x => x.Resize(new Size((int)width, barImg.Height)));
+				finalImg.Mutate(x => x.DrawImage(barImg, new Point(838, 234), 1.0f));
+				barImg.Dispose();
+				finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, achieveStr, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(842, 237)));
 			}
 
 			// Save
-			string outputPath = PathUtils.Current + "/Temp/" + character.ID + "_render.png";
+			string outputPath = PathUtils.Current + "/Temp/" + character.Id + "_render.png";
 			finalImg.Save(outputPath);
 
 			charImg.Dispose();

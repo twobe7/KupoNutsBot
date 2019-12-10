@@ -20,10 +20,7 @@ namespace KupoNuts.Bot.Services
 
 		public static async Task<User> GetUser(IGuildUser user)
 		{
-			ulong guildId = user.GuildId;
-			ulong userId = user.Id;
-
-			return await GetUser(guildId, userId);
+			return await GetUser(user.GuildId, user.Id);
 		}
 
 		public static async Task<User> GetUser(ulong guildId, ulong userId)
@@ -94,6 +91,7 @@ namespace KupoNuts.Bot.Services
 			userEntry = await this.userDb.CreateEntry();
 			userEntry.DiscordGuildId = guildId;
 			userEntry.DiscordUserId = userId;
+			await this.userDb.Save(userEntry);
 			this.userIdLookup[guildId].Add(userId, userEntry.Id);
 			return userEntry;
 		}
