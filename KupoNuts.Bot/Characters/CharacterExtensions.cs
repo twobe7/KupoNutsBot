@@ -41,23 +41,19 @@ namespace KupoNuts.Bot.Characters
 			builder.Title = self.Name;
 			builder.Description = "Average item level: " + self.GetAverageLevel().ToString();
 
-			builder.AddField("Main Hand", self.GearSet.Gear.MainHand?.GetString(), false);
-
-			if (self.GearSet.Gear.OffHand != null)
-				builder.AddField("Off Hand", self.GearSet.Gear.OffHand.GetString(), false);
-
-			builder.AddField("Head", self.GearSet.Gear.Head?.GetString(), true);
-			builder.AddField("Body", self.GearSet.Gear.Body?.GetString(), true);
-			builder.AddField("Hands", self.GearSet.Gear.Hands?.GetString(), true);
-			builder.AddField("Waist", self.GearSet.Gear.Waist?.GetString(), true);
-			builder.AddField("Legs", self.GearSet.Gear.Legs?.GetString(), true);
-			builder.AddField("Feet", self.GearSet.Gear.Feet?.GetString(), true);
-
-			builder.AddField("Earrings", self.GearSet.Gear.Earrings?.GetString(), true);
-			builder.AddField("Necklace", self.GearSet.Gear.Necklace?.GetString(), true);
-			builder.AddField("Bracelets", self.GearSet.Gear.Bracelets?.GetString(), true);
-			builder.AddField("Ring", self.GearSet.Gear.Ring1?.GetString(), true);
-			builder.AddField("Ring", self.GearSet.Gear.Ring2?.GetString(), true);
+			builder.AddGear("Main Hand", self.GearSet.Gear.MainHand, false);
+			builder.AddGear("Off Hand", self.GearSet.Gear.OffHand, false);
+			builder.AddGear("Head", self.GearSet.Gear.Head, true);
+			builder.AddGear("Body", self.GearSet.Gear.Body, true);
+			builder.AddGear("Hands", self.GearSet.Gear.Hands, true);
+			builder.AddGear("Waist", self.GearSet.Gear.Waist, true);
+			builder.AddGear("Legs", self.GearSet.Gear.Legs, true);
+			builder.AddGear("Feet", self.GearSet.Gear.Feet, true);
+			builder.AddGear("Earrings", self.GearSet.Gear.Earrings, true);
+			builder.AddGear("Necklace", self.GearSet.Gear.Necklace, true);
+			builder.AddGear("Bracelets", self.GearSet.Gear.Bracelets, true);
+			builder.AddGear("Ring", self.GearSet.Gear.Ring1, true);
+			builder.AddGear("Ring", self.GearSet.Gear.Ring2, true);
 
 			return builder.Build();
 		}
@@ -169,6 +165,14 @@ namespace KupoNuts.Bot.Characters
 
 			total += item.LevelItem;
 			return true;
+		}
+
+		private static void AddGear(this EmbedBuilder builder, string name, GearSet.GearValue? gear, bool inline)
+		{
+			if (gear == null)
+				return;
+
+			builder.AddField(name, gear.GetString(), inline);
 		}
 	}
 }
