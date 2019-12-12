@@ -30,15 +30,39 @@ namespace KupoNuts.Bot.Services
 			await message.Guild.AddBanAsync(user);
 		}
 
-		[Command("Ban", Permissions.Administrators, "Bans a user")]
-		public async Task Ban(CommandMessage message, ulong id)
+		[Command("Unban", Permissions.Administrators, "Unbans a user")]
+		public async Task Unban(CommandMessage message, IGuildUser user)
 		{
-			IUser user = await message.Guild.GetUserAsync(id);
+			await message.Guild.AddBanAsync(user);
+		}
 
+		[Command("Unban", Permissions.Administrators, "Unbans a user")]
+		public async Task Unban(CommandMessage message, ulong id)
+		{
+			UserService.User usr = await UserService.GetUser(message.Guild.Id, id);
+			usr.Banned = false;
+			await UserService.SaveUser(usr);
+
+			IUser user = await message.Guild.GetUserAsync(id);
+			if (user != null)
+			{
+				await message.Guild.RemoveBanAsync(user);
+			}
+		}
+
+		[Command("Ban", Permissions.Administrators, "Bans a user")]
+		public async Task<string> Ban(CommandMessage message, ulong id)
+		{
+			UserService.User usr = await UserService.GetUser(message.Guild.Id, id);
+			usr.Banned = true;
+			await UserService.SaveUser(usr);
+
+			IUser user = await message.Guild.GetUserAsync(id);
 			if (user == null)
-				throw new UserException("I couldn't find that user.");
+				return "That user is not part of the guild. They will be banned if they rejoin.";
 
 			await message.Guild.AddBanAsync(user);
+			return user.Username + " has been banned.";
 		}
 	}
 }

@@ -9,6 +9,7 @@ namespace KupoNuts.Bot.Services
 	using Amazon.DynamoDBv2.DataModel;
 	using Amazon.DynamoDBv2.DocumentModel;
 	using Discord;
+	using Discord.WebSocket;
 	using KupoNuts.Data;
 
 	public class UserService : ServiceBase
@@ -52,6 +53,17 @@ namespace KupoNuts.Bot.Services
 			instance = this;
 			await base.Initialize();
 			await this.userDb.Connect();
+
+			Program.DiscordClient.UserJoined += this.DiscordClient_UserJoined;
+		}
+
+		private async Task DiscordClient_UserJoined(SocketGuildUser arg)
+		{
+			User user = await this.GetUserImp(arg.Guild.Id, arg.Id);
+			if (user.Banned)
+			{
+				await arg.Guild.AddBanAsync(arg);
+			}
 		}
 
 		private async Task<User> GetUserImp(ulong guildId, ulong userId)
@@ -105,6 +117,7 @@ namespace KupoNuts.Bot.Services
 			public uint FFXIVCharacterId { get; set; } = 0;
 			public int Level { get; set; } = 0;
 			public int Nuts { get; set; } = 10;
+			public bool Banned { get; set; } = false;
 		}
 	}
 }
