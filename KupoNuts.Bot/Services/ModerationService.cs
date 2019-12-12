@@ -59,7 +59,7 @@ namespace KupoNuts.Bot.Services
 
 			IUser user = await message.Guild.GetUserAsync(id);
 			if (user == null)
-				return "That user is not part of the guild. They will be banned if they rejoin.";
+				return "That user is not a member of the server. They will be banned if they rejoin.";
 
 			await message.Guild.AddBanAsync(user);
 			return user.Username + " has been banned.";
