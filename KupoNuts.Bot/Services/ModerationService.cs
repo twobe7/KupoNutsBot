@@ -23,5 +23,22 @@ namespace KupoNuts.Bot.Services
 				await Task.Delay(100);
 			}
 		}
+
+		[Command("Ban", Permissions.Administrators, "Bans a user")]
+		public async Task Ban(CommandMessage message, IGuildUser user)
+		{
+			await message.Guild.AddBanAsync(user);
+		}
+
+		[Command("Ban", Permissions.Administrators, "Bans a user")]
+		public async Task Ban(CommandMessage message, ulong id)
+		{
+			IUser user = await message.Guild.GetUserAsync(id);
+
+			if (user == null)
+				throw new UserException("I couldn't find that user.");
+
+			await message.Guild.AddBanAsync(user);
+		}
 	}
 }
