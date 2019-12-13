@@ -169,6 +169,12 @@ namespace KupoNuts.Bot.RPG
 					}
 				}
 			}
+			catch (Discord.Net.HttpException)
+			{
+				// in case the discord request has failed, just abort out.
+				// this can happen if a message is deleted or edited before we call GetMessageAsync.
+				return;
+			}
 			catch (Exception ex)
 			{
 				Log.Write(ex);
