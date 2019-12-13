@@ -117,6 +117,12 @@ namespace KupoNuts.Bot.Quotes
 		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user")]
 		public async Task<Embed> GetQuotes(CommandMessage message, IUser user)
 		{
+			return await this.GetQuotes(message, user, 1);
+		}
+
+		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user")]
+		public async Task<Embed> GetQuotes(CommandMessage message, IUser user, int page)
+		{
 			List<Quote> allQuotes = await this.quoteDb.LoadAll();
 
 			List<Quote> quotes = new List<Quote>();
@@ -141,12 +147,29 @@ namespace KupoNuts.Bot.Quotes
 
 			IGuildUser guildUser = await message.Guild.GetUserAsync(user.Id);
 
+			int numPages = (int)Math.Ceiling((double)quotes.Count / 20.0);
+
+			// start pages at 1, so there is no page 0.
+			page = Math.Max(page, 1) - 1;
+			int min = 20 * page;
+			int max = Math.Min(quotes.Count, 20 * (page + 1));
+
 			StringBuilder quotesList = new StringBuilder();
-			foreach (Quote quote in quotes)
+			for (int i = min; i < max; i++)
 			{
+				Quote quote = quotes[i];
 				quotesList.Append(quote.QuoteId);
 				quotesList.Append(" - ");
 				quotesList.AppendLine(quote.Content.RemoveLineBreaks().Truncate(30));
+			}
+
+			if (numPages > 1)
+			{
+				quotesList.AppendLine();
+				quotesList.Append("Page ");
+				quotesList.Append(page + 1);
+				quotesList.Append(" of ");
+				quotesList.Append(numPages);
 			}
 
 			EmbedBuilder builder = new EmbedBuilder();
