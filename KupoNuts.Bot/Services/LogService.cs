@@ -95,6 +95,10 @@ namespace KupoNuts.Bot.Services
 			if (channel == null)
 				return;
 
+			// don't push logs to different guilds.
+			if (user.GuildId != channel.Guild.Id)
+				return;
+
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Color = color;
 			builder.Title = user.Username + " " + message + " " + user.Guild.Name;
