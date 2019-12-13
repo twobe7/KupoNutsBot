@@ -8,6 +8,7 @@ namespace KupoNuts.Bot.Services
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Rest;
 	using KupoNuts.Bot.Commands;
 	using NodaTime;
 	using NodaTime.Extensions;
@@ -259,6 +260,22 @@ namespace KupoNuts.Bot.Services
 		public string Hug(CommandMessage message, IGuildUser user)
 		{
 			return string.Format("{0} **{1}**", Hugs.GetRandom(), user.GetName());
+		}
+
+		[Command("sarcasm", Permissions.Everyone, "makes text SaRcAsTiC")]
+		public Task<string> Sarcasm(CommandMessage message, string text)
+		{
+			char[] characters = new char[text.Length];
+			bool upper = true;
+			for (int i = 0; i < text.Length; i++)
+			{
+				char c = text[i];
+				characters[i] = upper ? char.ToUpper(c) : char.ToLower(c);
+				upper = !upper;
+			}
+
+			text = new string(characters);
+			return Task.FromResult(text);
 		}
 	}
 }
