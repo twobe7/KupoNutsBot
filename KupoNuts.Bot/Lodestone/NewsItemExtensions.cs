@@ -14,7 +14,11 @@ namespace KupoNuts.Bot.Lodestone
 	{
 		public static async Task Post(this NewsItem self, ulong channelID)
 		{
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelID);
+			SocketTextChannel? channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelID);
+
+			if (channel == null)
+				return;
+
 			await channel.SendMessageAsync(null, false, self.ToEmbed());
 		}
 

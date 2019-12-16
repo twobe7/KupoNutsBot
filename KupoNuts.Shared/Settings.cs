@@ -33,8 +33,6 @@ namespace KupoNuts
 
 		public string? SundayFundayMessage { get; set; }
 
-		public int SundayFundayWeek { get; set; } = 0;
-
 		public string? FashionReportChannel { get; set; }
 
 		public bool UseDynamoDb { get; set; } = false;

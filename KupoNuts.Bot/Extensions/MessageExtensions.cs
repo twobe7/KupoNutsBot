@@ -3,6 +3,8 @@
 namespace KupoNuts.Bot
 {
 	using System;
+	using System.Collections.Generic;
+	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
 
@@ -33,6 +35,30 @@ namespace KupoNuts.Bot
 			{
 				throw new Exception("Message was not in a guild channel.");
 			}
+		}
+
+		public static async Task<Dictionary<string, int>> GetReactions(this IUserMessage? self)
+		{
+			Dictionary<string, int> results = new Dictionary<string, int>();
+
+			if (self == null)
+				return results;
+
+			foreach ((IEmote emote, ReactionMetadata data) in self.Reactions)
+			{
+				IEnumerable<IUser> users = await self.GetReactionUsersAsync(emote, 999).FlattenAsync();
+
+				int count = 0;
+				foreach (IUser user in users)
+					count++;
+
+				if (!results.ContainsKey(emote.Name))
+					results.Add(emote.Name, 0);
+
+				results[emote.Name] += count;
+			}
+
+			return results;
 		}
 	}
 }
