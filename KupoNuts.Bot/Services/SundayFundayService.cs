@@ -200,6 +200,11 @@ namespace KupoNuts.Bot.Services
 			return (channel, message);
 		}
 
+		private Instant GetNextInstant()
+		{
+			return this.GetNextInstant(TimeUtils.Now);
+		}
+
 		private Instant GetNextInstant(Instant from)
 		{
 			ZonedDateTime zdt = from.InZone(TimeUtils.Sydney);
@@ -279,14 +284,17 @@ namespace KupoNuts.Bot.Services
 
 			description.AppendLine(@"Vote for an event each week!");
 			description.AppendLine();
+
 			description.Append(running ? "Ends in " : "Starts in ");
 			description.AppendLine(TimeUtils.GetDurationString(timeTill));
+			description.AppendLine(TimeUtils.GetTimeString(this.GetNextInstant()));
 			description.AppendLine();
 
 			List<SundayFundayEvent> events = await this.database.LoadAll();
 			Dictionary<string, int> reactions = await message.GetReactions();
 
 			SundayFundayEvent? winner = null;
+			bool tie = false;
 			int topVotes = -1;
 
 			events.Sort((a, b) =>
@@ -302,6 +310,9 @@ namespace KupoNuts.Bot.Services
 				int voteCount = 0;
 				if (reactions.ContainsKey(evt.Reaction))
 					voteCount = reactions[evt.Reaction] - 1;
+
+				if (voteCount == topVotes)
+					tie = true;
 
 				if (voteCount > topVotes)
 				{
@@ -319,28 +330,38 @@ namespace KupoNuts.Bot.Services
 			if (winner != null)
 			{
 				description.AppendLine();
-				description.Append("Current winner: __");
-				description.Append(winner.Name);
-				description.AppendLine("__");
+				if (!tie)
+				{
+					description.Append("Current winner: __");
+					description.Append(winner.Name);
+					description.Append("__");
+				}
+				else
+				{
+					description.Append("Tied ");
+				}
 
-				if (!string.IsNullOrEmpty(winner.Description))
-					description.AppendLine(winner.Description);
-
-				description.Append("*With ");
+				description.Append(" with *");
 				description.Append(topVotes);
 				description.AppendLine(" votes*");
+
+				if (!string.IsNullOrEmpty(winner.Description))
+				{
+					description.AppendLine(winner.Description);
+				}
 			}
 
-			description.AppendLine();
+			/*description.AppendLine();
 			description.Append("Don't want to do ");
 			description.Append(winner?.Name);
-			description.Append("? Vote now!");
+			description.Append("? Vote now!");*/
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Title = @"Sunday Funday";
 			builder.Description = description.ToString();
-			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = "Or don't; I'm a bot, not a cop.";
+			builder.Color = Color.DarkMagenta;
+			////builder.Footer = new EmbedFooterBuilder();
+			////builder.Footer.Text = "Or don't; I'm a bot, not a cop.";
 			return builder.Build();
 		}
 
