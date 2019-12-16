@@ -22,9 +22,6 @@ namespace KupoNuts.Bot
 			if (minutesDelay > 60)
 				throw new Exception("Scheduled task must be on a delay less than 60 minutes");
 
-			if (minutesDelay == 60)
-				minutesDelay = 0;
-
 			Schedule schedule = new Schedule(method, minutesDelay);
 			schedules.Add(schedule);
 		}
@@ -68,6 +65,10 @@ namespace KupoNuts.Bot
 		private async Task Tick()
 		{
 			int minutes = DateTime.UtcNow.Minute;
+
+			if (minutes == 0)
+				minutes = 60;
+
 			foreach (Schedule schedule in schedules)
 			{
 				if (schedule.Delay % minutes == 0)
