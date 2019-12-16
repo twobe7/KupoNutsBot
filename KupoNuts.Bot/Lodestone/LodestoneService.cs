@@ -23,7 +23,7 @@ namespace KupoNuts.Bot.Lodestone
 			await base.Initialize();
 
 			await this.Update();
-			Scheduler.RunOnSchedule(this.Update, 15);
+			ScheduleService.RunOnSchedule(this.Update, 15);
 		}
 
 		[Command("maintenance", Permissions.Everyone, "Gets info about the next maintenance window.")]

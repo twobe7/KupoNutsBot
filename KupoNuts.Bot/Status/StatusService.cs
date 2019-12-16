@@ -21,18 +21,18 @@ namespace KupoNuts.Bot.Status
 		{
 			this.online = true;
 
-			_ = Task.Factory.StartNew(this.UpdateStatus, TaskCreationOptions.LongRunning);
+			ScheduleService.RunOnSchedule(this.UpdateStatus, 15);
 
-			await this.PostStatus();
+			await this.UpdateStatus();
 		}
 
 		public override async Task Shutdown()
 		{
 			this.online = false;
-			await this.PostStatus();
+			await this.UpdateStatus();
 		}
 
-		private async Task PostStatus()
+		private async Task UpdateStatus()
 		{
 			Settings settings = Settings.Load();
 			if (settings.StatusChannel == null)
@@ -69,31 +69,6 @@ namespace KupoNuts.Bot.Status
 				{
 					x.Embed = builder.Build();
 				});
-			}
-		}
-
-		private async Task UpdateStatus()
-		{
-			while (this.online)
-			{
-				int minutes = DateTime.UtcNow.Minute;
-				int delay = 15 - minutes;
-				while (delay < 0)
-					delay += 15;
-
-				await Task.Delay(new TimeSpan(0, delay, 0));
-
-				try
-				{
-					Log.Write("Updating status", "Bot");
-					await this.PostStatus();
-				}
-				catch (Exception ex)
-				{
-					Log.Write(ex);
-				}
-
-				await Task.Delay(new TimeSpan(0, 2, 0));
 			}
 		}
 	}

@@ -19,7 +19,7 @@ namespace KupoNuts.Bot.Services
 	{
 		public override async Task Initialize()
 		{
-			Scheduler.RunOnSchedule(this.Update, 15);
+			ScheduleService.RunOnSchedule(this.Update, 15);
 			await this.Update();
 		}
 

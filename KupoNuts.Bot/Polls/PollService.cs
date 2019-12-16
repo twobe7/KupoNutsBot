@@ -38,7 +38,7 @@ namespace KupoNuts.Bot.Polls
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
 
-			Scheduler.RunOnSchedule(this.UpdatePolls, 15);
+			ScheduleService.RunOnSchedule(this.UpdatePolls, 15);
 			await this.UpdatePolls();
 		}
 

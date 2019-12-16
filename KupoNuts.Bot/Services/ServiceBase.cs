@@ -12,13 +12,21 @@ namespace KupoNuts.Bot.Services
 			CommandsService.BindCommands(this);
 		}
 
+		public bool Alive
+		{
+			get;
+			private set;
+		}
+
 		public virtual Task Initialize()
 		{
+			this.Alive = true;
 			return Task.CompletedTask;
 		}
 
 		public virtual Task Shutdown()
 		{
+			this.Alive = false;
 			return Task.CompletedTask;
 		}
 	}

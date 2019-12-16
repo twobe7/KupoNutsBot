@@ -48,7 +48,7 @@ namespace KupoNuts.Bot.Services
 		public override async Task Initialize()
 		{
 			await this.database.Connect();
-			Scheduler.RunOnSchedule(this.Update, 15);
+			ScheduleService.RunOnSchedule(this.Update, 15);
 			await this.Update();
 
 			Program.DiscordClient.ReactionAdded += this.DiscordClient_ReactionAdded;
@@ -71,9 +71,6 @@ namespace KupoNuts.Bot.Services
 			Instant next = this.GetNextInstant(now);
 			Duration timeTill = next - TimeUtils.RoundInstant(now);
 
-			if (settings.SundayFundayWeek != CurrentWeek)
-				await this.AdvanceWeek();
-
 			ulong channelId = 0;
 			ulong messageId = 0;
 
@@ -82,6 +79,9 @@ namespace KupoNuts.Bot.Services
 
 			if (channelId == 0)
 				return;
+
+			if (settings.SundayFundayWeek != CurrentWeek)
+				await this.AdvanceWeek();
 
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
 

@@ -23,7 +23,7 @@ namespace KupoNuts.Bot.Services
 			await this.db.Connect();
 
 			await this.Update();
-			Scheduler.RunOnSchedule(this.Update, 60);
+			ScheduleService.RunOnSchedule(this.Update, 60);
 		}
 
 		[Command("FashionReport", Permissions.Everyone, "Gets the latest Fashion Report post")]

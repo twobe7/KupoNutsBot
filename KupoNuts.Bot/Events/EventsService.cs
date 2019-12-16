@@ -40,7 +40,7 @@ namespace KupoNuts.Bot.Events
 
 			await EventsDatabase.Connect();
 
-			Scheduler.RunOnSchedule(this.Update, 15);
+			ScheduleService.RunOnSchedule(this.Update, 15);
 			await this.Update();
 
 			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
