@@ -117,7 +117,24 @@ namespace KupoNuts.Bot.Services
 			public uint FFXIVCharacterId { get; set; } = 0;
 			public int Level { get; set; } = 0;
 			public int Nuts { get; set; } = 10;
+
 			public bool Banned { get; set; } = false;
+			public List<Warning> Warnings { get; set; } = new List<Warning>();
+
+			[Serializable]
+			public class Warning
+			{
+				public enum Actions
+				{
+					Unknown,
+					PostRemoved,
+					Warned,
+				}
+
+				public Actions Action { get; set; } = Actions.Unknown;
+				public ulong ChannelId { get; set; } = 0;
+				public string Comment { get; set; } = string.Empty;
+			}
 		}
 	}
 }

@@ -9,6 +9,7 @@ namespace KupoNuts.Bot.Services
 	using Discord;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Commands;
+	using KupoNuts.Utils;
 
 	public class ModerationService : ServiceBase
 	{
@@ -63,6 +64,47 @@ namespace KupoNuts.Bot.Services
 
 			await message.Guild.AddBanAsync(user);
 			return user.Username + " has been banned.";
+		}
+
+		[Command("Remove", Permissions.Administrators, "Removes a message, posts the reason, and logs a warning")]
+		public async Task<string> Remove(SocketTextChannel channel, ulong messageId, string reason)
+		{
+			IMessage message = await channel.GetMessageAsync(messageId);
+			await channel.DeleteMessageAsync(message);
+
+			UserService.User user = await UserService.GetUser(message.GetAuthor());
+
+			UserService.User.Warning warning = new UserService.User.Warning();
+			warning.Action = UserService.User.Warning.Actions.PostRemoved;
+			warning.ChannelId = channel.Id;
+			warning.Comment = reason;
+			user.Warnings.Add(warning);
+			await UserService.SaveUser(user);
+
+			StringBuilder builder = new StringBuilder();
+			builder.Append(message.GetAuthor().GetName());
+			builder.Append(", a message you posted in the ");
+			builder.Append(channel.Guild.Name);
+			builder.Append(" #");
+			builder.Append(channel.Name);
+			builder.Append(" channel has been removed for the following reason: ");
+			builder.Append(reason);
+			builder.AppendLine(".");
+
+			builder.Append("This is your ");
+			builder.Append(user.Warnings.Count);
+			builder.Append(NumberUtils.GetOrdinal(user.Warnings.Count));
+			builder.Append(" warning.");
+
+			await message.GetAuthor().SendMessageAsync(builder.ToString());
+
+			builder.Clear();
+			builder.AppendLine("Message removed.");
+			builder.Append(message.GetAuthor().GetName());
+			builder.Append(" has now been warned ");
+			builder.Append(user.Warnings.Count);
+			builder.Append(" times");
+			return builder.ToString();
 		}
 	}
 }
