@@ -49,7 +49,15 @@ namespace KupoNuts.Bot
 				await Task.Delay(new TimeSpan(0, delay, 0));
 
 				Log.Write("Tick Begin", "Scheduler");
-				await this.Tick();
+				try
+				{
+					await this.Tick();
+				}
+				catch (Exception ex)
+				{
+					Log.Write(ex);
+				}
+
 				Log.Write("Tick Complete", "Scheduler");
 
 				// Wait 1 minutes to ensure we don't immediately tick again.
