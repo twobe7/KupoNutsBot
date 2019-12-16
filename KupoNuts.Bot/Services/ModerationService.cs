@@ -96,6 +96,12 @@ namespace KupoNuts.Bot.Services
 			builder.Append(NumberUtils.GetOrdinal(user.Warnings.Count));
 			builder.Append(" warning.");
 
+			builder.AppendLine();
+			builder.AppendLine("This action was taken manually by a human moderator.");
+			builder.Append("Please contact a moderator on the ");
+			builder.Append(channel.Guild.Name);
+			builder.Append(" server if you would like to discus this action.");
+
 			await message.GetAuthor().SendMessageAsync(builder.ToString());
 
 			builder.Clear();
