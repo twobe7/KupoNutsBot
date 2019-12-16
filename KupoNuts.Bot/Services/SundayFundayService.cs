@@ -345,9 +345,16 @@ namespace KupoNuts.Bot.Services
 				description.Append(topVotes);
 				description.AppendLine(" votes*");
 
-				if (!string.IsNullOrEmpty(winner.Description))
+				if (!tie)
 				{
-					description.AppendLine(winner.Description);
+					if (!string.IsNullOrEmpty(winner.Description))
+					{
+						description.AppendLine(winner.Description);
+					}
+				}
+				else
+				{
+					description.AppendLine("Cast your vote now to break the tie!");
 				}
 			}
 
