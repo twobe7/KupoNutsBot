@@ -129,7 +129,7 @@ namespace KupoNuts.Bot.Polls
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Title = title.ToString();
 			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = self.Closed() ? "Poll closed. thanks for voting!" : "Vote for an option by selecting a reaction below";
+			builder.Footer.Text = self.Closed() ? "Poll closed. Thanks for voting!" : "Vote for an option by selecting a reaction below";
 			builder.Description = description.ToString();
 
 			return Task.FromResult(builder.Build());
