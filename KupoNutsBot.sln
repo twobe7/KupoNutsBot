@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Twitter", "Twitter\Twitter.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVCollect", "FFXIVCollect\FFXIVCollect.csproj", "{47A14D54-9BAC-4782-A564-628943C09BC4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lalachievements", "Lalachievements\Lalachievements.csproj", "{F05B5BDD-00A4-48B6-AB95-26E732E70197}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +74,10 @@ Global
 		{47A14D54-9BAC-4782-A564-628943C09BC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47A14D54-9BAC-4782-A564-628943C09BC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47A14D54-9BAC-4782-A564-628943C09BC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F05B5BDD-00A4-48B6-AB95-26E732E70197}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F05B5BDD-00A4-48B6-AB95-26E732E70197}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F05B5BDD-00A4-48B6-AB95-26E732E70197}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F05B5BDD-00A4-48B6-AB95-26E732E70197}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

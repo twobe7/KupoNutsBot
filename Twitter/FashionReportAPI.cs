@@ -21,6 +21,9 @@ namespace Twitter
 			TwitterService service = new TwitterService(settings.TwitterConsumerKey, settings.TwitterConsumerSecret);
 			service.AuthenticateWith(settings.TwitterToken, settings.TwitterTokenSecret);
 
+			if (service == null)
+				return Task.FromResult(results);
+
 			ListTweetsOnUserTimelineOptions op = new ListTweetsOnUserTimelineOptions();
 			op.ScreenName = "@KaiyokoStar";
 			op.IncludeRts = false;
