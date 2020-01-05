@@ -78,6 +78,9 @@ namespace KupoNuts.Bot.Services
 
 		private async Task DiscordClient_MessageReceived(SocketMessage arg)
 		{
+			if (!(arg.Channel is SocketGuildChannel guildChannel))
+				return;
+
 			ulong guildId = arg.GetGuild().Id;
 			ulong channelId = arg.Channel.Id;
 
