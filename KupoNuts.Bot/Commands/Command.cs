@@ -14,6 +14,7 @@ namespace KupoNuts.Bot.Commands
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using KupoNuts.Bot.Services;
+	using KupoNuts.Bot.Utils;
 	using NodaTime;
 	using NodaTime.Text;
 
@@ -354,9 +355,9 @@ namespace KupoNuts.Bot.Commands
 			}
 			else if (type == typeof(IEmote))
 			{
-				Emote emote = Emote.Parse(arg);
+				IEmote emote = EmoteUtility.Parse(arg);
 
-				if (!emote.IsAvailable())
+				if (emote is Emote emoteActual && !emoteActual.IsAvailable())
 					throw new UserException("I'm sorry, I don't have that emote.");
 
 				return emote;
@@ -392,6 +393,21 @@ namespace KupoNuts.Bot.Commands
 					throw new Exception("Invalid user Id: " + arg);
 
 				return user;
+			}
+			else if (type == typeof(IRole))
+			{
+				// <@&663326776696504352>
+				string str = arg;
+				str = str.Replace("<@&", string.Empty);
+				str = str.Replace(">", string.Empty);
+
+				ulong id = ulong.Parse(str);
+				IRole role = message.Guild.GetRole(id);
+
+				if (role == null)
+					throw new Exception("Invalid role Id: " + arg);
+
+				return role;
 			}
 			else if (type == typeof(Duration))
 			{

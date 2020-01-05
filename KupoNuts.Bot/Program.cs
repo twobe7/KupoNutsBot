@@ -101,6 +101,8 @@ namespace KupoNuts.Bot
 				await this.AddService<SundayFundayService>();
 				await this.AddService<GuildService>();
 				await this.AddService<ActionService>();
+				await this.AddService<ChannelService>();
+				await this.AddService<ChannelOptInService>();
 			}
 			catch (Exception ex)
 			{
