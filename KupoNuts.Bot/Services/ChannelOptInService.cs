@@ -132,21 +132,18 @@ namespace KupoNuts.Bot.Services
 						}
 					}
 
-					RestUserMessage msg2;
+					IUserMessage msg2;
 
 					if (!hasRole)
 					{
 						await user.AddRoleAsync(role);
-						msg2 = await arg2.SendMessageAsync(user.Mention + ", you will now receive notifications for " + role.Name + ".");
+						msg2 = await user.SendMessageAsync(user.Mention + ", you have been granted the " + role.Name + " role on: " + guild.Name);
 					}
 					else
 					{
 						await user.RemoveRoleAsync(role);
-						msg2 = await arg2.SendMessageAsync(user.Mention + ", you will no longer receive notifications for " + role.Name + ".");
+						msg2 = await user.SendMessageAsync(user.Mention + ", you have lost the " + role.Name + " role on the: " + guild.Name);
 					}
-
-					await Task.Delay(5000);
-					await msg2.DeleteAsync();
 				}
 				catch (Exception ex)
 				{
