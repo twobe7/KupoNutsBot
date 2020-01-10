@@ -198,7 +198,6 @@ namespace FC.Bot.Commands
 				EmbedBuilder builder = new EmbedBuilder();
 				builder.Title = message.Message.Content.Truncate(256);
 				builder.Description = WaitEmoji;
-				builder.ThumbnailUrl = "https://www.kuponutbrigade.com/wp-content/uploads/2019/10/think2.png";
 				thinkMessage = await message.Channel.SendMessageAsync(null, false, builder.Build());
 
 				// Discord doesn't like it when we edit embed to soon after posting them, as the edit
