@@ -271,9 +271,6 @@
 		<None Update="Assets\CharacterCardOverlay.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="Assets\self.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 		<None Update="Assets\Twelve\061601.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
