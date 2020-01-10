@@ -173,6 +173,17 @@ namespace FC.Bot
 
 					await DiscordClient.SetActivityAsync(new BotActivity());
 
+					// TODO:
+					foreach (SocketGuild guild in DiscordClient.Guilds)
+					{
+						SocketGuildUser guildUser = guild.GetUser(DiscordClient.CurrentUser.Id);
+
+						await guildUser.ModifyAsync(x =>
+						{
+							x.Nickname = "Kupo Nuts";
+						});
+					}
+
 					Initializing = false;
 					Log.Write("Initialization complete", "Bot");
 
