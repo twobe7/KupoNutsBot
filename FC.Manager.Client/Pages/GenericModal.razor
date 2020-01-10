@@ -1,0 +1,31 @@
+﻿@using FC.Events;
+@inject IModalService Modal
+
+<div class="form-row">
+	<div class="form-group col-md-12">
+		<label>@this.content</label>
+	</div>
+</div>
+
+<div class="modal-footer">
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">OK</button>
+</div>
+
+
+@code {
+	[CascadingParameter] ModalParameters Parameters { get; set; }
+
+	private string content;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		this.content = Parameters.Get<string>("Content");
+	}
+
+	private void OnClose()
+	{
+		this.Modal.Close(ModalResult.Ok<bool>(true));
+	}
+}

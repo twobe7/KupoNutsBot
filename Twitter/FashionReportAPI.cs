@@ -4,7 +4,7 @@ namespace Twitter
 {
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
-	using KupoNuts;
+	using FC;
 	using TweetSharp;
 
 	public static class FashionReportAPI

@@ -1,0 +1,201 @@
+﻿@using FC.Events;
+@using FC.Utils;
+@inject HttpClient Http
+@inject IModalService Modal
+@inject NavigationManager NavigationManager
+
+@if (this.settings == null)
+{
+	<div class="form-row">
+		Loading
+	</div>
+}
+else
+{
+	<div class="form-row">
+		<!--  Log Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Log Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.settings.LogChannel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+
+		<!--  Status Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Status Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.settings.StatusChannel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Calendar Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Calendar Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.settings.CalendarChannel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+
+		<!--  User Log Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">User Log Channel</label>
+			<select class="custom-select" id="channelSelect" name="userLogSelect" @bind="this.settings.UserLogChannel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Lodestone Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Lodestone Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.settings.LodestoneChannel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+
+		<!--  Fashion Report Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Fashion Report Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.settings.FashionReportChannel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Sunday Funday Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Sunday Funday Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.settings.SundayFundayChannel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-12">
+			<label for="eventName">Discord Token</label>
+			<input type="text" class="form-control" name="eventName" placeholder="Enter discord bot token" @bind="this.settings.Token" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Discord Key</label>
+			<input type="text" class="form-control" name="eventName" placeholder="Enter discord key" @bind="this.settings.DiscordKey" />
+		</div>
+
+		<div class="form-group col-md-6">
+			<label for="channelSelect">discord Secret</label>
+			<input type="text" class="form-control" name="eventName" placeholder="Enter discord secret" @bind="this.settings.DiscordSecret" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Twitter Consumer Key</label>
+			<input type="text" class="form-control" name="eventName" placeholder="Enter discord key" @bind="this.settings.TwitterConsumerKey" />
+		</div>
+
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Twitter Consumer Secret</label>
+			<input type="text" class="form-control" name="eventName" placeholder="Enter discord secret" @bind="this.settings.TwitterConsumerSecret" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Twitter token</label>
+			<input type="text" class="form-control" name="eventName" placeholder="Enter discord key" @bind="this.settings.TwitterToken" />
+		</div>
+
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Twitter Token Secret</label>
+			<input type="text" class="form-control" name="eventName" placeholder="Enter discord secret" @bind="this.settings.TwitterTokenSecret" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-12">
+			<label for="xivapikey">XIVAPI Key</label>
+			<input type="text" class="form-control" name="xivapikey" placeholder="Enter XIVAPI key" @bind="this.settings.XIVAPIKey" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-12">
+			<label for="usedynamodb">Use Dynamo DB</label>
+			<input type="checkbox" class="form-control" name="usedynamodb" placeholder="Enter XIVAPI key" @bind="this.settings.UseDynamoDb" />
+		</div>
+	</div>
+
+}
+
+
+<div class="modal-footer">
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+
+@code
+{
+	public List<Channel> ChannelList { get; set; }
+
+	private Settings settings;
+
+	protected override async Task OnInitializedAsync()
+	{
+		Authentication.Initialize(this.Http, this.NavigationManager);
+
+		await base.OnInitializedAsync();
+
+		this.ChannelList = new List<Channel>()
+{
+			new Channel(0, "None", FC.Channel.Types.Unknown),
+		};
+
+		this.settings = await this.Http.GetJsonAsync<Settings>("SettingsAPI");
+		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, FC.Channel.Types.Text));
+	}
+
+	private async void OnSave()
+	{
+		await this.Http.PostJsonAsync("SettingsAPI", this.settings);
+		this.Modal.Close(ModalResult.Ok<bool>(true));
+	}
+
+	private void OnClose()
+	{
+		this.Modal.Cancel();
+	}
+}

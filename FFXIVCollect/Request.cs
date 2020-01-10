@@ -6,7 +6,7 @@ namespace FFXIVCollect
 	using System.IO;
 	using System.Net;
 	using System.Threading.Tasks;
-	using KupoNuts;
+	using FC;
 	using Newtonsoft.Json;
 
 	internal static class Request

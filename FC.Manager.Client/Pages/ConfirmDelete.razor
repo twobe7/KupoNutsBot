@@ -1,0 +1,37 @@
+﻿@using FC.Events;
+@inject IModalService Modal
+
+<div class="form-row">
+	<div class="form-group col-md-12">
+		<label>Are you sure you want to delete the item: "@this.content" ?</label>
+	</div>
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Cancel</button>
+</div>
+
+
+@code {
+	[CascadingParameter] ModalParameters Parameters { get; set; }
+
+	private string content;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		this.content = Parameters.Get<string>("Content");
+	}
+
+	private void OnClose()
+	{
+		this.Modal.Close(ModalResult.Cancel());
+	}
+
+	private void OnDelete()
+	{
+		this.Modal.Close(ModalResult.Ok(true));
+	}
+}

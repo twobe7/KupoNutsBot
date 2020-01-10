@@ -19,7 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\KupoNuts.Shared\KupoNuts.Shared.csproj" />
+		<ProjectReference Include="..\FC.Shared\FC.Shared.csproj" />
 	</ItemGroup>
 
 </Project>
