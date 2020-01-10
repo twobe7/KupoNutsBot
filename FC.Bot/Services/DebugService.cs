@@ -99,22 +99,5 @@ namespace FC.Bot.Services
 
 			return Task.FromResult("This is your fault, " + message.Author.GetName() + ".");
 		}
-
-		[Command(@"Confus", Permissions.Administrators, "??")]
-		public async Task<bool> Confus(CommandMessage message)
-		{
-			await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/confus.jpg");
-			return true;
-		}
-
-		[Command("Alphabet", Permissions.Administrators, "I know my ABC's!")]
-		public Task<Embed> Alphabet()
-		{
-			EmbedBuilder builder = new EmbedBuilder();
-
-			builder.Description = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 .";
-
-			return Task.FromResult(builder.Build());
-		}
 	}
 }
