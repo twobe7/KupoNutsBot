@@ -1,4 +1,7 @@
-﻿// This document is intended for use by Kupo Nut Brigade developers.
+﻿// Copyright (c) FCChan. All rights reserved.
+//
+// Licensed under the MIT license.
+
 #pragma warning disable SA1402
 
 namespace FC

@@ -7,8 +7,8 @@
 			"documentInterfaces": false,
 			"documentExposedElements": false,
 			"documentInternalElements": false,
-			"companyName": "Yuuki Inc.",
-			"copyrightText": "This document is intended for use by Kupo Nut Brigade developers."
+			"companyName": "FCChan",
+			"copyrightText": "Copyright (c) {companyName}. All rights reserved.\n\nLicensed under the MIT license."
 		},
 		"indentation": 
 		{
