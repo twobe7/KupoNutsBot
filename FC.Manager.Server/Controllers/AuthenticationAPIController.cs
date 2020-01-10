@@ -38,12 +38,14 @@ namespace FC.Manager.Server.Controllers
 				FormUrlEncodedContent content = new FormUrlEncodedContent(values);
 				HttpResponseMessage response = await client.PostAsync("https://discordapp.com/api/oauth2/token", content);
 				string responseString = await response.Content.ReadAsStringAsync();
+				response.EnsureSuccessStatusCode();
 				DiscordAuthResponse discordAuthResponse = JsonConvert.DeserializeObject<DiscordAuthResponse>(responseString);
 				string userToken = discordAuthResponse.access_token;
 
 				// Now get the user info from discord
 				client.DefaultRequestHeaders.Add("Authorization", "Bearer " + userToken);
 				response = await client.GetAsync("https://discordapp.com/api/users/@me");
+				response.EnsureSuccessStatusCode();
 				responseString = await response.Content.ReadAsStringAsync();
 				DiscordMeResponse discordMeResponse = JsonConvert.DeserializeObject<DiscordMeResponse>(responseString);
 
@@ -59,6 +61,7 @@ namespace FC.Manager.Server.Controllers
 			catch (Exception ex)
 			{
 				Log.Write(ex);
+				request.Message = ex.Message;
 			}
 
 			return request;

@@ -29,14 +29,16 @@
 		base.OnInitialized();
 	}
 
-	private void OnSignIn()
+	private async void OnSignIn()
 	{
+		string clientId = await this.Http.Invoke<string>("AuthenticationService.GetDiscordKey");
+
 		StringBuilder urlBuilder = new StringBuilder();
 		urlBuilder.Append("https://discordapp.com/api/oauth2/authorize");
 		urlBuilder.Append("?response_type=code");
-		urlBuilder.Append("&client_id=604288630579527698");
+		urlBuilder.Append("&client_id=");
+		urlBuilder.Append(clientId);
 		urlBuilder.Append("&scope=identify");
-		urlBuilder.Append("&state=thisisfortesting");
 		urlBuilder.Append("&redirect_uri=");
 		urlBuilder.Append(NavigationManager.Uri);
 		urlBuilder.Append("OAuth");

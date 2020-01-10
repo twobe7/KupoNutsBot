@@ -2,7 +2,10 @@
 
 namespace FC.Manager.Server
 {
+	using System;
+	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using FC.Manager.Server.Services;
 	using Microsoft.AspNetCore;
 	using Microsoft.AspNetCore.Hosting;
 	using Microsoft.Extensions.Configuration;
@@ -10,6 +13,7 @@ namespace FC.Manager.Server
 	public class Program
 	{
 		private static IWebHost host;
+		private static List<ServiceBase> services = new List<ServiceBase>();
 
 		public static void Main(string[] args)
 		{
@@ -22,6 +26,12 @@ namespace FC.Manager.Server
 			host = BuildWebHost(args);
 			Authentication.GenerateSecret();
 			await DiscordAPI.Start();
+
+			// Add services
+			await AddService<RPCService>();
+			await AddService<AuthenticationService>();
+
+			// finally launch the web host.
 			await host.RunAsync();
 		}
 
@@ -38,8 +48,20 @@ namespace FC.Manager.Server
 
 		public static async Task Exit()
 		{
+			foreach (ServiceBase service in services)
+				await service.Shutdown();
+
 			await host.StopAsync();
 			DiscordAPI.Dispose();
+		}
+
+		public static Task AddService<T>()
+			where T : ServiceBase
+		{
+			Log.Write("Add Service: " + typeof(T), "WebServer");
+			T service = Activator.CreateInstance<T>();
+			services.Add(service);
+			return service.Initialize();
 		}
 	}
 }
