@@ -141,7 +141,7 @@ namespace FC.Bot
 			{
 				Running = true;
 				Initializing = true;
-				Log.Write("Kupo Nuts Bot booting..", "Bot");
+				Log.Write("FCChan Bot booting..", "Bot");
 
 				string? token = Settings.Load().Token;
 

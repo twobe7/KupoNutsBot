@@ -37,13 +37,13 @@ namespace FC.Bot.Status
 			Settings settings = Settings.Load();
 			if (settings.StatusChannel == null)
 			{
-				Log.Write("No Status Channel set. Kupo Nuts will not post logs to discord", "Bot");
+				Log.Write("No Status Channel set. Will not post logs to discord", "Bot");
 				return;
 			}
 
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Color = this.online ? Color.Green : Color.Red;
-			builder.Title = "Kupo Nuts Bot Status";
+			builder.Title = "Status";
 
 			builder.AddField("Status", this.online ? "Online" : "Offline", true);
 

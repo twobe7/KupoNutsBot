@@ -95,14 +95,6 @@ namespace FC.Bot.Characters
 
 		public async Task<bool> WhoIs(CommandMessage message, uint characterId)
 		{
-			// Special case to just load Kupo Nuts' portrait from disk.
-			if (characterId == 24960538)
-			{
-				await message.Channel.SendMessageAsync("Thats me!");
-				await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/self.png");
-				return true;
-			}
-
 			CharacterInfo character = await this.GetCharacterInfo(characterId);
 			string file = await CharacterCard.Draw(character);
 			await message.Channel.SendFileAsync(file);

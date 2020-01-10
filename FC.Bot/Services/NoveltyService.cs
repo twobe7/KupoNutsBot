@@ -109,19 +109,19 @@ namespace FC.Bot.Services
 			return "You rolled: " + total.ToString();
 		}
 
-		[Command("Choose", Permissions.Everyone, "Let Kupo Nuts choose for you")]
+		[Command("Choose", Permissions.Everyone, "Let me choose for you")]
 		public string Choose(string optionA, string optionB)
 		{
 			return this.DoChoose(optionA, optionB, null, null);
 		}
 
-		[Command("Choose", Permissions.Everyone, "Let Kupo Nuts choose for you")]
+		[Command("Choose", Permissions.Everyone, "Let me choose for you")]
 		public string Choose(string optionA, string optionB, string optionC)
 		{
 			return this.DoChoose(optionA, optionB, optionC, null);
 		}
 
-		[Command("Choose", Permissions.Everyone, "Let Kupo Nuts choose for you")]
+		[Command("Choose", Permissions.Everyone, "Let me choose for you")]
 		public string Choose(string optionA, string optionB, string optionC, string optionD)
 		{
 			return this.DoChoose(optionA, optionB, optionC, optionD);
@@ -193,7 +193,7 @@ namespace FC.Bot.Services
 		{
 			string flipName = string.Empty;
 
-			// Trying to flip Kupo Nuts
+			// Trying to flip the bot
 			if (user.Id == Program.DiscordClient.CurrentUser.Id)
 			{
 				flipName = message.Author.GetName();

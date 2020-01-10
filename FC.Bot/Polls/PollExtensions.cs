@@ -108,14 +108,12 @@ namespace FC.Bot.Polls
 			StringBuilder title = new StringBuilder();
 			SocketGuildUser? author = channel.GetUser(self.Author);
 
-			if (author != null && CommandsService.GetPermissions(author) == Permissions.Administrators)
+			/*if (author != null && CommandsService.GetPermissions(author) == Permissions.Administrators)
 			{
-				title.Append("Kupo Nuts");
-			}
-			else
-			{
-				title.Append(author == null ? "Someone" : author.GetName());
-			}
+				title.Append("FCChan");
+			}*/
+
+			title.Append(author == null ? "Someone" : author.GetName());
 
 			if (self.Closed())
 			{
