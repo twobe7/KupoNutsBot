@@ -10,23 +10,22 @@
 		await base.OnInitializedAsync();
 
 		string code = NavigationManager.GetQuerryParameter("code");
+		string url = NavigationManager.GetURL();
 
-		AuthenticationRequest request = new AuthenticationRequest();
-		request.URL = NavigationManager.GetURL();
-		request.DiscordCode = code;
-
-		AuthenticationRequest response = await this.Http.PostJsonAsync<AuthenticationRequest>("AuthenticationAPI", request);
-
-
-		if (response.Token != null)
+		try
 		{
-			Authentication.Token = response.Token;
+			string token = await this.Http.Invoke<string>("AuthenticationService.AuthenticateCode", url, code);
+
+			if (string.IsNullOrEmpty(token))
+				throw new Exception("Invalid token");
+
+			RPC.RPCService.AuthToken = token;
 			NavigationManager.NavigateTo("/");
 		}
-		else
+		catch (Exception ex)
 		{
 			ModalParameters parameters = new ModalParameters();
-			parameters.Add("Content", response.Message);
+			parameters.Add("Content", ex.Message);
 			this.Modal.Show("Authentication Error", typeof(GenericModal), parameters);
 			this.Modal.OnClose += (ModalResult) =>
 			{

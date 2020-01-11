@@ -12,6 +12,10 @@ namespace FC.Manager.Client.RPC
 	[Serializable]
 	public class RPCRequest
 	{
+		public string Token { get; set; } = string.Empty;
+
+		public string GuildId { get; set; } = string.Empty;
+
 		public string Method { get; set; } = string.Empty;
 
 		public List<string> ParamData { get; set; } = new List<string>();

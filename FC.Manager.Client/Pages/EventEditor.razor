@@ -161,7 +161,12 @@ else
 	protected override async Task OnInitializedAsync()
 	{
 		this.IsLoading = true;
-		Authentication.Initialize(this.Http, this.NavigationManager);
+
+		if (!RPC.RPCService.IsAuthenticated)
+		{
+			this.NavigationManager.NavigateTo("/");
+			return;
+		}
 
 		await base.OnInitializedAsync();
 

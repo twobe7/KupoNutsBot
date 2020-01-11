@@ -14,10 +14,23 @@ namespace FC.Manager.Client.RPC
 
 	public static class RPCService
 	{
+		public static string AuthToken;
+		public static string GuildId;
+
+		public static bool IsAuthenticated
+		{
+			get
+			{
+				return !string.IsNullOrEmpty(AuthToken);
+			}
+		}
+
 		public static async Task<TResult> Invoke<TResult>(HttpClient client, string method, params object[] param)
 		{
 			RPCRequest req = new RPCRequest();
 			req.Method = method;
+			req.Token = AuthToken;
+			req.GuildId = GuildId;
 
 			for (int i = 0; i < param.Length; i++)
 			{
