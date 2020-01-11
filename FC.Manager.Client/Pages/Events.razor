@@ -62,10 +62,12 @@ else
 
 		await base.OnInitializedAsync();
 
-		await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
+		this.AllEvents = await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
+		this.AllChannels = new List<Channel>();
 
-		this.AllChannels = await this.Http.GetJsonAsync<List<Channel>>("ChannelsAPI");
-		this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
+		////this.AllChannels = await this.Http.GetJsonAsync<List<Channel>>("ChannelsAPI");
+		////this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
+		///
 	}
 
 	protected void OnEdit(Event evt)
