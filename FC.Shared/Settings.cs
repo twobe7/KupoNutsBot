@@ -13,8 +13,6 @@ namespace FC
 	{
 		public const string Location = "Settings.json";
 
-		public string DatabasePrefix { get; set; } = "FC";
-
 		public string CommandPrefix { get; set; } = "?";
 
 		public string? Token { get; set; }

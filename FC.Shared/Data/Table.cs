@@ -25,7 +25,7 @@ namespace FC.Data
 		{
 			get
 			{
-				return Settings.Load().DatabasePrefix + "_" + this.Name + "_" + this.Version;
+				return this.Name + "_" + this.Version;
 			}
 		}
 

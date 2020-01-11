@@ -20,7 +20,7 @@ namespace FC.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return null;
 
-			Table<Event> eventsDb = Table<Event>.Create("Events", 1);
+			Table<Event> eventsDb = Table<Event>.Create("KupoNuts_Events", 1);
 			await eventsDb.Connect();
 			List<Event> events = await eventsDb.LoadAll();
 			return events;
@@ -32,7 +32,7 @@ namespace FC.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return;
 
-			Table<Event> eventsDb = Table<Event>.Create("Events", 1);
+			Table<Event> eventsDb = Table<Event>.Create("KupoNuts_Events", 1);
 			await eventsDb.Connect();
 
 			switch (evt.Action)

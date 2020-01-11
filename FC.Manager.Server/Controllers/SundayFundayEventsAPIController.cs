@@ -19,7 +19,7 @@ namespace FC.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return null;
 
-			Table<SundayFundayEvent> itemsDb = Table<SundayFundayEvent>.Create("SundayFunday", 0);
+			Table<SundayFundayEvent> itemsDb = Table<SundayFundayEvent>.Create("KupoNuts_SundayFunday", 0);
 			await itemsDb.Connect();
 			List<SundayFundayEvent> events = await itemsDb.LoadAll();
 			return events;
@@ -31,7 +31,7 @@ namespace FC.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return;
 
-			Table<SundayFundayEvent> itemsDb = Table<SundayFundayEvent>.Create("SundayFunday", 0);
+			Table<SundayFundayEvent> itemsDb = Table<SundayFundayEvent>.Create("KupoNuts_SundayFunday", 0);
 			await itemsDb.Connect();
 
 			switch (evt.Action)

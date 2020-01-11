@@ -32,7 +32,7 @@ namespace FC.Bot.Polls
 
 		private Dictionary<ulong, string> pollLookup = new Dictionary<ulong, string>();
 
-		private Table<Poll> pollDatabase = Table<Poll>.Create("Polls", 2);
+		private Table<Poll> pollDatabase = Table<Poll>.Create("KupoNuts_Polls", 2);
 
 		public override async Task Initialize()
 		{

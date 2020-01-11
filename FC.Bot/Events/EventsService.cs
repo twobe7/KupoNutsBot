@@ -20,7 +20,7 @@ namespace FC.Bot.Events
 
 	public class EventsService : ServiceBase
 	{
-		public static Table<Event> EventsDatabase = Table<Event>.Create("Events", 1);
+		public static Table<Event> EventsDatabase = Table<Event>.Create("KupoNuts_Events", 1);
 
 		private static EventsService? instance;
 		private Dictionary<string, string> messageEventLookup = new Dictionary<string, string>();

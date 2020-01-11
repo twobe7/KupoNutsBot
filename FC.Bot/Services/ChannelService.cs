@@ -11,7 +11,7 @@ namespace FC.Bot.Services
 
 	public class ChannelService : ServiceBase
 	{
-		private static Table<ChannelData> channelTable = Table<ChannelData>.Create("Channels", 0);
+		private static Table<ChannelData> channelTable = Table<ChannelData>.Create("KupoNuts_Channels", 0);
 
 		public static async Task<ChannelData> GetChannelData(ulong guild, ulong channel)
 		{

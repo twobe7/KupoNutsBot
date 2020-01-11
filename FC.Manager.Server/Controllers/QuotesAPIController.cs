@@ -20,7 +20,7 @@ namespace FC.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return null;
 
-			Table<Quote> quotesDb = Table<Quote>.Create("Quotes", Quote.Version);
+			Table<Quote> quotesDb = Table<Quote>.Create("KupoNuts_Quotes", Quote.Version);
 			await quotesDb.Connect();
 			List<Quote> events = await quotesDb.LoadAll();
 			return events;
@@ -32,7 +32,7 @@ namespace FC.Manager.Server.Controllers
 			if (!Authentication.IsAuthenticated(this.Request))
 				return;
 
-			Table<Quote> quotesDb = Table<Quote>.Create("Quotes", Quote.Version);
+			Table<Quote> quotesDb = Table<Quote>.Create("KupoNuts_Quotes", Quote.Version);
 			await quotesDb.Connect();
 
 			switch (action.Action)
