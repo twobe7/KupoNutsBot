@@ -1,8 +1,10 @@
-﻿@inherits LayoutComponentBase
+﻿@inject HttpClient Http
+
+@inherits LayoutComponentBase
 
 <BlazoredModal />
 
-@if (RPC.RPCService.IsAuthenticated)
+@if (Authentication.IsAuthenticated)
 {
 	<div class="sidebar">
 		<NavMenu />
@@ -12,3 +14,12 @@
 <div class="main">
 	@Body
 </div>
+
+@code
+{
+	protected override async Task OnInitializedAsync()
+	{
+		RPC.RPCService.Client = this.Http;
+		await base.OnInitializedAsync();
+	}
+}

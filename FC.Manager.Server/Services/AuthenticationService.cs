@@ -21,7 +21,7 @@ namespace FC.Manager.Server.Services
 		}
 
 		[RPC]
-		public async Task<string> AuthenticateCode(string url, string code)
+		public async Task<Client.Authentication.Data> AuthenticateCode(string url, string code)
 		{
 			Settings settings = Settings.Load();
 
@@ -32,7 +32,7 @@ namespace FC.Manager.Server.Services
 				{ "grant_type", "authorization_code" },
 				{ "code", code },
 				{ "redirect_uri", url },
-				{ "scope", "identify" },
+				{ "scope", Client.Authentication.DiscordScopes },
 			};
 
 			HttpClient client = new HttpClient();
@@ -55,40 +55,22 @@ namespace FC.Manager.Server.Services
 			if (string.IsNullOrEmpty(discordMeResponse.id))
 				throw new Exception("Invalid discord user Id");
 
-			if (!this.GetIsUserAdmin(discordMeResponse.id))
-				throw new Exception("User is not an administrator");
-
-			// TODO: verify user against guilds, and return that information.
+			// Get guilds info
+			response = await client.GetAsync("https://discordapp.com/api/users/@me/guilds");
+			response.EnsureSuccessStatusCode();
+			responseString = await response.Content.ReadAsStringAsync();
+			List<Client.Authentication.Data.Guild> guilds = JsonConvert.DeserializeObject<List<Client.Authentication.Data.Guild>>(responseString);
 
 			// Finally invoke the authentication back-end
 			string token = Authentication.Authenticate(discordMeResponse.id);
-			return token;
-		}
 
-		// TODO: Dont use discord.net, as the bot can only access guilds she is already part of.
-		// use discord web API to get all user guilds directly.
-		private bool GetIsUserAdmin(string userId)
-		{
-			if (string.IsNullOrEmpty(userId))
-				throw new ArgumentNullException("userId");
+			Client.Authentication.Data data = new Client.Authentication.Data();
+			data.AuthToken = token;
+			data.DiscordUserId = discordMeResponse.id;
+			data.DiscordUserName = discordMeResponse.username;
+			data.Guilds = guilds;
 
-			foreach (SocketGuild guild in DiscordAPI.Client.Guilds)
-			{
-				SocketGuildUser guildUser = guild.GetUser(ulong.Parse(userId));
-
-				if (guildUser == null)
-					continue;
-
-				foreach (SocketRole role in guildUser.Roles)
-				{
-					if (role.Permissions.Administrator)
-					{
-						return true;
-					}
-				}
-			}
-
-			return false;
+			return data;
 		}
 
 		[Serializable]

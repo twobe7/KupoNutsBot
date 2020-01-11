@@ -14,22 +14,18 @@ namespace FC.Manager.Client.RPC
 
 	public static class RPCService
 	{
-		public static string AuthToken;
+		public static HttpClient Client;
+
 		public static string GuildId;
 
-		public static bool IsAuthenticated
+		public static async Task<TResult> Invoke<TResult>(string method, params object[] param)
 		{
-			get
-			{
-				return !string.IsNullOrEmpty(AuthToken);
-			}
-		}
+			if (Client == null)
+				throw new Exception("No HttpClient in RPC Service");
 
-		public static async Task<TResult> Invoke<TResult>(HttpClient client, string method, params object[] param)
-		{
 			RPCRequest req = new RPCRequest();
 			req.Method = method;
-			req.Token = AuthToken;
+			req.Token = Authentication.Token;
 			req.GuildId = GuildId;
 
 			for (int i = 0; i < param.Length; i++)
@@ -37,7 +33,7 @@ namespace FC.Manager.Client.RPC
 				req.ParamData.Add(JsonConvert.SerializeObject(param[i]));
 			}
 
-			RPCResult result = await client.PostJsonAsync<RPCResult>("RPC", req);
+			RPCResult result = await Client.PostJsonAsync<RPCResult>("RPC", req);
 
 			// TODO: get exception type.
 			if (!string.IsNullOrEmpty(result.Exception))

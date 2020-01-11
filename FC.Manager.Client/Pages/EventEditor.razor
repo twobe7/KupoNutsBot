@@ -162,7 +162,7 @@ else
 	{
 		this.IsLoading = true;
 
-		if (!RPC.RPCService.IsAuthenticated)
+		if (!Authentication.IsAuthenticated)
 		{
 			this.NavigationManager.NavigateTo("/");
 			return;

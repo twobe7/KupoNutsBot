@@ -27,7 +27,6 @@ namespace FC.Manager.Server
 		{
 			host = BuildWebHost(args);
 			Authentication.GenerateSecret();
-			await DiscordAPI.Start();
 
 			// Add services
 			await AddService<RPCService>();
@@ -54,7 +53,6 @@ namespace FC.Manager.Server
 				await service.Shutdown();
 
 			await host.StopAsync();
-			DiscordAPI.Dispose();
 		}
 
 		public static Task AddService<T>()

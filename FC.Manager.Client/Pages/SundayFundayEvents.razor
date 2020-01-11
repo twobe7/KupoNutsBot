@@ -50,7 +50,7 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		if (!RPC.RPCService.IsAuthenticated)
+		if (!Authentication.IsAuthenticated)
 		{
 			this.NavigationManager.NavigateTo("/");
 			return;

@@ -9,17 +9,12 @@
 	{
 		await base.OnInitializedAsync();
 
-		string code = NavigationManager.GetQuerryParameter("code");
-		string url = NavigationManager.GetURL();
-
 		try
 		{
-			string token = await this.Http.Invoke<string>("AuthenticationService.AuthenticateCode", url, code);
+			string code = NavigationManager.GetQuerryParameter("code");
+			string url = NavigationManager.GetURL();
 
-			if (string.IsNullOrEmpty(token))
-				throw new Exception("Invalid token");
-
-			RPC.RPCService.AuthToken = token;
+			await Authentication.Authenticate(code, url);
 			NavigationManager.NavigateTo("/");
 		}
 		catch (Exception ex)

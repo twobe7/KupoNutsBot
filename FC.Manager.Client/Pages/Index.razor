@@ -12,7 +12,7 @@
 			<label class="text-white">Welcome</label>
 		</div>
 
-		@if (!RPCService.IsAuthenticated)
+		@if (!Authentication.IsAuthenticated)
 		{
 			<div class="form-group col-md-12">
 				<Button class="btn btn-light nav-link" style="width:100%" @onclick="this.OnSignIn">
@@ -32,14 +32,15 @@
 
 	private async void OnSignIn()
 	{
-		string clientId = await this.Http.Invoke<string>("AuthenticationService.GetDiscordKey");
+		string clientId = await RPCService.Invoke<string>("AuthenticationService.GetDiscordKey");
 
 		StringBuilder urlBuilder = new StringBuilder();
 		urlBuilder.Append("https://discordapp.com/api/oauth2/authorize");
 		urlBuilder.Append("?response_type=code");
 		urlBuilder.Append("&client_id=");
 		urlBuilder.Append(clientId);
-		urlBuilder.Append("&scope=identify");
+		urlBuilder.Append("&scope=");
+		urlBuilder.Append(Authentication.DiscordScopes);
 		urlBuilder.Append("&redirect_uri=");
 		urlBuilder.Append(NavigationManager.Uri);
 		urlBuilder.Append("OAuth");

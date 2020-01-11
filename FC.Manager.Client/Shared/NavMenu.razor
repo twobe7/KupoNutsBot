@@ -4,8 +4,14 @@
 
 	<div class="form-group" style="margin: 16px 16px 0px 16px">
 		<select class="form-control">
-			<option>Guild 1</option>
-			<option>Guild 2</option>
+
+			@foreach (Authentication.Data.Guild guild in Authentication.Guilds)
+			{
+				@if (!guild.CanManageGuild)
+					continue;
+
+				<option>@guild.Name</option>
+			}
 		</select>
 	</div>
 
@@ -49,13 +55,22 @@
 	</div>
 </div>
 
+
 @code
 {
+	protected override async Task OnInitializedAsync()
+	{
+		if (!Authentication.IsAuthenticated)
+			return;
+
+		await base.OnInitializedAsync();
+	}
+
 	private void OnSettings()
 	{
 		////if (Authentication.IsAuthenticated)
 		//{
-			this.Modal.Show("Settings", typeof(Pages.SettingsEditor));
+		this.Modal.Show("Settings", typeof(Pages.SettingsEditor));
 		//}
 	}
 }

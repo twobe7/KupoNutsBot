@@ -70,6 +70,7 @@ namespace FC.Manager.Server.Services
 			}
 			catch (Exception ex)
 			{
+				Log.Write(ex);
 				return new RPCResult(ex);
 			}
 		}
