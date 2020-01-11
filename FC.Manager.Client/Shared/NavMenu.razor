@@ -3,14 +3,14 @@
 <div class="wrapper" style="margin: 0 auto -180px">
 
 	<div class="form-group" style="margin: 16px 16px 0px 16px">
-		<select class="form-control">
+		<select class="form-control" @bind="this.SelectedGuild">
 
 			@foreach (Authentication.Data.Guild guild in Authentication.Guilds)
 			{
 				@if (!guild.CanManageGuild)
 					continue;
 
-				<option>@guild.Name</option>
+				<option value=@guild.Id>@guild.Name</option>
 			}
 		</select>
 	</div>
@@ -58,6 +58,19 @@
 
 @code
 {
+	public string SelectedGuild
+	{
+		get
+		{
+			return RPC.RPCService.GuildId;
+		}
+
+		set
+		{
+			RPC.RPCService.GuildId = value;
+		}
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
 		if (!Authentication.IsAuthenticated)
