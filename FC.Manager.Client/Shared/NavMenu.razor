@@ -1,4 +1,5 @@
 ﻿@inject IModalService Modal
+@inject NavigationManager NavigationManager
 
 <div class="wrapper" style="margin: 0 auto -180px">
 
@@ -68,6 +69,7 @@
 		set
 		{
 			RPC.RPCService.GuildId = value;
+			NavigationManager.NavigateTo("/");
 		}
 	}
 

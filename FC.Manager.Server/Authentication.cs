@@ -42,16 +42,22 @@ namespace FC.Manager.Server
 				return false;
 
 			string token = val[0];
-			return VerifyToken(token, "IsAdmin", "true");
+			return VerifyToken(token, "IsAuth");
 		}
 
-		public static string Authenticate(string discordId)
+		public static string Authenticate(string discordId, List<string> canManageGuilds)
 		{
 			Log.Write("User Authenticated: " + discordId, "Manager");
 
 			Dictionary<string, string> claims = new Dictionary<string, string>();
 			claims.Add("DiscordID", discordId);
-			claims.Add("IsAdmin", "true");
+			claims.Add("IsAuth", "true");
+
+			foreach (string guild in canManageGuilds)
+			{
+				claims.Add(guild, "true");
+			}
+
 			return GenerateToken(claims);
 		}
 
@@ -65,7 +71,7 @@ namespace FC.Manager.Server
 			return encoder.Encode(claims, Secret);
 		}
 
-		public static bool VerifyToken(string token, string key, string value)
+		public static bool VerifyToken(string token, string key, string value = "true")
 		{
 			IJsonSerializer serializer = new JsonNetSerializer();
 			IDateTimeProvider provider = new UtcDateTimeProvider();

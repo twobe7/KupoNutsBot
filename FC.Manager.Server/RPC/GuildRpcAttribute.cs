@@ -4,13 +4,9 @@
 
 namespace FC.Manager.Server.RPC
 {
-	using System;
 	using System.Collections.Generic;
-	using System.Linq;
 	using System.Reflection;
-	using System.Threading.Tasks;
 	using FC.Manager.Client.RPC;
-	using Newtonsoft.Json;
 
 	/// <summary>
 	/// Guild RPC's check that the incoming RPC requester has the permission to access the given guild.
@@ -29,8 +25,11 @@ namespace FC.Manager.Server.RPC
 		{
 			string guildId = request.GuildId;
 
-			// TODO:
-			return true;
+			// NOTE: the token comes from the client, so it can be tampered with, however it should be
+			// cryptographically hard to generate a new valid token.
+			// we _could_ check the server to see if the user truly has access to the guild as a second layer of security,
+			// but the incoming user id could also be faked.
+			return Authentication.VerifyToken(request.Token, guildId);
 		}
 	}
 }
