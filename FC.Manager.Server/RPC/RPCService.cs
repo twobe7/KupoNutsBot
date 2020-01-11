@@ -10,6 +10,7 @@ namespace FC.Manager.Server.Services
 	using System.Reflection;
 	using System.Threading.Tasks;
 	using FC.Manager.Client.RPC;
+	using FC.Manager.Server.RPC;
 	using Newtonsoft.Json;
 
 	public class RPCService : ServiceBase
@@ -40,29 +41,9 @@ namespace FC.Manager.Server.Services
 
 				(MethodInfo method, object target) = Methods[req.Method];
 
-				ParameterInfo[] paramInfos = method.GetParameters();
-
-				if (paramInfos.Length != req.ParamData.Count)
-					throw new Exception("Incorrect number of parameters");
-
-				List<object> param = new List<object>();
-				for (int i = 0; i < paramInfos.Length; i++)
-				{
-					param.Add(JsonConvert.DeserializeObject(req.ParamData[i], paramInfos[i].ParameterType));
-				}
-
-				object val = method.Invoke(target, param.ToArray());
-
-				if (typeof(Task).IsAssignableFrom(method.ReturnType))
-				{
-					Task task = (Task)val;
-					await task;
-
-					if (method.ReturnType.GenericTypeArguments.Length == 1)
-					{
-						val = method.ReturnType.GetProperty("Result").GetValue(task);
-					}
-				}
+				RPCAttribute rpc = method.GetCustomAttribute<RPCAttribute>();
+				List<object> parameters = rpc.GetParameters(req, method, req.ParamData);
+				object val = await rpc.Invoke(req, method, target, parameters);
 
 				RPCResult result = new RPCResult();
 				result.Data = JsonConvert.SerializeObject(val);

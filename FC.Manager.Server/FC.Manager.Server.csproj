@@ -7,7 +7,7 @@
 		<DocumentationFile>..\bin\FC.Manager.Server.xml</DocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<WarningsAsErrors />
-		<NoWarn>1701;1702;SA1503;CS1591;SA1401;</NoWarn>
+		<NoWarn>1701;1702;SA1503;CS1591;SA1401;Sa1516;</NoWarn>
 		<OutputPath>.\bin\</OutputPath>
 	</PropertyGroup>
 

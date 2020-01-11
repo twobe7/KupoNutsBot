@@ -9,6 +9,7 @@ namespace FC.Manager.Server.Services
 	using System.Net.Http;
 	using System.Threading.Tasks;
 	using Discord.WebSocket;
+	using FC.Manager.Server.RPC;
 	using Newtonsoft.Json;
 
 	public class AuthenticationService : ServiceBase

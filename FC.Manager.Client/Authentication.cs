@@ -43,8 +43,29 @@ namespace FC.Manager.Client
 		{
 			data = await RPCService.Invoke<Data>("AuthenticationService.AuthenticateCode", url, code);
 
+			if (data == null)
+				throw new Exception("Authentication failed");
+
 			if (string.IsNullOrEmpty(data.AuthToken))
 				throw new Exception("Invalid token");
+
+			if (data.Guilds == null || data.Guilds.Count <= 0)
+				throw new Exception("You must be in at least one guild");
+
+			// set the first available guild as the default
+			foreach (Data.Guild guild in data.Guilds)
+			{
+				if (!guild.CanManageGuild)
+					continue;
+
+				RPCService.GuildId = guild.Id;
+				break;
+			}
+
+			if (string.IsNullOrEmpty(RPCService.GuildId))
+			{
+				throw new Exception("you must have the 'Manage Guild' permission on at least one guild");
+			}
 		}
 
 		[Serializable]

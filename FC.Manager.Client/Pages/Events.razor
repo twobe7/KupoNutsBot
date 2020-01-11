@@ -3,6 +3,7 @@
 @using FC.Utils;
 @using NodaTime;
 @using System.Globalization;
+@using RPC;
 
 @inject HttpClient Http
 @inject IModalService Modal
@@ -60,6 +61,8 @@ else
 		}
 
 		await base.OnInitializedAsync();
+
+		await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
 
 		this.AllChannels = await this.Http.GetJsonAsync<List<Channel>>("ChannelsAPI");
 		this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");

@@ -31,6 +31,7 @@ namespace FC.Manager.Server
 			// Add services
 			await AddService<RPCService>();
 			await AddService<AuthenticationService>();
+			await AddService<EventsService>();
 
 			// finally launch the web host.
 			await host.RunAsync();
