@@ -1,7 +1,7 @@
 # FCChan Discord bot
 
 ## Requirements
- * .NET Core 3 or later.
+ * .NET Core 3.1
  * Visual Studio 2019 or equivalent.
 
 ## Getting Started
