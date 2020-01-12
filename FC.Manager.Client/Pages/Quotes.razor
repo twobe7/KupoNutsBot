@@ -62,7 +62,7 @@ else
 	{
 		ModalParameters parameters = new ModalParameters();
 		parameters.Add("Quote", evt);
-		this.Modal.Show("Edit Quote", typeof(QuoteEditor), parameters);
+		this.Modal.Show<QuoteEditor>("Edit Quote", parameters);
 		this.Modal.OnClose += this.OnModalClosed;
 	}
 
@@ -93,7 +93,7 @@ else
 				{
 					ModalParameters parameters = new ModalParameters();
 					parameters.Add("Content", action.Data.Content);
-					this.Modal.Show("Delete Quote", typeof(ConfirmDelete), parameters);
+					this.Modal.Show<ConfirmDelete>("Delete Quote", parameters);
 					this.Modal.OnClose += async (ModalResult res) =>
 					{
 						if (!res.Cancelled)

@@ -30,8 +30,10 @@ namespace FC.Manager.Server
 
 			// Add services
 			await AddService<RPCService>();
+			await AddService<DiscordService>();
 			await AddService<AuthenticationService>();
 			await AddService<EventsService>();
+			await AddService<GuildService>();
 
 			// finally launch the web host.
 			await host.RunAsync();

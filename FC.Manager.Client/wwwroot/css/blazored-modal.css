@@ -8,6 +8,10 @@
     z-index: 100;
 }
 
+.blazored-modal-wrapper {
+    z-index: 102;
+}
+
 .blazored-modal-overlay {
     display: block;
     position: fixed;

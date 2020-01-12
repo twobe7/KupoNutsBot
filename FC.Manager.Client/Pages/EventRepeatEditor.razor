@@ -116,7 +116,7 @@
 		}
 	}
 
-	public string Time
+	public DateTimeOffset? Time
 	{
 		get
 		{
@@ -130,8 +130,10 @@
 			Instant instant = this.Repeat.GetInstant(TimeUtils.Now.InUtc().LocalDateTime.Date);
 			LocalTime lt = instant.InZone(dtz).TimeOfDay;
 
-			string str = lt.Hour.ToString("D2") + ":" + lt.Minute.ToString("D2");
-			return str;
+			return instant.ToDateTimeOffset();
+
+			////string str = lt.Hour.ToString("D2") + ":" + lt.Minute.ToString("D2");
+			////return str;
 		}
 
 		set
@@ -139,7 +141,7 @@
 			if (this.Repeat == null)
 				return;
 
-			string[] parts = value.Split(':');
+			/*string[] parts = value.Split(':');
 			int hour = int.Parse(parts[0]);
 			int minute = int.Parse(parts[1]);
 
@@ -149,8 +151,11 @@
 			LocalDateTime ldt = new LocalDateTime(nowZdt.Year, nowZdt.Month, nowZdt.Day, hour, minute);
 			ZonedDateTime zdt = ldt.InZoneLeniently(dtz);
 			Instant instant = zdt.ToInstant();
-			ZonedDateTime utc = instant.InUtc();
 
+			*/
+
+			Instant instant = Instant.FromDateTimeOffset((DateTimeOffset)value);
+			ZonedDateTime utc = instant.InUtc();
 			this.Repeat.Time = utc.TimeOfDay;
 		}
 	}

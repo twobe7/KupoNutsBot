@@ -187,7 +187,7 @@ else
 
 		this.evt = Parameters.Get<Event>("Event");
 
-		this.ChannelList.AddRange(await Channels.GetChannels(this.Http, FC.Channel.Types.Text));
+		this.ChannelList.AddRange(await Channels.GetChannels());
 		this.IsLoading = false;
 	}
 

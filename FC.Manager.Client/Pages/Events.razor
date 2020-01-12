@@ -73,7 +73,8 @@ else
 	{
 		ModalParameters parameters = new ModalParameters();
 		parameters.Add("Event", evt);
-		this.Modal.Show("Edit Event", typeof(EventEditor), parameters);
+
+		this.Modal.Show<EventEditor>("Edit Event", parameters);
 		this.Modal.OnClose += this.OnModalClosed;
 	}
 
@@ -91,6 +92,7 @@ else
 		};
 
 		evt.Id = Guid.NewGuid().ToString();
+
 		OnEdit(evt);
 	}
 
@@ -117,7 +119,7 @@ else
 				{
 					ModalParameters parameters = new ModalParameters();
 					parameters.Add("Content", evtAction.Data.Name);
-					this.Modal.Show("Delete Event", typeof(ConfirmDelete), parameters);
+					this.Modal.Show<ConfirmDelete>("Delete Event", parameters);
 					this.Modal.OnClose += async (ModalResult res) =>
 					{
 						if (!res.Cancelled)

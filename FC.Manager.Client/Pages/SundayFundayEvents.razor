@@ -65,7 +65,7 @@ else
 	{
 		ModalParameters parameters = new ModalParameters();
 		parameters.Add("Event", item);
-		this.Modal.Show("Edit Event", typeof(SundayFundayEventEditor), parameters);
+		this.Modal.Show<SundayFundayEventEditor>("Edit Event", parameters);
 		this.Modal.OnClose += this.OnModalClosed;
 	}
 
@@ -99,7 +99,7 @@ else
 				{
 					ModalParameters parameters = new ModalParameters();
 					parameters.Add("Content", itemAction.Data.Name);
-					this.Modal.Show("Delete Item", typeof(ConfirmDelete), parameters);
+					this.Modal.Show<ConfirmDelete>("Delete Item", parameters);
 					this.Modal.OnClose += async (ModalResult res) =>
 					{
 						if (!res.Cancelled)

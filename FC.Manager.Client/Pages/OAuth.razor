@@ -21,7 +21,7 @@
 		{
 			ModalParameters parameters = new ModalParameters();
 			parameters.Add("Content", ex.Message);
-			this.Modal.Show("Authentication Error", typeof(GenericModal), parameters);
+			this.Modal.Show<GenericModal>("Authentication Error", parameters);
 			this.Modal.OnClose += (ModalResult) =>
 			{
 				NavigationManager.NavigateTo("/");
