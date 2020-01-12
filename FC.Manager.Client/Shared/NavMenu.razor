@@ -74,7 +74,7 @@
 		set
 		{
 			RPC.RPCService.GuildId = value;
-			Task.Run(this.UpdateGuild);	
+			this.UpdateGuild();
 		}
 	}
 
@@ -91,14 +91,17 @@
 		if (!Authentication.IsAuthenticated)
 			return;
 
+		IsInGuild = await RPC.RPCService.Invoke<bool>("GuildService.IsInGuild", RPC.RPCService.GuildId);
+
 		await base.OnInitializedAsync();
+		
 	}
 
-	private async Task UpdateGuild()
+	private void UpdateGuild()
 	{
+		NavigationManager.NavigateTo("/temp");
 		NavigationManager.NavigateTo("/");
-
-		IsInGuild = await RPC.RPCService.Invoke<bool>("GuildService.IsInGuild", RPC.RPCService.GuildId);
+		
 		this.StateHasChanged();
 	}
 
