@@ -16,7 +16,7 @@ namespace FC.Utils
 			get
 			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-					return "./FCBot/bin/";
+					return "./FCChanBot/bin/";
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					return "./";
