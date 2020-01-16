@@ -133,11 +133,12 @@ namespace FC.Data
 			return result;
 		}
 
-		public Task Save(EntryBase document)
+		public Task Save<T>(T document)
+			where T : EntryBase, new()
 		{
 			string path = this.GetEntryPath(document.Id);
 
-			string json = JsonSerializer.Serialize(document, document.GetType());
+			string json = JsonSerializer.Serialize<T>(document);
 			File.WriteAllText(path, json);
 
 			return Task.CompletedTask;

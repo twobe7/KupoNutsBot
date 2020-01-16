@@ -20,10 +20,11 @@ namespace FC.Bot.Services
 			return settings;
 		}
 
-		public static async Task SaveSettings(SettingsEntry settings)
+		public static async Task SaveSettings<T>(T settings)
+			where T : SettingsEntry, new()
 		{
 			string key = settings.GuildId + settings.GetType().FullName;
-			await settingsDb.Save(settings);
+			await settingsDb.Save<T>(settings);
 		}
 
 		public override async Task Initialize()

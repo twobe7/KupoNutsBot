@@ -61,9 +61,10 @@ namespace FC.Data
 			return this.table.LoadOrCreate<T>(key);
 		}
 
-		public Task Save(EntryBase document)
+		public Task Save<T>(T document)
+			where T : EntryBase, new()
 		{
-			return this.table.Save(document);
+			return this.table.Save<T>(document);
 		}
 	}
 }

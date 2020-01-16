@@ -32,6 +32,7 @@ namespace FC.Data
 
 		Task Delete(string key);
 
-		Task Save(EntryBase document);
+		Task Save<T>(T document)
+			where T : EntryBase, new();
 	}
 }

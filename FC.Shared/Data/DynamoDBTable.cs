@@ -157,13 +157,14 @@ namespace FC.Data
 			await this.context.DeleteAsync(key, this.operationConfig);
 		}
 
-		public Task Save(EntryBase document)
+		public Task Save<T>(T document)
+			where T : EntryBase, new()
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
 			document.Updated = DateTime.UtcNow;
-			return this.context.SaveAsync(document, this.operationConfig);
+			return this.context.SaveAsync<T>(document, this.operationConfig);
 		}
 
 		private static List<ScanCondition> ToScanConditions(Dictionary<string, object>? conditions)
