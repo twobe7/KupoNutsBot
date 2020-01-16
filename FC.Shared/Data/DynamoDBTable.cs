@@ -14,19 +14,30 @@ namespace FC.Data
 	using Amazon.DynamoDBv2.Model;
 	using Amazon.Runtime.CredentialManagement;
 
-	public class DynamoDBTable<T> : Table<T>
-		where T : EntryBase, new()
+	public class DynamoDBTable : ITable
 	{
+		public readonly string Name;
+		public readonly int Version;
+
 		private AmazonDynamoDBClient? client;
 		private DynamoDBContext? context;
 		private DynamoDBOperationConfig? operationConfig;
 
 		internal DynamoDBTable(string databaseName, int version)
-			: base(databaseName, version)
 		{
+			this.Name = databaseName;
+			this.Version = version;
 		}
 
-		public override async Task Connect()
+		private string InternalName
+		{
+			get
+			{
+				return this.Name + "_" + this.Version;
+			}
+		}
+
+		public async Task Connect()
 		{
 			CredentialProfileOptions options = new CredentialProfileOptions();
 
@@ -61,7 +72,8 @@ namespace FC.Data
 			this.operationConfig.OverrideTableName = this.InternalName;
 		}
 
-		public override async Task<T> CreateEntry(string? id = null)
+		public async Task<T> CreateEntry<T>(string? id = null)
+			where T : EntryBase, new()
 		{
 			if (id == null)
 				id = await this.GetNewID();
@@ -72,22 +84,27 @@ namespace FC.Data
 			return t;
 		}
 
-		public override async Task<string> GetNewID()
+		public async Task<string> GetNewID()
 		{
+			if (this.context == null)
+				throw new Exception("Database is not connected");
+
 			bool valid = false;
 			string guid;
 
 			do
 			{
 				guid = Guid.NewGuid().ToString();
-				valid = await this.Load(guid) == null;
+
+				valid = await this.context.LoadAsync<EntryBase>(guid, this.operationConfig) == null;
 			}
 			while (!valid);
 
 			return guid;
 		}
 
-		public override async Task<T?> Load(string key)
+		public async Task<T?> Load<T>(string key)
+			where T : EntryBase, new()
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
@@ -95,17 +112,19 @@ namespace FC.Data
 			return await this.context.LoadAsync<T>(key, this.operationConfig);
 		}
 
-		public override async Task<T> LoadOrCreate(string key)
+		public async Task<T> LoadOrCreate<T>(string key)
+			where T : EntryBase, new()
 		{
-			T? entry = await this.Load(key);
+			T? entry = await this.Load<T>(key);
 
 			if (entry is null)
-				entry = await this.CreateEntry(key);
+				entry = await this.CreateEntry<T>(key);
 
 			return entry;
 		}
 
-		public override async Task<List<T>> LoadAll(Dictionary<string, object>? conditions = null)
+		public async Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null)
+			where T : EntryBase, new()
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
@@ -121,7 +140,8 @@ namespace FC.Data
 			}
 		}
 
-		public override async Task Delete(T entry)
+		public async Task Delete<T>(T entry)
+			where T : EntryBase, new()
 		{
 			if (entry.Id == null)
 				return;
@@ -129,15 +149,15 @@ namespace FC.Data
 			await this.Delete(entry.Id);
 		}
 
-		public override async Task Delete(string key)
+		public async Task Delete(string key)
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
-			await this.context.DeleteAsync<T>(key, this.operationConfig);
+			await this.context.DeleteAsync(key, this.operationConfig);
 		}
 
-		public override Task Save(T document)
+		public Task Save(EntryBase document)
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");

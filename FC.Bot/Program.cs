@@ -80,6 +80,7 @@ namespace FC.Bot
 		{
 			try
 			{
+				await this.AddService<SettingsService>();
 				await this.AddService<ScheduleService>();
 				await this.AddService<UserService>();
 				await this.AddService<LogService>();
@@ -114,7 +115,7 @@ namespace FC.Bot
 
 		private static void Log_ExceptionLogged(string exceptionLog)
 		{
-			if (Program.DiscordClient != null)
+			if (client != null)
 			{
 				try
 				{
@@ -149,7 +150,7 @@ namespace FC.Bot
 
 				if (string.IsNullOrEmpty(token))
 				{
-					Log.Write("No token set. Please set a token in the Database file", "Bot");
+					Log.Write(new Exception("No token set. Please set a token in the Settings file"));
 				}
 				else
 				{
@@ -206,7 +207,7 @@ namespace FC.Bot
 					}
 				}
 
-				DiscordClient?.Dispose();
+				client?.Dispose();
 				Running = false;
 				Log.Write("shutdown complete", "Bot");
 			}

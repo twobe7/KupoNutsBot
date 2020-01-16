@@ -44,5 +44,29 @@ namespace FC.Manager.Client.RPC
 
 			return JsonConvert.DeserializeObject<TResult>(result.Data);
 		}
+
+		public static async Task Invoke(string method, params object[] param)
+		{
+			if (Client == null)
+				throw new Exception("No HttpClient in RPC Service");
+
+			RPCRequest req = new RPCRequest();
+			req.Method = method;
+			req.Token = Authentication.Token;
+			req.GuildId = GuildId;
+
+			for (int i = 0; i < param.Length; i++)
+			{
+				req.ParamData.Add(JsonConvert.SerializeObject(param[i]));
+			}
+
+			RPCResult result = await Client.PostJsonAsync<RPCResult>("RPC", req);
+
+			// TODO: get exception type.
+			if (!string.IsNullOrEmpty(result.Exception))
+			{
+				throw new Exception(result.Exception);
+			}
+		}
 	}
 }

@@ -110,8 +110,8 @@ else
 				}
 				case Actions.Update:
 				{
-					await this.Http.PostJsonAsync("EventsAPI", evtAction);
-					this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
+					await RPCService.Invoke("EventsService.UpdateEvent", evtAction.Data);
+					this.AllEvents =  await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
 					this.StateHasChanged();
 					break;
 				}
@@ -124,8 +124,8 @@ else
 					{
 						if (!res.Cancelled)
 						{
-							await this.Http.PostJsonAsync("EventsAPI", evtAction);
-							this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
+							await RPCService.Invoke("EventsService.DeleteEvent", evtAction.Data.Id);
+							this.AllEvents =  await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
 							this.StateHasChanged();
 						}
 					};

@@ -17,12 +17,24 @@ namespace FC.Manager.Server.Services
 		[GuildRpc]
 		public async Task<List<Event>> GetEvents(string guildId)
 		{
-			Table<Event> eventsDb = Table<Event>.Create("KupoNuts_Events", 1);
+			Table<Event> eventsDb = new Table<Event>("KupoNuts_Events", 1);
 			await eventsDb.Connect();
 
 			Dictionary<string, object> search = new Dictionary<string, object>();
 			search.Add("ServerIdStr", guildId);
 			return await eventsDb.LoadAll(search);
+		}
+
+		[GuildRpc]
+		public Task DeleteEvent(string guildId, string eventId)
+		{
+			throw new NotImplementedException();
+		}
+
+		[GuildRpc]
+		public Task UpdateEvent(string guildId, Event evt)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

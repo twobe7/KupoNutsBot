@@ -4,10 +4,13 @@
 
 namespace FC.Data
 {
+	using System;
 	using System.Collections.Generic;
+	using System.Text;
 	using System.Threading.Tasks;
 
-	public class Table : ITable
+	public class Table<T>
+		where T : EntryBase, new()
 	{
 		private readonly ITable table;
 
@@ -21,16 +24,14 @@ namespace FC.Data
 			return this.table.Connect();
 		}
 
-		public Task<T> CreateEntry<T>(string? id = null)
-			where T : EntryBase, new()
+		public Task<T> CreateEntry(string? id = null)
 		{
 			return this.table.CreateEntry<T>(id);
 		}
 
-		public Task Delete<T>(T entry)
-			where T : EntryBase, new()
+		public Task Delete(T entry)
 		{
-			return this.table.Delete<T>(entry);
+			return this.table.Delete(entry);
 		}
 
 		public Task Delete(string key)
@@ -43,25 +44,22 @@ namespace FC.Data
 			return this.table.GetNewID();
 		}
 
-		public Task<T?> Load<T>(string key)
-			where T : EntryBase, new()
+		public Task<T?> Load(string key)
 		{
 			return this.table.Load<T>(key);
 		}
 
-		public Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null)
-			where T : EntryBase, new()
+		public Task<List<T>> LoadAll(Dictionary<string, object>? conditions = null)
 		{
 			return this.table.LoadAll<T>(conditions);
 		}
 
-		public Task<T> LoadOrCreate<T>(string key)
-			where T : EntryBase, new()
+		public Task<T> LoadOrCreate(string key)
 		{
 			return this.table.LoadOrCreate<T>(key);
 		}
 
-		public Task Save(EntryBase document)
+		public Task Save(T document)
 		{
 			return this.table.Save(document);
 		}

@@ -18,7 +18,7 @@ namespace FC.Bot.Quotes
 
 	public class QuoteService : ServiceBase
 	{
-		private Table<Quote> quoteDb = Table<Quote>.Create("KupoNuts_Quotes", Quote.Version);
+		private Table<Quote> quoteDb = new Table<Quote>("KupoNuts_Quotes", Quote.Version);
 
 		public override async Task Initialize()
 		{

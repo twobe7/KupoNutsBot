@@ -44,7 +44,7 @@ namespace FC.Bot.Services
 			new Emoji("🇬"),
 		};
 
-		private Table<SundayFundayEvent> database = Table<SundayFundayEvent>.Create("KupoNuts_SundayFunday", 0);
+		private Table<SundayFundayEvent> database = new Table<SundayFundayEvent>("KupoNuts_SundayFunday", 0);
 		private ulong messageId;
 		private Dictionary<ulong, List<string>> removingUserReactions = new Dictionary<ulong, List<string>>();
 

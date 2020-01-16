@@ -8,27 +8,29 @@ namespace FC.Data
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Reflection;
-	using System.Text;
 	using System.Text.Json;
 	using System.Threading.Tasks;
 
-	public class JsonTable<T> : Table<T>
-		where T : EntryBase, new()
+	public class JsonTable : ITable
 	{
+		public readonly string Name;
+		public readonly int Version;
+
 		internal JsonTable(string databaseName, int version)
-			: base(databaseName, version)
 		{
+			this.Name = databaseName;
+			this.Version = version;
 		}
 
 		public string DirectoryPath
 		{
 			get
 			{
-				return "Database/" + this.InternalName + "/";
+				return "Database/" + this.Name + "_" + this.Version + "/";
 			}
 		}
 
-		public override Task Connect()
+		public Task Connect()
 		{
 			if (!Directory.Exists(this.DirectoryPath))
 				Directory.CreateDirectory(this.DirectoryPath);
@@ -36,7 +38,8 @@ namespace FC.Data
 			return Task.CompletedTask;
 		}
 
-		public override Task<T> CreateEntry(string? id = null)
+		public Task<T> CreateEntry<T>(string? id = null)
+			where T : EntryBase, new()
 		{
 			if (id == null)
 				id = Guid.NewGuid().ToString();
@@ -47,12 +50,13 @@ namespace FC.Data
 			return Task.FromResult(entry);
 		}
 
-		public override Task Delete(T entry)
+		public Task Delete<T>(T entry)
+			where T : EntryBase, new()
 		{
 			return this.Delete(entry.Id);
 		}
 
-		public override Task Delete(string key)
+		public Task Delete(string key)
 		{
 			string path = this.GetEntryPath(key);
 
@@ -63,12 +67,13 @@ namespace FC.Data
 			return Task.CompletedTask;
 		}
 
-		public override Task<string> GetNewID()
+		public Task<string> GetNewID()
 		{
 			return Task.FromResult(Guid.NewGuid().ToString());
 		}
 
-		public override Task<T?> Load(string key)
+		public Task<T?> Load<T>(string key)
+			where T : EntryBase, new()
 		{
 			string path = this.GetEntryPath(key);
 
@@ -81,7 +86,8 @@ namespace FC.Data
 			return Task.FromResult((T?)entry);
 		}
 
-		public override Task<List<T>> LoadAll(Dictionary<string, object>? conditions = null)
+		public Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null)
+			where T : EntryBase, new()
 		{
 			List<T> results = new List<T>();
 
@@ -117,20 +123,21 @@ namespace FC.Data
 			return Task.FromResult(results);
 		}
 
-		public override async Task<T> LoadOrCreate(string key)
+		public async Task<T> LoadOrCreate<T>(string key)
+			where T : EntryBase, new()
 		{
-			T? result = await this.Load(key);
+			T? result = await this.Load<T>(key);
 			if (result == null)
-				result = await this.CreateEntry(key);
+				result = await this.CreateEntry<T>(key);
 
 			return result;
 		}
 
-		public override Task Save(T entry)
+		public Task Save(EntryBase document)
 		{
-			string path = this.GetEntryPath(entry.Id);
+			string path = this.GetEntryPath(document.Id);
 
-			string json = JsonSerializer.Serialize(entry);
+			string json = JsonSerializer.Serialize(document);
 			File.WriteAllText(path, json);
 
 			return Task.CompletedTask;

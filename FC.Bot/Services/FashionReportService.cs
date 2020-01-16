@@ -16,7 +16,7 @@ namespace FC.Bot.Services
 
 	public class FashionReportService : ServiceBase
 	{
-		private Table<FashionReportEntry> db = Table<FashionReportEntry>.Create("KupoNuts_FashionReport", 0);
+		private Table<FashionReportEntry> db = new Table<FashionReportEntry>("KupoNuts_FashionReport", 0);
 
 		public override async Task Initialize()
 		{

@@ -19,7 +19,7 @@ namespace FC.Bot.Services
 		private static UserService? instance;
 
 		private Dictionary<ulong, Dictionary<ulong, string>> userIdLookup = new Dictionary<ulong, Dictionary<ulong, string>>();
-		private Table<User> userDb = Table<User>.Create("KupoNuts_Users", 0);
+		private Table<User> userDb = new Table<User>("KupoNuts_Users", 0);
 
 		public static async Task<User> GetUser(IGuildUser user)
 		{

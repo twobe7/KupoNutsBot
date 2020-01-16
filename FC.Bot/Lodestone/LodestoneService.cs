@@ -17,7 +17,7 @@ namespace FC.Bot.Lodestone
 
 	public class LodestoneService : ServiceBase
 	{
-		private Table<PostedNews> newsDb = Table<PostedNews>.Create("KupoNuts_News", 0);
+		private Table<PostedNews> newsDb = new Table<PostedNews>("KupoNuts_News", 0);
 
 		public override async Task Initialize()
 		{
