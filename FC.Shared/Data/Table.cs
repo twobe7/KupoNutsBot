@@ -33,9 +33,10 @@ namespace FC.Data
 			return this.table.Delete<T>(entry);
 		}
 
-		public Task Delete(string key)
+		public Task Delete<T>(string key)
+			where T : EntryBase, new()
 		{
-			return this.table.Delete(key);
+			return this.table.Delete<T>(key);
 		}
 
 		public Task<string> GetNewID()

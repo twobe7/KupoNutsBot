@@ -53,10 +53,11 @@ namespace FC.Data
 		public Task Delete<T>(T entry)
 			where T : EntryBase, new()
 		{
-			return this.Delete(entry.Id);
+			return this.Delete<T>(entry.Id);
 		}
 
-		public Task Delete(string key)
+		public Task Delete<T>(string key)
+			where T : EntryBase, new()
 		{
 			string path = this.GetEntryPath(key);
 

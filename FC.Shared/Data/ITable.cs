@@ -30,7 +30,8 @@ namespace FC.Data
 		Task Delete<T>(T entry)
 			where T : EntryBase, new();
 
-		Task Delete(string key);
+		Task Delete<T>(string key)
+			where T : EntryBase, new();
 
 		Task Save<T>(T document)
 			where T : EntryBase, new();

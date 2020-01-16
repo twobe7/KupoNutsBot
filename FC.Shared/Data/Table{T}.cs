@@ -36,7 +36,7 @@ namespace FC.Data
 
 		public Task Delete(string key)
 		{
-			return this.table.Delete(key);
+			return this.table.Delete<T>(key);
 		}
 
 		public Task<string> GetNewID()

@@ -146,15 +146,16 @@ namespace FC.Data
 			if (entry.Id == null)
 				return;
 
-			await this.Delete(entry.Id);
+			await this.Delete<T>(entry.Id);
 		}
 
-		public async Task Delete(string key)
+		public async Task Delete<T>(string key)
+			where T : EntryBase, new()
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
-			await this.context.DeleteAsync(key, this.operationConfig);
+			await this.context.DeleteAsync<T>(key, this.operationConfig);
 		}
 
 		public Task Save<T>(T document)
