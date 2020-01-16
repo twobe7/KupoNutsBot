@@ -1,4 +1,5 @@
 ﻿@inject HttpClient Http
+@inject IModalService Modal
 
 @inherits LayoutComponentBase
 
@@ -20,6 +21,7 @@
 	protected override async Task OnInitializedAsync()
 	{
 		RPC.RPCService.Client = this.Http;
+		FC.Manager.Client.Modal.ModalService = this.Modal;
 		await base.OnInitializedAsync();
 	}
 }

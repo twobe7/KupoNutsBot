@@ -1,11 +1,8 @@
 ﻿@using FC.Events;
-@using FC.Utils;
 @using NodaTime;
-@using NodaTime.Text;
+@using RPC;
 
-@inject HttpClient Http
-@inject IModalService Modal
-@inject NavigationManager NavigationManager
+@inherits Modal
 
 @if (this.IsLoading)
 {
@@ -105,8 +102,7 @@ else
 
 
 @code {
-	[CascadingParameter]
-	ModalParameters Parameters { get; set; }
+
 
 	public bool IsLoading { get; set; }
 
@@ -158,22 +154,15 @@ else
 		}
 	}
 
-	protected override async Task OnInitializedAsync()
+	public async Task Initialize(Event evt)
 	{
 		this.IsLoading = true;
-
-		if (!Authentication.IsAuthenticated)
-		{
-			this.NavigationManager.NavigateTo("/");
-			return;
-		}
-
-		await base.OnInitializedAsync();
+		this.evt = evt;
 
 		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
 
 		this.NotifyList = new Dictionary<string, double>()
-{
+	{
 			{ "Never", -1 },
 			{ "Immediatelly", 0},
 			{ "One Hour", 1 },
@@ -185,24 +174,29 @@ else
 			new Channel(0, "None", FC.Channel.Types.Unknown),
 		};
 
-		this.evt = Parameters.Get<Event>("Event");
-
 		this.ChannelList.AddRange(await Channels.GetChannels());
 		this.IsLoading = false;
 	}
 
-	private void OnSave()
+	private async void OnSave()
 	{
-		this.Modal.Close(ModalResult.Ok(new DataAction<Event>(this.evt, Actions.Update)));
+		await RPCService.Invoke("EventsService.UpdateEvent", this.evt);
+		this.Close();
 	}
 
 	private void OnClose()
 	{
-		this.Modal.Close(ModalResult.Ok(new DataAction<Event>(this.evt, Actions.Nothing)));
+		this.Close();
 	}
 
-	private void OnDelete()
+	private async void OnDelete()
 	{
-		this.Modal.Close(ModalResult.Ok(new DataAction<Event>(this.evt, Actions.Delete)));
+		this.Close();
+
+		bool confirmed = await Modal.Show<bool, ConfirmDelete>("Delete Event", "Are you sure you want to delete the event: " + this.evt.Name);
+		if (confirmed)
+		{
+			await RPCService.Invoke("EventsService.DeleteEvent", this.evt.Id);
+		}
 	}
 }

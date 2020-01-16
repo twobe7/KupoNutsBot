@@ -6,7 +6,6 @@
 @using RPC;
 
 @inject HttpClient Http
-@inject IModalService Modal
 @inject NavigationManager NavigationManager
 
 @if (this.AllEvents == null)
@@ -64,18 +63,16 @@ else
 
 		this.AllEvents = await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
 		this.AllChannels = new List<Channel>();
-
-		////this.AllChannels = await this.Http.GetJsonAsync<List<Channel>>("ChannelsAPI");
-		////this.AllEvents = await this.Http.GetJsonAsync<List<Event>>("EventsAPI");
 	}
 
-	protected void OnEdit(Event evt)
+	protected async void OnEdit(Event evt)
 	{
 		ModalParameters parameters = new ModalParameters();
 		parameters.Add("Event", evt);
 
-		this.Modal.Show<EventEditor>("Edit Event", parameters);
-		this.Modal.OnClose += this.OnModalClosed;
+		await Modal.Show<EventEditor>("Edit Event", evt);
+		this.AllEvents =  await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
+		this.StateHasChanged();
 	}
 
 	protected void OnCreateNew()
@@ -94,46 +91,5 @@ else
 		evt.Id = Guid.NewGuid().ToString();
 
 		OnEdit(evt);
-	}
-
-	private async void OnModalClosed(ModalResult result)
-	{
-		Modal.OnClose -= this.OnModalClosed;
-
-		if (result.Data is DataAction<Event> evtAction)
-		{
-			switch (evtAction.Action)
-			{
-				case Actions.Nothing:
-				{
-					break;
-				}
-				case Actions.Update:
-				{
-					await RPCService.Invoke("EventsService.UpdateEvent", evtAction.Data);
-					this.AllEvents =  await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
-					this.StateHasChanged();
-					break;
-				}
-				case Actions.Delete:
-				{
-					ModalParameters parameters = new ModalParameters();
-					parameters.Add("Content", evtAction.Data.Name);
-					this.Modal.Show<ConfirmDelete>("Delete Event", parameters);
-					this.Modal.OnClose += async (ModalResult res) =>
-					{
-						if (!res.Cancelled)
-						{
-							await RPCService.Invoke("EventsService.DeleteEvent", evtAction.Data.Id);
-							this.AllEvents =  await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
-							this.StateHasChanged();
-						}
-					};
-
-					break;
-				}
-			}
-		}
-
 	}
 }

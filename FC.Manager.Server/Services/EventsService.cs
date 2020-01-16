@@ -4,9 +4,7 @@
 
 namespace FC.Manager.Server.Services
 {
-	using System;
 	using System.Collections.Generic;
-	using System.Linq;
 	using System.Threading.Tasks;
 	using FC.Data;
 	using FC.Events;
@@ -14,27 +12,32 @@ namespace FC.Manager.Server.Services
 
 	public class EventsService : ServiceBase
 	{
+		private Table<Event> eventsDb = new Table<Event>("KupoNuts_Events", 1);
+
+		public override async Task Initialize()
+		{
+			await this.eventsDb.Connect();
+		}
+
 		[GuildRpc]
 		public async Task<List<Event>> GetEvents(string guildId)
 		{
-			Table<Event> eventsDb = new Table<Event>("KupoNuts_Events", 1);
-			await eventsDb.Connect();
-
 			Dictionary<string, object> search = new Dictionary<string, object>();
 			search.Add("ServerIdStr", guildId);
-			return await eventsDb.LoadAll(search);
+			return await this.eventsDb.LoadAll(search);
 		}
 
 		[GuildRpc]
-		public Task DeleteEvent(string guildId, string eventId)
+		public async Task DeleteEvent(string guildId, string eventId)
 		{
-			throw new NotImplementedException();
+			await this.eventsDb.Delete(eventId);
 		}
 
 		[GuildRpc]
-		public Task UpdateEvent(string guildId, Event evt)
+		public async Task UpdateEvent(string guildId, Event evt)
 		{
-			throw new NotImplementedException();
+			evt.ServerIdStr = guildId;
+			await this.eventsDb.Save(evt);
 		}
 	}
 }

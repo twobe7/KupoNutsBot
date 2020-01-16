@@ -53,7 +53,10 @@
 	private async void OnAddtoServer()
 	{
 		string clientId = await RPCService.Invoke<string>("AuthenticationService.GetDiscordKey");
-		
+
+		if (string.IsNullOrEmpty(clientId))
+			throw new Exception("No Client Id");
+
 		StringBuilder urlBuilder = new StringBuilder();
 		urlBuilder.Append("https://discordapp.com/api/oauth2/authorize");
 		urlBuilder.Append("?client_id=");

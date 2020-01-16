@@ -41,8 +41,7 @@ namespace FC.Events
 			DarkMagenta,
 		}
 
-		#pragma warning disable SA1516
-		public string ServerIdStr { get; set; } = "391492798353768449";
+		public string ServerIdStr { get; set; } = "0";
 		public string? ChannelId { get; set; }
 		public string Name { get; set; } = "New Event";
 		public string? ShortDescription { get; set; }

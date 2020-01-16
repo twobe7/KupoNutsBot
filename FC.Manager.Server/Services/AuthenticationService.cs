@@ -18,6 +18,10 @@ namespace FC.Manager.Server.Services
 		public string GetDiscordKey()
 		{
 			Settings settings = Settings.Load();
+
+			if (string.IsNullOrEmpty(settings.DiscordKey))
+				throw new Exception("No Discord Key in settings file");
+
 			return settings.DiscordKey;
 		}
 

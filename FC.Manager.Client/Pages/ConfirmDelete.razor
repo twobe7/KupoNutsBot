@@ -1,5 +1,6 @@
 ﻿@using FC.Events;
-@inject IModalService Modal
+
+@inherits Modal
 
 <div class="form-row">
 	<div class="form-group col-md-12">
@@ -15,23 +16,20 @@
 
 
 @code {
-	[CascadingParameter] ModalParameters Parameters { get; set; }
-
 	private string content;
 
-	protected override void OnInitialized()
+	public void Initialize(string content)
 	{
-		base.OnInitialized();
-		this.content = Parameters.Get<string>("Content");
+		this.content = content;
 	}
 
 	private void OnClose()
 	{
-		this.Modal.Close(ModalResult.Cancel());
+		this.Close(false);
 	}
 
 	private void OnDelete()
 	{
-		this.Modal.Close(ModalResult.Ok(true));
+		this.Close(true);
 	}
 }

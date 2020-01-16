@@ -137,7 +137,7 @@ namespace FC.Data
 		{
 			string path = this.GetEntryPath(document.Id);
 
-			string json = JsonSerializer.Serialize(document);
+			string json = JsonSerializer.Serialize(document, document.GetType());
 			File.WriteAllText(path, json);
 
 			return Task.CompletedTask;
