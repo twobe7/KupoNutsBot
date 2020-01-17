@@ -1,0 +1,43 @@
+﻿@inherits DrawerBase
+
+<div class="form-group col-md-6">
+	<label for="channelSelect">Discord Channel</label>
+	<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Selected">
+		@foreach (Channel channl in this.ChannelList)
+		{
+			<option value=@channl.DiscordId>@channl.Name</option>
+		}
+	</select>
+</div>
+
+@code {
+	public List<Channel> ChannelList { get; set; }
+
+	public string Selected
+	{
+		get
+		{
+			string channelId = this.GetValue<string>();
+
+			if (string.IsNullOrEmpty(channelId))
+				return "0";
+
+			return channelId;
+		}
+
+		set
+		{
+			this.SetValue(value == "0" ? null : value);
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.ChannelList = new List<Channel>()
+		{
+			new Channel(0, "None", FC.Channel.Types.Unknown),
+		};
+
+		this.ChannelList.AddRange(await Channels.GetChannels());
+	}
+}
