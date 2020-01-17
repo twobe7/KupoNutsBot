@@ -14,6 +14,11 @@ namespace FC.Attributes
 	{
 		public readonly Channel.Types ChannelType;
 
+		public InspectorChannelAttribute()
+		{
+			this.ChannelType = Channel.Types.Unknown;
+		}
+
 		public InspectorChannelAttribute(Channel.Types type)
 		{
 			this.ChannelType = type;

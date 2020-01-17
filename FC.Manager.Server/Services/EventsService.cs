@@ -39,5 +39,20 @@ namespace FC.Manager.Server.Services
 			evt.ServerIdStr = guildId;
 			await this.eventsDb.Save(evt);
 		}
+
+		[GuildRpc]
+		public Task<EventsSettings> GetSettings(string guildId)
+		{
+			return SettingsService.GetSettings<EventsSettings>(guildId);
+		}
+
+		[GuildRpc]
+		public Task SaveSettings(string guildId, EventsSettings settings)
+		{
+			// Don't let clients change this!
+			settings.GuildId = guildId;
+
+			return SettingsService.SaveSettings(settings);
+		}
 	}
 }

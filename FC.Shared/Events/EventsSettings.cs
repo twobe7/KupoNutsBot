@@ -12,7 +12,7 @@ namespace FC.Events
 	[Serializable]
 	public class EventsSettings : SettingsEntry
 	{
-		[InspectorChannel(Channel.Types.Text)]
+		[InspectorChannel]
 		public string? CalendarChannel { get; set; }
 
 		[InspectorHidden]

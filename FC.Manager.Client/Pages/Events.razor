@@ -72,7 +72,7 @@ else
 		parameters.Add("Event", evt);
 
 		await Modal.Show<EventEditor>("Edit Event", evt);
-		this.AllEvents =  await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
+		this.AllEvents = await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
 		this.StateHasChanged();
 	}
 
@@ -96,7 +96,12 @@ else
 
 	protected async void OnSettings()
 	{
-		EventsSettings set = new EventsSettings();
-		await Modal.Show<Inspector>("Events Settings", set);
+		EventsSettings set = await RPCService.Invoke<EventsSettings>("EventsService.GetSettings");
+		set = await Inspector.Inspect(set);
+
+		if (set == null)
+			return;
+
+		await RPCService.Invoke<EventsSettings>("EventsService.SaveSettings", set);
 	}
 }

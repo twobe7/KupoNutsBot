@@ -1,12 +1,6 @@
-﻿@using FC.Quotes;
-@using FC.Utils;
-@using System.Text;
-@using NodaTime;
-@using System.Globalization;
-@using System.Reflection;
-@using Microsoft.AspNetCore.Components.Rendering;
+﻿@using System.Reflection;
 @using FC.Attributes;
-@using FC.Manager.Client.Drawers;
+@using System.Text.RegularExpressions;
 
 @inherits Modal
 
@@ -27,8 +21,20 @@
 	public List<RenderFragment> Fragments { get; set; } = new List<RenderFragment>();
 	public List<Channel> ChannelList { get; set; }
 
+	private object obj;
+
+	public static async Task<T> Inspect<T>(T obj)
+	{
+		string name = typeof(T).Name;
+		name = Regex.Replace(name, "(\\B[A-Z])", " $1");
+
+		T newObj = await Modal.Show<T, Inspector>(name, obj);
+		return newObj;
+	}
+
 	public async Task Initialize(object obj)
 	{
+		this.obj = obj;
 		Type type = obj.GetType();
 
 		this.ChannelList = new List<Channel>()
@@ -63,7 +69,7 @@
 
 	private void OnSave()
 	{
-		this.Close();
+		this.Close(this.obj);
 	}
 
 	private Type GetDrawerType(PropertyInfo property)

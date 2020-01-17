@@ -27,9 +27,9 @@ namespace FC
 			Voice,
 		}
 
-		public string? DiscordId { get; set; }
+		public string DiscordId { get; set; } = string.Empty;
 
-		public string? Name { get; set; }
+		public string Name { get; set; } = string.Empty;
 
 		public Types Type { get; set; }
 	}

@@ -1,8 +1,8 @@
 ﻿@inherits DrawerBase
 
 <div class="form-group col-md-6">
-	<label for="channelSelect">Discord Channel</label>
-	<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Selected">
+	<label>Discord Channel</label>
+	<select class="custom-select" @bind="this.Selected">
 		@foreach (Channel channl in this.ChannelList)
 		{
 			<option value=@channl.DiscordId>@channl.Name</option>
@@ -11,23 +11,21 @@
 </div>
 
 @code {
+
+	private string selected;
+
 	public List<Channel> ChannelList { get; set; }
 
 	public string Selected
 	{
 		get
 		{
-			string channelId = this.GetValue<string>();
-
-			if (string.IsNullOrEmpty(channelId))
-				return "0";
-
-			return channelId;
+			return this.selected;
 		}
-
 		set
 		{
-			this.SetValue(value == "0" ? null : value);
+			this.selected = value;
+			this.OnChanged(this.selected);
 		}
 	}
 
@@ -39,5 +37,16 @@
 		};
 
 		this.ChannelList.AddRange(await Channels.GetChannels());
+
+		this.Selected = this.GetValue<string>();
+		if (string.IsNullOrEmpty(this.Selected))
+			this.Selected = "0";
+
+		this.StateHasChanged();
+	}
+
+	protected void OnChanged(string value)
+	{
+		this.SetValue(value);
 	}
 }
