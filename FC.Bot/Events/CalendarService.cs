@@ -157,6 +157,7 @@ namespace FC.Bot.Events.Services
 				builder.AppendLine("None");
 
 			EmbedBuilder embedBuilder = new EmbedBuilder();
+			embedBuilder.Title = header;
 			embedBuilder.Description = builder.ToString();
 			embedBuilder.Color = Color.Blue;
 
@@ -167,14 +168,14 @@ namespace FC.Bot.Events.Services
 
 			if (message == null)
 			{
-				message = await channel.SendMessageAsync(header, false, embedBuilder.Build());
+				message = await channel.SendMessageAsync(null, false, embedBuilder.Build());
 				messageId = message.Id;
 			}
 			else
 			{
 				await message.ModifyAsync(x =>
 				{
-					x.Content = header;
+					x.Content = null;
 					x.Embed = embedBuilder.Build();
 				});
 			}
