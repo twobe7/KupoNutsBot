@@ -83,6 +83,7 @@ namespace FC.Bot
 			{
 				await this.AddService<SettingsService>();
 				await this.AddService<ScheduleService>();
+				await this.AddService<MeService>();
 				await this.AddService<UserService>();
 				await this.AddService<LogService>();
 				await this.AddService<CommandsService>();
@@ -175,19 +176,6 @@ namespace FC.Bot
 					// boot the rest of the bot
 					await this.AddServices();
 
-					await DiscordClient.SetActivityAsync(new BotActivity());
-
-					// TODO:
-					foreach (SocketGuild guild in DiscordClient.Guilds)
-					{
-						SocketGuildUser guildUser = guild.GetUser(DiscordClient.CurrentUser.Id);
-
-						await guildUser.ModifyAsync(x =>
-						{
-							x.Nickname = "Kupo Nuts";
-						});
-					}
-
 					Initializing = false;
 					Log.Write("Initialization complete", "Bot");
 
@@ -230,25 +218,6 @@ namespace FC.Bot
 		{
 			Log.Write(log.ToString(), "Bot");
 			return Task.CompletedTask;
-		}
-
-		private class BotActivity : IActivity
-		{
-			public string Name
-			{
-				get
-				{
-					return "'" + CommandsService.CommandPrefix + "help'";
-				}
-			}
-
-			public ActivityType Type
-			{
-				get
-				{
-					return ActivityType.Listening;
-				}
-			}
 		}
 	}
 }

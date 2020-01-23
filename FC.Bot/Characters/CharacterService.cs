@@ -111,7 +111,7 @@ namespace FC.Bot.Characters
 			string path = "CustomPortraits/" + userEntry.FFXIVCharacterId + ".png";
 
 			if (!File.Exists(path))
-				throw new UserException("No custom portrait set. Use \"" + CommandsService.CommandPrefix + "CustomPortrait\" as the comment on an uploaded image to set a custom portrait.");
+				throw new UserException("No custom portrait set. Use \"" + CommandsService.GetPrefix(message.Guild) + "CustomPortrait\" as the comment on an uploaded image to set a custom portrait.");
 
 			File.Delete(path);
 			return "Custom portrait cleared.";

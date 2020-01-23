@@ -84,7 +84,7 @@ namespace FC.Bot.Services
 			if (command == null)
 				command = message.Command;
 
-			builder.AppendLine(GetHelp(command, permissions));
+			builder.AppendLine(GetHelp(message.Guild, command, permissions));
 
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
@@ -144,7 +144,7 @@ namespace FC.Bot.Services
 
 			builder.AppendLine();
 			builder.AppendLine();
-			builder.AppendLine("To get more information on a command, look it up directly, like `" + CommandsService.CommandPrefix + "help \"time\"` or `" + CommandsService.CommandPrefix + "et ?`");
+			builder.AppendLine("To get more information on a command, look it up directly, like `" + CommandsService.GetPrefix(message.Guild) + "help \"time\"` or `" + CommandsService.GetPrefix(message.Guild) + "et ?`");
 
 			embed = new EmbedBuilder();
 			embed.Description = builder.ToString();
@@ -165,7 +165,7 @@ namespace FC.Bot.Services
 			return await GetHelp(message, command);
 		}
 
-		private static string? GetHelp(string commandStr, Permissions permissions)
+		private static string? GetHelp(IGuild guild, string commandStr, Permissions permissions)
 		{
 			StringBuilder builder = new StringBuilder();
 			List<Command> commands = CommandsService.GetCommands(commandStr);
@@ -204,7 +204,7 @@ namespace FC.Bot.Services
 
 				builder.Append("**");
 				builder.Append(Utils.Characters.Tab);
-				builder.Append(CommandsService.CommandPrefix);
+				builder.Append(CommandsService.GetPrefix(guild));
 				builder.Append(commandStr);
 				builder.Append(" ");
 

@@ -32,21 +32,15 @@
 		return newObj;
 	}
 
-	public async Task Initialize(object obj)
+	public static List<RenderFragment> GetFragments(object obj)
 	{
-		this.obj = obj;
+		List<RenderFragment> fragments = new List<RenderFragment>();
+
 		Type type = obj.GetType();
-
-		this.ChannelList = new List<Channel>()
-		{
-			new Channel(0, "None", FC.Channel.Types.Unknown),
-		};
-
-		this.ChannelList.AddRange(await Channels.GetChannels());
 
 		foreach (PropertyInfo prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
 		{
-			Type drawerType = this.GetDrawerType(prop);
+			Type drawerType = GetDrawerType(prop);
 
 			if (drawerType == null)
 				continue;
@@ -58,8 +52,37 @@
 				x.AddAttribute(1, "Target", obj);
 				x.CloseComponent();
 			});
-			this.Fragments.Add(content);
+			
+			fragments.Add(content);
 		}
+
+		return fragments;
+	}
+
+	private static Type GetDrawerType(PropertyInfo property)
+	{
+		// Hiden
+		if (property.GetCustomAttribute<InspectorHiddenAttribute>() != null)
+			return null;
+
+		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
+			return typeof(Drawers.ChannelDrawer);
+
+		return typeof(Drawers.StringDrawer);
+	}
+
+	public async Task Initialize(object obj)
+	{
+		this.obj = obj;
+		Type type = obj.GetType();
+
+		this.ChannelList = new List<Channel>()
+		{
+			new Channel(0, "None", FC.Channel.Types.Unknown),
+		};
+
+		this.ChannelList.AddRange(await Channels.GetChannels());
+		this.Fragments = GetFragments(obj);
 	}
 
 	private void OnCancel()
@@ -70,17 +93,5 @@
 	private void OnSave()
 	{
 		this.Close(this.obj);
-	}
-
-	private Type GetDrawerType(PropertyInfo property)
-	{
-		// Hiden
-		if (property.GetCustomAttribute<InspectorHiddenAttribute>() != null)
-			return null;
-
-		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
-			return typeof(Drawers.ChannelDrawer);
-
-		return typeof(Drawers.StringDrawer);
 	}
 }

@@ -33,17 +33,19 @@ namespace FC.Bot.Commands
 		};
 
 		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
-		private static string commandPrefix = string.Empty;
+		private static Dictionary<ulong, string> prefixCache = new Dictionary<ulong, string>();
 
-		public static string CommandPrefix
+		public static string GetPrefix(IGuild guild)
 		{
-			get
-			{
-				if (string.IsNullOrEmpty(commandPrefix))
-					commandPrefix = Settings.Load().CommandPrefix;
+			return GetPrefix(guild.Id);
+		}
 
-				return commandPrefix;
-			}
+		public static string GetPrefix(ulong guildId)
+		{
+			if (prefixCache.ContainsKey(guildId))
+				return prefixCache[guildId];
+
+			return "?";
 		}
 
 		public static void BindCommands(object obj)
@@ -97,6 +99,8 @@ namespace FC.Bot.Commands
 		{
 			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
 
+			ScheduleService.RunOnSchedule(this.Update, 15);
+
 			return Task.CompletedTask;
 		}
 
@@ -105,6 +109,17 @@ namespace FC.Bot.Commands
 			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
 
 			return Task.CompletedTask;
+		}
+
+		private async Task Update()
+		{
+			prefixCache.Clear();
+			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			{
+				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
+
+				prefixCache.Add(guild.Id, settings.Prefix);
+			}
 		}
 
 		private async Task OnMessageReceived(SocketMessage message)
@@ -117,11 +132,14 @@ namespace FC.Bot.Commands
 			if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
 				return;
 
+			ulong guildId = message.GetGuild().Id;
+			string prefix = GetPrefix(guildId);
+
 			// Ignore messages that do not start with the command character
-			if (!message.Content.StartsWith(CommandPrefix))
+			if (!message.Content.StartsWith(prefix))
 				return;
 
-			string command = message.Content.Substring(CommandPrefix.Length);
+			string command = message.Content.Substring(prefix.Length);
 			command = command.TrimStart(' ', '	');
 
 			// replace funky quote-left and quote-right with normal quotes.

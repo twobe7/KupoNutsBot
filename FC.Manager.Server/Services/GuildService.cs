@@ -45,5 +45,18 @@ namespace FC.Manager.Server.Services
 
 			return results;
 		}
+
+		[GuildRpc]
+		public async Task<GuildSettings> GetSettings(string guildId)
+		{
+			return await SettingsService.GetSettings<GuildSettings>(guildId);
+		}
+
+		[GuildRpc]
+		public async Task SetSettings(string guildId, GuildSettings settings)
+		{
+			settings.GuildId = guildId;
+			await SettingsService.SaveSettings(settings);
+		}
 	}
 }
