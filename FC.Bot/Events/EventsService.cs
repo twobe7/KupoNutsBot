@@ -36,6 +36,31 @@ namespace FC.Bot.Events
 			}
 		}
 
+		public static (string display, int index) GetStatus(IEmote emote)
+		{
+			// Attending
+			if (Emotes.IsEmote(emote, Emotes.Maybe))
+				return ("Maybe", 0);
+
+			if (Emotes.IsEmote(emote, Emotes.Yes))
+				return ("Attending", 1);
+
+			if (Emotes.IsEmote(emote, Emotes.No))
+				return ("Not Attending", 2);
+
+			// Roles
+			if (Emotes.IsEmote(emote, Emotes.Tank))
+				return ("Tank", 3);
+
+			if (Emotes.IsEmote(emote, Emotes.Healer))
+				return ("Healer", 4);
+
+			if (Emotes.IsEmote(emote, Emotes.DPS))
+				return ("DPS", 5);
+
+			return ("Invalid", -1);
+		}
+
 		public override async Task Initialize()
 		{
 			instance = this;
@@ -80,7 +105,7 @@ namespace FC.Bot.Events
 				// delete non repeating events that have passed
 				if (!evt.DoesRepeat())
 				{
-					Event.Occurance? next = evt.GetNextOccurance();
+					Occurance? next = evt.GetNextOccurance();
 
 					// will never occur (past event)
 					if (next == null)
@@ -138,7 +163,7 @@ namespace FC.Bot.Events
 			if (timeTillEvent == null)
 				return false;
 
-			Duration? notifyDuration = evt.NotifyDuration;
+			Duration? notifyDuration = evt.GetNotifyDuration();
 
 			// never notify
 			if (notifyDuration == null)
@@ -188,26 +213,19 @@ namespace FC.Bot.Events
 					await EventsDatabase.Save(evt);
 				}
 
-				if (!string.IsNullOrEmpty(evt.RemindMeEmote))
+				if (Emotes.IsEmote(reaction.Emote, Emotes.Bell))
 				{
-					if (reaction.Emote.Name == evt.GetRemindMeEmote().Name)
-					{
-						ReminderService.SetReminder(evt, attendee);
-					}
+					ReminderService.SetReminder(evt, attendee);
 				}
-
-				if (evt.Statuses != null)
+				else
 				{
-					for (int i = 0; i < evt.Statuses.Count; i++)
-					{
-						Event.Status status = evt.Statuses[i];
+					(string display, int index) = GetStatus(reaction.Emote);
 
-						if (reaction.Emote.Name == status.GetEmote().Name)
-						{
-							evt.SetAttendeeStatus(reaction.UserId, i);
-							await EventsDatabase.Save(evt);
-						}
-					}
+					if (index < 0)
+						return;
+
+					evt.SetAttendeeStatus(reaction.UserId, index);
+					await EventsDatabase.Save(evt);
 				}
 
 				await evt.Notify.Post(evt);

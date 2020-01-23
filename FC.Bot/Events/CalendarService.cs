@@ -2,7 +2,7 @@
 //
 // Licensed under the MIT license.
 
-namespace FC.Bot.Services
+namespace FC.Bot.Events.Services
 {
 	using System;
 	using System.Collections.Generic;
@@ -13,6 +13,7 @@ namespace FC.Bot.Services
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Events;
+	using FC.Bot.Services;
 	using FC.Events;
 	using FC.Utils;
 	using NodaTime;
@@ -29,25 +30,34 @@ namespace FC.Bot.Services
 		public async Task Update()
 		{
 			Log.Write("Updating Calendar", "Bot");
-			Settings db = Settings.Load();
 
-			ulong channelId = 0;
-			ulong weekMessageID = 0;
-			ulong futureMessageID = 0;
+			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			{
+				EventsSettings settings = await SettingsService.GetSettings<EventsSettings>(guild.Id);
+				if (settings == null)
+					continue;
 
-			ulong.TryParse(db.CalendarChannel, out channelId);
-			ulong.TryParse(db.CalendarMessage, out weekMessageID);
-			ulong.TryParse(db.CalendarMessage2, out futureMessageID);
+				if (settings.CalendarChannel == null)
+					continue;
 
-			if (channelId == 0)
-				return;
+				ulong channelId = 0;
+				ulong weekMessageID = 0;
+				ulong futureMessageID = 0;
 
-			weekMessageID = await this.Update(channelId, weekMessageID, "Events in the next week", 0, 7);
-			futureMessageID = await this.Update(channelId, futureMessageID, "Events in the future", 7, 30);
+				ulong.TryParse(settings.CalendarChannel, out channelId);
+				ulong.TryParse(settings.CalendarWeekMessageId, out weekMessageID);
+				ulong.TryParse(settings.CalendarFutureMessageId, out futureMessageID);
 
-			db.CalendarMessage = weekMessageID.ToString();
-			db.CalendarMessage2 = futureMessageID.ToString();
-			db.Save();
+				if (channelId == 0)
+					return;
+
+				weekMessageID = await this.Update(guild.Id, channelId, weekMessageID, "Events in the next week", 0, 7);
+				futureMessageID = await this.Update(guild.Id, channelId, futureMessageID, "Events in the future", 7, 30);
+
+				settings.CalendarWeekMessageId = weekMessageID.ToString();
+				settings.CalendarFutureMessageId = futureMessageID.ToString();
+				await SettingsService.SaveSettings(settings);
+			}
 		}
 
 		private string GetEventString(Event evt, int daysTill, Instant occurrence)
@@ -88,7 +98,7 @@ namespace FC.Bot.Services
 			return builder.ToString();
 		}
 
-		private async Task<ulong> Update(ulong channelId, ulong messageId, string header, int minDays, int maxDays)
+		private async Task<ulong> Update(ulong guildId, ulong channelId, ulong messageId, string header, int minDays, int maxDays)
 		{
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
 
@@ -102,12 +112,15 @@ namespace FC.Bot.Services
 
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 
-			List<Event> events = await EventsService.EventsDatabase.LoadAll();
+			Dictionary<string, object> filters = new Dictionary<string, object>();
+			filters.Add("ServerIdStr", guildId.ToString());
+
+			List<Event> events = await EventsService.EventsDatabase.LoadAll(filters);
 			foreach (Event evt in events)
 			{
-				List<Event.Occurance> occurances = evt.GetNextOccurances();
+				List<Occurance> occurances = evt.GetNextOccurances();
 
-				foreach (Event.Occurance occurance in occurances)
+				foreach (Occurance occurance in occurances)
 				{
 					Instant instant = occurance.GetInstant();
 					int days = TimeUtils.GetDaysTill(instant, zone);

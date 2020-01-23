@@ -52,7 +52,7 @@ namespace FC.Bot.Events
 			descBuilder.AppendLine("__");
 			descBuilder.AppendLine();
 
-			Event.Occurance? occurance = evt.GetNextOccurance();
+			Occurance? occurance = evt.GetNextOccurance();
 			if (occurance != null)
 			{
 				descBuilder.AppendLine(occurance.GetDisplayString());
@@ -63,20 +63,17 @@ namespace FC.Bot.Events
 			descBuilder.AppendLine(evt.Description);
 			builder.Description = descBuilder.ToString();
 
-			if (evt.Statuses != null)
+			if (evt.StatusType == Event.Statuses.Roles)
 			{
-				for (int i = 0; i < evt.Statuses.Count; i++)
-				{
-					Event.Status status = evt.Statuses[i];
-
-					if (string.IsNullOrEmpty(status.Display))
-						continue;
-
-					int count = 0;
-					string attending = evt.GetAttendeeString(i, out count);
-
-					builder.AddField(status.Display + " (" + count + ")", attending, true);
-				}
+				builder.AddStatus(evt, Emotes.Tank);
+				builder.AddStatus(evt, Emotes.Healer);
+				builder.AddStatus(evt, Emotes.DPS);
+			}
+			else if (evt.StatusType == Event.Statuses.Attending)
+			{
+				builder.AddStatus(evt, Emotes.Yes);
+				builder.AddStatus(evt, Emotes.No);
+				builder.AddStatus(evt, Emotes.Maybe);
 			}
 
 			RestUserMessage? message = await self.GetMessage(evt);
@@ -88,17 +85,20 @@ namespace FC.Bot.Events
 				self.MessageId = message.Id.ToString();
 
 				List<IEmote> reactions = new List<IEmote>();
-
-				if (!string.IsNullOrEmpty(evt.RemindMeEmote))
-					reactions.Add(evt.GetRemindMeEmote());
-
-				if (evt.Statuses != null)
+				if (evt.StatusType == Event.Statuses.Roles)
 				{
-					foreach (Event.Status status in evt.Statuses)
-					{
-						reactions.Add(status.GetEmote());
-					}
+					reactions.Add(Emotes.Tank);
+					reactions.Add(Emotes.Healer);
+					reactions.Add(Emotes.DPS);
 				}
+				else
+				{
+					reactions.Add(Emotes.Yes);
+					reactions.Add(Emotes.Maybe);
+				}
+
+				reactions.Add(Emotes.No);
+				reactions.Add(Emotes.Bell);
 
 				await message.AddReactionsAsync(reactions.ToArray());
 
@@ -131,13 +131,14 @@ namespace FC.Bot.Events
 			if (message is null)
 				return;
 
-			if (evt.Statuses != null)
+			foreach ((IEmote emote, ReactionMetadata data) in message.Reactions)
 			{
-				for (int i = 0; i < evt.Statuses.Count; i++)
-				{
-					Event.Status status = evt.Statuses[i];
-					await self.CheckReactions(evt, message, status, i);
-				}
+				(string display, int index) = EventsService.GetStatus(emote);
+
+				if (index < 0)
+					continue;
+
+				await self.CheckReactions(evt, message, emote, index);
 			}
 		}
 
@@ -149,7 +150,7 @@ namespace FC.Bot.Events
 			builder.Append(evt.Name);
 			builder.Append("](");
 			builder.Append("https://discordapp.com/channels/");
-			builder.Append(evt.ServerId);
+			builder.Append(evt.ServerIdStr);
 			builder.Append("/");
 			builder.Append(evt.ChannelId);
 			builder.Append("/");
@@ -183,9 +184,21 @@ namespace FC.Bot.Events
 			throw new Exception("Message: \"" + self.MessageId + "\" is not a user message.");
 		}
 
-		private static async Task CheckReactions(this Event.Notification self, Event evt, RestUserMessage message, Event.Status status, int statusIndex)
+		private static void AddStatus(this EmbedBuilder builder, Event evt, IEmote emote)
 		{
-			IEmote emote = status.GetEmote();
+			(string display, int index) = EventsService.GetStatus(emote);
+
+			if (index < 0)
+				return;
+
+			int count = 0;
+			string attending = evt.GetAttendeeString(index, out count);
+
+			builder.AddField(emote.GetString() + " " + display + " (" + count + ")", attending, true);
+		}
+
+		private static async Task CheckReactions(this Event.Notification self, Event evt, RestUserMessage message, IEmote emote, int index)
+		{
 			IEnumerable<IUser> checkedUsers = await message.GetReactionUsersAsync(emote, 99).FlattenAsync();
 
 			if (!checkedUsers.Contains(Program.DiscordClient.CurrentUser))
@@ -196,7 +209,7 @@ namespace FC.Bot.Events
 				if (user.Id == Program.DiscordClient.CurrentUser.Id)
 					continue;
 
-				evt.SetAttendeeStatus(user.Id, statusIndex);
+				evt.SetAttendeeStatus(user.Id, index);
 
 				SocketUser socketUser = Program.DiscordClient.GetUser(user.Id);
 				await message.RemoveReactionAsync(emote, socketUser);

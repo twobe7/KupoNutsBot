@@ -6,16 +6,12 @@ namespace FC.Bot.Events
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
-	using Discord;
-	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Events;
 	using FC.Utils;
 	using NodaTime;
-	using NodaTime.Text;
 
 	public static class EventExtensions
 	{
@@ -25,11 +21,6 @@ namespace FC.Bot.Events
 				return;
 
 			await self.Notify.CheckReactions(self);
-		}
-
-		public static IEmote GetRemindMeEmote(this Event self)
-		{
-			return Emote.Parse(self.RemindMeEmote);
 		}
 
 		public static SocketTextChannel? GetChannel(this Event self)
@@ -50,7 +41,7 @@ namespace FC.Bot.Events
 			throw new Exception("Channel: \"" + self.ChannelId + "\" for event: \"" + self.Name + "\" is not a text channel");
 		}
 
-		public static void SetAttendeeStatus(this Event self, ulong userId, int status)
+		public static void SetAttendeeStatus(this Event self, ulong userId, int index)
 		{
 			Event.Notification.Attendee? attendee = self.GetAttendee(userId);
 
@@ -60,7 +51,7 @@ namespace FC.Bot.Events
 				attendee.UserId = userId.ToString();
 			}
 
-			attendee.Status = status;
+			attendee.Status = index;
 		}
 
 		public static List<Event.Notification.Attendee>? GetAttendees(this Event self)
@@ -135,7 +126,7 @@ namespace FC.Bot.Events
 
 		public static Duration? GetDurationTill(this Event self)
 		{
-			Event.Occurance? occurance = self.GetNextOccurance();
+			Occurance? occurance = self.GetNextOccurance();
 			if (occurance == null)
 				return null;
 
@@ -147,13 +138,13 @@ namespace FC.Bot.Events
 			ZonedDateTime zdt = TimeUtils.Now.InZone(TimeUtils.Sydney);
 
 			IsoDayOfWeek day = zdt.DayOfWeek;
-			Event.Occurance? occurance = self.GetRepeatOccurance(day);
+			Occurance? occurance = self.GetRepeatOccurance(day);
 
 			if (occurance == null)
 				return false;
 
 			Instant starts = occurance.GetInstant(zdt.Date, zdt.TimeOfDay);
-			Instant ends = starts + occurance.Duration;
+			Instant ends = starts + occurance.GetDuration();
 
 			if (starts < TimeUtils.Now && ends > TimeUtils.Now)
 			{
@@ -165,10 +156,10 @@ namespace FC.Bot.Events
 
 		// 2 hours on Sunday, 6th October 2019:
 		// 8:00pm AWST - 9:30pm ACST - 10:00pm AEST - 1:00am NZST
-		public static string GetDisplayString(this Event.Occurance self)
+		public static string GetDisplayString(this Occurance self)
 		{
 			StringBuilder builder = new StringBuilder();
-			builder.Append(TimeUtils.GetDurationString(self.Duration));
+			builder.Append(TimeUtils.GetDurationString(self.GetDuration()));
 			builder.Append(" on ");
 
 			Instant instant = self.GetInstant();
@@ -181,7 +172,7 @@ namespace FC.Bot.Events
 		// Starting in 1 hour 45 minutes.
 		public static string GetWhenString(this Event self)
 		{
-			Event.Occurance? occurance = self.GetNextOccurance();
+			Occurance? occurance = self.GetNextOccurance();
 			if (occurance == null)
 				return "Never";
 
@@ -192,7 +183,7 @@ namespace FC.Bot.Events
 			if (time.TotalSeconds < 0)
 			{
 				Instant now = TimeUtils.RoundInstant(TimeUtils.Now);
-				Instant instant = now + time + occurance.Duration;
+				Instant instant = now + time + occurance.GetDuration();
 				Duration endsIn = instant - now;
 
 				time = endsIn;

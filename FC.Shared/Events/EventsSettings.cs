@@ -16,9 +16,9 @@ namespace FC.Events
 		public string? CalendarChannel { get; set; }
 
 		[InspectorHidden]
-		public string? CalendarMessage { get; set; }
+		public string? CalendarWeekMessageId { get; set; }
 
 		[InspectorHidden]
-		public string? CalendarMessage2 { get; set; }
+		public string? CalendarFutureMessageId { get; set; }
 	}
 }

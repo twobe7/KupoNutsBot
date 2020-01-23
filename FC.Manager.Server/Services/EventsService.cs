@@ -4,6 +4,7 @@
 
 namespace FC.Manager.Server.Services
 {
+	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
 	using FC.Data;
@@ -36,6 +37,7 @@ namespace FC.Manager.Server.Services
 		[GuildRpc]
 		public async Task UpdateEvent(string guildId, Event evt)
 		{
+			Console.WriteLine("<< " + evt.BaseOccurance.DateStr);
 			evt.ServerIdStr = guildId;
 			await this.eventsDb.Save(evt);
 		}

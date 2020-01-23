@@ -6,6 +6,7 @@ namespace FC.Bot.Events
 {
 	using System;
 	using Discord.WebSocket;
+	using FC.Bot.Extensions;
 	using FC.Events;
 	using NodaTime;
 	using NodaTime.Text;
@@ -30,7 +31,7 @@ namespace FC.Bot.Events
 			if (user == null)
 				return "Unknown";
 
-			SocketGuild guild = Program.DiscordClient.GetGuild(evt.ServerId);
+			SocketGuild guild = Program.DiscordClient.GetGuild(evt.ServerIdStr);
 			if (guild != null)
 			{
 				SocketGuildUser guildUser = guild.GetUser(ulong.Parse(self.UserId));

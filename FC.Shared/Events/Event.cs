@@ -6,7 +6,6 @@ namespace FC.Events
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Text;
 	using System.Text.Json.Serialization;
 	using Amazon.DynamoDBv2.DataModel;
 	using FC.Utils;
@@ -41,6 +40,12 @@ namespace FC.Events
 			DarkMagenta,
 		}
 
+		public enum Statuses
+		{
+			Attending,
+			Roles,
+		}
+
 		public string ServerIdStr { get; set; } = "0";
 		public string? ChannelId { get; set; }
 		public string Name { get; set; } = "New Event";
@@ -49,6 +54,7 @@ namespace FC.Events
 		public string? Message { get; set; }
 		public string? Image { get; set; }
 		public Colors Color { get; set; }
+		public Statuses StatusType { get; set; }
 
 		public Occurance BaseOccurance { get; set; } = new Occurance();
 		public Occurance? Monday { get; set; }
@@ -59,47 +65,26 @@ namespace FC.Events
 		public Occurance? Saturday { get; set; }
 		public Occurance? Sunday { get; set; }
 
-		public string? RemindMeEmote { get; set; }
 		public string? NotifyDurationStr { get; set; }
-		public List<Status> Statuses { get; set; } = new List<Status>();
 		public Notification? Notify { get; set; }
 
-		[DynamoDBIgnore]
-		[JsonIgnore]
-		public ulong ServerId
+		public Duration? GetNotifyDuration()
 		{
-			get
-			{
-				return ulong.Parse(this.ServerIdStr);
-			}
-			set
-			{
-				this.ServerIdStr = value.ToString();
-			}
+			if (string.IsNullOrEmpty(this.NotifyDurationStr))
+				return null;
+
+			return DurationPattern.Roundtrip.Parse(this.NotifyDurationStr).Value;
 		}
 
-		[DynamoDBIgnore]
-		[JsonIgnore]
-		public Duration? NotifyDuration
+		public void SetNotifyDuration(Duration? value)
 		{
-			get
+			if (value == null)
 			{
-				if (string.IsNullOrEmpty(this.NotifyDurationStr))
-					return null;
-
-				return DurationPattern.Roundtrip.Parse(this.NotifyDurationStr).Value;
+				this.NotifyDurationStr = null;
+				return;
 			}
 
-			set
-			{
-				if (value == null)
-				{
-					this.NotifyDurationStr = null;
-					return;
-				}
-
-				this.NotifyDurationStr = DurationPattern.Roundtrip.Format((Duration)value);
-			}
+			this.NotifyDurationStr = DurationPattern.Roundtrip.Format((Duration)value);
 		}
 
 		public override string ToString()
@@ -246,129 +231,6 @@ namespace FC.Events
 			}
 
 			return val;
-		}
-
-		[Serializable]
-		public class Occurance
-		{
-			public Occurance()
-			{
-			}
-
-			public Occurance(LocalDate date, LocalTime time)
-			{
-				this.Time = time;
-				this.Date = date;
-			}
-
-			public Occurance(Occurance repeat, LocalDate date, Occurance baseOccurance)
-			{
-				this.Time = repeat.Time ?? baseOccurance.Time;
-				this.Duration = repeat.Duration;
-				this.Date = date;
-			}
-
-			public string? TimeStr { get; set; }
-			public string? DurationStr { get; set; }
-			public string? DateStr { get; set; }
-
-			[DynamoDBIgnore]
-			[JsonIgnore]
-			public Duration Duration
-			{
-				get
-				{
-					if (string.IsNullOrEmpty(this.DurationStr))
-						return NodaTime.Duration.FromSeconds(0);
-
-					return DurationPattern.Roundtrip.Parse(this.DurationStr).Value;
-				}
-				set
-				{
-					this.DurationStr = DurationPattern.Roundtrip.Format(value);
-				}
-			}
-
-			[DynamoDBIgnore]
-			[JsonIgnore]
-			public LocalTime? Time
-			{
-				get
-				{
-					if (string.IsNullOrEmpty(this.TimeStr))
-						return null;
-
-					return LocalTimePattern.ExtendedIso.Parse(this.TimeStr).Value;
-				}
-
-				set
-				{
-					if (value == null)
-					{
-						this.TimeStr = null;
-						return;
-					}
-
-					this.TimeStr = LocalTimePattern.ExtendedIso.Format((LocalTime)value);
-				}
-			}
-
-			[DynamoDBIgnore]
-			[JsonIgnore]
-			public LocalDate? Date
-			{
-				get
-				{
-					if (string.IsNullOrEmpty(this.DateStr))
-						return null;
-
-					return LocalDatePattern.Iso.Parse(this.DateStr).Value;
-				}
-
-				set
-				{
-					if (value == null)
-					{
-						this.DateStr = null;
-						return;
-					}
-
-					this.DateStr = LocalDatePattern.Iso.Format((LocalDate)value);
-				}
-			}
-
-			public Instant GetInstant(LocalDate? defaultDate = null, LocalTime? defaultTime = null)
-			{
-				LocalDate? date = this.Date ?? defaultDate;
-				LocalTime? time = this.Time ?? defaultTime;
-
-				if (date == null)
-					throw new Exception("No Date in event occurrence");
-
-				if (time == null)
-					throw new Exception("No Time in event occurrence");
-
-				LocalDateTime ldt = (LocalDate)date + (LocalTime)time;
-				return ldt.InUtc().ToInstant();
-			}
-		}
-
-		[Serializable]
-		public class Status
-		{
-			public Status()
-			{
-			}
-
-			public Status(string emote, string? display = null)
-			{
-				this.EmoteString = emote;
-				this.Display = display;
-			}
-
-			public string? EmoteString { get; set; }
-
-			public string? Display { get; set; }
 		}
 
 		[Serializable]

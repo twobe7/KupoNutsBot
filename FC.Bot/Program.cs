@@ -14,6 +14,7 @@ namespace FC.Bot
 	using FC.Bot.Characters;
 	using FC.Bot.Commands;
 	using FC.Bot.Events;
+	using FC.Bot.Events.Services;
 	using FC.Bot.Guild;
 	using FC.Bot.Items;
 	using FC.Bot.Lodestone;

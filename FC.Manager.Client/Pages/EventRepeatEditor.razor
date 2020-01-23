@@ -73,9 +73,9 @@
 		{
 			if (value)
 			{
-				Event.Occurance rpt = new Event.Occurance();
-				rpt.Time = this.Event.BaseOccurance.Time;
-				rpt.Duration = this.Event.BaseOccurance.Duration;
+				Occurance rpt = new Occurance();
+				rpt.SetLocalTime(this.Event.BaseOccurance.GetLocalTime());
+				rpt.SetDuration(this.Event.BaseOccurance.GetDuration());
 				this.Event.SetRepeat(this.Day, rpt);
 			}
 			else
@@ -100,7 +100,7 @@
 			if (this.Repeat == null)
 				return 0;
 
-			Duration dur = this.Repeat.Duration;
+			Duration dur = this.Repeat.GetDuration();
 			return dur.Hours + (dur.Minutes / 60.0);
 		}
 
@@ -112,7 +112,7 @@
 			int hours = (int)value;
 			int minutes = (int)((value - (double)hours) * 60.0);
 
-			this.Repeat.Duration = NodaTime.Duration.FromMinutes((hours * 60) + minutes);
+			this.Repeat.SetDuration(NodaTime.Duration.FromMinutes((hours * 60) + minutes));
 		}
 	}
 
@@ -123,17 +123,18 @@
 			if (this.Repeat == null)
 				return null;
 
-			if (this.Repeat.Time == null)
-				this.Repeat.Time = TimeUtils.Now.InUtc().LocalDateTime.TimeOfDay;
+
+			LocalTime lt = TimeUtils.Now.InUtc().LocalDateTime.TimeOfDay;
+
+			if (string.IsNullOrEmpty(this.Repeat.TimeStr))
+				this.Repeat.TimeStr = LocalTimePattern.ExtendedIso.Format(lt);
+
+			lt = LocalTimePattern.ExtendedIso.Parse(this.Repeat.TimeStr).Value;
 
 			DateTimeZone dtz = NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault();
 			Instant instant = this.Repeat.GetInstant(TimeUtils.Now.InUtc().LocalDateTime.Date);
-			LocalTime lt = instant.InZone(dtz).TimeOfDay;
 
-			return instant.ToDateTimeOffset();
-
-			////string str = lt.Hour.ToString("D2") + ":" + lt.Minute.ToString("D2");
-			////return str;
+			return instant.InZone(dtz).ToDateTimeOffset();
 		}
 
 		set
@@ -141,22 +142,9 @@
 			if (this.Repeat == null)
 				return;
 
-			/*string[] parts = value.Split(':');
-			int hour = int.Parse(parts[0]);
-			int minute = int.Parse(parts[1]);
-
-			DateTimeZone dtz = NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault();
-			ZonedDateTime nowZdt = TimeUtils.Now.InZone(dtz);
-
-			LocalDateTime ldt = new LocalDateTime(nowZdt.Year, nowZdt.Month, nowZdt.Day, hour, minute);
-			ZonedDateTime zdt = ldt.InZoneLeniently(dtz);
-			Instant instant = zdt.ToInstant();
-
-			*/
-
 			Instant instant = Instant.FromDateTimeOffset((DateTimeOffset)value);
 			ZonedDateTime utc = instant.InUtc();
-			this.Repeat.Time = utc.TimeOfDay;
+			this.Repeat.TimeStr = LocalTimePattern.ExtendedIso.Format(utc.TimeOfDay);
 		}
 	}
 
@@ -164,25 +152,26 @@
 	{
 		get
 		{
-			if (this.Repeat.Date == null)
-				this.Repeat.Date = TimeUtils.Now.InUtc().LocalDateTime.Date;
+			LocalDate ld = TimeUtils.Now.InUtc().LocalDateTime.Date;
 
-			if (this.Repeat.Time == null)
-				this.Repeat.Time = TimeUtils.Now.InUtc().LocalDateTime.TimeOfDay;
+			if (string.IsNullOrEmpty(this.Repeat.DateStr))
+				this.Repeat.DateStr = LocalDatePattern.Iso.Format(ld);
+
+			ld = LocalDatePattern.Iso.Parse(this.Repeat.DateStr).Value;
+			LocalTime lt = TimeUtils.Now.InUtc().LocalDateTime.TimeOfDay;
 
 			DateTimeZone dtz = NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault();
-			return this.Repeat.GetInstant().InZone(dtz).Date.ToDateTimeUnspecified();
-
-			////return this.Repeat.Date.Value.ToDateTimeUnspecified();
+			return this.Repeat.GetInstant(ld, lt).InZone(dtz).Date.ToDateTimeUnspecified();
 		}
 
 		set
 		{
-			this.Repeat.Date = new LocalDate(value.Year, value.Month, value.Day);
+			LocalDate ld = new LocalDate(value.Year, value.Month, value.Day);
+			this.Repeat.DateStr = LocalDatePattern.Iso.Format(ld);
 		}
 	}
 
-	public Event.Occurance Repeat
+	public Occurance Repeat
 	{
 		get
 		{

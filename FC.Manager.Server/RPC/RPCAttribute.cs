@@ -44,6 +44,8 @@ namespace FC.Manager.Server.RPC
 					val = method.ReturnType.GetProperty("Result").GetValue(task);
 					return val;
 				}
+
+				return null;
 			}
 
 			return val;

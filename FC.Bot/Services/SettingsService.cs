@@ -11,6 +11,12 @@ namespace FC.Bot.Services
 	{
 		private static Table settingsDb = new Table("Settings", 0);
 
+		public static Task<T> GetSettings<T>(ulong guildId)
+			where T : SettingsEntry, new()
+		{
+			return GetSettings<T>(guildId.ToString());
+		}
+
 		public static async Task<T> GetSettings<T>(string guildId)
 			where T : SettingsEntry, new()
 		{

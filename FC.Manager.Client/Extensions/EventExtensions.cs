@@ -17,7 +17,7 @@ namespace FC.Events
 	{
 		public static string GetNextOccuranceString(this Event self)
 		{
-			Event.Occurance occurance = self.GetNextOccurance();
+			Occurance occurance = self.GetNextOccurance();
 			if (occurance == null)
 				return "Never";
 
@@ -29,7 +29,7 @@ namespace FC.Events
 			if (string.IsNullOrEmpty(self.NotifyDurationStr))
 				return -1;
 
-			Duration? dur = self.NotifyDuration;
+			Duration? dur = self.GetNotifyDuration();
 			if (dur == null)
 				return -1;
 
@@ -40,14 +40,14 @@ namespace FC.Events
 		{
 			if (duration < 0)
 			{
-				self.NotifyDuration = null;
+				self.SetNotifyDuration(null);
 				return;
 			}
 
 			int hours = (int)duration;
 			int minutes = (int)((duration - (double)hours) * 60.0);
 
-			self.NotifyDuration = Duration.FromMinutes((hours * 60) + minutes);
+			self.SetNotifyDuration(Duration.FromMinutes((hours * 60) + minutes));
 		}
 
 		public static string GetChannelName(this Event self, List<Channel> channels)

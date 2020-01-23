@@ -78,7 +78,7 @@ namespace FC.Bot.Services
 				if (evt.Id == null)
 					continue;
 
-				Event.Occurance? nextOccurance = evt.GetNextOccurance();
+				Occurance? nextOccurance = evt.GetNextOccurance();
 				if (nextOccurance == null)
 					continue;
 
