@@ -4,9 +4,14 @@
 
 namespace FC
 {
+	using FC.Attributes;
+
 	public class GuildSettings : SettingsEntry
 	{
 		public string Prefix { get; set; } = "?";
 		public string NickName { get; set; } = string.Empty;
+
+		[InspectorChannel]
+		public string? LogChannel { get; set; }
 	}
 }

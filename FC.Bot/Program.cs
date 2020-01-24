@@ -56,8 +56,6 @@ namespace FC.Bot
 
 		public static Task Run(string[] args)
 		{
-			Log.ExceptionLogged += Log_ExceptionLogged;
-
 			Program prog = new Program();
 			return prog.DoRun();
 		}

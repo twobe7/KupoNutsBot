@@ -5,32 +5,19 @@
 namespace FC.Bot.Services
 {
 	using System;
-	using System.Collections.Generic;
-	using System.IO;
-	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Utils;
 
 	public class LogService : ServiceBase
 	{
-		private const string FileLocation = "Log.txt";
-		private bool lockFile = false;
-
 		public override Task Initialize()
 		{
-			Log.MessageLogged += this.OnMessageLogged;
-			Log.ExceptionLogged += this.OnExceptionLogged;
-
 			Program.DiscordClient.UserJoined += this.DiscordClient_UserJoined;
 			Program.DiscordClient.UserLeft += this.DiscordClient_UserLeft;
 			Program.DiscordClient.UserBanned += this.DiscordClient_UserBanned;
 			Program.DiscordClient.UserUnbanned += this.DiscordClient_UserUnbanned;
-
-			if (File.Exists(FileLocation))
-				File.Delete(FileLocation);
 
 			return base.Initialize();
 		}
@@ -45,29 +32,31 @@ namespace FC.Bot.Services
 			await base.Shutdown();
 		}
 
-		[Command("Log", Permissions.Administrators, "posts the bot log")]
-		public async Task PostLog(CommandMessage message)
+		private static async Task<SocketTextChannel?> GetChannel(ulong guildId)
 		{
-			this.lockFile = true;
-			await message.Channel.SendFileAsync(FileLocation);
-			this.lockFile = false;
+			GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guildId);
+			if (string.IsNullOrEmpty(settings.LogChannel))
+				return null;
+
+			ulong channelId = ulong.Parse(settings.LogChannel);
+			return Program.DiscordClient.GetChannel(channelId) as SocketTextChannel;
 		}
 
 		private async Task DiscordClient_UserJoined(SocketGuildUser user)
 		{
-			await this.PostMessage(user, Color.Green, "Joined");
+			await this.PostMessage(user.Guild, user, Color.Green, "Joined");
 		}
 
 		private async Task DiscordClient_UserLeft(SocketGuildUser user)
 		{
-			await this.PostMessage(user, Color.LightGrey, "Left");
+			await this.PostMessage(user.Guild, user, Color.LightGrey, "Left");
 		}
 
 		private async Task DiscordClient_UserBanned(SocketUser user, SocketGuild guild)
 		{
 			if (user is IGuildUser guildUser)
 			{
-				await this.PostMessage(guildUser, Color.Red, "Was Banned");
+				await this.PostMessage(guild, guildUser, Color.Red, "Was Banned");
 			}
 			else
 			{
@@ -79,7 +68,7 @@ namespace FC.Bot.Services
 		{
 			if (user is IGuildUser guildUser)
 			{
-				await this.PostMessage(guildUser, Color.Orange, "Was Unbanned");
+				await this.PostMessage(guild, guildUser, Color.Orange, "Was Unbanned");
 			}
 			else
 			{
@@ -87,12 +76,9 @@ namespace FC.Bot.Services
 			}
 		}
 
-		private async Task PostMessage(IGuildUser user, Color color, string message)
+		private async Task PostMessage(IGuild guild, IGuildUser user, Color color, string message)
 		{
-			if (!ulong.TryParse(Settings.Load().UserLogChannel, out ulong channelId))
-				return;
-
-			SocketTextChannel? channel = Program.DiscordClient.GetChannel(channelId) as SocketTextChannel;
+			SocketTextChannel? channel = await GetChannel(guild.Id);
 
 			if (channel == null)
 				return;
@@ -119,30 +105,6 @@ namespace FC.Bot.Services
 			builder.Footer.Text = "ID: " + user.Id;
 
 			await channel.SendMessageAsync(null, false, builder.Build());
-		}
-
-		private void OnExceptionLogged(string str)
-		{
-			this.OnMessageLogged(str);
-		}
-
-		private void OnMessageLogged(string str)
-		{
-			// TODO: we should make this async so we can wait for the file to unlock...
-			if (this.lockFile)
-			{
-				Log.Write("Log file is locked.", "Log");
-				return;
-			}
-
-			try
-			{
-				File.AppendAllText(FileLocation, str + "\n");
-			}
-			catch (Exception)
-			{
-				Console.WriteLine("Unable to write log file");
-			}
 		}
 	}
 }

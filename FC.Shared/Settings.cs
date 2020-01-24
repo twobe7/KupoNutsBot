@@ -13,8 +13,6 @@ namespace FC
 	{
 		public const string Location = "Settings.json";
 
-		public string CommandPrefix { get; set; } = "?";
-
 		public string? Token { get; set; }
 
 		public string? LogChannel { get; set; }
@@ -22,12 +20,6 @@ namespace FC
 		public string? StatusChannel { get; set; }
 
 		public string? StatusMessage { get; set; }
-
-		public string? CalendarChannel { get; set; }
-
-		public string? CalendarMessage { get; set; }
-
-		public string? CalendarMessage2 { get; set; }
 
 		public string? SundayFundayChannel { get; set; }
 
@@ -56,8 +48,6 @@ namespace FC
 		public string? TwitterTokenSecret { get; set; }
 
 		public string? XIVAPIKey { get; set; }
-
-		public string? UserLogChannel { get; set; }
 
 		public string? LodestoneChannel { get; set; }
 
