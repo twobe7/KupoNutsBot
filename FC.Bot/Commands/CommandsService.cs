@@ -19,19 +19,6 @@ namespace FC.Bot.Commands
 
 	public class CommandsService : ServiceBase
 	{
-		public static readonly List<string> CommandResponses = new List<string>()
-		{
-			"You got it!",
-			"Done!",
-			"All done!",
-			"I did it!",
-			"All finished!",
-			"I'm the best!",
-			"Praise me!",
-			"Yep",
-			"Ah-huh",
-		};
-
 		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
 		private static Dictionary<ulong, string> prefixCache = new Dictionary<ulong, string>();
 
@@ -95,13 +82,12 @@ namespace FC.Bot.Commands
 			return Permissions.Everyone;
 		}
 
-		public override Task Initialize()
+		public override async Task Initialize()
 		{
 			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
 
 			ScheduleService.RunOnSchedule(this.Update, 15);
-
-			return Task.CompletedTask;
+			await this.Update();
 		}
 
 		public override Task Shutdown()

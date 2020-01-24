@@ -122,7 +122,7 @@ namespace FC.Bot.Commands
 						string hint = string.Empty;
 
 						if (paramInfo.ParameterType == typeof(string))
-							hint = "\n(Strings should have \"quotes\" around them, Kupo!)";
+							hint = "\n(Strings must have \"quotes\" around them)";
 
 						throw new ParameterException("I didn't understand the parameter: " + arg + ".\nWas that was supposed to be a " + HelpService.GetTypeName(paramInfo.ParameterType) + " for " + HelpService.GetParam(paramInfo) + "?" + hint);
 					}
@@ -260,20 +260,11 @@ namespace FC.Bot.Commands
 			{
 				resultMessage = stringTask.Result;
 			}
-			else if (task is Task<bool> boolTask)
-			{
-				// nothing to do here...
-			}
 			else if (task is Task<(string, Embed)> bothTask)
 			{
 				(string taskMessage, Embed taskEmbed) = bothTask.Result;
 				resultMessage = taskMessage;
 				resultEmbed = taskEmbed;
-			}
-			else
-			{
-				Random rn = new Random();
-				resultMessage = CommandsService.CommandResponses[rn.Next(CommandsService.CommandResponses.Count)];
 			}
 
 			if (editMessage != null)
