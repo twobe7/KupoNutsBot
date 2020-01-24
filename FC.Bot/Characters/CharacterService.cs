@@ -93,6 +93,7 @@ namespace FC.Bot.Characters
 			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
 			string file = await CharacterCard.Draw(character);
 			await message.Channel.SendFileAsync(file);
+			await this.PostCollectLink(message, character);
 		}
 
 		public async Task<bool> WhoIs(CommandMessage message, uint characterId)
@@ -100,6 +101,7 @@ namespace FC.Bot.Characters
 			CharacterInfo character = await this.GetCharacterInfo(characterId);
 			string file = await CharacterCard.Draw(character);
 			await message.Channel.SendFileAsync(file);
+			await this.PostCollectLink(message, character);
 			return true;
 		}
 
@@ -257,6 +259,16 @@ namespace FC.Bot.Characters
 				throw new UserException("No character linked! Use `IAm` to link your character.");
 
 			return userEntry;
+		}
+
+		private async Task PostCollectLink(CommandMessage message, CharacterInfo info)
+		{
+			if (!info.HasMinions && !info.HasMounts && !info.HasAchievements)
+			{
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.Description = "To show Minions, Mounts, and Achievements, please link your character at [FFXIV Collect](https://ffxivcollect.com/)";
+				await message.Channel.SendMessageAsync(null, false, builder.Build());
+			}
 		}
 	}
 }
