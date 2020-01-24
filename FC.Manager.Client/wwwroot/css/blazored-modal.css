@@ -10,6 +10,8 @@
 
 .blazored-modal-wrapper {
     z-index: 102;
+    height: 100%;
+    padding: 25px;
 }
 
 .blazored-modal-overlay {
@@ -35,6 +37,9 @@
     padding: 1.5rem;
     z-index: 102;
     box-shadow: 0 2px 2px rgba(0,0,0,.25);
+    height: 100%;
+    overflow-y: scroll;
+    scrollbar-width: thin;
 }
 
 .blazored-modal-header {
