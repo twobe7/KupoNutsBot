@@ -76,7 +76,7 @@ namespace FC.Data
 			where T : EntryBase, new()
 		{
 			if (id == null)
-				id = await this.GetNewID();
+				id = await this.GetNewID<T>();
 
 			T t = new T();
 			t.Id = id;
@@ -84,7 +84,8 @@ namespace FC.Data
 			return t;
 		}
 
-		public async Task<string> GetNewID()
+		public async Task<string> GetNewID<T>()
+		where T : EntryBase, new()
 		{
 			if (this.context == null)
 				throw new Exception("Database is not connected");
@@ -96,7 +97,7 @@ namespace FC.Data
 			{
 				guid = Guid.NewGuid().ToString();
 
-				valid = await this.context.LoadAsync<EntryBase>(guid, this.operationConfig) == null;
+				valid = await this.context.LoadAsync<T>(guid, this.operationConfig) == null;
 			}
 			while (!valid);
 

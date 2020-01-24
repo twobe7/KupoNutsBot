@@ -68,7 +68,8 @@ namespace FC.Data
 			return Task.CompletedTask;
 		}
 
-		public Task<string> GetNewID()
+		public Task<string> GetNewID<T>()
+			where T : EntryBase, new()
 		{
 			return Task.FromResult(Guid.NewGuid().ToString());
 		}

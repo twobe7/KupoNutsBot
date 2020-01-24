@@ -41,7 +41,7 @@ namespace FC.Data
 
 		public Task<string> GetNewID()
 		{
-			return this.table.GetNewID();
+			return this.table.GetNewID<T>();
 		}
 
 		public Task<T?> Load(string key)

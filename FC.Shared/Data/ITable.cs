@@ -16,7 +16,8 @@ namespace FC.Data
 		Task<T> CreateEntry<T>(string? id = null)
 			where T : EntryBase, new();
 
-		Task<string> GetNewID();
+		Task<string> GetNewID<T>()
+			where T : EntryBase, new();
 
 		Task<T?> Load<T>(string key)
 			where T : EntryBase, new();
