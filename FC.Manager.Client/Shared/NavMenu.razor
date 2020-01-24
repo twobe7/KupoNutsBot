@@ -1,7 +1,7 @@
 ﻿@inject IModalService Modal
 @inject NavigationManager NavigationManager
 
-<div class="wrapper" style="min-height: 90%">
+<div class="wrapper">
 
 	<div class="form-group" style="margin: 16px 16px 0px 16px">
 		<select class="form-control" @bind="this.SelectedGuild">
@@ -45,19 +45,15 @@
 		}
 	</ul>
 	
-	<div class="push"></div>
-</div>
 
-<div class="footer-transparent" style="height: 160px">
-	<div class="nav-item px-3" style="padding-bottom: 0px">
-		<div class="alert alert-dark justify-content-center">
-			Your timezone has ben set to: @NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault().ToString()
+
+
+	<div class="footer-transparent" style="height: auto; position: absolute; bottom: 0px;">
+		<div class="nav-item px-3" style="padding-bottom: 0px">
+			<div class="alert alert-dark justify-content-center">
+				Your timezone has ben set to: @NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault().ToString()
+			</div>
 		</div>
-	</div>
-	<div class="nav-item px-3">
-		<Button class="btn btn-warning nav-link" style="width:100%" @onclick="this.OnSettings">
-			<span class="oi oi-cog" aria-hidden="true"></span> Settings
-		</Button>
 	</div>
 </div>
 
@@ -103,13 +99,5 @@
 		NavigationManager.NavigateTo("/");
 		
 		this.StateHasChanged();
-	}
-
-	private void OnSettings()
-	{
-		////if (Authentication.IsAuthenticated)
-		//{
-		this.Modal.Show<Pages.SettingsEditor>("Settings");
-		//}
 	}
 }
