@@ -23,7 +23,7 @@ namespace FC.Events
 
 		public Occurance(Occurance repeat, LocalDate date, Occurance baseOccurance)
 		{
-			LocalTime? time = this.GetLocalTime() ?? baseOccurance.GetLocalTime();
+			LocalTime? time = repeat.GetLocalTime() ?? baseOccurance.GetLocalTime();
 
 			this.SetLocalTime(time);
 			this.SetDuration(repeat.GetDuration());
