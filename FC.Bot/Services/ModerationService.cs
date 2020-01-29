@@ -6,6 +6,7 @@ namespace FC.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
+	using System.IO;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
@@ -113,6 +114,60 @@ namespace FC.Bot.Services
 			builder.Append(user.Warnings.Count);
 			builder.Append(" times");
 			return builder.ToString();
+		}
+
+		[Command("Log", Permissions.Administrators, "Logs a series of messages from a channel to a file, and send the file")]
+		public async Task Log(CommandMessage cmdMessage, SocketTextChannel channel, int messagecount)
+		{
+			IEnumerable<IMessage> messages = await channel.GetMessagesAsync(messagecount).FlattenAsync();
+
+			string directory = PathUtils.Current + "/Logs/";
+			string path = directory + channel.Id + ".txt";
+
+			if (!Directory.Exists(directory))
+				Directory.CreateDirectory(directory);
+
+			using (StreamWriter outputFile = new StreamWriter(path))
+			{
+				foreach (IMessage message in messages)
+				{
+					outputFile.Write(message.GetAuthor().GetName());
+					outputFile.Write(" [");
+					outputFile.Write(message.Timestamp);
+					outputFile.Write("] ");
+					outputFile.Write(message.Content);
+
+					foreach (IEmbed embed in message.Embeds)
+					{
+						outputFile.WriteLine();
+						outputFile.Write("    [Embed] ");
+						outputFile.WriteLine(embed.Title);
+						outputFile.Write("    ");
+						outputFile.WriteLine(embed.Description);
+
+						foreach (EmbedField field in embed.Fields)
+						{
+							outputFile.Write("    ");
+							outputFile.Write(field.Name);
+							outputFile.Write(" - ");
+							outputFile.WriteLine(field.Value);
+						}
+					}
+
+					foreach (IAttachment attachment in message.Attachments)
+					{
+						outputFile.WriteLine();
+						outputFile.Write("    [Attachment] ");
+						outputFile.Write(attachment.Filename);
+						outputFile.Write(" - ");
+						outputFile.Write(attachment.Url);
+					}
+
+					outputFile.WriteLine();
+				}
+			}
+
+			await cmdMessage.Channel.SendFileAsync(path);
 		}
 	}
 }

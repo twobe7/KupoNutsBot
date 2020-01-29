@@ -10,6 +10,9 @@ namespace FC.Bot
 	{
 		public static string GetName(this IGuildUser self)
 		{
+			if (self == null)
+				return "Unknown User";
+
 			if (string.IsNullOrEmpty(self.Nickname))
 				return self.Username;
 
