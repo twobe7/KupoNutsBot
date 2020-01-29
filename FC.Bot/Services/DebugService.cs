@@ -101,5 +101,11 @@ namespace FC.Bot.Services
 
 			return Task.FromResult("This is your fault, " + message.Author.GetName() + ".");
 		}
+
+		[Command("GetChannelName", Permissions.Administrators, "do test")]
+		public Task<string> Test(CommandMessage message, SocketTextChannel channel)
+		{
+			return Task.FromResult(channel.Name);
+		}
 	}
 }
