@@ -75,6 +75,11 @@ namespace FC.Bot
 			return await guild.GetUserAsync(DiscordClient.CurrentUser.Id);
 		}
 
+		public static Task<bool> HandleInput(string input)
+		{
+			return Task.FromResult(false);
+		}
+
 		protected virtual async Task AddServices()
 		{
 			try

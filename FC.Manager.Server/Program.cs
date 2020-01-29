@@ -7,6 +7,7 @@ namespace FC.Manager.Server
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using FC.Manager.Client.RPC;
 	using FC.Manager.Server.Services;
 	using Microsoft.AspNetCore;
 	using Microsoft.AspNetCore.Hosting;
@@ -29,7 +30,7 @@ namespace FC.Manager.Server
 			Authentication.GenerateSecret();
 
 			// Add services
-			await AddService<RPCService>();
+			await AddService<Services.RPCService>();
 			await AddService<DiscordService>();
 			await AddService<AuthenticationService>();
 			await AddService<SettingsService>();
@@ -66,6 +67,25 @@ namespace FC.Manager.Server
 			T service = Activator.CreateInstance<T>();
 			services.Add(service);
 			return service.Initialize();
+		}
+
+		public static async Task<bool> HandleInput(string input)
+		{
+			string[] parts = input.Split(new string[] { "(", ",", ")" }, StringSplitOptions.RemoveEmptyEntries);
+
+			List<string> arguments = new List<string>();
+			for (int i = 2; i < parts.Length; i++)
+				arguments.Add(parts[i]);
+
+			RPCRequest req = new RPCRequest();
+			req.Method = parts[0];
+			req.ParamData = arguments;
+			req.GuildId = parts[1];
+
+			RPCResult result = await Services.RPCService.Invoke(req);
+			Console.WriteLine(result.Data);
+
+			return true;
 		}
 	}
 }

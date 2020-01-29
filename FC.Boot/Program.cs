@@ -44,16 +44,30 @@ namespace FC.Boot
 				botTask = Bot.Program.Run(args);
 				managerTask = Manager.Server.Program.Run(args);
 
+				StringBuilder input = new StringBuilder();
 				while (Running)
 				{
 					await Task.Yield();
 					Thread.Sleep(100);
 
-					if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+					ConsoleKeyInfo consoleKey = Console.ReadKey(true);
+
+					if (consoleKey.Key == ConsoleKey.Escape)
 					{
 						Log.Write("Shutting down...", "Boot");
 						await Bot.Program.Exit();
 						await Manager.Server.Program.Exit();
+					}
+					else if (consoleKey.Key == ConsoleKey.Enter)
+					{
+						Console.WriteLine();
+						await HandleInput(input.ToString());
+						input.Clear();
+					}
+					else
+					{
+						input.Append(consoleKey.KeyChar);
+						Console.Write(consoleKey.KeyChar);
 					}
 				}
 			}
@@ -63,6 +77,17 @@ namespace FC.Boot
 			}
 
 			Log.Write("Shutdown complete", "Boot");
+		}
+
+		private static async Task HandleInput(string input)
+		{
+			if (await Bot.Program.HandleInput(input))
+				return;
+
+			if (await Manager.Server.Program.HandleInput(input))
+				return;
+
+			return;
 		}
 	}
 }

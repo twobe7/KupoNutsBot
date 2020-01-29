@@ -19,7 +19,7 @@ namespace FC.Manager.Server.RPC
 			ParameterInfo[] paramInfos = method.GetParameters();
 
 			if (paramInfos.Length != request.ParamData.Count)
-				throw new Exception("Incorrect number of parameters");
+				throw new Exception("Incorrect number of parameters, expected " + paramInfos.Length + ", got " + paramData.Count);
 
 			List<object> paramValues = new List<object>();
 			for (int i = 0; i < paramInfos.Length; i++)
