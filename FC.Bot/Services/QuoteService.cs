@@ -182,6 +182,36 @@ namespace FC.Bot.Quotes
 			return builder.Build();
 		}
 
+		[Command("DeleteQuote", Permissions.Everyone, "Deletes a quote from the given user")]
+		public async Task<string> DeleteQuote(CommandMessage message, IUser user, int quoteId)
+		{
+			if (message.Author != user && CommandsService.GetPermissions(message.Author) != Permissions.Administrators)
+				throw new UserException("You don't have permission to do that.");
+
+			Dictionary<string, object> filters = new Dictionary<string, object>();
+			filters.Add("UserId", user.Id);
+			filters.Add("GuildId", message.Guild.Id);
+			filters.Add("QuoteId", quoteId);
+
+			List<Quote> allQuotes = await this.quoteDb.LoadAll(filters);
+
+			if (allQuotes.Count <= 0)
+				throw new UserException("I couldn't find that quote from that user.");
+
+			foreach (Quote quote in allQuotes)
+			{
+				await this.quoteDb.Delete(quote);
+			}
+
+			return "Quote deleted!";
+		}
+
+		[Command("DeleteQuote", Permissions.Everyone, "Deletes a quote from yourself")]
+		public Task<string> DeleteQuote(CommandMessage message, int quoteId)
+		{
+			return this.DeleteQuote(message, message.Author, quoteId);
+		}
+
 		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> messageCache, ISocketMessageChannel channel, SocketReaction reaction)
 		{
 			try
@@ -202,7 +232,7 @@ namespace FC.Bot.Quotes
 					quote.UserId = message.Author.Id;
 					quote.GuildId = guildChannel.Guild.Id;
 					quote.UserName = message.Author.Username;
-					quote.QuoteId = await this.GetNextQuoteId(message.GetAuthor());
+					quote.QuoteId = await this.GetNextQuoteId(message.GetGuild(), message.GetAuthor());
 					quote.SetDateTime(message.CreatedAt);
 					await this.quoteDb.Save(quote);
 
@@ -215,28 +245,33 @@ namespace FC.Bot.Quotes
 			}
 		}
 
-		private async Task<int> GetNextQuoteId(IUser user)
+		private async Task<int> GetNextQuoteId(IGuild guild, IUser user)
 		{
-			return await this.GetNextQuoteId(user.Id);
+			return await this.GetNextQuoteId(guild.Id, user.Id);
 		}
 
-		private async Task<int> GetNextQuoteId(ulong userId)
+		private async Task<int> GetNextQuoteId(ulong guildId, ulong userId)
 		{
-			List<Quote> allQuotes = await this.quoteDb.LoadAll();
+			Dictionary<string, object> filters = new Dictionary<string, object>();
+			filters.Add("UserId", userId);
+			filters.Add("GuildId", guildId);
 
-			int index = 0;
+			List<Quote> allQuotes = await this.quoteDb.LoadAll(filters);
+
+			HashSet<int> allIds = new HashSet<int>();
 			foreach (Quote quote in allQuotes)
 			{
-				if (quote.UserId != userId)
-					continue;
-
-				if (quote.QuoteId >= index)
-				{
-					index = quote.QuoteId + 1;
-				}
+				allIds.Add(quote.QuoteId);
 			}
 
-			return index;
+			int index = 1;
+			while (true)
+			{
+				if (!allIds.Contains(index))
+					return index;
+
+				index++;
+			}
 		}
 
 		private Embed GetEmbed(Quote self)
