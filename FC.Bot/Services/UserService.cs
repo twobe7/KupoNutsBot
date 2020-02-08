@@ -117,8 +117,6 @@ namespace FC.Bot.Services
 			public ulong DiscordUserId { get; set; }
 			public ulong DiscordGuildId { get; set; }
 			public uint FFXIVCharacterId { get; set; } = 0;
-			public int Level { get; set; } = 0;
-			public int Nuts { get; set; } = 10;
 
 			public bool Banned { get; set; } = false;
 			public List<Warning> Warnings { get; set; } = new List<Warning>();

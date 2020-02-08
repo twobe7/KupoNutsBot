@@ -20,7 +20,6 @@ namespace FC.Bot
 	using FC.Bot.Lodestone;
 	using FC.Bot.Polls;
 	using FC.Bot.Quotes;
-	using FC.Bot.RPG;
 	using FC.Bot.Services;
 	using FC.Bot.Status;
 
@@ -97,7 +96,6 @@ namespace FC.Bot
 				await this.AddService<StatusService>();
 				await this.AddService<ReminderService>();
 				await this.AddService<EchoService>();
-				await this.AddService<RPGService>();
 				await this.AddService<PollService>();
 				await this.AddService<CharacterService>();
 				await this.AddService<LodestoneService>();
