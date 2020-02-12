@@ -1,4 +1,6 @@
-﻿// This document is intended for use by Kupo Nut Brigade developers.
+﻿// Copyright (c) FCChan. All rights reserved.
+//
+// Licensed under the MIT license.
 
 namespace Universalis
 {
@@ -6,7 +8,7 @@ namespace Universalis
 	using System.IO;
 	using System.Net;
 	using System.Threading.Tasks;
-	using KupoNuts;
+	using FC;
 	using Newtonsoft.Json;
 
 	internal static class Request
@@ -20,20 +22,20 @@ namespace Universalis
 
 			try
 			{
-				Log.Write("Request: " + url, "Universalis");
+				Log.Write("Request: " + url, @"Universalis");
 
 				WebRequest req = WebRequest.Create(url);
 				WebResponse response = await req.GetResponseAsync();
 				StreamReader reader = new StreamReader(response.GetResponseStream());
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Universalis");
+				Log.Write("Response: " + json.Length + " characters", @"Universalis");
 
 				return JsonConvert.DeserializeObject<T>(json);
 			}
 			catch (Exception ex)
 			{
-				Log.Write("Error: " + ex.Message, "Universalis");
+				Log.Write("Error: " + ex.Message, @"Universalis");
 				throw ex;
 			}
 		}

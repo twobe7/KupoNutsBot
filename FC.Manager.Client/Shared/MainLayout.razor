@@ -1,0 +1,27 @@
+﻿@inject HttpClient Http
+@inject IModalService Modal
+
+@inherits LayoutComponentBase
+
+<BlazoredModal />
+
+@if (Authentication.IsAuthenticated)
+{
+	<div class="sidebar">
+		<NavMenu />
+	</div>
+}
+
+<div class="main">
+	@Body
+</div>
+
+@code
+{
+	protected override async Task OnInitializedAsync()
+	{
+		RPC.RPCService.Client = this.Http;
+		FC.Manager.Client.Modal.ModalService = this.Modal;
+		await base.OnInitializedAsync();
+	}
+}

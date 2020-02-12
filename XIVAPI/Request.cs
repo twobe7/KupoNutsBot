@@ -1,4 +1,6 @@
-﻿// This document is intended for use by Kupo Nut Brigade developers.
+﻿// Copyright (c) FCChan. All rights reserved.
+//
+// Licensed under the MIT license.
 
 namespace XIVAPI
 {
@@ -6,7 +8,7 @@ namespace XIVAPI
 	using System.IO;
 	using System.Net;
 	using System.Threading.Tasks;
-	using KupoNuts;
+	using FC;
 	using Newtonsoft.Json;
 
 	internal static class Request

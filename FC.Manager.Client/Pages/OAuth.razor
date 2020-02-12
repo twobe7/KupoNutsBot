@@ -1,0 +1,31 @@
+﻿@page "/OAuth/"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject IModalService Modal
+
+@code
+{
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		try
+		{
+			string code = NavigationManager.GetQuerryParameter("code");
+			string url = NavigationManager.GetURL();
+
+			await Authentication.Authenticate(code, url);
+			NavigationManager.NavigateTo("/");
+		}
+		catch (Exception ex)
+		{
+			ModalParameters parameters = new ModalParameters();
+			parameters.Add("Content", ex.Message);
+			this.Modal.Show<GenericModal>("Authentication Error", parameters);
+			this.Modal.OnClose += (ModalResult) =>
+			{
+				NavigationManager.NavigateTo("/");
+			};
+		}
+	}
+}

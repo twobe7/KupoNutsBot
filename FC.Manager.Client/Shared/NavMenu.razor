@@ -1,0 +1,91 @@
+﻿@inject IModalService Modal
+@inject NavigationManager NavigationManager
+
+<div class="wrapper">
+
+	<div class="form-group" style="margin: 16px 16px 0px 16px">
+		<select class="form-control" @bind="this.SelectedGuild">
+
+			@foreach (Authentication.Data.Guild guild in Authentication.Guilds)
+			{
+				@if (!guild.CanManageGuild)
+					continue;
+
+				<option value=@guild.Id>@guild.Name</option>
+			}
+		</select>
+	</div>
+
+
+	<ul class="nav flex-column">
+
+		<li class="nav-item px-3">
+			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+				<span class="oi oi-home" aria-hidden="true"></span> Home
+			</NavLink>
+		</li>
+
+		@if (IsInGuild)
+		{
+			<li class="nav-item px-3">
+				<NavLink class="nav-link" href="events">
+					<span class="oi oi-bell" aria-hidden="true"></span> Events
+				</NavLink>
+			</li>
+		}
+	</ul>
+
+
+	<div class="footer-transparent" style="height: auto; position: absolute; bottom: 0px;">
+		<div class="nav-item px-3" style="padding-bottom: 0px">
+			<div class="alert alert-dark justify-content-center">
+				Your timezone has ben set to: @NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault().ToString()
+			</div>
+		</div>
+	</div>
+</div>
+
+
+@code
+{
+	public string SelectedGuild
+	{
+		get
+		{
+			return RPC.RPCService.GuildId;
+		}
+
+		set
+		{
+			RPC.RPCService.GuildId = value;
+			this.UpdateGuild();
+		}
+	}
+
+	public bool IsInGuild
+	{
+		get;
+		set;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.IsInGuild = false;
+
+		if (!Authentication.IsAuthenticated)
+			return;
+
+		IsInGuild = await RPC.RPCService.Invoke<bool>("GuildService.IsInGuild", RPC.RPCService.GuildId);
+
+		await base.OnInitializedAsync();
+		
+	}
+
+	private void UpdateGuild()
+	{
+		NavigationManager.NavigateTo("/temp");
+		NavigationManager.NavigateTo("/");
+		
+		this.StateHasChanged();
+	}
+}

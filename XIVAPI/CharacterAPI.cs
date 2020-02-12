@@ -1,4 +1,6 @@
-﻿// This document is intended for use by Kupo Nut Brigade developers.
+﻿// Copyright (c) FCChan. All rights reserved.
+//
+// Licensed under the MIT license.
 
 namespace XIVAPI
 {
@@ -21,7 +23,7 @@ namespace XIVAPI
 
 		/// <summary>
 		/// Search and retrieve character data from The Lodestone. Providing useful information such as character profile data,
-		/// minions and mounts obtained, achievements obtained and their relative dates. Character friends, their free company, pvp team and much more.
+		/// minions and mounts obtained, achievements obtained and their relative dates. Character friends, their free company, PVP team and much more.
 		/// </summary>
 		/// <param name="name">The name to search for, you can use `+` for spaces or let the API handle it for you.</param>
 		/// <param name="server">The server to search against, this is case sensitive - You can obtain a list of valid servers via: Server List.</param>

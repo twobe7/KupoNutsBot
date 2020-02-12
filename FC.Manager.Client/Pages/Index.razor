@@ -1,0 +1,119 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@using System.Text;
+@using FC.Manager.Client.RPC;
+
+<div style="margin: 1rem">
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-12">
+			<label class="text-white">Welcome</label>
+		</div>
+
+		@if (!Authentication.IsAuthenticated)
+		{
+			<div class="form-group col-md-12">
+				<Button class="btn btn-light nav-link" style="width:100%" @onclick="this.OnSignIn">
+					<span class="oi oi-account-login" aria-hidden="true"></span> Sign In With Discord
+				</Button>
+			</div>
+		}
+		else if (!IsInGuild)
+		{
+			<div class="form-group col-md-12">
+				<Button class="btn btn-light nav-link" style="width:100%" @onclick="this.OnAddtoServer">
+					<span class="oi oi-plus" aria-hidden="true"></span> Add FC-Chan to your server
+				</Button>
+			</div>
+		}
+		else
+		{
+			<div class="content-box">
+				@foreach (RenderFragment frag in this.SettingsFragments)
+				{
+					@frag;
+				}
+
+				<div class="footer-content">
+					<button class="btn btn-primary" @onclick="this.OnSaveSettings">Save</button>
+				</div>
+			</div>
+		}
+	</div>
+</div>
+
+@code
+{
+	private GuildSettings settings;
+
+	public bool IsInGuild
+	{
+		get;
+		set;
+	}
+
+	public List<RenderFragment> SettingsFragments { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.IsInGuild = false;
+
+		if (!Authentication.IsAuthenticated)
+			return;
+
+		this.IsInGuild = await RPC.RPCService.Invoke<bool>("GuildService.IsInGuild", RPC.RPCService.GuildId);
+		await base.OnInitializedAsync();
+
+		if (!IsInGuild)
+			return;
+
+		this.settings = await RPCService.Invoke<GuildSettings>("GuildService.GetSettings");
+		this.SettingsFragments = Inspector.GetFragments(this.settings);
+	}
+
+	private async void OnAddtoServer()
+	{
+		string clientId = await RPCService.Invoke<string>("AuthenticationService.GetDiscordKey");
+
+		if (string.IsNullOrEmpty(clientId))
+			throw new Exception("No Client Id");
+
+		StringBuilder urlBuilder = new StringBuilder();
+		urlBuilder.Append("https://discordapp.com/api/oauth2/authorize");
+		urlBuilder.Append("?client_id=");
+		urlBuilder.Append(clientId);
+		urlBuilder.Append("&permissions=8"); // admin
+		urlBuilder.Append("&redirect_uri=");
+		urlBuilder.Append(NavigationManager.Uri);
+		urlBuilder.Append("OAuth");
+		urlBuilder.Append("&scope=bot");
+
+		NavigationManager.NavigateTo(urlBuilder.ToString());
+	}
+
+	private async void OnSignIn()
+	{
+		string clientId = await RPCService.Invoke<string>("AuthenticationService.GetDiscordKey");
+
+		StringBuilder urlBuilder = new StringBuilder();
+		urlBuilder.Append("https://discordapp.com/api/oauth2/authorize");
+		urlBuilder.Append("?response_type=code");
+		urlBuilder.Append("&client_id=");
+		urlBuilder.Append(clientId);
+		urlBuilder.Append("&scope=");
+		urlBuilder.Append(Authentication.DiscordScopes);
+		urlBuilder.Append("&redirect_uri=");
+		urlBuilder.Append(NavigationManager.Uri);
+		urlBuilder.Append("OAuth");
+		urlBuilder.Append("&prompt=none");
+
+		NavigationManager.NavigateTo(urlBuilder.ToString());
+	}
+
+	private async void OnSaveSettings()
+	{
+		await RPCService.Invoke("GuildService.SetSettings", this.settings);
+	}
+}

@@ -1,10 +1,12 @@
-﻿// This document is intended for use by Kupo Nut Brigade developers.
+﻿// Copyright (c) FCChan. All rights reserved.
+//
+// Licensed under the MIT license.
 
 namespace Twitter
 {
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
-	using KupoNuts;
+	using FC;
 	using TweetSharp;
 
 	public static class FashionReportAPI
@@ -20,6 +22,9 @@ namespace Twitter
 
 			TwitterService service = new TwitterService(settings.TwitterConsumerKey, settings.TwitterConsumerSecret);
 			service.AuthenticateWith(settings.TwitterToken, settings.TwitterTokenSecret);
+
+			if (service == null)
+				return Task.FromResult(results);
 
 			ListTweetsOnUserTimelineOptions op = new ListTweetsOnUserTimelineOptions();
 			op.ScreenName = "@KaiyokoStar";

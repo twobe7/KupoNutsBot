@@ -1,0 +1,228 @@
+﻿@using FC.Events;
+@using NodaTime;
+@using RPC;
+
+@inherits Modal
+
+@if (this.IsLoading)
+{
+	<div class="form-row">
+		Loading
+	</div>
+}
+else
+{
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-6">
+			<label for="eventName">Name</label>
+			<input type="text" class="form-control" id="eventName" name="eventName" placeholder="Enter event name" @bind="this.evt.Name" />
+		</div>
+
+		<!--  Notify -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Notification</label>
+			<select class="custom-select" id="notifySelect" name="notifySelect" @bind="this.NotifyDuration">
+				@foreach (KeyValuePair<string, double> notify in this.NotifyList)
+				{
+					<option value=@notify.Value>@notify.Key</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Description -->
+		<div class="form-group col-md-12">
+			<label for="eventDesc">Description</label>
+			<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="this.evt.Description"></textarea>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Short description -->
+		<div class="form-group col-md-6">
+			<label for="eventShortDesc">Short Description</label>
+			<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.evt.ShortDescription" />
+		</div>
+
+		<!-- Message -->
+		<div class="form-group col-md-6">
+			<label for="eventMessage">Message</label>
+			<input type="text" class="form-control" id="eventMessage" name="eventMessage" @bind="this.evt.Message" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Image URL -->
+		<div class="form-group col-md-12">
+			<label for="eventImage">Image URL</label>
+			<input type="text" class="form-control" id="eventImage" name="eventImage" placeholder="Enter a URL to an image" @bind="this.evt.Image" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Channel -->
+		<div class="form-group col-md-4">
+			<label for="channelSelect">Discord Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
+				@foreach (Channel channl in this.ChannelList)
+				{
+					<option value=@channl.DiscordId>@channl.Name</option>
+				}
+			</select>
+		</div>
+
+		<!--  Color -->
+		<div class="form-group col-md-4">
+			<label for="colorSelect">Color</label>
+			<select class="custom-select" id="colorSelect" name="colorSelect" @bind="this.Color">
+				@foreach (string color in this.ColorList)
+				{
+					<option value=@color>@color</option>
+				}
+			</select>
+		</div>
+
+		<!--  Status Type -->
+		<div class="form-group col-md-4">
+			<label for="statusSelect">Status Type</label>
+			<select class="custom-select" id="statusSelect" name="statusSelect" @bind="this.Status">
+				@foreach (string status in this.StatusList)
+				{
+					<option value=@status>@status</option>
+				}
+			</select>
+		</div>
+	</div>
+
+
+	@for (int i = 0; i < 8; i++)
+	{
+		IsoDayOfWeek day = (IsoDayOfWeek)i;
+		<EventRepeatEditor Event="this.evt" Day="day" />
+	}
+}
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+
+@code {
+
+
+	public bool IsLoading { get; set; }
+
+	public List<Channel> ChannelList { get; set; }
+	public List<string> ColorList { get; set; }
+	public List<string> StatusList { get; set; }
+	public Dictionary<string, double> NotifyList { get; set; }
+
+	private Event evt;
+
+	public double NotifyDuration
+	{
+		get
+		{
+			return this.evt.GetNotifyDurationDouble();
+		}
+
+		set
+		{
+			this.evt.SetNotifyDuration(value);
+		}
+	}
+
+	public string Color
+	{
+		get
+		{
+			return this.evt.Color.ToString();
+		}
+
+		set
+		{
+			this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), value);
+		}
+	}
+
+	public string Status
+	{
+		get
+		{
+			return this.evt.StatusType.ToString();
+		}
+
+		set
+		{
+			this.evt.StatusType = (Event.Statuses)Enum.Parse(typeof(Event.Statuses), value);
+		}
+	}
+
+	public string Channel
+	{
+		get
+		{
+			if (string.IsNullOrEmpty(this.evt.ChannelId))
+				return "0";
+
+			return this.evt.ChannelId;
+		}
+
+		set
+		{
+			this.evt.ChannelId = value == "0" ? null : value;
+		}
+	}
+
+	public async Task Initialize(Event evt)
+	{
+		this.IsLoading = true;
+		this.evt = evt;
+
+		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
+		this.StatusList = new List<string>(Enum.GetNames(typeof(Event.Statuses)));
+
+		this.NotifyList = new Dictionary<string, double>()
+	{
+			{ "Never", -1 },
+			{ "Immediatelly", 0},
+			{ "One Hour", 1 },
+			{ "One Day", 24 },
+		};
+
+		this.ChannelList = new List<Channel>()
+		{
+			new Channel(0, "None", FC.Channel.Types.Unknown),
+		};
+
+		this.ChannelList.AddRange(await Channels.GetChannels());
+		this.IsLoading = false;
+	}
+
+	private async void OnSave()
+	{
+		await RPCService.Invoke("EventsService.UpdateEvent", this.evt);
+		this.Close();
+	}
+
+	private void OnClose()
+	{
+		this.Close();
+	}
+
+	private async void OnDelete()
+	{
+		this.Close();
+
+		bool confirmed = await Modal.Show<bool, ConfirmDelete>("Delete Event", "Are you sure you want to delete the event: " + this.evt.Name);
+		if (confirmed)
+		{
+			await RPCService.Invoke("EventsService.DeleteEvent", this.evt.Id);
+		}
+	}
+}

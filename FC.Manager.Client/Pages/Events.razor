@@ -1,0 +1,96 @@
+﻿@page "/events"
+@using FC.Events;
+@using FC.Utils;
+@using NodaTime;
+@using System.Globalization;
+@using RPC;
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@if (this.AllEvents == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<div class="wrapper">
+		<table class="table table-dark">
+			<thead>
+				<tr>
+					<th width="15%">Name</th>
+					<th>Description</th>
+					<th width="20%">Channel</th>
+					<th width="15%">Next Occurance</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (Event evt in this.AllEvents)
+				{
+					<tr @onclick="() => this.OnEdit(evt)" class="table-clickable">
+						<td>@evt.Name</td>
+						<td>@evt.Description</td>
+						<td>@evt.GetChannelName(this.AllChannels)</td>
+						<td>@evt.GetNextOccuranceString()</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+
+		<div class="push"></div>
+	</div>
+	<div class="footer">
+		<div class="footer-content">
+			<button class="btn btn-secondary" @onclick="this.OnSettings">Settings</button>
+			<button class="btn btn-primary" @onclick="this.OnCreateNew">New</button>
+		</div>
+	</div>
+}
+
+@code {
+
+	public List<Event> AllEvents;
+	public List<Channel> AllChannels;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (!Authentication.IsAuthenticated)
+		{
+			this.NavigationManager.NavigateTo("/");
+			return;
+		}
+
+		await base.OnInitializedAsync();
+
+		this.AllEvents = await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
+		this.AllChannels = new List<Channel>();
+	}
+
+	protected async void OnEdit(Event evt)
+	{
+		ModalParameters parameters = new ModalParameters();
+		parameters.Add("Event", evt);
+
+		await Modal.Show<EventEditor>("Edit Event", evt);
+		this.AllEvents = await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
+		this.StateHasChanged();
+	}
+
+	protected void OnCreateNew()
+	{
+		Event evt = new Event();
+		evt.Id = Guid.NewGuid().ToString();
+		OnEdit(evt);
+	}
+
+	protected async void OnSettings()
+	{
+		EventsSettings set = await RPCService.Invoke<EventsSettings>("EventsService.GetSettings");
+		set = await Inspector.Inspect(set);
+
+		if (set == null)
+			return;
+
+		await RPCService.Invoke<EventsSettings>("EventsService.SaveSettings", set);
+	}
+}

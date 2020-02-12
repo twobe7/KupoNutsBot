@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<OutputType>Exe</OutputType>
+		<LangVersion>7.3</LangVersion>
+		<RazorLangVersion>3.0</RazorLangVersion>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<DocumentationFile>..\bin\FC.Manager.Client.xml</DocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsAsErrors />
+		<NoWarn>1701;1702;SA1503;CS1591;SA1401;SA0001;SA1516;</NoWarn>
+		<OutputPath>.\bin\</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Remove="stylecop.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AdditionalFiles Include="stylecop.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Blazored.Modal" Version="3.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Blazor" Version="3.0.0-preview9.19424.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="3.0.0-preview9.19424.4" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.Blazor.HttpClient" Version="3.0.0-preview9.19424.4" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="3.1.0" />
+		<PackageReference Include="NodaTime" Version="2.4.6" />
+		<PackageReference Include="NodaTime.Serialization.JsonNet" Version="2.2.0" />
+		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Toolbelt.Blazor.TimeZoneKit" Version="5.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\FC.Shared\FC.Shared.csproj" />
+	</ItemGroup>
+
+</Project>

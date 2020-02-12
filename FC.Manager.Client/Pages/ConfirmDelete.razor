@@ -1,0 +1,35 @@
+﻿@using FC.Events;
+
+@inherits Modal
+
+<div class="form-row">
+	<div class="form-group col-md-12">
+		<label>Are you sure you want to delete the item: "@this.content" ?</label>
+	</div>
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Cancel</button>
+</div>
+
+
+@code {
+	private string content;
+
+	public void Initialize(string content)
+	{
+		this.content = content;
+	}
+
+	private void OnClose()
+	{
+		this.Close(false);
+	}
+
+	private void OnDelete()
+	{
+		this.Close(true);
+	}
+}

@@ -1,4 +1,6 @@
-﻿// This document is intended for use by Kupo Nut Brigade developers.
+﻿// Copyright (c) FCChan. All rights reserved.
+//
+// Licensed under the MIT license.
 
 namespace XIVAPI
 {
@@ -18,26 +20,28 @@ namespace XIVAPI
 
 		public int ClassJobLevel { get; set; }
 		public int Cast100ms { get; set; }
+
 		public decimal CastSeconds
 		{
-			get { return this.Cast100ms / 10M; }
+			get
+			{
+				return this.Cast100ms / 10M;
+			}
 		}
 
 		public int Recast100ms { get; set; }
+
 		public decimal RecastSeconds
 		{
-			get { return this.Recast100ms / 10M; }
+			get
+			{
+				return this.Recast100ms / 10M;
+			}
 		}
 
-		public Job? ClassJob { get; set; }
+		public ClassJob? ClassJob { get; set; }
 		public JobCategory? ClassJobCategory { get; set; }
 		public GameContentLink? ContentLink { get; set; }
-
-		[Serializable]
-		public class Job
-		{
-			public string Name { get; set; } = string.Empty;
-		}
 
 		[Serializable]
 		public class JobCategory
@@ -82,21 +86,6 @@ namespace XIVAPI
 			public bool WAR { get; set; }
 			public bool WHM { get; set; }
 			public bool WVR { get; set; }
-		}
-
-		[Serializable]
-		public class GameContentLink
-		{
-			public Link? FurnitureCatalogItemList { get; set; }
-			public Link? HousingFurniture { get; set; }
-			public Link? Recipe { get; set; }
-
-			[Serializable]
-			public class Link
-			{
-				public List<int> Item { get; set; } = new List<int>();
-				public List<int> ItemResult { get; set; } = new List<int>();
-			}
 		}
 	}
 }

@@ -1,0 +1,97 @@
+﻿@using System.Reflection;
+@using FC.Attributes;
+@using System.Text.RegularExpressions;
+
+@inherits Modal
+
+@foreach (RenderFragment frag in this.Fragments)
+{
+	@frag;
+}
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-secondary" @onclick="this.OnCancel">Cancel</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+</div>
+
+
+@code {
+
+	public List<RenderFragment> Fragments { get; set; } = new List<RenderFragment>();
+	public List<Channel> ChannelList { get; set; }
+
+	private object obj;
+
+	public static async Task<T> Inspect<T>(T obj)
+	{
+		string name = typeof(T).Name;
+		name = Regex.Replace(name, "(\\B[A-Z])", " $1");
+
+		T newObj = await Modal.Show<T, Inspector>(name, obj);
+		return newObj;
+	}
+
+	public static List<RenderFragment> GetFragments(object obj)
+	{
+		List<RenderFragment> fragments = new List<RenderFragment>();
+
+		Type type = obj.GetType();
+
+		foreach (PropertyInfo prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+		{
+			Type drawerType = GetDrawerType(prop);
+
+			if (drawerType == null)
+				continue;
+
+			RenderFragment content = new RenderFragment(x =>
+			{
+				x.OpenComponent(1, drawerType);
+				x.AddAttribute(0, "Property", prop);
+				x.AddAttribute(1, "Target", obj);
+				x.CloseComponent();
+			});
+			
+			fragments.Add(content);
+		}
+
+		return fragments;
+	}
+
+	private static Type GetDrawerType(PropertyInfo property)
+	{
+		// Hiden
+		if (property.GetCustomAttribute<InspectorHiddenAttribute>() != null)
+			return null;
+
+		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
+			return typeof(Drawers.ChannelDrawer);
+
+		return typeof(Drawers.StringDrawer);
+	}
+
+	public async Task Initialize(object obj)
+	{
+		this.obj = obj;
+		Type type = obj.GetType();
+
+		this.ChannelList = new List<Channel>()
+		{
+			new Channel(0, "None", FC.Channel.Types.Unknown),
+		};
+
+		this.ChannelList.AddRange(await Channels.GetChannels());
+		this.Fragments = GetFragments(obj);
+	}
+
+	private void OnCancel()
+	{
+		this.Close();
+	}
+
+	private void OnSave()
+	{
+		this.Close(this.obj);
+	}
+}
