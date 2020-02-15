@@ -94,7 +94,6 @@ namespace FC.Bot
 				await this.AddService<HelpService>();
 				await this.AddService<DebugService>();
 				await this.AddService<StatusService>();
-				await this.AddService<ReminderService>();
 				await this.AddService<EchoService>();
 				await this.AddService<PollService>();
 				await this.AddService<CharacterService>();

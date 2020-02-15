@@ -66,7 +66,7 @@ namespace FC.Events
 		public Occurance? Sunday { get; set; }
 
 		public string? NotifyDurationStr { get; set; }
-		public Notification? Notify { get; set; }
+		public Instance? Notify { get; set; }
 
 		public Duration? GetNotifyDuration()
 		{
@@ -234,19 +234,18 @@ namespace FC.Events
 		}
 
 		[Serializable]
-		public class Notification
+		public class Instance
 		{
 			public string? MessageId { get; set; }
+			public string? NotifyMessageId { get; set; }
 
 			public List<Attendee> Attendees { get; set; } = new List<Attendee>();
 
 			public class Attendee
 			{
 				public string? UserId { get; set; }
-
 				public int? Status { get; set; }
-
-				public string? RemindTime { get; set; }
+				public bool Notify { get; set; }
 			}
 		}
 	}

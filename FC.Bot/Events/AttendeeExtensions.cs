@@ -13,7 +13,7 @@ namespace FC.Bot.Events
 
 	public static class AttendeeExtensions
 	{
-		public static bool Is(this Event.Notification.Attendee self, ulong userId)
+		public static bool Is(this Event.Instance.Attendee self, ulong userId)
 		{
 			if (self.UserId == null)
 				return false;
@@ -21,7 +21,7 @@ namespace FC.Bot.Events
 			return ulong.Parse(self.UserId) == userId;
 		}
 
-		public static string GetName(this Event.Notification.Attendee self, Event evt)
+		public static string GetName(this Event.Instance.Attendee self, Event evt)
 		{
 			if (self.UserId == null)
 				throw new ArgumentNullException("Id");
@@ -44,23 +44,27 @@ namespace FC.Bot.Events
 			return user.Username;
 		}
 
-		public static Duration? GetRemindTime(this Event.Notification.Attendee self)
+		public static string GetMention(this Event.Instance.Attendee self, Event evt)
 		{
-			if (string.IsNullOrEmpty(self.RemindTime))
-				return null;
+			if (self.UserId == null)
+				throw new ArgumentNullException("Id");
 
-			return DurationPattern.Roundtrip.Parse(self.RemindTime).Value;
-		}
+			SocketUser user = Program.DiscordClient.GetUser(ulong.Parse(self.UserId));
 
-		public static void SetRemindTime(this Event.Notification.Attendee self, Duration? duration)
-		{
-			if (duration == null)
+			if (user == null)
+				return "Unknown";
+
+			SocketGuild guild = Program.DiscordClient.GetGuild(evt.ServerIdStr);
+			if (guild != null)
 			{
-				self.RemindTime = null;
-				return;
+				SocketGuildUser guildUser = guild.GetUser(ulong.Parse(self.UserId));
+				if (guildUser != null)
+				{
+					return guildUser.Mention;
+				}
 			}
 
-			self.RemindTime = DurationPattern.Roundtrip.Format((Duration)duration);
+			return user.Username;
 		}
 	}
 }
