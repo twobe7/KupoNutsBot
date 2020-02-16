@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime
 
 @using System.Text;
 @using FC.Manager.Client.RPC;
@@ -36,9 +37,16 @@
 					@frag;
 				}
 
-				<div class="footer-content">
-					<button class="btn btn-primary" @onclick="this.OnSaveSettings">Save</button>
+				<div class="form-group col-md-6 d-flex align-items-end justify-content-end">
+					<button id="btnSaveSettings" class="btn btn-primary" @onclick="this.OnSaveSettings">Save</button>
 				</div>
+
+				<div class="form-group col-md-12">
+					<div id="notification" class="d-flex justify-content-center mt-5 alert alert-success fade" role="alert">
+						Settings Saved!
+					</div>
+				</div>
+
 			</div>
 		}
 	</div>
@@ -115,5 +123,7 @@
 	private async void OnSaveSettings()
 	{
 		await RPCService.Invoke("GuildService.SetSettings", this.settings);
+
+		((IJSInProcessRuntime)jsRuntime).Invoke<object>("ShowSaveNotification");
 	}
 }

@@ -37,6 +37,7 @@ namespace FC.Bot.Characters
 		public XIVAPI.FreeCompany? FreeCompany => this.freeCompany;
 		public string? Server => this.xivApiCharacter?.Server;
 		public string? DataCenter => this.xivApiCharacter?.DC;
+		public string? Bio => this.xivApiCharacter?.Bio;
 
 		public bool HasMounts => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Mounts != null;
 		public bool HasMinions => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Mounts != null;

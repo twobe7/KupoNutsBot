@@ -34,7 +34,7 @@ namespace XIVAPI
 			string route = "/character/search?name=" + name;
 
 			if (!string.IsNullOrEmpty(server))
-				route += "&server=" + server;
+				route += "&server=" + server.ToLower();
 
 			if (page != 0)
 				route += "&page=" + page;

@@ -21,6 +21,8 @@ namespace FC.Bot.Services
 		private Dictionary<ulong, Dictionary<ulong, string>> userIdLookup = new Dictionary<ulong, Dictionary<ulong, string>>();
 		private Table<User> userDb = new Table<User>("KupoNuts_Users", 0);
 
+		private Dictionary<ulong, Dictionary<ulong, Dictionary<uint, string>>> userCharacterIdLookup = new Dictionary<ulong, Dictionary<ulong, Dictionary<uint, string>>>();
+
 		public static async Task<User> GetUser(IGuildUser user)
 		{
 			return await GetUser(user.GuildId, user.Id);
@@ -48,6 +50,175 @@ namespace FC.Bot.Services
 				throw new Exception("Attempt to access user service before it is initialized");
 
 			return await instance.userDb.LoadAll();
+		}
+
+		public static async Task<User.Character> GetUserCharacter(IGuildUser user, string characterName, string serverName)
+		{
+			return await GetUserCharacter(user.GuildId, user.Id, characterName, serverName);
+		}
+
+		public static async Task<User.Character> GetUserCharacter(ulong guildId, ulong userId, string characterName, string serverName)
+		{
+			if (instance == null)
+				throw new Exception("Attempt to access user service before it is initialized");
+
+			User user = await instance.GetUserWithCharacter(guildId, userId);
+
+			User.Character? character = user.Characters.Find(x => x.CharacterName?.ToLower() == characterName.ToLower() && x.ServerName?.ToLower() == serverName.ToLower());
+			if (character == null)
+			{
+				throw new UserException("No character with that name and server found");
+			}
+
+			return character;
+		}
+
+		public static async Task<User.Character> GetUserCharacter(IGuildUser user, uint ffxivCharacterId)
+		{
+			return await GetUserCharacter(user.GuildId, user.Id, ffxivCharacterId);
+		}
+
+		public static async Task<User.Character> GetUserCharacter(ulong guildId, ulong userId, uint ffxivCharacterId)
+		{
+			if (instance == null)
+				throw new Exception("Attempt to access user service before it is initialized");
+
+			User user = await instance.GetUserWithCharacter(guildId, userId);
+
+			User.Character? character = user.Characters.Find(x => x.FFXIVCharacterId == ffxivCharacterId);
+			if (character == null)
+			{
+				character = new User.Character();
+				character.FFXIVCharacterId = ffxivCharacterId;
+
+				user.Characters.Add(character);
+				await SaveUser(user);
+			}
+
+			return character;
+		}
+
+		public static async Task<List<User.Character>> GetAllUserCharacters(IGuildUser user)
+		{
+			return await GetAllUserCharacters(user.GuildId, user.Id);
+		}
+
+		public static async Task<List<User.Character>> GetAllUserCharacters(ulong guildId, ulong userId)
+		{
+			if (instance == null)
+				throw new Exception("Attempt to access user service before it is initialized");
+
+			User user = await instance.GetUserWithCharacter(guildId, userId);
+
+			return user.Characters;
+		}
+
+		public static async Task SaveUserCharacter(IGuildUser user, User.Character userCharacter)
+		{
+			if (instance == null)
+				throw new Exception("Attempt to access user service before it is initialized");
+
+			User userEntry = await instance.GetUserWithCharacter(user.GuildId, user.Id);
+
+			// First character is going to be default
+			if (userEntry.Characters.Count == 0)
+			{
+				userCharacter.IsDefaultCharacter = true;
+			}
+			else
+			{
+				User.Character? character = userEntry.Characters.Find(x => x.FFXIVCharacterId == userCharacter.FFXIVCharacterId);
+				if (character != null)
+				{
+					userEntry.Characters.Remove(character);
+				}
+			}
+
+			userEntry.Characters.Add(userCharacter);
+
+			await SaveUser(userEntry);
+		}
+
+		public static async Task RemoveUserCharacter(IGuildUser user, string characterName, string? serverName = null)
+		{
+			if (instance == null)
+				throw new Exception("Attempt to access user service before it is initialized");
+
+			User userEntry = await instance.GetUserWithCharacter(user.GuildId, user.Id);
+
+			List<User.Character> characters = userEntry.Characters.FindAll(x => x.CharacterName?.ToLower() == characterName.ToLower());
+
+			if (characters.Count == 1)
+			{
+				userEntry.Characters.Remove(characters[0]);
+				await SaveUser(userEntry);
+			}
+			else if (characters.Count > 1)
+			{
+				if (!string.IsNullOrEmpty(serverName))
+				{
+					User.Character? character = characters.Find(x => x.ServerName?.ToLower() == serverName.ToLower());
+					if (character != null)
+					{
+						userEntry.Characters.Remove(characters[0]);
+						await SaveUser(userEntry);
+						return;
+					}
+				}
+				else
+				{
+					throw new UserException("Multiple characters with same name found. Please specify a server.");
+				}
+			}
+
+			throw new UserException("No linked character found with that name.");
+		}
+
+		public static async Task SetDefaultUserCharacter(IGuildUser user, string characterName, string? serverName = null)
+		{
+			if (instance == null)
+				throw new Exception("Attempt to access user service before it is initialized");
+
+			User userEntry = await instance.GetUserWithCharacter(user.GuildId, user.Id);
+
+			List<User.Character> characters = userEntry.Characters.FindAll(x => x.CharacterName?.ToLower() == characterName);
+			if (characters.Count == 1)
+			{
+				User.Character? defaultCharacter = userEntry.Characters.Find(x => x.IsDefaultCharacter);
+				if (defaultCharacter != null)
+				{
+					defaultCharacter.IsDefaultCharacter = false;
+				}
+
+				characters[0].IsDefaultCharacter = true;
+				await SaveUser(userEntry);
+				return;
+			}
+			else if (characters.Count > 1)
+			{
+				if (!string.IsNullOrEmpty(serverName))
+				{
+					User.Character? character = characters.Find(x => x.ServerName?.ToLower() == serverName.ToLower());
+					if (character != null)
+					{
+						User.Character? defaultCharacter = userEntry.Characters.Find(x => x.IsDefaultCharacter);
+						if (defaultCharacter != null)
+						{
+							defaultCharacter.IsDefaultCharacter = false;
+						}
+
+						character.IsDefaultCharacter = true;
+						await SaveUser(userEntry);
+						return;
+					}
+				}
+				else
+				{
+					throw new UserException("Multiple characters with same name found. Please specify a server.");
+				}
+			}
+
+			throw new UserException("No linked character found with that name.");
 		}
 
 		public override async Task Initialize()
@@ -110,16 +281,40 @@ namespace FC.Bot.Services
 			return userEntry;
 		}
 
-		#pragma warning disable SA1516
+		private async Task<User> GetUserWithCharacter(ulong guildId, ulong userId)
+		{
+			User user = await this.GetUserImp(guildId, userId);
+
+			if (user.FFXIVCharacterId != 0)
+			{
+				if (user.Characters.Find(x => x.FFXIVCharacterId == user.FFXIVCharacterId) == null)
+				{
+					// Create character from user ffxiv id and add to user
+					user.Characters.Add(new User.Character()
+					{
+						FFXIVCharacterId = user.FFXIVCharacterId,
+						Verified = true,
+					});
+				}
+
+				user.FFXIVCharacterId = 0;
+
+				await SaveUser(user);
+			}
+
+			return user;
+		}
+
+#pragma warning disable SA1516
 		[Serializable]
 		public class User : EntryBase
 		{
 			public ulong DiscordUserId { get; set; }
 			public ulong DiscordGuildId { get; set; }
 			public uint FFXIVCharacterId { get; set; } = 0;
-
 			public bool Banned { get; set; } = false;
 			public List<Warning> Warnings { get; set; } = new List<Warning>();
+			public List<Character> Characters { get; set; } = new List<Character>();
 
 			[Serializable]
 			public class Warning
@@ -134,6 +329,17 @@ namespace FC.Bot.Services
 				public Actions Action { get; set; } = Actions.Unknown;
 				public ulong ChannelId { get; set; } = 0;
 				public string Comment { get; set; } = string.Empty;
+			}
+
+			[Serializable]
+			public class Character
+			{
+				public uint FFXIVCharacterId { get; set; } = 0;
+				public string? CharacterName { get; set; }
+				public string? ServerName { get; set; }
+				public string? FFXIVCharacterVerification { get; set; }
+				public bool IsDefaultCharacter { get; set; }
+				public bool Verified { get; set; }
 			}
 		}
 	}
