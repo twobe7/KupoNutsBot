@@ -5,6 +5,7 @@
 namespace FC.Bot.Characters
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Threading.Tasks;
 	using Discord;
 	using XIVAPI;
@@ -37,6 +38,7 @@ namespace FC.Bot.Characters
 		public XIVAPI.FreeCompany? FreeCompany => this.freeCompany;
 		public string? Server => this.xivApiCharacter?.Server;
 		public string? DataCenter => this.xivApiCharacter?.DC;
+		public string? Bio => this.xivApiCharacter?.Bio;
 
 		public bool HasMounts => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Mounts != null;
 		public bool HasMinions => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Mounts != null;
@@ -77,8 +79,11 @@ namespace FC.Bot.Characters
 
 		public async Task Update()
 		{
-			await this.UpdateXivApi();
-			await this.UpdateFfxivCollect();
+			Task xivApi = Task.Run(this.UpdateXivApi);
+			Task ffxivCollect = Task.Run(this.UpdateFfxivCollect);
+
+			await xivApi;
+			await ffxivCollect;
 		}
 
 		public string GetJobLevel(Jobs job)

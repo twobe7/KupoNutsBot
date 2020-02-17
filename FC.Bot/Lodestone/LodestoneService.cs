@@ -51,6 +51,9 @@ namespace FC.Bot.Lodestone
 				if (start < bestStart)
 					continue;
 
+				if (start < now.Minus(Duration.FromDays(14)))
+					continue;
+
 				bestStart = start;
 				nextMaint = item;
 			}
@@ -67,15 +70,20 @@ namespace FC.Bot.Lodestone
 				if (start == null || end == null)
 					throw new Exception();
 
-				Duration timeTillStart = (Duration)(start - now);
+				Duration timeUntilStart = (Duration)(start - now);
+				Duration timeUntilEnd = (Duration)(end - now);
 
-				if (timeTillStart.TotalMinutes > 0)
+				if (timeUntilStart.TotalMinutes > 0)
 				{
 					builder.Description = "Starts In: " + TimeUtils.GetDurationString(start - now);
 				}
-				else
+				else if (timeUntilEnd.TotalMinutes > 0)
 				{
 					builder.Description = "Ends In: " + TimeUtils.GetDurationString(end - now);
+				}
+				else
+				{
+					builder.Description = "Completed: " + TimeUtils.GetDurationString(now - end) + " ago.";
 				}
 
 				builder.AddField("Starts", TimeUtils.GetDateTimeString(start));

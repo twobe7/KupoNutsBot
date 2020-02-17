@@ -25,6 +25,7 @@ namespace FFXIVCollect
 				Log.Write("Request: " + url, "FFXIVCollect");
 
 				WebRequest req = WebRequest.Create(url);
+				req.Timeout = 5000;
 				WebResponse response = await req.GetResponseAsync();
 				StreamReader reader = new StreamReader(response.GetResponseStream());
 				string json = await reader.ReadToEndAsync();

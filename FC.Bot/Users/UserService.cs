@@ -21,6 +21,8 @@ namespace FC.Bot.Services
 		private Dictionary<ulong, Dictionary<ulong, string>> userIdLookup = new Dictionary<ulong, Dictionary<ulong, string>>();
 		private Table<User> userDb = new Table<User>("KupoNuts_Users", 0);
 
+		private Dictionary<ulong, Dictionary<ulong, Dictionary<uint, string>>> userCharacterIdLookup = new Dictionary<ulong, Dictionary<ulong, Dictionary<uint, string>>>();
+
 		public static async Task<User> GetUser(IGuildUser user)
 		{
 			return await GetUser(user.GuildId, user.Id);
@@ -108,33 +110,6 @@ namespace FC.Bot.Services
 			await this.userDb.Save(userEntry);
 			this.userIdLookup[guildId].Add(userId, userEntry.Id);
 			return userEntry;
-		}
-
-		#pragma warning disable SA1516
-		[Serializable]
-		public class User : EntryBase
-		{
-			public ulong DiscordUserId { get; set; }
-			public ulong DiscordGuildId { get; set; }
-			public uint FFXIVCharacterId { get; set; } = 0;
-
-			public bool Banned { get; set; } = false;
-			public List<Warning> Warnings { get; set; } = new List<Warning>();
-
-			[Serializable]
-			public class Warning
-			{
-				public enum Actions
-				{
-					Unknown,
-					PostRemoved,
-					Warned,
-				}
-
-				public Actions Action { get; set; } = Actions.Unknown;
-				public ulong ChannelId { get; set; } = 0;
-				public string Comment { get; set; } = string.Empty;
-			}
 		}
 	}
 }
