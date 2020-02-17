@@ -20,15 +20,11 @@ namespace FC.Bot.Characters
 	{
 		public static async Task<string> Draw(CharacterInfo character)
 		{
-			string portraitPath = "CustomPortraits/" + character.Id + ".png";
-			if (!File.Exists(portraitPath))
-			{
-				if (character.Portrait == null)
-					throw new Exception("Character has no portrait");
+			if (character.Portrait == null)
+				throw new Exception("Character has no portrait");
 
-				portraitPath = PathUtils.Current + "/Temp/" + character.Id + ".jpg";
-				await FileDownloader.Download(character.Portrait, portraitPath);
-			}
+			string portraitPath = PathUtils.Current + "/Temp/" + character.Id + ".jpg";
+			await FileDownloader.Download(character.Portrait, portraitPath);
 
 			Image<Rgba32> backgroundImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/CharacterCardBackground.png");
 

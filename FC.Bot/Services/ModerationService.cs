@@ -43,7 +43,7 @@ namespace FC.Bot.Services
 		[Command("Unban", Permissions.Administrators, "Unbans a user")]
 		public async Task Unban(CommandMessage message, ulong id)
 		{
-			UserService.User usr = await UserService.GetUser(message.Guild.Id, id);
+			User usr = await UserService.GetUser(message.Guild.Id, id);
 			usr.Banned = false;
 			await UserService.SaveUser(usr);
 
@@ -57,7 +57,7 @@ namespace FC.Bot.Services
 		[Command("Ban", Permissions.Administrators, "Bans a user")]
 		public async Task<string> Ban(CommandMessage message, ulong id)
 		{
-			UserService.User usr = await UserService.GetUser(message.Guild.Id, id);
+			User usr = await UserService.GetUser(message.Guild.Id, id);
 			usr.Banned = true;
 			await UserService.SaveUser(usr);
 
@@ -75,10 +75,10 @@ namespace FC.Bot.Services
 			IMessage message = await channel.GetMessageAsync(messageId);
 			await channel.DeleteMessageAsync(message);
 
-			UserService.User user = await UserService.GetUser(message.GetAuthor());
+			User user = await UserService.GetUser(message.GetAuthor());
 
-			UserService.User.Warning warning = new UserService.User.Warning();
-			warning.Action = UserService.User.Warning.Actions.PostRemoved;
+			User.Warning warning = new User.Warning();
+			warning.Action = User.Warning.Actions.PostRemoved;
 			warning.ChannelId = channel.Id;
 			warning.Comment = reason;
 			user.Warnings.Add(warning);

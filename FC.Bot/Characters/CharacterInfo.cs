@@ -5,6 +5,7 @@
 namespace FC.Bot.Characters
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Threading.Tasks;
 	using Discord;
 	using XIVAPI;
@@ -78,8 +79,11 @@ namespace FC.Bot.Characters
 
 		public async Task Update()
 		{
-			await this.UpdateXivApi();
-			await this.UpdateFfxivCollect();
+			Task xivApi = Task.Run(this.UpdateXivApi);
+			Task ffxivCollect = Task.Run(this.UpdateFfxivCollect);
+
+			await xivApi;
+			await ffxivCollect;
 		}
 
 		public string GetJobLevel(Jobs job)
