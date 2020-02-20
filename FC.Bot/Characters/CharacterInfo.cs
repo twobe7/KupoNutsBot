@@ -114,7 +114,7 @@ namespace FC.Bot.Characters
 
 		private async Task UpdateXivApi()
 		{
-			XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
+			XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, XIVAPI.CharacterAPI.CharacterData.ClassJobs | XIVAPI.CharacterAPI.CharacterData.FreeCompany);
 
 			if (charResponse.Character == null)
 				throw new UserException("I couldn't find that character.");
