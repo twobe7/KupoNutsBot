@@ -5,6 +5,7 @@
 namespace FC.Bot.Extensions
 {
 	using System;
+	using System.Collections.Generic;
 	using NodaTime;
 
 	public static class InstantExtenstions

@@ -6,6 +6,7 @@ namespace FC.Bot.Eventsv2
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Text;
 	using System.Threading.Tasks;
 	using FC.Bot.Extensions;
 	using FC.Eventsv2;
@@ -14,19 +15,17 @@ namespace FC.Bot.Eventsv2
 
 	public static class EventExtensions
 	{
-		/// <summary>
-		/// Gets all instances of this event between the given instants.
-		/// </summary>
-		public static List<Occurrence> GetOccurrences(this Event self, Instant from, Instant to)
+		/*public static Dictionary<Event.Rule, Instant> GetOccurrences(this Event self, Instant from, Instant to)
 		{
-			List<Occurrence> results = new List<Occurrence>();
+			Dictionary<Instant, Event.Rule> results = new Dictionary<Instant, Event.Rule>();
 			foreach (Event.Rule rule in self.Rules)
 			{
-				results.AddRange(rule.GetOccurrences(self, from, to));
+				List<Instant> occurrences = rule.GetOccurrences(self, from, to);
+				results.Add(rule, occurrences);
 			}
 
 			return results;
-		}
+		}*/
 
 		public static Instant GetInstant(this Event self, LocalTime time)
 		{
@@ -41,46 +40,67 @@ namespace FC.Bot.Eventsv2
 			return zdt.ToInstant();
 		}
 
+		public static LocalTime GetLocalTime(this Event self, Instant instant)
+		{
+			ZonedDateTime zdt = instant.InZone(self.BaseTimeZone);
+			return zdt.LocalDateTime.TimeOfDay;
+		}
+
 		public static async Task UpdateNotices(this Event self)
 		{
-			List<Event.Notice> notices = await self.GetNotices();
-			foreach (Event.Notice notice in notices)
+			List<Notice> notices = await self.GetNotices();
+			foreach (Notice notice in notices)
 			{
-				await notice.Update(self);
+				await notice.Update();
 			}
 		}
 
-		public static async Task<List<Event.Notice>> GetNotices(this Event self)
+		public static async Task<List<Notice>> GetNotices(this Event self)
 		{
 			Instant end = TimeUtils.Now + self.NoticeDuration;
-			List<Occurrence> occurrences = self.GetOccurrences(TimeUtils.Now, end);
 
-			List<Event.Notice> results = new List<Event.Notice>();
-			foreach (Occurrence occurrence in occurrences)
+			HashSet<Notice> results = new HashSet<Notice>();
+			foreach (Event.Rule rule in self.Rules)
 			{
-				results.Add(await self.GetNotice(occurrence));
+				List<Instant> occurrences = rule.GetOccurrences(self, TimeUtils.Now, end);
+				foreach (Instant occurrence in occurrences)
+				{
+					Notice notice = await self.GetNotice(occurrence, rule);
+					results.Add(notice);
+				}
 			}
 
-			return results;
+			return new List<Notice>(results);
 		}
 
-		public static async Task<Event.Notice> GetNotice(this Event self, Occurrence occurrence)
+		public static async Task<Notice> GetNotice(this Event self, Instant occurrence, Event.Rule rule)
 		{
 			foreach (Event.Notice notice in self.Notices)
 			{
-				if (notice.Start.IsApproximately(occurrence.Instant))
+				if (notice.Start.IsApproximately(occurrence))
 				{
-					return notice;
+					return new Notice(self, notice, rule);
 				}
 			}
 
 			// no notice for this occurrence, create one.
 			Event.Notice newNotice = new Event.Notice();
-			newNotice.Start = occurrence.Instant;
+			newNotice.Start = occurrence;
 			self.Notices.Add(newNotice);
 			await EventsService.SaveEvent(self);
 
-			return newNotice;
+			return new Notice(self, newNotice, rule);
+		}
+
+		public static string GetRepeatString(this Event self)
+		{
+			StringBuilder builder = new StringBuilder();
+			foreach (Event.Rule rule in self.Rules)
+			{
+				builder.AppendLine(rule.ToDisplayString(self));
+			}
+
+			return builder.ToString();
 		}
 	}
 }

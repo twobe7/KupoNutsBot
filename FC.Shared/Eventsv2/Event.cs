@@ -29,8 +29,6 @@ namespace FC.Eventsv2
 			{
 				Day,
 				Week,
-				Month,
-				Year,
 			}
 
 			[Flags]
@@ -51,7 +49,7 @@ namespace FC.Eventsv2
 				// the 18th of every month
 				DayNumber,
 
-				// the first monday of every month
+				// the first Monday of every month
 				FirstDay,
 				SecondDay,
 				ThirdDay,

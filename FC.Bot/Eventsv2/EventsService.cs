@@ -39,6 +39,7 @@ namespace FC.Bot.Eventsv2
 			repeatTueSun.Days = Event.Rule.Day.Tuesday | Event.Rule.Day.Sunday;
 			repeatTueSun.StartTime = new LocalTime(19, 00);
 			repeatTueSun.Duration = Duration.FromMinutes(180);
+			repeatTueSun.Units = Event.Rule.TimeUnit.Week;
 			repeatTueSun.RepeatEvery = 1;
 			evt.Rules.Add(repeatTueSun);
 
@@ -46,6 +47,7 @@ namespace FC.Bot.Eventsv2
 			repeatMon.Days = Event.Rule.Day.Monday;
 			repeatMon.StartTime = new LocalTime(19, 00);
 			repeatMon.Duration = Duration.FromMinutes(120);
+			repeatMon.Units = Event.Rule.TimeUnit.Week;
 			repeatMon.RepeatEvery = 1;
 			evt.Rules.Add(repeatMon);
 

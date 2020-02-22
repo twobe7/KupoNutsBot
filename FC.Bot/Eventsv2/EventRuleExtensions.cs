@@ -7,18 +7,20 @@ namespace FC.Bot.Eventsv2
 	using System;
 	using System.Collections.Generic;
 	using System.Text;
+	using FC.Bot.Extensions;
 	using FC.Eventsv2;
+	using FC.Utils;
 	using NodaTime;
 
 	public static class EventRuleExtensions
 	{
-		public static List<Occurrence> GetOccurrences(this Event.Rule self, Event owner, Instant from, Instant to)
+		public static List<Instant> GetOccurrences(this Event.Rule self, Event owner, Instant from, Instant to)
 		{
-			List<Occurrence> results = new List<Occurrence>();
+			List<Instant> results = new List<Instant>();
 			Instant starting = owner.GetInstant(self.StartTime);
 
 			if (starting > from && starting < to)
-				results.Add(new Occurrence(starting, self.Duration));
+				results.Add(starting);
 
 			if (self.RepeatEvery < 1)
 				throw new Exception("Repeat must be greater than 0!");
@@ -32,10 +34,10 @@ namespace FC.Bot.Eventsv2
 					{
 						instant = instant.Plus(Duration.FromDays(self.RepeatEvery));
 
-						if (instant < from)
+						if (instant < from || instant > to)
 							continue;
 
-						results.Add(new Occurrence(instant, self.Duration));
+						results.Add(instant);
 					}
 					while (instant < to);
 
@@ -50,7 +52,7 @@ namespace FC.Bot.Eventsv2
 					{
 						instant = instant.Plus(Duration.FromDays(7 * self.RepeatEvery));
 
-						if (instant < from)
+						if (instant < from || instant > to)
 							continue;
 
 						ZonedDateTime zdt = instant.InZone(owner.BaseTimeZone);
@@ -71,26 +73,49 @@ namespace FC.Bot.Eventsv2
 							if (newInstant > to)
 								continue;
 
-							results.Add(new Occurrence(newInstant, self.Duration));
+							results.Add(newInstant);
 						}
 					}
 					while (instant < to);
 
 					break;
 				}
-
-				case Event.Rule.TimeUnit.Month:
-				{
-					throw new NotImplementedException();
-				}
-
-				case Event.Rule.TimeUnit.Year:
-				{
-					throw new NotImplementedException();
-				}
 			}
 
 			return results;
+		}
+
+		public static string ToDisplayString(this Event.Rule self, Event owner)
+		{
+			LocalTime endTime = owner.GetLocalTime(owner.GetInstant(self.StartTime).Plus(self.Duration));
+			StringBuilder builder = new StringBuilder();
+			builder.Append(self.StartTime.ToDisplayString());
+			builder.Append(" to ");
+			builder.Append(endTime.ToDisplayString());
+			builder.Append(" every ");
+
+			if (self.RepeatEvery > 1)
+			{
+				builder.Append(self.RepeatEvery);
+				builder.Append(NumberUtils.GetOrdinal(self.RepeatEvery));
+				builder.Append(" ");
+			}
+
+			builder.Append(self.Units.ToString().ToLower());
+
+			switch (self.Units)
+			{
+				case Event.Rule.TimeUnit.Week:
+				{
+					builder.Append(" on ");
+					builder.Append(self.Days.ToDisplayString());
+					break;
+				}
+			}
+
+			builder.Append(".");
+
+			return builder.ToString();
 		}
 
 		private static bool HasDay(this Event.Rule self, IsoDayOfWeek day)
