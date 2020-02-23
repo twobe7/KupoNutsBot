@@ -11,6 +11,7 @@ namespace FC.Eventsv2
 	[Serializable]
 	public class Event : EntryBase
 	{
+		public ulong GuildId { get; set; }
 		public DateTimeZone? BaseTimeZone { get; set; }
 		public LocalDate? BeginDate { get; set; }
 		public Duration NoticeDuration { get; set; } = Duration.FromHours(24);

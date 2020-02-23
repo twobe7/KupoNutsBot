@@ -11,6 +11,6 @@ namespace FC
 	public abstract class SettingsEntry : EntryBase
 	{
 		[InspectorHidden]
-		public string GuildId { get; set; } = string.Empty;
+		public ulong Guild { get; set; } = 0;
 	}
 }

@@ -36,5 +36,7 @@ namespace FC.Data
 
 		Task Save<T>(T document)
 			where T : EntryBase, new();
+
+		Task<bool> Exists();
 	}
 }

@@ -15,6 +15,7 @@ namespace FC.Data
 	{
 		public readonly string Name;
 		public readonly int Version;
+		private bool connected;
 
 		internal JsonTable(string databaseName, int version)
 		{
@@ -35,12 +36,16 @@ namespace FC.Data
 			if (!Directory.Exists(this.DirectoryPath))
 				Directory.CreateDirectory(this.DirectoryPath);
 
+			this.connected = true;
 			return Task.CompletedTask;
 		}
 
 		public Task<T> CreateEntry<T>(string? id = null)
 			where T : EntryBase, new()
 		{
+			if (!this.connected)
+				throw new Exception("Database not connected.");
+
 			if (id == null)
 				id = Guid.NewGuid().ToString();
 
@@ -53,12 +58,18 @@ namespace FC.Data
 		public Task Delete<T>(T entry)
 			where T : EntryBase, new()
 		{
+			if (!this.connected)
+				throw new Exception("Database not connected.");
+
 			return this.Delete<T>(entry.Id);
 		}
 
 		public Task Delete<T>(string key)
 			where T : EntryBase, new()
 		{
+			if (!this.connected)
+				throw new Exception("Database not connected.");
+
 			string path = this.GetEntryPath(key);
 
 			if (!File.Exists(path))
@@ -71,12 +82,18 @@ namespace FC.Data
 		public Task<string> GetNewID<T>()
 			where T : EntryBase, new()
 		{
+			if (!this.connected)
+				throw new Exception("Database not connected.");
+
 			return Task.FromResult(Guid.NewGuid().ToString());
 		}
 
 		public Task<T?> Load<T>(string key)
 			where T : EntryBase, new()
 		{
+			if (!this.connected)
+				throw new Exception("Database not connected.");
+
 			string path = this.GetEntryPath(key);
 
 			if (!File.Exists(path))
@@ -91,6 +108,9 @@ namespace FC.Data
 		public Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null)
 			where T : EntryBase, new()
 		{
+			if (!this.connected)
+				throw new Exception("Database not connected.");
+
 			List<T> results = new List<T>();
 
 			string[] files = Directory.GetFiles(this.DirectoryPath, "*.json");
@@ -128,6 +148,9 @@ namespace FC.Data
 		public async Task<T> LoadOrCreate<T>(string key)
 			where T : EntryBase, new()
 		{
+			if (!this.connected)
+				throw new Exception("Database not connected.");
+
 			T? result = await this.Load<T>(key);
 			if (result == null)
 				result = await this.CreateEntry<T>(key);
@@ -138,12 +161,20 @@ namespace FC.Data
 		public Task Save<T>(T document)
 			where T : EntryBase, new()
 		{
+			if (!this.connected)
+				throw new Exception("Database not connected.");
+
 			string path = this.GetEntryPath(document.Id);
 
 			string json = JsonSerializer.Serialize<T>(document);
 			File.WriteAllText(path, json);
 
 			return Task.CompletedTask;
+		}
+
+		public Task<bool> Exists()
+		{
+			return Task.FromResult(Directory.Exists(this.DirectoryPath));
 		}
 
 		private string GetEntryPath(string key)

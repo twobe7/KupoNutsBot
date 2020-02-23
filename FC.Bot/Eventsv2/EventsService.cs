@@ -9,25 +9,28 @@ namespace FC.Bot.Eventsv2
 	using System.Text;
 	using System.Threading.Tasks;
 	using FC.Bot.Services;
+	using FC.Data;
 	using FC.Eventsv2;
 	using FC.Utils;
 	using NodaTime;
 
 	public class EventsService : ServiceBase
 	{
-		private List<Event> events = new List<Event>();
+		private static Table<Event> eventsDatabase = new Table<Event>("Events", 2);
 
 		public static Task SaveEvent(Event evt)
 		{
-			return Task.CompletedTask;
+			return eventsDatabase.Save(evt);
 		}
 
 		public override async Task Initialize()
 		{
 			await base.Initialize();
 
+			await eventsDatabase.Connect();
+
 			// Test event
-			Event evt = new Event();
+			/*Event evt = new Event();
 			evt.BaseTimeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull("Australia/Sydney");
 			evt.Name = "Test event";
 			evt.Description = "More testing";
@@ -51,7 +54,7 @@ namespace FC.Bot.Eventsv2
 			repeatMon.RepeatEvery = 1;
 			evt.Rules.Add(repeatMon);
 
-			this.events.Add(evt);
+			this.events.Add(evt);*/
 
 			ScheduleService.RunOnSchedule(this.Update);
 			await this.Update();
@@ -59,7 +62,11 @@ namespace FC.Bot.Eventsv2
 
 		private async Task Update()
 		{
-			foreach (Event evt in this.events)
+			if (eventsDatabase is null)
+				return;
+
+			List<Event> events = await eventsDatabase.LoadAll();
+			foreach (Event evt in events)
 			{
 				await evt.UpdateNotices();
 			}

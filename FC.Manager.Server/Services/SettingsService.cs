@@ -11,19 +11,19 @@ namespace FC.Manager.Server.Services
 	{
 		private static Table settingsDb = new Table("Settings", 0);
 
-		public static async Task<T> GetSettings<T>(string guildId)
+		public static async Task<T> GetSettings<T>(ulong guildId)
 			where T : SettingsEntry, new()
 		{
 			string key = guildId + typeof(T).FullName;
 			T settings = await settingsDb.LoadOrCreate<T>(key);
-			settings.GuildId = guildId;
+			settings.Guild = guildId;
 			return settings;
 		}
 
 		public static async Task SaveSettings<T>(T settings)
 			where T : SettingsEntry, new()
 		{
-			string key = settings.GuildId + settings.GetType().FullName;
+			string key = settings.Guild + settings.GetType().FullName;
 			await settingsDb.Save<T>(settings);
 		}
 

@@ -14,7 +14,7 @@ namespace FC.Manager.Client.RPC
 	{
 		public string Token { get; set; } = string.Empty;
 
-		public string GuildId { get; set; } = string.Empty;
+		public ulong GuildId { get; set; } = 0;
 
 		public string Method { get; set; } = string.Empty;
 

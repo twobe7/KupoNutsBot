@@ -74,11 +74,6 @@ namespace FC.Bot
 			return await guild.GetUserAsync(DiscordClient.CurrentUser.Id);
 		}
 
-		public static Task<bool> HandleInput(string input)
-		{
-			return Task.FromResult(false);
-		}
-
 		protected virtual async Task AddServices()
 		{
 			try
@@ -107,6 +102,7 @@ namespace FC.Bot
 				await this.AddService<ActionService>();
 				await this.AddService<ChannelService>();
 				await this.AddService<ChannelOptInService>();
+				await this.AddService<Eventsv2.EventsService>();
 			}
 			catch (Exception ex)
 			{

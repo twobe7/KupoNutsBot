@@ -62,7 +62,7 @@ namespace FC.Manager.Client
 				break;
 			}
 
-			if (string.IsNullOrEmpty(RPCService.GuildId))
+			if (RPCService.GuildId == 0)
 			{
 				throw new Exception("you must have the 'Manage Guild' permission on at least one guild");
 			}
@@ -81,7 +81,7 @@ namespace FC.Manager.Client
 				public const int AdministratorPermission = 0x00000008;
 				public const int ManageGuildPermission = 0x00000020;
 
-				public string Id { get; set; }
+				public ulong Id { get; set; }
 				public string Name { get; set; }
 				public string Icon { get; set; }
 				public bool Owner { get; set; }

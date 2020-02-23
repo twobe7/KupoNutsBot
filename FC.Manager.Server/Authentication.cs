@@ -45,7 +45,7 @@ namespace FC.Manager.Server
 			return VerifyToken(token, "IsAuth");
 		}
 
-		public static string Authenticate(string discordId, List<string> canManageGuilds)
+		public static string Authenticate(string discordId, List<ulong> canManageGuilds)
 		{
 			Log.Write("User Authenticated: " + discordId, "Manager");
 
@@ -53,9 +53,9 @@ namespace FC.Manager.Server
 			claims.Add("DiscordID", discordId);
 			claims.Add("IsAuth", "true");
 
-			foreach (string guild in canManageGuilds)
+			foreach (ulong guild in canManageGuilds)
 			{
-				claims.Add(guild, "true");
+				claims.Add(guild.ToString(), "true");
 			}
 
 			return GenerateToken(claims);

@@ -16,7 +16,7 @@ namespace FC.Manager.Client.RPC
 	{
 		public static HttpClient Client;
 
-		public static string GuildId;
+		public static ulong GuildId;
 
 		public static async Task<TResult> Invoke<TResult>(string method, params object[] param)
 		{

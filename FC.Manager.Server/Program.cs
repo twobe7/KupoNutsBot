@@ -36,6 +36,7 @@ namespace FC.Manager.Server
 			await AddService<SettingsService>();
 			await AddService<EventsService>();
 			await AddService<GuildService>();
+			await AddService<EventsV2Service>();
 
 			// finally launch the web host.
 			await host.RunAsync();
@@ -67,25 +68,6 @@ namespace FC.Manager.Server
 			T service = Activator.CreateInstance<T>();
 			services.Add(service);
 			return service.Initialize();
-		}
-
-		public static async Task<bool> HandleInput(string input)
-		{
-			string[] parts = input.Split(new string[] { "(", ",", ")" }, StringSplitOptions.RemoveEmptyEntries);
-
-			List<string> arguments = new List<string>();
-			for (int i = 2; i < parts.Length; i++)
-				arguments.Add(parts[i]);
-
-			RPCRequest req = new RPCRequest();
-			req.Method = parts[0];
-			req.ParamData = arguments;
-			req.GuildId = parts[1];
-
-			RPCResult result = await Services.RPCService.Invoke(req);
-			Console.WriteLine(result.Data);
-
-			return true;
 		}
 	}
 }
