@@ -63,7 +63,13 @@ else
 		await base.OnInitializedAsync();
 
 		this.AllEvents = await RPCService.Invoke<List<Event>>("EventsService.GetEvents");
-		this.AllChannels = new List<Channel>();
+		
+		this.AllChannels = new List<Channel>()
+		{
+			new Channel(0, "None", FC.Channel.Types.Unknown),
+		};
+
+		this.AllChannels.AddRange(await Channels.GetChannels());
 	}
 
 	protected async void OnEdit(Event evt)
