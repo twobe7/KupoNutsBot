@@ -15,16 +15,16 @@ namespace FC.Manager.Server.Services
 	public class GuildService : ServiceBase
 	{
 		[RPC]
-		public bool IsInGuild(string guildId)
+		public bool IsInGuild(ulong guildId)
 		{
-			SocketGuild guild = DiscordService.DiscordClient.GetGuild(ulong.Parse(guildId));
+			SocketGuild guild = DiscordService.DiscordClient.GetGuild(guildId);
 			return guild != null;
 		}
 
 		[GuildRpc]
-		public List<Channel> GetChannels(string guildId)
+		public List<Channel> GetChannels(ulong guildId)
 		{
-			SocketGuild guild = DiscordService.DiscordClient.GetGuild(ulong.Parse(guildId));
+			SocketGuild guild = DiscordService.DiscordClient.GetGuild(guildId);
 
 			if (guild == null)
 				throw new Exception("Unable to access guild");
@@ -47,15 +47,15 @@ namespace FC.Manager.Server.Services
 		}
 
 		[GuildRpc]
-		public async Task<GuildSettings> GetSettings(string guildId)
+		public async Task<GuildSettings> GetSettings(ulong guildId)
 		{
 			return await SettingsService.GetSettings<GuildSettings>(guildId);
 		}
 
 		[GuildRpc]
-		public async Task SetSettings(string guildId, GuildSettings settings)
+		public async Task SetSettings(ulong guildId, GuildSettings settings)
 		{
-			settings.GuildId = guildId;
+			settings.Guild = guildId;
 			await SettingsService.SaveSettings(settings);
 		}
 	}

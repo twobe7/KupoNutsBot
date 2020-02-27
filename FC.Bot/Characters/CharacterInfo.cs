@@ -5,6 +5,7 @@
 namespace FC.Bot.Characters
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Threading.Tasks;
 	using Discord;
 	using XIVAPI;
@@ -78,8 +79,11 @@ namespace FC.Bot.Characters
 
 		public async Task Update()
 		{
-			await this.UpdateXivApi();
-			await this.UpdateFfxivCollect();
+			Task xivApi = Task.Run(this.UpdateXivApi);
+			Task ffxivCollect = Task.Run(this.UpdateFfxivCollect);
+
+			await xivApi;
+			await ffxivCollect;
 		}
 
 		public string GetJobLevel(Jobs job)
@@ -110,7 +114,7 @@ namespace FC.Bot.Characters
 
 		private async Task UpdateXivApi()
 		{
-			XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, XIVAPI.CharacterAPI.CharacterData.FreeCompany);
+			XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, XIVAPI.CharacterAPI.CharacterData.ClassJobs | XIVAPI.CharacterAPI.CharacterData.FreeCompany);
 
 			if (charResponse.Character == null)
 				throw new UserException("I couldn't find that character.");

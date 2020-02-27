@@ -37,6 +37,27 @@ namespace FC.Data
 			}
 		}
 
+		public async Task<bool> Exists()
+		{
+			CredentialProfileOptions options = new CredentialProfileOptions();
+
+			Settings settings = Settings.Load();
+			options.AccessKey = settings.DBKey;
+			options.SecretKey = settings.DBSecret;
+
+			CredentialProfile profile = new CredentialProfile("Default", options);
+			profile.Region = RegionEndpoint.APSoutheast2;
+
+			SharedCredentialsFile sharedFile = new SharedCredentialsFile();
+			sharedFile.RegisterProfile(profile);
+
+			AmazonDynamoDBConfig dbConfig = new AmazonDynamoDBConfig();
+			this.client = new AmazonDynamoDBClient(dbConfig);
+
+			ListTablesResponse listTablesResponse = await this.client.ListTablesAsync();
+			return listTablesResponse.TableNames.Contains(this.InternalName);
+		}
+
 		public async Task Connect()
 		{
 			CredentialProfileOptions options = new CredentialProfileOptions();

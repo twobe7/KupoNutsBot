@@ -66,7 +66,7 @@ namespace FC.Manager.Server.Services
 			responseString = await response.Content.ReadAsStringAsync();
 			List<Client.Authentication.Data.Guild> guilds = JsonConvert.DeserializeObject<List<Client.Authentication.Data.Guild>>(responseString);
 
-			List<string> canManageGuilds = new List<string>();
+			List<ulong> canManageGuilds = new List<ulong>();
 			foreach (Client.Authentication.Data.Guild guild in guilds)
 			{
 				if (!guild.CanManageGuild)

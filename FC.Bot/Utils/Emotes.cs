@@ -15,6 +15,7 @@ namespace FC.Bot
 		public static IEmote Tank = Emote.Parse(@"<:tank:669841051292270606>");
 		public static IEmote Healer = Emote.Parse(@"<:healer:669841051711700992>");
 		public static IEmote DPS = Emote.Parse(@"<:dps:669841051703443476>");
+		public static IEmote Home = Emote.Parse(@"<:home:678881039472394240>");
 
 		public static bool IsEmote(IEmote a, IEmote b)
 		{

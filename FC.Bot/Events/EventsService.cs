@@ -130,13 +130,14 @@ namespace FC.Bot.Events
 				if (this.ShouldNotify(evt))
 				{
 					if (evt.Notify == null)
-						evt.Notify = new Event.Notification();
+						evt.Notify = new Event.Instance();
 
 					this.Watch(evt);
 
 					await evt.CheckReactions();
 
 					await evt.Notify.Post(evt);
+					await evt.Notify.Notify(evt);
 					await EventsDatabase.Save(evt);
 				}
 				else
@@ -203,11 +204,11 @@ namespace FC.Bot.Events
 				if (evt.Notify == null)
 					return;
 
-				Event.Notification.Attendee? attendee = evt.GetAttendee(reaction.UserId);
+				Event.Instance.Attendee? attendee = evt.GetAttendee(reaction.UserId);
 
 				if (attendee == null)
 				{
-					attendee = new Event.Notification.Attendee();
+					attendee = new Event.Instance.Attendee();
 					attendee.UserId = reaction.UserId.ToString();
 					evt.Notify.Attendees.Add(attendee);
 					await EventsDatabase.Save(evt);
@@ -215,7 +216,10 @@ namespace FC.Bot.Events
 
 				if (Emotes.IsEmote(reaction.Emote, Emotes.Bell))
 				{
-					ReminderService.SetReminder(evt, attendee);
+					////ReminderService.SetReminder(evt, attendee);
+
+					evt.ToggleAttendeeReminder(reaction.UserId);
+					await EventsDatabase.Save(evt);
 				}
 				else
 				{

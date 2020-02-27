@@ -16,6 +16,11 @@ namespace FC.Data
 			this.table = TableService.Create(tableName, version);
 		}
 
+		public Task<bool> Exists()
+		{
+			return this.table.Exists();
+		}
+
 		public Task Connect()
 		{
 			return this.table.Connect();

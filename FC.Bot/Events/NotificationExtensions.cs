@@ -17,7 +17,7 @@ namespace FC.Bot.Events
 
 	public static class NotificationExtensions
 	{
-		public static async Task Post(this Event.Notification self, Event evt)
+		public static async Task Post(this Event.Instance self, Event evt)
 		{
 			SocketTextChannel? channel = evt.GetChannel();
 			if (channel is null)
@@ -76,10 +76,24 @@ namespace FC.Bot.Events
 				builder.AddStatus(evt, Emotes.Maybe);
 			}
 
+			// Notification bell field
+			bool shouldBell = true;
+			if (occurance != null)
+			{
+				Duration timeTill = occurance.GetInstant() - TimeUtils.RoundInstant(TimeUtils.Now);
+				if (timeTill.TotalMinutes < 60)
+				{
+					shouldBell = false;
+				}
+			}
+
+			if (shouldBell)
+				builder.AddField(Emotes.Bell.GetString() + " Notify", evt.GetReminderString());
+
 			RestUserMessage? message = await self.GetMessage(evt);
 			if (message is null)
 			{
-				Log.Write("Posting notification: \"" + evt.Name + "\" (" + evt.Id + ") in channel: \"" + channel.Name + "\" (" + channel.Id + ")", "Bot");
+				Log.Write("Posting Instance: \"" + evt.Name + "\" (" + evt.Id + ") in channel: \"" + channel.Name + "\" (" + channel.Id + ")", "Bot");
 
 				message = await channel.SendMessageAsync(evt.Message, false, builder.Build());
 				self.MessageId = message.Id.ToString();
@@ -106,7 +120,7 @@ namespace FC.Bot.Events
 			}
 			else
 			{
-				Log.Write("Updating notification: \"" + evt.Name + "\" (" + evt.Id + ") in channel: \"" + channel.Name + "\" (" + channel.Id + ")", "Bot");
+				Log.Write("Updating Instance: \"" + evt.Name + "\" (" + evt.Id + ") in channel: \"" + channel.Name + "\" (" + channel.Id + ")", "Bot");
 
 				await message.ModifyAsync(x =>
 				{
@@ -116,16 +130,73 @@ namespace FC.Bot.Events
 			}
 		}
 
-		public static async Task Delete(this Event.Notification self, Event evt)
+		public static async Task Notify(this Event.Instance self, Event evt)
 		{
-			RestUserMessage? message = await self.GetMessage(evt);
-			if (message is null)
+			if (!string.IsNullOrEmpty(self.NotifyMessageId))
 				return;
 
-			await message.DeleteAsync();
+			SocketTextChannel? channel = evt.GetChannel();
+			if (channel is null)
+				return;
+
+			Occurance? nextOccurance = evt.GetNextOccurance();
+			if (nextOccurance is null)
+				return;
+
+			Duration timeTill = nextOccurance.GetInstant() - TimeUtils.RoundInstant(TimeUtils.Now);
+			if (timeTill.TotalMinutes > 60)
+				return;
+
+			// Do notify
+			StringBuilder builder = new StringBuilder();
+			builder.Append("Hey! ");
+			foreach (Event.Instance.Attendee attendee in self.Attendees)
+			{
+				if (!attendee.Notify)
+					continue;
+
+				builder.Append(attendee.GetMention(evt));
+				builder.Append(", ");
+			}
+
+			builder.AppendLine();
+			builder.Append("The event: [");
+			builder.Append(evt.Name);
+			builder.Append("](");
+			builder.Append("https://discordapp.com/channels/");
+			builder.Append(evt.ServerIdStr);
+			builder.Append("/");
+			builder.Append(evt.ChannelId);
+			builder.Append("/");
+			builder.Append(self.MessageId);
+			builder.Append(" \"");
+			builder.Append(evt.Description);
+			builder.Append("\") starts in ");
+			builder.Append(timeTill.TotalMinutes);
+			builder.Append(" minutes!");
+
+			EmbedBuilder embedBuilder = new EmbedBuilder();
+			embedBuilder.Description = builder.ToString();
+
+			RestUserMessage message = await channel.SendMessageAsync(null, false, embedBuilder.Build());
+			self.NotifyMessageId = message.Id.ToString();
 		}
 
-		public static async Task CheckReactions(this Event.Notification self, Event evt)
+		public static async Task Delete(this Event.Instance self, Event evt)
+		{
+			RestUserMessage? message = await self.GetMessage(evt);
+
+			if (message != null)
+				await message.DeleteAsync();
+
+			message = await self.GetNotifyMessage(evt);
+			if (message != null)
+				await message.DeleteAsync();
+
+			Log.Write("Delete Event Messages: \"" + evt.Name + "\" (" + evt.Id + ")", "Bot");
+		}
+
+		public static async Task CheckReactions(this Event.Instance self, Event evt)
 		{
 			RestUserMessage? message = await self.GetMessage(evt);
 			if (message is null)
@@ -142,7 +213,7 @@ namespace FC.Bot.Events
 			}
 		}
 
-		public static string GetLink(this Event.Notification self, Event evt)
+		public static string GetLink(this Event.Instance self, Event evt)
 		{
 			StringBuilder builder = new StringBuilder();
 
@@ -165,7 +236,7 @@ namespace FC.Bot.Events
 			return builder.ToString();
 		}
 
-		public static async Task<RestUserMessage?> GetMessage(this Event.Notification self, Event evt)
+		public static async Task<RestUserMessage?> GetMessage(this Event.Instance self, Event evt)
 		{
 			if (self.MessageId == null)
 				return null;
@@ -184,6 +255,25 @@ namespace FC.Bot.Events
 			throw new Exception("Message: \"" + self.MessageId + "\" is not a user message.");
 		}
 
+		public static async Task<RestUserMessage?> GetNotifyMessage(this Event.Instance self, Event evt)
+		{
+			if (self.NotifyMessageId == null)
+				return null;
+
+			SocketTextChannel? channel = evt.GetChannel();
+			if (channel is null)
+				return null;
+
+			IMessage message = await channel.GetMessageAsync(ulong.Parse(self.NotifyMessageId));
+			if (message is null)
+				return null;
+
+			if (message is RestUserMessage userMessage)
+				return userMessage;
+
+			throw new Exception("Message: \"" + self.NotifyMessageId + "\" is not a user message.");
+		}
+
 		private static void AddStatus(this EmbedBuilder builder, Event evt, IEmote emote)
 		{
 			(string display, int index) = EventsService.GetStatus(emote);
@@ -193,11 +283,10 @@ namespace FC.Bot.Events
 
 			int count = 0;
 			string attending = evt.GetAttendeeString(index, out count);
-
 			builder.AddField(emote.GetString() + " " + display + " (" + count + ")", attending, true);
 		}
 
-		private static async Task CheckReactions(this Event.Notification self, Event evt, RestUserMessage message, IEmote emote, int index)
+		private static async Task CheckReactions(this Event.Instance self, Event evt, RestUserMessage message, IEmote emote, int index)
 		{
 			IEnumerable<IUser> checkedUsers = await message.GetReactionUsersAsync(emote, 99).FlattenAsync();
 

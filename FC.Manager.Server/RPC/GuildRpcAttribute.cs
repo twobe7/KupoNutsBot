@@ -17,19 +17,17 @@ namespace FC.Manager.Server.RPC
 		public override List<object> GetParameters(RPCRequest request, MethodInfo method, List<string> paramData)
 		{
 			// guild Id is first parameter, and since its a string, we can just insert it into the JSON data here.
-			paramData.Insert(0, request.GuildId);
+			paramData.Insert(0, request.GuildId.ToString());
 			return base.GetParameters(request, method, paramData);
 		}
 
 		public override bool Authenticate(RPCRequest request)
 		{
-			string guildId = request.GuildId;
-
 			// NOTE: the token comes from the client, so it can be tampered with, however it should be
 			// cryptographically hard to generate a new valid token.
 			// we _could_ check the server to see if the user truly has access to the guild as a second layer of security,
 			// but the incoming user id could also be faked.
-			return Authentication.VerifyToken(request.Token, guildId);
+			return Authentication.VerifyToken(request.Token, request.GuildId.ToString());
 		}
 	}
 }

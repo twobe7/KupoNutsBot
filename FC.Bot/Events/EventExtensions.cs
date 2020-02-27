@@ -41,20 +41,19 @@ namespace FC.Bot.Events
 			throw new Exception("Channel: \"" + self.ChannelId + "\" for event: \"" + self.Name + "\" is not a text channel");
 		}
 
+		public static void ToggleAttendeeReminder(this Event self, ulong userId)
+		{
+			Event.Instance.Attendee attendee = self.GetOrCreateAttendee(userId);
+			attendee.Notify = !attendee.Notify;
+		}
+
 		public static void SetAttendeeStatus(this Event self, ulong userId, int index)
 		{
-			Event.Notification.Attendee? attendee = self.GetAttendee(userId);
-
-			if (attendee == null)
-			{
-				attendee = new Event.Notification.Attendee();
-				attendee.UserId = userId.ToString();
-			}
-
+			Event.Instance.Attendee attendee = self.GetOrCreateAttendee(userId);
 			attendee.Status = index;
 		}
 
-		public static List<Event.Notification.Attendee>? GetAttendees(this Event self)
+		public static List<Event.Instance.Attendee>? GetAttendees(this Event self)
 		{
 			if (self.Notify == null)
 				return null;
@@ -62,7 +61,20 @@ namespace FC.Bot.Events
 			return self.Notify.Attendees;
 		}
 
-		public static Event.Notification.Attendee? GetAttendee(this Event self, ulong userId)
+		public static Event.Instance.Attendee GetOrCreateAttendee(this Event self, ulong userId)
+		{
+			Event.Instance.Attendee? attendee = self.GetAttendee(userId);
+
+			if (attendee == null)
+			{
+				attendee = new Event.Instance.Attendee();
+				attendee.UserId = userId.ToString();
+			}
+
+			return attendee;
+		}
+
+		public static Event.Instance.Attendee? GetAttendee(this Event self, ulong userId)
 		{
 			if (self.Id == null)
 				throw new ArgumentNullException("Id");
@@ -70,7 +82,7 @@ namespace FC.Bot.Events
 			if (self.Notify == null)
 				throw new Exception("Attempt to get attendees for event without an active notification");
 
-			foreach (Event.Notification.Attendee attendee in self.Notify.Attendees)
+			foreach (Event.Instance.Attendee attendee in self.Notify.Attendees)
 			{
 				if (!attendee.Is(userId))
 					continue;
@@ -89,7 +101,7 @@ namespace FC.Bot.Events
 			StringBuilder builder = new StringBuilder();
 
 			total = 0;
-			foreach (Event.Notification.Attendee attendee in self.Notify.Attendees)
+			foreach (Event.Instance.Attendee attendee in self.Notify.Attendees)
 			{
 				if (attendee.Status == statusIndex)
 				{
@@ -98,7 +110,7 @@ namespace FC.Bot.Events
 			}
 
 			int count = 0;
-			foreach (Event.Notification.Attendee attendee in self.Notify.Attendees)
+			foreach (Event.Instance.Attendee attendee in self.Notify.Attendees)
 			{
 				if (attendee.Status == statusIndex)
 				{
@@ -120,6 +132,32 @@ namespace FC.Bot.Events
 
 			if (total <= 0)
 				builder.Append("No one yet");
+
+			return builder.ToString();
+		}
+
+		public static string GetReminderString(this Event self)
+		{
+			if (self.Notify == null)
+				throw new Exception("Attempt to get attendee string without event notification");
+
+			StringBuilder builder = new StringBuilder();
+
+			builder.AppendLine("*Click the bell to be notified 1 hour before this event starts.*");
+
+			int count = 0;
+			foreach (Event.Instance.Attendee attendee in self.Notify.Attendees)
+			{
+				if (attendee.Notify)
+				{
+					count++;
+
+					if (count > 1)
+						builder.Append(", ");
+
+					builder.Append(attendee.GetName(self));
+				}
+			}
 
 			return builder.ToString();
 		}

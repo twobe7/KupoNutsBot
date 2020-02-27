@@ -79,15 +79,9 @@ namespace FC.Boot
 			Log.Write("Shutdown complete", "Boot");
 		}
 
-		private static async Task HandleInput(string input)
+		private static Task HandleInput(string input)
 		{
-			if (await Bot.Program.HandleInput(input))
-				return;
-
-			if (await Manager.Server.Program.HandleInput(input))
-				return;
-
-			return;
+			return Task.CompletedTask;
 		}
 	}
 }

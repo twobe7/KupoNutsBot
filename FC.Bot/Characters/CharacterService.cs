@@ -31,70 +31,54 @@ namespace FC.Bot.Characters
 			await base.Initialize();
 		}
 
-		[Command("Lodestone", Permissions.Everyone, "links to your lodestone page")]
-		public async Task<string> Lodestone(CommandMessage message)
-		{
-			UserService.User userEntry = await this.GetUserEntry(message.Author);
-			return "https://eu.finalfantasyxiv.com/lodestone/character/" + userEntry.FFXIVCharacterId + "/";
-		}
-
-		[Command("Lodestone", Permissions.Everyone, "links to a users lodestone page")]
-		public async Task<string> Lodestone(IGuildUser user)
-		{
-			UserService.User userEntry = await this.GetUserEntry(user);
-			return "https://eu.finalfantasyxiv.com/lodestone/character/" + userEntry.FFXIVCharacterId + "/";
-		}
-
-		[Command("Lodestone", Permissions.Everyone, "links to a characters lodestone page")]
-		public async Task<string> Lodestone(CommandMessage message, string characterName, string serverName)
-		{
-			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
-			return "https://eu.finalfantasyxiv.com/lodestone/character/" + character.Id + "/";
-		}
-
 		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
 		public async Task<string> IAm(CommandMessage message, string characterName, string serverName)
 		{
+			User user = await UserService.GetUser(message.Author);
 			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
+			User.Character? userCharacter = user.GetCharacter(character.Id);
 
-			UserService.User.Character userCharacter = await UserService.GetUserCharacter(message.Author, character.Id);
-
-			if (userCharacter.Verified)
+			if (userCharacter == null)
 			{
-				if (string.IsNullOrEmpty(userCharacter.CharacterName))
-				{
-					userCharacter.CharacterName = character.Name;
-					userCharacter.ServerName = character.Server;
-					await UserService.SaveUserCharacter(message.Author, userCharacter);
-
-					return "Character Name/Server updated!";
-				}
-
-				return "Character already linked!";
+				userCharacter = new User.Character();
+				userCharacter.FFXIVCharacterId = character.Id;
+				userCharacter.CharacterName = character.Name;
+				userCharacter.ServerName = character.Server;
+				userCharacter.IsVerified = false;
+				user.Characters.Add(userCharacter);
+				await UserService.SaveUser(user);
 			}
-			else if (userCharacter.FFXIVCharacterVerification == null)
-			{
-				userCharacter.FFXIVCharacterVerification = Guid.NewGuid().ToString();
-				await UserService.SaveUserCharacter(message.Author, userCharacter);
 
-				return "To confirm that you're " + character.Name + ", please update the Lodestone Character Profile with the following Verification Id: `" + userCharacter.FFXIVCharacterVerification + "`";
+			if (userCharacter.IsVerified)
+			{
+				userCharacter.CharacterName = character.Name;
+				userCharacter.ServerName = character.Server;
+				await UserService.SaveUser(user);
+
+				return "Character linked!";
 			}
 			else
 			{
+				if (userCharacter.FFXIVCharacterVerification == null)
+				{
+					userCharacter.FFXIVCharacterVerification = Guid.NewGuid().ToString();
+					await UserService.SaveUser(user);
+				}
+
 				if (character.Bio?.Contains(userCharacter.FFXIVCharacterVerification) == true)
 				{
 					userCharacter.FFXIVCharacterId = character.Id;
 					userCharacter.CharacterName = character.Name;
 					userCharacter.ServerName = character.Server;
 					userCharacter.FFXIVCharacterVerification = null;
-					userCharacter.Verified = true;
-					await UserService.SaveUserCharacter(message.Author, userCharacter);
+					userCharacter.IsVerified = true;
+					await UserService.SaveUser(user);
 
 					return "Character linked! (You can now remove the Verification Id from your Character Profile)";
 				}
 				else
 				{
-					return "Character not linked. Unable to find Verification Id within Character Profile: `" + userCharacter.FFXIVCharacterVerification + "`";
+					return "To verify character ownership, please place the following verification Id in your lodestone character profile: `" + userCharacter.FFXIVCharacterVerification + "`";
 				}
 			}
 		}
@@ -102,123 +86,65 @@ namespace FC.Bot.Characters
 		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character")]
 		public async Task<string> IAmNot(CommandMessage message, string characterName)
 		{
-			await UserService.RemoveUserCharacter(message.Author, characterName);
+			User user = await UserService.GetUser(message.Author);
+			user.RemoveCharacter(characterName);
+			await UserService.SaveUser(user);
 			return "Character unlinked!";
 		}
 
 		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character")]
 		public async Task<string> IAmNot(CommandMessage message, string characterName, string serverName)
 		{
-			await UserService.RemoveUserCharacter(message.Author, characterName, serverName);
+			User user = await UserService.GetUser(message.Author);
+			user.RemoveCharacter(characterName, serverName);
+			await UserService.SaveUser(user);
 			return "Character unlinked!";
 		}
 
 		[Command("IAmUsually", Permissions.Everyone, "Sets the linked lodestone character as your default")]
 		public async Task<string> IAmUsually(CommandMessage message, string characterName)
 		{
-			await UserService.SetDefaultUserCharacter(message.Author, characterName);
+			User user = await UserService.GetUser(message.Author);
+			user.SetDefaultCharacter(characterName);
+			await UserService.SaveUser(user);
 			return "Default character updated!";
 		}
 
 		[Command("IAmUsually", Permissions.Everyone, "Sets the linked lodestone character as your default")]
 		public async Task<string> IAmUsually(CommandMessage message, string characterName, string serverName)
 		{
-			await UserService.SetDefaultUserCharacter(message.Author, characterName, serverName);
+			User user = await UserService.GetUser(message.Author);
+			user.SetDefaultCharacter(characterName, serverName);
+			await UserService.SaveUser(user);
 			return "Default character updated!";
 		}
 
 		[Command("WhoAmI", Permissions.Everyone, "Displays your linked character")]
 		public async Task WhoAmI(CommandMessage message)
 		{
-			bool defaultCharacterShown = false;
-
-			List<UserService.User.Character> userCharacters = await UserService.GetAllUserCharacters(message.Author);
-
-			if (userCharacters.Count == 0)
-			{
-				throw new UserException("No character linked! Use `IAm` to link your character.");
-			}
-
-			UserService.User.Character? defaultCharacter = userCharacters.Find(x => x.IsDefaultCharacter);
-			if (defaultCharacter != null)
-			{
-				await this.WhoIs(message, defaultCharacter.FFXIVCharacterId);
-				defaultCharacterShown = true;
-
-				userCharacters.Remove(defaultCharacter);
-			}
-
-			if (!defaultCharacterShown && userCharacters.Count == 1)
-			{
-				await this.WhoIs(message, userCharacters[0].FFXIVCharacterId);
-			}
-			else
-			{
-				userCharacters.Sort((x, y) =>
-				{
-					return x.FFXIVCharacterId.CompareTo(y.FFXIVCharacterId);
-				});
-
-				IGuildUser guildUser = message.Author;
-
-				int increment = 1;
-
-				StringBuilder characterList = new StringBuilder();
-				foreach (UserService.User.Character character in userCharacters)
-				{
-					characterList.Append(increment++);
-					characterList.Append(" - ");
-					characterList.AppendLine(!string.IsNullOrEmpty(character.CharacterName)
-												? string.Format("{0} ({1})", character.CharacterName, character.ServerName)
-												: "??? (Name not recorded, perform the `IAm` command to fix this)");
-				}
-
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.Author = new EmbedAuthorBuilder();
-				builder.Author.Name = defaultCharacterShown ? "Also Known As:" : "Linked Characters:";
-				builder.Description = characterList.ToString();
-
-				await message.Channel.SendMessageAsync(embed: builder.Build());
-			}
+			User user = await UserService.GetUser(message.Author);
+			await this.PostWhoIsResponse(message, user);
 		}
 
 		[Command("WhoAmI", Permissions.Everyone, "Displays your linked character")]
-		public async Task WhoAmI(CommandMessage message, int characterToReturn)
+		public async Task WhoAmI(CommandMessage message, int characterIndex)
 		{
-			List<UserService.User.Character> userCharacters = await UserService.GetAllUserCharacters(message.Author);
-
-			if (userCharacters.Count == 0)
-			{
-				throw new UserException("No character linked! Use `IAm` to link your character.");
-			}
-
-			UserService.User.Character? defaultCharacter = userCharacters.Find(x => x.IsDefaultCharacter);
-			if (defaultCharacter != null)
-			{
-				userCharacters.Remove(defaultCharacter);
-			}
-
-			userCharacters.Sort((x, y) =>
-			{
-				return x.FFXIVCharacterId.CompareTo(y.FFXIVCharacterId);
-			});
-
-			await this.WhoIs(message, userCharacters[characterToReturn - 1].FFXIVCharacterId);
+			User user = await UserService.GetUser(message.Author);
+			await this.PostWhoIsResponse(message, user, characterIndex);
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "Looks up a linked character")]
 		public async Task WhoIs(CommandMessage message, IGuildUser user)
 		{
-			// Special case to handle ?WhoIs @FC to resolve her own character.
-			if (user.Id == Program.DiscordClient.CurrentUser.Id)
-			{
-				await this.WhoIs(message, 24960538);
-			}
-			else
-			{
-				UserService.User.Character characterEntry = await this.GetUserCharacterEntry(user);
-				await this.WhoIs(message, characterEntry.FFXIVCharacterId);
-			}
+			User userEntry = await UserService.GetUser(user);
+			await this.PostWhoIsResponse(message, userEntry);
+		}
+
+		[Command("WhoIs", Permissions.Everyone, "Looks up a linked character")]
+		public async Task WhoIs(CommandMessage message, IGuildUser user, int characterIndex)
+		{
+			User userEntry = await UserService.GetUser(user);
+			await this.PostWhoIsResponse(message, userEntry, characterIndex);
 		}
 
 		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character and server name")]
@@ -227,52 +153,90 @@ namespace FC.Bot.Characters
 			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
 			string file = await CharacterCard.Draw(character);
 			await message.Channel.SendFileAsync(file);
-			await this.PostCollectLink(message, character);
 		}
 
-		public async Task<bool> WhoIs(CommandMessage message, uint characterId)
+		public async Task PostWhoIsResponse(CommandMessage message, User user, int? characterIndex = null)
 		{
-			CharacterInfo character = await this.GetCharacterInfo(characterId);
-			string file = await CharacterCard.Draw(character);
+			User.Character? defaultCharacter = user.GetDefaultCharacter();
+			if (defaultCharacter is null)
+				throw new UserException("No characters linked! Use `IAm` to link a character");
+
+			int index = 0;
+			if (characterIndex != null)
+			{
+				defaultCharacter = null;
+				foreach (User.Character character in user.Characters)
+				{
+					index++;
+
+					if (index == characterIndex)
+					{
+						defaultCharacter = character;
+					}
+				}
+
+				if (defaultCharacter is null)
+				{
+					throw new UserException("I couldn't find a character at index: " + characterIndex);
+				}
+			}
+
+			// Default character
+			CharacterInfo defaultCharacterInfo = await this.GetCharacterInfo(defaultCharacter.FFXIVCharacterId);
+			string file = await CharacterCard.Draw(defaultCharacterInfo);
 			await message.Channel.SendFileAsync(file);
-			await this.PostCollectLink(message, character);
-			return true;
-		}
 
-		[Command("ClearCustomPortrait", Permissions.Everyone, "clears the custom portrait image for your linked character")]
-		public async Task<string> ClearCustomPortrait(CommandMessage message)
-		{
-			UserService.User.Character characterEntry = await this.GetUserCharacterEntry(message.Author);
+			if (!defaultCharacter.IsVerified(defaultCharacterInfo))
+			{
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.Description = "This character has not been verified.";
+				builder.Color = Discord.Color.Gold;
 
-			string path = "CustomPortraits/" + characterEntry.FFXIVCharacterId + ".png";
+				// If this is the requesting users character, give instructions on how to verify
+				if (message.Author.Id == user.DiscordUserId)
+				{
+					builder.Title = "This character has not been verified";
+					builder.Description = "To verify this character, enter the following verification code in your [lodestone profile](https://na.finalfantasyxiv.com/lodestone/my/setting/profile/).\n" + defaultCharacter.FFXIVCharacterVerification;
+				}
 
-			if (!File.Exists(path))
-				throw new UserException("No custom portrait set. Use \"" + CommandsService.GetPrefix(message.Guild) + "CustomPortrait\" as the comment on an uploaded image to set a custom portrait.");
+				await message.Channel.SendMessageAsync(null, false, builder.Build());
+			}
 
-			File.Delete(path);
-			return "Custom portrait cleared.";
-		}
+			if (!defaultCharacterInfo.HasMinions && !defaultCharacterInfo.HasMounts && !defaultCharacterInfo.HasAchievements)
+			{
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.Description = "To show Minions, Mounts, and Achievements, please link your character at [FFXIV Collect](https://ffxivcollect.com/)";
+				await message.Channel.SendMessageAsync(null, false, builder.Build());
+			}
 
-		[Command("CustomPortrait", Permissions.Everyone, "Sets a custom portrait image for your linked character (for best results: 375x512 " + @"png)")]
-		public async Task<string> SetCustomPortrait(CommandMessage message, Attachment file)
-		{
-			UserService.User.Character characterEntry = await this.GetUserCharacterEntry(message.Author);
+			// AKA
+			StringBuilder akaDescBuilder = new StringBuilder();
+			index = 0;
+			foreach (User.Character character in user.Characters)
+			{
+				index++;
 
-			string temp = "Temp/" + file.Filename;
-			string path = "CustomPortraits/" + characterEntry.FFXIVCharacterId + ".png";
+				akaDescBuilder.Append(index);
+				akaDescBuilder.Append(") ");
+				akaDescBuilder.Append(character.CharacterName);
+				akaDescBuilder.Append(" (");
+				akaDescBuilder.Append(Emotes.Home.GetString());
+				akaDescBuilder.Append(character.ServerName);
+				akaDescBuilder.Append(")");
 
-			if (!Directory.Exists("CustomPortraits/"))
-				Directory.CreateDirectory("CustomPortraits/");
+				if (!await character.IsVerified(user))
+					akaDescBuilder.Append(" *(Not Verified)*");
 
-			await FileDownloader.Download(file.Url, temp);
+				akaDescBuilder.AppendLine();
+			}
 
-			Image<Rgba32> charImg = Image.Load<Rgba32>(temp);
-			charImg.Mutate(x => x.Resize(375, 512));
-			charImg.Save(path);
-
-			File.Delete(temp);
-
-			return "Portrait updated.";
+			if (index > 1)
+			{
+				EmbedBuilder builder = new EmbedBuilder();
+				builder.Description = akaDescBuilder.ToString();
+				builder.Title = "Also known as:";
+				await message.Channel.SendMessageAsync(null, false, builder.Build());
+			}
 		}
 
 		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait")]
@@ -344,14 +308,13 @@ namespace FC.Bot.Characters
 
 		private async Task<CharacterInfo> GetCharacterInfo(IGuildUser guildUser)
 		{
-			UserService.User.Character character = await this.GetUserCharacterEntry(guildUser);
-			return await this.GetCharacterInfo(character.FFXIVCharacterId);
-		}
+			User user = await UserService.GetUser(guildUser);
+			User.Character? character = user.GetDefaultCharacter();
 
-		[Obsolete("Not used - user doesn't hold ffxiv character id")]
-		private async Task<CharacterInfo> GetCharacterInfo(UserService.User user)
-		{
-			return await this.GetCharacterInfo(user.FFXIVCharacterId);
+			if (character is null)
+				throw new UserException("No characters linked.");
+
+			return await this.GetCharacterInfo(character.FFXIVCharacterId);
 		}
 
 		private async Task<CharacterInfo> GetCharacterInfo(string characterName, string serverName)
@@ -384,49 +347,6 @@ namespace FC.Bot.Characters
 			CharacterInfo info = new CharacterInfo(id);
 			await info.Update();
 			return info;
-		}
-
-		private async Task<UserService.User> GetUserEntry(IGuildUser user)
-		{
-			UserService.User userEntry = await UserService.GetUser(user);
-
-			if (userEntry.FFXIVCharacterId == 0)
-				throw new UserException("No character linked! Use `IAm` to link your character.");
-
-			return userEntry;
-		}
-
-		private async Task<UserService.User.Character> GetUserCharacterEntry(IGuildUser user)
-		{
-			List<UserService.User.Character> characterEntries = await UserService.GetAllUserCharacters(user);
-
-			if (characterEntries.Count == 0)
-				throw new UserException("No character linked! Use `IAm` to link your character.");
-
-			UserService.User.Character? defaultCharacter = characterEntries.Find(x => x.IsDefaultCharacter);
-			if (defaultCharacter != null)
-			{
-				return defaultCharacter;
-			}
-			else
-			{
-				characterEntries.Sort((x, y) =>
-				{
-					return x.FFXIVCharacterId.CompareTo(y.FFXIVCharacterId);
-				});
-
-				return characterEntries[0];
-			}
-		}
-
-		private async Task PostCollectLink(CommandMessage message, CharacterInfo info)
-		{
-			if (!info.HasMinions && !info.HasMounts && !info.HasAchievements)
-			{
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.Description = "To show Minions, Mounts, and Achievements, please link your character at [FFXIV Collect](https://ffxivcollect.com/)";
-				await message.Channel.SendMessageAsync(null, false, builder.Build());
-			}
 		}
 	}
 }
