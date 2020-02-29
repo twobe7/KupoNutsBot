@@ -9,7 +9,7 @@ namespace FC.Bot.Services
 
 	public class SettingsService : ServiceBase
 	{
-		private static Table settingsDb = new Table("Settings", 1);
+		private static Table settingsDb = new Table("Settings", 0);
 
 		public static async Task<T> GetSettings<T>(ulong guildId)
 			where T : SettingsEntry, new()
