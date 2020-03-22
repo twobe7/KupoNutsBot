@@ -36,13 +36,19 @@ namespace FC.Bot.Items
 			// Garland tools link
 			desc.Append("[Garland Tools Database](");
 			desc.Append("http://www.garlandtools.org/db/#item/");
-			desc.Append(self.ID);
+			desc.Append(self.Id);
 			desc.AppendLine(")");
 
 			// gamer escape link
 			desc.Append("[Gamer Escape](");
 			desc.Append("https://ffxiv.gamerescape.com/wiki/Special:Search/");
 			desc.Append(self.Name.Replace(" ", "%20"));
+			desc.AppendLine(")");
+
+			// universalis link
+			desc.Append("[Universalis](");
+			desc.Append("https://universalis.app/market/");
+			desc.Append(self.Id);
 			desc.AppendLine(")");
 
 			if (self.HasMainStats())
@@ -62,7 +68,7 @@ namespace FC.Bot.Items
 
 			StringBuilder footerText = new StringBuilder();
 			footerText.Append("ID: ");
-			footerText.Append(self.ID.ToString());
+			footerText.Append(self.Id.ToString());
 			footerText.Append(" - XIVAPI.com - Universalis.app");
 
 			builder.Description = desc.ToString();
@@ -91,29 +97,29 @@ namespace FC.Bot.Items
 		{
 			StringBuilder builder = new StringBuilder();
 
-			if (self.AetherialReduce == true || self.MaterializeType != 0)
+			if (self.AetherialReduce != 0 || self.MaterializeType != 0)
 				builder.Append(ItemService.ConvertToMateriaEmote);
 
-			if (self.IsDyeable == true)
+			if (self.IsDyeable == 1)
 				builder.Append(ItemService.DyeEmote);
 
-			if (self.Salvage != null)
+			if (self.Salvage != 0)
 				builder.Append(ItemService.SalvageEmote);
 
-			if (self.IsGlamourous == true)
+			if (self.IsGlamourous == 1)
 				builder.Append(ItemService.GlamourDresserEmote);
 
 			// such a hack. D=
 			if (self.Json != null && self.Json.Contains("{\"Cabinet\":{\"Item\":"))
 				builder.Append(ItemService.ArmoireEmote);
 
-			if (self.IsUntradable == true)
+			if (self.IsUntradable == 1)
 				builder.Append(ItemService.UntradableEmote);
 
-			if (self.IsUnique == true)
+			if (self.IsUnique == 1)
 				builder.Append(ItemService.UniqueEmote);
 
-			if (self.HasMateria() && self.IsAdvancedMeldingPermitted != true)
+			if (self.HasMateria() && self.IsAdvancedMeldingPermitted != 1)
 				builder.Append(ItemService.AdvancedMeldingForbiddenEmote);
 
 			if (self.IsCraftable())

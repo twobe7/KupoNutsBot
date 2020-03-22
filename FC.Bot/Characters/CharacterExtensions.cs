@@ -117,7 +117,7 @@ namespace FC.Bot.Characters
 			builder.Append(self.Item.Name);
 			builder.Append("](");
 			builder.Append("https://garlandtools.org/db/#item/");
-			builder.Append(self.Item.ID);
+			builder.Append(self.Item.Id);
 
 			if (self.Mirage != null)
 			{
