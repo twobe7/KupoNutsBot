@@ -64,6 +64,8 @@ else
 
 	protected async void OnEdit(Event evt)
 	{
+		Console.WriteLine(">> " + evt.BaseTimeZone);
+
 		evt = await Inspector.Inspect(evt);
 
 		if (evt == null)
@@ -79,6 +81,7 @@ else
 	{
 		Event evt = new Event();
 		evt.Id = Guid.NewGuid().ToString();
+		evt.BaseTimeZone = NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault();
 		OnEdit(evt);
 	}
 

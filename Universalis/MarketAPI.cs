@@ -15,7 +15,7 @@ namespace Universalis
 			return await Request.Send<GetResponse>("/" + dataCenter + "/" + itemId);
 		}
 
-		#pragma warning disable SA1307
+#pragma warning disable SA1307
 		[Serializable]
 		public class GetResponse
 		{

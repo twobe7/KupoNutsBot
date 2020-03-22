@@ -8,8 +8,8 @@ namespace FC.Data
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Reflection;
-	using System.Text.Json;
 	using System.Threading.Tasks;
+	using FC.Serialization;
 
 	public class JsonTable : ITable
 	{
@@ -100,7 +100,7 @@ namespace FC.Data
 				return Task.FromResult<T?>(null);
 
 			string json = File.ReadAllText(path);
-			T? entry = JsonSerializer.Deserialize<T>(json);
+			T? entry = Serializer.Deserialize<T>(json);
 
 			return Task.FromResult((T?)entry);
 		}
@@ -118,7 +118,7 @@ namespace FC.Data
 			foreach (string path in files)
 			{
 				string json = File.ReadAllText(path);
-				T entry = JsonSerializer.Deserialize<T>(json);
+				T entry = Serializer.Deserialize<T>(json);
 
 				bool meetsConditions = true;
 				if (conditions != null)
@@ -166,7 +166,7 @@ namespace FC.Data
 
 			string path = this.GetEntryPath(document.Id);
 
-			string json = JsonSerializer.Serialize<T>(document);
+			string json = Serializer.Serialize<T>(document);
 			File.WriteAllText(path, json);
 
 			return Task.CompletedTask;

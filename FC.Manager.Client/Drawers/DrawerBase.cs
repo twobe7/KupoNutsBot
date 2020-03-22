@@ -4,6 +4,7 @@
 
 namespace FC.Manager.Client.Drawers
 {
+	using System;
 	using System.Reflection;
 	using System.Text.RegularExpressions;
 	using Microsoft.AspNetCore.Components;
@@ -29,18 +30,25 @@ namespace FC.Manager.Client.Drawers
 			}
 		}
 
-		public T GetValue<T>()
-			where T : class
+		public Type GetValueType()
 		{
 			if (this.Property == null)
 				return null;
 
+			return this.Property.PropertyType;
+		}
+
+		public T GetValue<T>()
+		{
+			if (this.Property == null)
+				return default(T);
+
 			object val = this.Property.GetValue(this.Target);
 
 			if (typeof(T).IsAssignableFrom(this.Property.PropertyType))
-				return val as T;
+				return (T)val;
 
-			throw new System.Exception("Property: " + this.Property + " is not type: " + typeof(T));
+			throw new Exception("Property: " + this.Property + " is not type: " + typeof(T));
 		}
 
 		public void SetValue(object val)

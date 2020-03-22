@@ -295,7 +295,7 @@ namespace FC.Bot.Commands
 
 		private async Task<object> Convert(CommandMessage message, string arg, Type type)
 		{
-			#pragma warning disable SA1121, IDE0049
+#pragma warning disable SA1121, IDE0049
 			if (type == typeof(string))
 			{
 				if (!arg.Contains("\""))
@@ -436,7 +436,7 @@ namespace FC.Bot.Commands
 			}
 
 			throw new Exception("Unsupported parameter type: \"" + type + "\"");
-			#pragma warning restore
+#pragma warning restore
 		}
 	}
 }

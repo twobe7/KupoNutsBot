@@ -9,7 +9,7 @@ namespace Lodestone.News
 	[Serializable]
 	public class NewsItem
 	{
-		#pragma warning disable
+#pragma warning disable
 		public string? id { get; set; } = string.Empty;
 		public string? url { get; set; } = string.Empty;
 		public string title { get; set; } = string.Empty;

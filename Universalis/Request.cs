@@ -9,7 +9,7 @@ namespace Universalis
 	using System.Net;
 	using System.Threading.Tasks;
 	using FC;
-	using Newtonsoft.Json;
+	using FC.Serialization;
 
 	internal static class Request
 	{
@@ -31,7 +31,7 @@ namespace Universalis
 
 				Log.Write("Response: " + json.Length + " characters", @"Universalis");
 
-				return JsonConvert.DeserializeObject<T>(json);
+				return Serializer.Deserialize<T>(json);
 			}
 			catch (Exception ex)
 			{

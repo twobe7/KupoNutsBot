@@ -9,7 +9,7 @@ namespace Lodestone
 	using System.Net;
 	using System.Threading.Tasks;
 	using FC;
-	using Newtonsoft.Json;
+	using FC.Serialization;
 
 	internal static class Request
 	{
@@ -31,7 +31,7 @@ namespace Lodestone
 
 				Log.Write("Response: " + json.Length + " characters", "Lodestone");
 
-				return JsonConvert.DeserializeObject<T>(json);
+				return Serializer.Deserialize<T>(json);
 			}
 			catch (Exception ex)
 			{

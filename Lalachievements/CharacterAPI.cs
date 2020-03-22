@@ -20,7 +20,7 @@ namespace Lalachievements
 			return character;
 		}
 
-		#pragma warning disable SA1516
+
 		[Serializable]
 		public class Character
 		{

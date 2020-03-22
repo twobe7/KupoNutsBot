@@ -9,7 +9,7 @@ namespace XIVAPI
 	using System.Net;
 	using System.Threading.Tasks;
 	using FC;
-	using Newtonsoft.Json;
+	using FC.Serialization;
 
 	internal static class Request
 	{
@@ -51,7 +51,7 @@ namespace XIVAPI
 				// dirty hack to handle GameContentLinks being sometimes an array, and sometimes an object...
 				json = json.Replace("\"GameContentLinks\":[]", "\"GameContentLinks\":null");
 
-				T result = JsonConvert.DeserializeObject<T>(json);
+				T result = Serializer.Deserialize<T>(json);
 				result.Json = json;
 				return result;
 			}

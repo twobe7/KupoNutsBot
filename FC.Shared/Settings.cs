@@ -6,7 +6,7 @@ namespace FC
 {
 	using System;
 	using System.IO;
-	using System.Text.Json;
+	using FC.Serialization;
 
 	[Serializable]
 	public class Settings
@@ -62,13 +62,13 @@ namespace FC
 			else
 			{
 				string json = File.ReadAllText(Location);
-				return JsonSerializer.Deserialize<Settings>(json);
+				return Serializer.Deserialize<Settings>(json);
 			}
 		}
 
 		public void Save()
 		{
-			string json = JsonSerializer.Serialize(this);
+			string json = Serializer.Serialize(this);
 			File.WriteAllText(Location, json);
 		}
 	}

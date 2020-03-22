@@ -9,8 +9,8 @@ namespace XIVAPI
 	using System.Net;
 	using System.Threading.Tasks;
 	using FC;
-	using Newtonsoft.Json;
 
+	[Serializable]
 	public abstract class ResponseBase
 	{
 		public string? Json;

@@ -6,12 +6,11 @@ namespace FC.Manager.Server.Services
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Linq;
 	using System.Reflection;
 	using System.Threading.Tasks;
 	using FC.Manager.Client.RPC;
 	using FC.Manager.Server.RPC;
-	using Newtonsoft.Json;
+	using FC.Serialization;
 
 	public class RPCService : ServiceBase
 	{
@@ -46,7 +45,7 @@ namespace FC.Manager.Server.Services
 				object val = await rpc.Invoke(req, method, target, parameters);
 
 				RPCResult result = new RPCResult();
-				result.Data = JsonConvert.SerializeObject(val);
+				result.Data = Serializer.Serialize(val);
 				return result;
 			}
 			catch (Exception ex)

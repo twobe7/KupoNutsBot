@@ -12,19 +12,20 @@
 
 @code {
 
-	private string selected;
+	private ulong selected;
 
 	public List<Channel> ChannelList { get; set; }
 
+	// Can't bind to ulongs, so keep it as a string here.
 	public string Selected
 	{
 		get
 		{
-			return this.selected;
+			return this.selected.ToString();
 		}
 		set
 		{
-			this.selected = value;
+			this.selected = ulong.Parse(value);
 			this.OnChanged(this.selected);
 		}
 	}
@@ -38,15 +39,40 @@
 
 		this.ChannelList.AddRange(await Channels.GetChannels());
 
-		this.Selected = this.GetValue<string>();
-		if (string.IsNullOrEmpty(this.Selected))
-			this.Selected = "0";
+		Type type = this.GetValueType();
+
+		if (type == typeof(string))
+		{
+			string strVal = this.GetValue<string>();
+			if (string.IsNullOrEmpty(strVal))
+			{
+				this.Selected = "0";
+			}
+			else
+			{
+				this.Selected = strVal;
+			}
+		}
+		else
+		{
+			ulong val = this.GetValue<ulong>();
+			this.Selected = val.ToString();
+		}
 
 		this.StateHasChanged();
 	}
 
-	protected void OnChanged(string value)
+	protected void OnChanged(ulong value)
 	{
-		this.SetValue(value);
+		Type type = this.GetValueType();
+
+		if (type == typeof(string))
+		{
+			this.SetValue(value.ToString());
+		}
+		else
+		{
+			this.SetValue(value);
+		}
 	}
 }

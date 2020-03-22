@@ -18,7 +18,7 @@ namespace XIVAPI
 		}
 
 		[Serializable]
-		#pragma warning disable SA1516
+
 		public class Recipe : ResponseBase
 		{
 			public int AmountIngredient0 { get; set; } = 0;

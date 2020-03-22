@@ -8,8 +8,6 @@ namespace XIVAPI
 	using System.Collections.Generic;
 	using System.Text;
 
-	#pragma warning disable SA1516
-
 	[Serializable]
 	public class ClassJob
 	{

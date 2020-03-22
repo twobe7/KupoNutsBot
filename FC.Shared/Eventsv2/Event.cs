@@ -6,6 +6,7 @@ namespace FC.Eventsv2
 {
 	using System;
 	using System.Collections.Generic;
+	using FC.Attributes;
 	using NodaTime;
 
 	[Serializable]
@@ -17,6 +18,8 @@ namespace FC.Eventsv2
 		public Duration NoticeDuration { get; set; } = Duration.FromHours(24);
 		public List<Rule> Rules { get; set; } = new List<Rule>();
 		public List<Notice> Notices { get; set; } = new List<Notice>();
+
+		[InspectorChannel]
 		public ulong Channel { get; set; }
 
 		public string Name { get; set; } = string.Empty;

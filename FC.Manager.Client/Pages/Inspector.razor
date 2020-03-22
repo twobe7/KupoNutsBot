@@ -68,7 +68,10 @@
 		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
 			return typeof(Drawers.ChannelDrawer);
 
-		return typeof(Drawers.StringDrawer);
+		if (typeof(string).IsAssignableFrom(property.PropertyType))
+			return typeof(Drawers.StringDrawer);
+
+		return null;
 	}
 
 	public async Task Initialize(object obj)
