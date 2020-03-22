@@ -1,0 +1,59 @@
+﻿@using NodaTime;
+@using FC.Utils;
+@using FC.Attributes;
+@using System.Reflection;
+@using FC.Extensions;
+
+@inherits DrawerBase<Duration>
+
+<div class="form-group col-md-6">
+	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+
+	<small class="form-text" style="margin-top:0px">@this.DurationString</small>
+	<input name="eventDuration" type="range" class="form-control-range" min="@this.Min" max="@this.Max" step="0.25" @bind-value="this.Duration" @oninput="OnDurationChanged" style="width:100%" />
+</div>
+
+@code {
+
+	public double Min { get; set; } = 0.25;
+	public double Max { get; set; } = 6;
+
+	public double Duration
+	{
+		get
+		{
+			return this.Value.TotalMinutes / 60.0;
+		}
+
+		set
+		{
+			this.Value = NodaTime.Duration.FromMinutes(value * 60);
+		}
+	}
+
+	public string DurationString
+	{
+		get
+		{
+			return this.Value.ToDisplayString();
+		}
+	}
+
+	private void OnDurationChanged(ChangeEventArgs e)
+	{
+		this.Duration = double.Parse((string)e.Value);
+	}
+
+	protected override Task OnInitializedAsync()
+	{
+		RangeAttribute range = this.Property.GetCustomAttribute<RangeAttribute>();
+
+		if (range != null)
+		{
+			this.Min = range.Min;
+			this.Max = range.Max;
+		}
+
+		return Task.CompletedTask;
+	}
+}

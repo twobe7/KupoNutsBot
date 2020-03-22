@@ -64,8 +64,6 @@ else
 
 	protected async void OnEdit(Event evt)
 	{
-		Console.WriteLine(">> " + evt.BaseTimeZone);
-
 		evt = await Inspector.Inspect(evt);
 
 		if (evt == null)

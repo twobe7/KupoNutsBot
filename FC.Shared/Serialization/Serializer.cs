@@ -5,9 +5,7 @@
 namespace FC.Serialization
 {
 	using System;
-	using System.Reflection;
 	using System.Text.Json;
-	using System.Text.Json.Serialization;
 	using FC.Serialization.NodaTime;
 
 	public static class Serializer
@@ -19,6 +17,8 @@ namespace FC.Serialization
 			Options.WriteIndented = true;
 			Options.PropertyNameCaseInsensitive = true;
 			Options.Converters.Add(new DateTimeZoneConverter());
+			Options.Converters.Add(new LocalDateConverter());
+			Options.Converters.Add(new DurationConverter());
 		}
 
 		public static string Serialize<T>(T obj)

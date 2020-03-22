@@ -7,6 +7,7 @@ namespace FC.Manager.Client.Drawers
 	using System;
 	using System.Reflection;
 	using System.Text.RegularExpressions;
+	using FC.Attributes;
 	using Microsoft.AspNetCore.Components;
 
 	public abstract class DrawerBase : ComponentBase
@@ -29,6 +30,23 @@ namespace FC.Manager.Client.Drawers
 				return name;
 			}
 		}
+
+		public string Tooltip
+		{
+			get
+			{
+				if (this.Property == null)
+					return string.Empty;
+
+				InspectorTooltipAttribute tooltipAttribute = this.Property.GetCustomAttribute<InspectorTooltipAttribute>();
+				if (tooltipAttribute == null)
+					return string.Empty;
+
+				return tooltipAttribute.Content;
+			}
+		}
+
+		public abstract bool CanEdit(Type type);
 
 		public Type GetValueType()
 		{
