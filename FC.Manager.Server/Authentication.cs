@@ -4,14 +4,11 @@
 
 namespace FC.Manager.Server
 {
-	using System;
 	using System.Collections.Generic;
-	using System.Linq;
 	using System.Security.Cryptography;
-	using System.Threading.Tasks;
+	using FC.Serialization;
 	using JWT;
 	using JWT.Algorithms;
-	using JWT.Serializers;
 	using Microsoft.AspNetCore.Http;
 	using Microsoft.Extensions.Primitives;
 
@@ -64,7 +61,7 @@ namespace FC.Manager.Server
 		public static string GenerateToken(Dictionary<string, string> claims)
 		{
 			IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
-			IJsonSerializer serializer = new JsonNetSerializer();
+			IJsonSerializer serializer = new JsonSerializer();
 			IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
 			IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
 
@@ -73,7 +70,7 @@ namespace FC.Manager.Server
 
 		public static bool VerifyToken(string token, string key, string value = "true")
 		{
-			IJsonSerializer serializer = new JsonNetSerializer();
+			IJsonSerializer serializer = new JsonSerializer();
 			IDateTimeProvider provider = new UtcDateTimeProvider();
 			IJwtValidator validator = new JwtValidator(serializer, provider);
 			IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
@@ -86,6 +83,19 @@ namespace FC.Manager.Server
 				return true;
 
 			return false;
+		}
+
+		public class JsonSerializer : IJsonSerializer
+		{
+			public T Deserialize<T>(string json)
+			{
+				return Serializer.Deserialize<T>(json);
+			}
+
+			public string Serialize(object obj)
+			{
+				return Serializer.Serialize(obj);
+			}
 		}
 	}
 }

@@ -46,6 +46,7 @@ namespace XIVAPI
 			public GearValue? Waist { get; set; }
 		}
 
+		[Serializable]
 		public class GearValue
 		{
 			public Item? Item { get; set; }

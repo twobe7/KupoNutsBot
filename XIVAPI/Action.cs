@@ -5,11 +5,8 @@
 namespace XIVAPI
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
 
 	[Serializable]
-	#pragma warning disable SA1516
 	public class Action : ResponseBase
 	{
 		public int ID { get; set; } = 0;

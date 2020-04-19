@@ -9,7 +9,7 @@ namespace FFXIVCollect
 	using System.Net;
 	using System.Threading.Tasks;
 	using FC;
-	using Newtonsoft.Json;
+	using FC.Serialization;
 
 	internal static class Request
 	{
@@ -32,7 +32,7 @@ namespace FFXIVCollect
 
 				Log.Write("Response: " + json.Length + " characters", "FFXIVCollect");
 
-				return JsonConvert.DeserializeObject<T>(json);
+				return Serializer.Deserialize<T>(json);
 			}
 			catch (Exception ex)
 			{

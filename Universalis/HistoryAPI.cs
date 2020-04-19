@@ -51,7 +51,7 @@ namespace Universalis
 			return (bestHq, bestNm);
 		}
 
-		#pragma warning disable SA1307
+#pragma warning disable SA1307
 		[Serializable]
 		public class GetResponse
 		{

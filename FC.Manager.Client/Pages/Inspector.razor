@@ -4,10 +4,12 @@
 
 @inherits Modal
 
-@foreach (RenderFragment frag in this.Fragments)
-{
-	@frag;
-}
+<div class="form-row">
+	@foreach (RenderFragment frag in this.Fragments)
+	{
+		@frag;
+	}
+</div>
 
 <div class="modal-footer">
 	<button type="button" class="btn btn-secondary" @onclick="this.OnCancel">Cancel</button>
@@ -20,6 +22,9 @@
 
 	public List<RenderFragment> Fragments { get; set; } = new List<RenderFragment>();
 	public List<Channel> ChannelList { get; set; }
+
+	private static Dictionary<Type, Type> drawers = new Dictionary<Type, Type>();
+	private static List<Type> drawerTypes;
 
 	private object obj;
 
@@ -52,7 +57,7 @@
 				x.AddAttribute(1, "Target", obj);
 				x.CloseComponent();
 			});
-			
+
 			fragments.Add(content);
 		}
 
@@ -68,7 +73,46 @@
 		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
 			return typeof(Drawers.ChannelDrawer);
 
-		return typeof(Drawers.StringDrawer);
+		if (drawers.ContainsKey(property.PropertyType))
+			return drawers[property.PropertyType];
+
+		// load all drawer types
+		if (drawerTypes == null)
+		{
+			drawerTypes = new List<Type>();
+			foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				foreach (Type type in asm.GetTypes())
+				{
+					if (type.IsAbstract || type.IsInterface)
+						continue;
+
+					if (!typeof(DrawerBase).IsAssignableFrom(type))
+						continue;
+
+					drawerTypes.Add(type);
+				}
+			}
+		}
+
+		foreach (Type drawerType in drawerTypes)
+		{
+			DrawerBase drawer = (DrawerBase)Activator.CreateInstance(drawerType);
+
+			if (!drawer.CanEdit(property.PropertyType))
+				continue;
+
+			drawers.Add(property.PropertyType, drawerType);
+		}
+
+		if (drawers.ContainsKey(property.PropertyType))
+			return drawers[property.PropertyType];
+
+		////if (typeof(string).IsAssignableFrom(property.PropertyType))
+		////	return typeof(Drawers.StringDrawer);
+
+		Log.Write("No drawer for type: \"" + property.PropertyType + "\"", "Inspector");
+		return null;
 	}
 
 	public async Task Initialize(object obj)

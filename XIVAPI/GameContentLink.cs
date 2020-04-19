@@ -9,7 +9,7 @@ namespace XIVAPI
 	using System.Threading.Tasks;
 
 	[Serializable]
-	#pragma warning disable SA1516
+
 	public class GameContentLink
 	{
 		public Link? FurnitureCatalogItemList { get; set; }

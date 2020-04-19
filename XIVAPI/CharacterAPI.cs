@@ -71,13 +71,11 @@ namespace XIVAPI
 			return await Request.Send<GetResponse>("/character/" + id + "?data=" + data + "&extended=true");
 		}
 
-		#pragma warning disable SA1516
-
 		[Serializable]
 		public class SearchResponse : ResponseBase
 		{
-			public Pagination? Pagination;
-			public List<Member>? Results;
+			public Pagination? Pagination { get; set; }
+			public List<Member>? Results { get; set; }
 		}
 
 		[Serializable]

@@ -81,8 +81,8 @@ namespace FC.Bot.Characters
 			count += AddItemlevel(self.GearSet.Gear.Ring2?.Item, ref total) ? 1 : 0;
 			count += AddItemlevel(self.GearSet.Gear.Waist?.Item, ref total) ? 1 : 0;
 
-			total /= count;
-			return total;
+			double average = total / count;
+			return (int)Math.Round(average);
 		}
 
 		public static Embed GetAttributtes(this XIVAPICharacter self)
@@ -117,7 +117,7 @@ namespace FC.Bot.Characters
 			builder.Append(self.Item.Name);
 			builder.Append("](");
 			builder.Append("https://garlandtools.org/db/#item/");
-			builder.Append(self.Item.ID);
+			builder.Append(self.Item.Id);
 
 			if (self.Mirage != null)
 			{

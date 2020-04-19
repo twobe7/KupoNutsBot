@@ -1,0 +1,21 @@
+﻿@using NodaTime;
+
+@inherits DrawerBase
+
+	<div class="form-group col-md-6">
+		<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+		<label>Nullable Types not currently supported</label>
+	</div>
+
+@code {
+	public override bool CanEdit(Type type)
+	{
+		if (!type.IsGenericType)
+			return false;
+
+		if (Nullable.GetUnderlyingType(type) == null)
+			return false;
+
+		return true;
+	}
+}

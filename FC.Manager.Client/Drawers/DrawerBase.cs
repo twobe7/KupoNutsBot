@@ -4,8 +4,10 @@
 
 namespace FC.Manager.Client.Drawers
 {
+	using System;
 	using System.Reflection;
 	using System.Text.RegularExpressions;
+	using FC.Attributes;
 	using Microsoft.AspNetCore.Components;
 
 	public abstract class DrawerBase : ComponentBase
@@ -29,18 +31,42 @@ namespace FC.Manager.Client.Drawers
 			}
 		}
 
-		public T GetValue<T>()
-			where T : class
+		public string Tooltip
+		{
+			get
+			{
+				if (this.Property == null)
+					return string.Empty;
+
+				InspectorTooltipAttribute tooltipAttribute = this.Property.GetCustomAttribute<InspectorTooltipAttribute>();
+				if (tooltipAttribute == null)
+					return string.Empty;
+
+				return tooltipAttribute.Content;
+			}
+		}
+
+		public abstract bool CanEdit(Type type);
+
+		public Type GetValueType()
 		{
 			if (this.Property == null)
 				return null;
 
+			return this.Property.PropertyType;
+		}
+
+		public T GetValue<T>()
+		{
+			if (this.Property == null)
+				return default(T);
+
 			object val = this.Property.GetValue(this.Target);
 
 			if (typeof(T).IsAssignableFrom(this.Property.PropertyType))
-				return val as T;
+				return (T)val;
 
-			throw new System.Exception("Property: " + this.Property + " is not type: " + typeof(T));
+			throw new Exception("Property: " + this.Property + " is not type: " + typeof(T));
 		}
 
 		public void SetValue(object val)

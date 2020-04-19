@@ -9,10 +9,10 @@ namespace FC.Bot.Items
 
 	public static class HistoryEntryExtensions
 	{
-		public static string ToStringEx(this HistoryAPI.Entry self)
+		public static string ToStringEx(this MarketAPI.History self)
 		{
 			StringBuilder builder = new StringBuilder();
-			if (self.hq == true)
+			if (self.Hq == true)
 			{
 				builder.Append(ItemService.HighQualityEmote);
 			}
@@ -21,9 +21,9 @@ namespace FC.Bot.Items
 				builder.Append(ItemService.NormalQualityEmote);
 			}
 
-			builder.Append(self.pricePerUnit?.ToString("N0"));
+			builder.Append(self.PricePerUnit?.ToString("N0"));
 			builder.Append("g - ");
-			builder.Append(self.worldName);
+			builder.Append(self.WorldName);
 			builder.Append(" ");
 
 			return builder.ToString();

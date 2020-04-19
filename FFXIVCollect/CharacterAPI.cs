@@ -22,8 +22,6 @@ namespace FFXIVCollect
 			}
 		}
 
-		#pragma warning disable SA1516
-
 		[Serializable]
 		public class Character
 		{

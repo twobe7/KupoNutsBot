@@ -26,7 +26,7 @@ namespace FC.Bot.Characters
 			this.Id = id;
 		}
 
-		#pragma warning disable IDE0025, SA1516
+#pragma warning disable IDE0025, SA1516
 		public string? Portrait => this.xivApiCharacter?.Portrait;
 		public string? Name => this.xivApiCharacter?.Name;
 		public string? Title => this.xivApiCharacter?.Title?.Name;

@@ -29,9 +29,6 @@ namespace FC.Bot.Eventsv2
 
 		public static Instant GetInstant(this Event self, LocalTime time)
 		{
-			if (self.BeginDate == null)
-				throw new Exception("Non repeating event missing begin date");
-
 			if (self.BaseTimeZone == null)
 				throw new Exception("Non repeating event missing base time zone");
 
