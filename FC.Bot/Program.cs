@@ -18,6 +18,7 @@ namespace FC.Bot
 	using FC.Bot.Guild;
 	using FC.Bot.Items;
 	using FC.Bot.Lodestone;
+	using FC.Bot.Mounts;
 	using FC.Bot.Polls;
 	using FC.Bot.Quotes;
 	using FC.Bot.Services;
@@ -78,6 +79,7 @@ namespace FC.Bot
 		{
 			try
 			{
+				await this.AddService<MountService>();
 				await this.AddService<SettingsService>();
 				await this.AddService<ScheduleService>();
 				await this.AddService<MeService>();
