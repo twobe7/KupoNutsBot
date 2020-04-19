@@ -79,6 +79,7 @@ else
 	{
 		Event evt = new Event();
 		evt.Id = Guid.NewGuid().ToString();
+		evt.BaseTimeZone = NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault();
 		OnEdit(evt);
 	}
 

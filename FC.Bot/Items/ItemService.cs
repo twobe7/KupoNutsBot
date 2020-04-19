@@ -32,6 +32,7 @@ namespace FC.Bot.Items
 
 		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
+		[Command("MB", Permissions.Everyone, "Gets information on an item")]
 		public async Task<Embed> GetItem(string search)
 		{
 			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
@@ -64,15 +65,16 @@ namespace FC.Bot.Items
 
 		[Command("ISearch", Permissions.Everyone, "Gets information on an item")]
 		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item")]
+		[Command("MB", Permissions.Everyone, "Gets information on an item")]
 		public async Task<Embed> GetItem(ulong itemId)
 		{
 			Item item = await ItemAPI.Get(itemId);
 
 			EmbedBuilder embed = item.ToEmbed();
 
-			if (item.IsUntradable != true)
+			if (item.IsUntradable != 1)
 			{
-				(HistoryAPI.Entry? hq, HistoryAPI.Entry? nm) = await HistoryAPI.GetBestPrice("Elemental", itemId);
+				(MarketAPI.History? hq, MarketAPI.History? nm) = await MarketAPI.GetBestPrice("Elemental", itemId);
 
 				if (hq != null | nm != null)
 				{

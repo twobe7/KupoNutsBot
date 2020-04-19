@@ -10,7 +10,7 @@ namespace FC.Manager.Server.Services
 	using System.Threading.Tasks;
 	using Discord.WebSocket;
 	using FC.Manager.Server.RPC;
-	using Newtonsoft.Json;
+	using FC.Serialization;
 
 	public class AuthenticationService : ServiceBase
 	{
@@ -47,7 +47,7 @@ namespace FC.Manager.Server.Services
 			HttpResponseMessage response = await client.PostAsync("https://discordapp.com/api/oauth2/token", content);
 			string responseString = await response.Content.ReadAsStringAsync();
 			response.EnsureSuccessStatusCode();
-			DiscordAuthResponse discordAuthResponse = JsonConvert.DeserializeObject<DiscordAuthResponse>(responseString);
+			DiscordAuthResponse discordAuthResponse = Serializer.Deserialize<DiscordAuthResponse>(responseString);
 			string userToken = discordAuthResponse.access_token;
 
 			// Now get the user info from discord
@@ -55,7 +55,7 @@ namespace FC.Manager.Server.Services
 			response = await client.GetAsync("https://discordapp.com/api/users/@me");
 			response.EnsureSuccessStatusCode();
 			responseString = await response.Content.ReadAsStringAsync();
-			DiscordMeResponse discordMeResponse = JsonConvert.DeserializeObject<DiscordMeResponse>(responseString);
+			DiscordMeResponse discordMeResponse = Serializer.Deserialize<DiscordMeResponse>(responseString);
 
 			if (string.IsNullOrEmpty(discordMeResponse.id))
 				throw new Exception("Invalid discord user Id");
@@ -64,7 +64,7 @@ namespace FC.Manager.Server.Services
 			response = await client.GetAsync("https://discordapp.com/api/users/@me/guilds");
 			response.EnsureSuccessStatusCode();
 			responseString = await response.Content.ReadAsStringAsync();
-			List<Client.Authentication.Data.Guild> guilds = JsonConvert.DeserializeObject<List<Client.Authentication.Data.Guild>>(responseString);
+			List<Client.Authentication.Data.Guild> guilds = Serializer.Deserialize<List<Client.Authentication.Data.Guild>>(responseString);
 
 			List<ulong> canManageGuilds = new List<ulong>();
 			foreach (Client.Authentication.Data.Guild guild in guilds)
@@ -72,7 +72,7 @@ namespace FC.Manager.Server.Services
 				if (!guild.CanManageGuild)
 					continue;
 
-				canManageGuilds.Add(guild.Id);
+				canManageGuilds.Add(guild.GetId());
 			}
 
 			// Finally invoke the authentication back-end
@@ -90,19 +90,19 @@ namespace FC.Manager.Server.Services
 		[Serializable]
 		private class DiscordAuthResponse
 		{
-			#pragma warning disable SA1300, SA1516
+#pragma warning disable SA1300, SA1516
 			public string access_token { get; set; }
 			public string scope { get; set; }
 			public string token_type { get; set; }
 			public int expires_in { get; set; }
 			public string refresh_token { get; set; }
-			#pragma warning restore
+#pragma warning restore
 		}
 
 		[Serializable]
 		private class DiscordMeResponse
 		{
-			#pragma warning disable SA1300, SA1516
+#pragma warning disable SA1300, SA1516
 			public string username { get; set; }
 			public string locale { get; set; }
 			public int premium_type { get; set; }
@@ -111,7 +111,7 @@ namespace FC.Manager.Server.Services
 			public string avatar { get; set; }
 			public string discriminator { get; set; }
 			public string id { get; set; }
-			#pragma warning restore
+#pragma warning restore
 		}
 	}
 }

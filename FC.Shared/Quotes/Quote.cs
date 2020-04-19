@@ -6,8 +6,6 @@ namespace FC.Quotes
 {
 	using System;
 
-	#pragma warning disable SA1516
-
 	[Serializable]
 	public class Quote : EntryBase
 	{

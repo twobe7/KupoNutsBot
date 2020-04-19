@@ -6,6 +6,8 @@ namespace FC.Data
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Reflection;
+	using System.Text.Json.Serialization;
 	using System.Threading.Tasks;
 	using Amazon;
 	using Amazon.DynamoDBv2;
@@ -13,6 +15,8 @@ namespace FC.Data
 	using Amazon.DynamoDBv2.DocumentModel;
 	using Amazon.DynamoDBv2.Model;
 	using Amazon.Runtime.CredentialManagement;
+	using FC.Serialization;
+	using NodaTime;
 
 	public class DynamoDBTable : ITable
 	{
@@ -79,6 +83,21 @@ namespace FC.Data
 			await this.EnsureTable();
 
 			this.context = new DynamoDBContext(this.client);
+
+			foreach (JsonConverter converter in Serializer.Options.Converters)
+			{
+				PropertyInfo prop = converter.GetType().GetProperty("TypeToConvert", BindingFlags.Instance | BindingFlags.NonPublic);
+
+				if (prop == null)
+					throw new Exception("Failed to get target type of json converter: " + converter);
+
+				Type? targetType = prop.GetValue(converter) as Type;
+
+				if (targetType == null)
+					throw new Exception("Failed to get target type of json converter: " + converter);
+
+				this.context.ConverterCache.Add(targetType, new JsonProperty(targetType));
+			}
 
 			try
 			{
@@ -237,6 +256,27 @@ namespace FC.Data
 			catch (Exception ex)
 			{
 				throw new Exception("Failed to create table: \"" + this.InternalName + "\"", ex);
+			}
+		}
+
+		public class JsonProperty : IPropertyConverter
+		{
+			private readonly Type type;
+
+			public JsonProperty(Type type)
+			{
+				this.type = type;
+			}
+
+			public object? FromEntry(DynamoDBEntry entry)
+			{
+				string json = entry.AsString();
+				return Serializer.Deserialize(json, this.type);
+			}
+
+			public DynamoDBEntry ToEntry(object value)
+			{
+				return new Primitive(Serializer.Serialize(value));
 			}
 		}
 	}

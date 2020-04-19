@@ -54,18 +54,18 @@ namespace XIVAPI
 		[Serializable]
 		public class SearchResponse : ResponseBase
 		{
-			public Pagination? Pagination;
-			public List<Result>? Results;
+			public Pagination? Pagination { get; set; }
+			public List<Result>? Results { get; set; }
 		}
 
 		[Serializable]
 		public class Result
 		{
-			public ulong? ID;
-			public string? Icon;
-			public string? Name;
-			public string? Url;
-			public string? UrlType;
+			public ulong? ID { get; set; }
+			public string? Icon { get; set; }
+			public string? Name { get; set; }
+			public string? Url { get; set; }
+			public string? UrlType { get; set; }
 		}
 	}
 }

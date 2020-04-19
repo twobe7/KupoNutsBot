@@ -6,22 +6,41 @@ namespace FC.Eventsv2
 {
 	using System;
 	using System.Collections.Generic;
+	using FC.Attributes;
+	using FC.Utils;
 	using NodaTime;
 
 	[Serializable]
 	public class Event : EntryBase
 	{
+		public Event()
+		{
+			this.BaseTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+			this.BeginDate = TimeUtils.Now.InZone(this.BaseTimeZone).Date;
+			this.NoticeDuration = Duration.FromHours(24);
+		}
+
 		public ulong GuildId { get; set; }
-		public DateTimeZone? BaseTimeZone { get; set; }
-		public LocalDate? BeginDate { get; set; }
-		public Duration NoticeDuration { get; set; } = Duration.FromHours(24);
-		public List<Rule> Rules { get; set; } = new List<Rule>();
-		public List<Notice> Notices { get; set; } = new List<Notice>();
-		public ulong Channel { get; set; }
 
 		public string Name { get; set; } = string.Empty;
 		public string? Description { get; set; }
 		public string? ImageUrl { get; set; }
+
+		public DateTimeZone BaseTimeZone { get; set; }
+
+		[InspectorTooltip("The first date at which this event can occur. Repeating events may only occur on or after this date.")]
+		public LocalDate BeginDate { get; set; }
+
+		[InspectorTooltip("How long a notice should be posted before the event starts.")]
+		[Range(1, 24 * 7)]
+		public Duration NoticeDuration { get; set; }
+
+		[InspectorChannel]
+		[InspectorTooltip("The channel to post the event notice to")]
+		public ulong Channel { get; set; }
+
+		public List<Rule> Rules { get; set; } = new List<Rule>();
+		public List<Notice> Notices { get; set; } = new List<Notice>();
 
 		[Serializable]
 		public class Rule

@@ -52,13 +52,15 @@ namespace FC.Manager.Client
 			if (data.Guilds == null || data.Guilds.Count <= 0)
 				throw new Exception("You must be in at least one guild");
 
+			Console.WriteLine(">> User has " + data.Guilds.Count + " guilds");
+
 			// set the first available guild as the default
 			foreach (Data.Guild guild in data.Guilds)
 			{
 				if (!guild.CanManageGuild)
 					continue;
 
-				RPCService.GuildId = guild.Id;
+				RPCService.GuildId = guild.GetId();
 				break;
 			}
 
@@ -76,12 +78,13 @@ namespace FC.Manager.Client
 			public string AuthToken { get; set; }
 			public List<Guild> Guilds { get; set; }
 
+			[Serializable]
 			public class Guild
 			{
 				public const int AdministratorPermission = 0x00000008;
 				public const int ManageGuildPermission = 0x00000020;
 
-				public ulong Id { get; set; }
+				public string Id { get; set; }
 				public string Name { get; set; }
 				public string Icon { get; set; }
 				public bool Owner { get; set; }
@@ -101,6 +104,11 @@ namespace FC.Manager.Client
 					{
 						return (this.Permissions & ManageGuildPermission) == ManageGuildPermission;
 					}
+				}
+
+				public ulong GetId()
+				{
+					return ulong.Parse(this.Id);
 				}
 			}
 		}

@@ -10,7 +10,7 @@ namespace FC.Manager.Server.RPC
 	using System.Reflection;
 	using System.Threading.Tasks;
 	using FC.Manager.Client.RPC;
-	using Newtonsoft.Json;
+	using FC.Serialization;
 
 	public class RPCAttribute : Attribute
 	{
@@ -24,7 +24,7 @@ namespace FC.Manager.Server.RPC
 			List<object> paramValues = new List<object>();
 			for (int i = 0; i < paramInfos.Length; i++)
 			{
-				paramValues.Add(JsonConvert.DeserializeObject(request.ParamData[i], paramInfos[i].ParameterType));
+				paramValues.Add(Serializer.Deserialize(request.ParamData[i], paramInfos[i].ParameterType));
 			}
 
 			return paramValues;

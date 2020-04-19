@@ -4,12 +4,15 @@
 
 namespace XIVAPI
 {
+	using System;
+
+	[Serializable]
 	public class Pagination
 	{
-		public int Page;
-		public int PageTotal;
-		public int Results;
-		public int ResultsPerPage;
-		public int ResultsTotal;
+		public int Page { get; set; }
+		public int PageTotal { get; set; }
+		public int Results { get; set; }
+		public int ResultsPerPage { get; set; }
+		public int ResultsTotal { get; set; }
 	}
 }

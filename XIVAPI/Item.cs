@@ -9,22 +9,21 @@ namespace XIVAPI
 	using System.Threading.Tasks;
 
 	[Serializable]
-	#pragma warning disable SA1516
 	public class Item : ResponseBase
 	{
-		public int ID { get; set; } = 0;
+		public int Id { get; set; } = 0;
 		public string Name { get; set; } = string.Empty;
 		public string Description { get; set; } = string.Empty;
 		public string Icon { get; set; } = string.Empty;
 		public string Url { get; set; } = string.Empty;
-		public bool AetherialReduce { get; set; }
+		public int AetherialReduce { get; set; }
 		public int MaterializeType { get; set; }
 		public int LevelEquip { get; set; }
 		public int LevelItem { get; set; }
-		public bool IsUnique { get; set; }
-		public bool IsUntradable { get; set; }
-		public bool IsDyeable { get; set; }
-		public bool IsGlamourous { get; set; }
+		public int IsUnique { get; set; }
+		public int IsUntradable { get; set; }
+		public int IsDyeable { get; set; }
+		public int IsGlamourous { get; set; }
 		public GameContentLink? GameContentLinks { get; set; }
 		public ItemCategory? ItemUICategory { get; set; }
 		public Parameter? BaseParam0 { get; set; }
@@ -59,8 +58,8 @@ namespace XIVAPI
 		public int DefensePhys { get; set; }
 		public int DelayMs { get; set; }
 		public int MateriaSlotCount { get; set; }
-		public bool IsAdvancedMeldingPermitted { get; set; }
-		public SalvageInfo? Salvage { get; set; }
+		public int IsAdvancedMeldingPermitted { get; set; }
+		public int Salvage { get; set; }
 		public StatBonuses? Bonuses { get; set; }
 
 		[Serializable]
@@ -88,13 +87,6 @@ namespace XIVAPI
 		public class ItemSpecial
 		{
 			public string Name { get; set; } = string.Empty;
-		}
-
-		[Serializable]
-		public class SalvageInfo
-		{
-			public int ID { get; set; }
-			public int OptimalSkill { get; set; }
 		}
 
 		[Serializable]

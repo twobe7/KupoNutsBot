@@ -1,34 +1,6 @@
-﻿@inherits DrawerBase
+﻿@inherits DrawerBase<string>
 
 <div class="form-group col-md-6">
-	<label>@this.Label</label>
-	<input type="text" class="form-control" @bind="this.Selected"/>
+	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+	<input type="text" class="form-control" @bind="this.Value"/>
 </div>
-
-@code {
-	private string selected;
-
-	public string Selected
-	{
-		get
-		{
-			return this.selected;
-		}
-		set
-		{
-			this.selected = value;
-			this.OnChanged(this.selected);
-		}
-	}
-
-	protected override Task OnInitializedAsync()
-	{
-		this.Selected = this.GetValue<string>();
-		return Task.CompletedTask;
-	}
-
-	protected void OnChanged(string value)
-	{
-		this.SetValue(value);
-	}
-}
