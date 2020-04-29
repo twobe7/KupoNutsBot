@@ -42,13 +42,13 @@ namespace FC.Bot.Mounts
 			ulong? id = results[0].ID;
 
 			if (id == null)
-				throw new Exception("No Id in item");
+				throw new Exception("No Id in mount");
 
 			return await this.GetMount(id.Value);
 		}
 
-		[Command("MSearch", Permissions.Everyone, "Gets information on an action")]
-		[Command("MountSearch", Permissions.Everyone, "Gets information on an action")]
+		[Command("MSearch", Permissions.Everyone, "Gets information on a mount")]
+		[Command("MountSearch", Permissions.Everyone, "Gets information on a mount")]
 		public async Task<Embed> GetMount(ulong itemId)
 		{
 			MountAPI.Mount mount = await MountAPI.Get(itemId);
