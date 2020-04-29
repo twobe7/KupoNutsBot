@@ -45,7 +45,7 @@ namespace FC.Bot.Lodestone
 				if (start == null || end == null)
 					continue;
 
-				if (!item.title.Contains("All Worlds"))
+				if (!item.Title.Contains("All Worlds"))
 					continue;
 
 				if (start < bestStart)
@@ -62,7 +62,7 @@ namespace FC.Bot.Lodestone
 			{
 				EmbedBuilder builder = new EmbedBuilder();
 				builder.ThumbnailUrl = "https://img.finalfantasyxiv.com/lds/h/F/DlQYVw2bqzA5ZOCfXKZ-Qe1IZU.svg";
-				builder.Title = nextMaint.title;
+				builder.Title = nextMaint.Title;
 
 				Instant? start = nextMaint.GetStart();
 				Instant? end = nextMaint.GetEnd();
@@ -107,14 +107,14 @@ namespace FC.Bot.Lodestone
 			news.Reverse();
 			foreach (NewsItem item in news)
 			{
-				if (item.id == null)
+				if (item.Id == null)
 					continue;
 
-				PostedNews entry = await this.newsDb.LoadOrCreate(item.id);
+				PostedNews entry = await this.newsDb.LoadOrCreate(item.Id);
 
 				if (!entry.IsPosted)
 				{
-					Log.Write("Posting Lodestone news: " + item.title, "Bot");
+					Log.Write("Posting Lodestone news: " + item.Title, "Bot");
 					await item.Post(channelId);
 
 					entry.IsPosted = true;
