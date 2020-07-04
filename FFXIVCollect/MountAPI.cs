@@ -38,7 +38,7 @@ namespace FFXIVCollect
 				public string? Type { get; set; }
 				public string? Text { get; set; }
 				public string? Related_Type { get; set; }
-				public string? Related_Id { get; set; }
+				////public int? Related_Id { get; set; }
 			}
 		}
 	}

@@ -30,10 +30,15 @@ namespace FC.Bot.Services
 
 				SocketGuildUser guildUser = guild.GetUser(Program.DiscordClient.CurrentUser.Id);
 
-				await guildUser.ModifyAsync(x =>
+				if (guildUser != null)
 				{
-					x.Nickname = name;
-				});
+					await guildUser.ModifyAsync(x =>
+					{
+						x.Nickname = name;
+					});
+
+					await Task.Delay(500); // don't flood
+				}
 			}
 
 			await Program.DiscordClient.SetActivityAsync(new BotActivity());

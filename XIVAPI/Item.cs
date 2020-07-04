@@ -59,7 +59,7 @@ namespace XIVAPI
 		public int DelayMs { get; set; }
 		public int MateriaSlotCount { get; set; }
 		public int IsAdvancedMeldingPermitted { get; set; }
-		public int Salvage { get; set; }
+		public int? Salvage { get; set; }
 		public StatBonuses? Bonuses { get; set; }
 
 		[Serializable]

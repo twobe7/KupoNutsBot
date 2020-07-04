@@ -28,52 +28,52 @@ namespace FC.Bot.Lodestone
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 
-			builder.Title = self.title;
-			builder.Url = self.url;
-			builder.Description = self.description;
-			builder.ImageUrl = self.image;
+			builder.Title = self.Title;
+			builder.Url = self.Url;
+			builder.Description = self.Description;
+			builder.ImageUrl = self.Image;
 			builder.Color = self.GetColor();
 			builder.Timestamp = self.GetInstant().ToDateTimeOffset();
 			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = self.category.ToString();
+			builder.Footer.Text = self.Category;
 
 			return builder.Build();
 		}
 
 		public static Instant GetInstant(this NewsItem self)
 		{
-			return InstantPattern.ExtendedIso.Parse(self.time).Value;
+			return InstantPattern.ExtendedIso.Parse(self.Time).Value;
 		}
 
 		public static Instant? GetStart(this NewsItem self)
 		{
-			if (self.start == null)
+			if (self.Start == null)
 				return null;
 
-			return InstantPattern.ExtendedIso.Parse(self.start).Value;
+			return InstantPattern.ExtendedIso.Parse(self.Start).Value;
 		}
 
 		public static Instant? GetEnd(this NewsItem self)
 		{
-			if (self.end == null)
+			if (self.End == null)
 				return null;
 
-			return InstantPattern.ExtendedIso.Parse(self.end).Value;
+			return InstantPattern.ExtendedIso.Parse(self.End).Value;
 		}
 
 		public static Color GetColor(this NewsItem self)
 		{
-			switch (self.category)
+			switch (self.Category)
 			{
-				case Categories.Topics: return Color.DarkGrey;
-				case Categories.Notices: return Color.Green;
-				case Categories.Maintenance: return Color.Orange;
-				case Categories.Updates: return Color.Gold;
-				case Categories.Status: return Color.LighterGrey;
-				case Categories.Developers: return Color.Teal;
+				case "topics": return Color.DarkGrey;
+				case "notices": return Color.Green;
+				case "maintenance": return Color.Orange;
+				case "updates": return Color.Gold;
+				case "status": return Color.LighterGrey;
+				case "developers": return Color.Teal;
 			}
 
-			throw new Exception("Unknown category: " + self.category);
+			throw new Exception("Unknown category: " + self.Category);
 		}
 	}
 }
