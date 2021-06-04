@@ -17,7 +17,8 @@ namespace XIVAPI
 		public ulong ExpLevelTogo { get; set; } = 0;
 		public bool IsSpecialised { get; set; } = false;
 		public Class? Job { get; set; }
-		public int Level { get; set; } = 0;
+		public int? Level { get; set; } = 0;
+		public object? Mettle { get; set; }
 		public string Name { get; set; } = string.Empty;
 	}
 }

@@ -47,6 +47,23 @@ namespace FC.Manager.Server.Services
 		}
 
 		[GuildRpc]
+		public List<Role> GetRoles(ulong guildId)
+		{
+			SocketGuild guild = DiscordService.DiscordClient.GetGuild(guildId);
+
+			if (guild == null)
+				throw new Exception("Unable to access guild");
+
+			List<Role> results = new List<Role>();
+			foreach (SocketRole guildRole in guild.Roles)
+			{
+				results.Add(new Role(guildRole.Id, guildRole.Name));
+			}
+
+			return results;
+		}
+
+		[GuildRpc]
 		public async Task<GuildSettings> GetSettings(ulong guildId)
 		{
 			return await SettingsService.GetSettings<GuildSettings>(guildId);
@@ -57,6 +74,13 @@ namespace FC.Manager.Server.Services
 		{
 			settings.Guild = guildId;
 			await SettingsService.SaveSettings(settings);
+		}
+
+		[GuildRpc]
+		public async Task<List<string>> GetTimezonesFromSettings(ulong guildId)
+		{
+			GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guildId);
+			return settings.TimeZone;
 		}
 	}
 }

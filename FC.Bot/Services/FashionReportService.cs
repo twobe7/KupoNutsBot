@@ -28,8 +28,8 @@ namespace FC.Bot.Services
 			ScheduleService.RunOnSchedule(this.Update, 60);
 		}
 
-		[Command("FashionReport", Permissions.Everyone, "Gets the latest Fashion Report post")]
-		[Command("fr", Permissions.Everyone, "Gets the latest Fashion Report post")]
+		[Command("FashionReport", Permissions.Everyone, "Gets the latest Fashion Report post", CommandCategory.News)]
+		[Command("fr", Permissions.Everyone, "Gets the latest Fashion Report post", CommandCategory.News, "FashionReport")]
 		public async Task<Embed> GetFashionReport()
 		{
 			List<FashionReportEntry> reports = await FashionReportAPI.Get();
@@ -70,14 +70,21 @@ namespace FC.Bot.Services
 		{
 			Log.Write("Posting Fashion Report: " + entry.Content, "Bot");
 
-			string? channelIdStr = Settings.Load().FashionReportChannel;
-			if (channelIdStr == null)
-				return;
+			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			{
+				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
 
-			ulong channelId = ulong.Parse(channelIdStr);
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
+				if (settings.FashionReportChannel == null)
+					continue;
 
-			await channel.SendMessageAsync(null, false, this.GetEmbed(entry));
+				ulong channelId = ulong.Parse(settings.FashionReportChannel);
+				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
+
+				if (channel == null)
+					continue;
+
+				await channel.SendMessageAsync(null, false, this.GetEmbed(entry));
+			}
 		}
 
 		private Embed GetEmbed(FashionReportEntry entry)

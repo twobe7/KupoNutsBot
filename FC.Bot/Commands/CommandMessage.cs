@@ -11,6 +11,7 @@ namespace FC.Bot.Commands
 	{
 		public readonly string Command;
 		public readonly SocketMessage Message;
+		public readonly bool ShowWait;
 
 		public CommandMessage(string command, SocketMessage message)
 		{
@@ -47,6 +48,14 @@ namespace FC.Bot.Commands
 			get
 			{
 				return this.Message.GetGuild();
+			}
+		}
+
+		public MessageReference MessageReference
+		{
+			get
+			{
+				return new MessageReference(this.Message.Id);
 			}
 		}
 	}

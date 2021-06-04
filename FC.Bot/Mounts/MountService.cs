@@ -15,8 +15,8 @@ namespace FC.Bot.Mounts
 
 	public class MountService : ServiceBase
 	{
-		[Command("MoSearch", Permissions.Everyone, "Gets information on a mount")]
-		[Command("MountSearch", Permissions.Everyone, "Gets information on a mount")]
+		[Command("MSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData, "MountSearch")]
+		[Command("MountSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData)]
 		public async Task<Embed> GetMount(string search)
 		{
 			List<SearchAPI.Result> results = await SearchAPI.Search(SearchAPI.SearchType.Mounts, search);
@@ -47,8 +47,8 @@ namespace FC.Bot.Mounts
 			return await this.GetMount(id.Value);
 		}
 
-		[Command("MSearch", Permissions.Everyone, "Gets information on a mount")]
-		[Command("MountSearch", Permissions.Everyone, "Gets information on a mount")]
+		[Command("MSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData, "MountSearch")]
+		[Command("MountSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData)]
 		public async Task<Embed> GetMount(ulong itemId)
 		{
 			MountAPI.Mount mount = await MountAPI.Get(itemId);

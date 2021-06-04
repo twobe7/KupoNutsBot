@@ -50,37 +50,37 @@ namespace FC.Bot.Polls
 			return Task.CompletedTask;
 		}
 
-		[Command("Poll", Permissions.Everyone, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b });
 		}
 
-		[Command("Poll", Permissions.Everyone, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c });
 		}
 
-		[Command("Poll", Permissions.Everyone, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d });
 		}
 
-		[Command("Poll", Permissions.Everyone, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e });
 		}
 
-		[Command("Poll", Permissions.Everyone, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e, string f)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e, f });
 		}
 
-		[Command("Poll", Permissions.Everyone, "Creates a poll")]
+		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e, string f, string g)
 		{
 			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e, f, g });

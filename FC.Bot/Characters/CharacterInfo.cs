@@ -6,6 +6,7 @@ namespace FC.Bot.Characters
 {
 	using System;
 	using System.Collections.Generic;
+	using System.ComponentModel;
 	using System.Threading.Tasks;
 	using Discord;
 	using XIVAPI;
@@ -26,12 +27,53 @@ namespace FC.Bot.Characters
 			this.Id = id;
 		}
 
+		public enum Races
+		{
+			None = 0,
+			Hyur = 1,
+			Elezen = 2,
+			Lalafell = 3,
+			[Description("Miqo'te")]
+			Miqote = 4,
+			Roegadyn = 5,
+			[Description("Au Ra")]
+			AuRa = 6,
+			Hrothgar = 7,
+			Viera = 8,
+		}
+
+		public enum Tribes
+		{
+			None = 0,
+			Midlander = 1,
+			Highlander = 2,
+			Wildwood = 3,
+			Duskwight = 4,
+			Plainsfolk = 5,
+			Dunesfolk = 6,
+			[Description("Seekers Of The Sun")]
+			SeekersOfTheSun = 7,
+			[Description("Keepers Of The Moon")]
+			KeepersOfTheMoon = 8,
+			[Description("Sea Wolves")]
+			SeaWolves = 9,
+			Hellsguard = 10,
+			Raen = 11,
+			Xaela = 12,
+			Helions = 13,
+			[Description("The Lost")]
+			TheLost = 14,
+			Rava = 15,
+			Veena = 16,
+		}
+
 #pragma warning disable IDE0025, SA1516, CS8602
 		public string? Portrait => this.xivApiCharacter?.Portrait;
 		public string? Name => this.xivApiCharacter?.Name;
 		public string? Title => this.xivApiCharacter?.Title?.Name;
 		public string? Race => this.xivApiCharacter?.Race?.Name;
 		public string? Tribe => this.xivApiCharacter?.Tribe?.Name;
+		public string? Town => this.xivApiCharacter?.Town?.Name;
 		public string? NameDay => this.xivApiCharacter?.Nameday;
 		public Data? GuardianDeity => this.xivApiCharacter?.GuardianDeity;
 		public XIVAPI.GrandCompany? GrandCompany => this.xivApiCharacter?.GrandCompany;
@@ -93,7 +135,7 @@ namespace FC.Bot.Characters
 			if (classJob == null)
 				return string.Empty;
 
-			return classJob.Level.ToString();
+			return (classJob.Level ?? 0).ToString();
 		}
 
 		public Embed GetGearEmbed()
@@ -123,6 +165,21 @@ namespace FC.Bot.Characters
 
 			builder.Title = this.xivApiCharacter.Name;
 			builder.Description = "Elemental Level: " + (charResponse.Character?.GetElementalLevel() ?? 0);
+
+			return builder.Build();
+		}
+
+		public async Task<Embed> GetResistanceRankEmbed()
+		{
+			XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, columns: "Character.ClassJobsBozjan");
+
+			if (charResponse.Character == null)
+				throw new Exception("No character found.");
+
+			EmbedBuilder builder = new EmbedBuilder();
+
+			builder.Title = this.xivApiCharacter.Name;
+			builder.Description = "Resistance Rank: " + (charResponse.Character?.GetResistanceRank() ?? 0) + "\n" + "Current Mettle: " + (charResponse.Character?.GetResistanceMettle() ?? 0);
 
 			return builder.Build();
 		}

@@ -66,12 +66,18 @@
 
 	private static Type GetDrawerType(PropertyInfo property)
 	{
-		// Hiden
+		// Hidden
 		if (property.GetCustomAttribute<InspectorHiddenAttribute>() != null)
 			return null;
 
 		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
 			return typeof(Drawers.ChannelDrawer);
+
+		if (property.GetCustomAttribute<InspectorTimeZoneAttribute>() != null)
+			return typeof(Drawers.TimeZoneDrawer);
+
+		if (property.GetCustomAttribute<InspectorEmoteAttribute>() != null)
+			return typeof(Drawers.EmoteDrawer);
 
 		if (drawers.ContainsKey(property.PropertyType))
 			return drawers[property.PropertyType];

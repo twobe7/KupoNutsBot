@@ -8,6 +8,7 @@ namespace FC.Bot.Lodestone
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using FC.Data;
@@ -28,8 +29,8 @@ namespace FC.Bot.Lodestone
 			ScheduleService.RunOnSchedule(this.Update, 15);
 		}
 
-		[Command("maintenance", Permissions.Everyone, "Gets info about the next maintenance window.")]
-		[Command(@"maint", Permissions.Everyone, "Gets info about the next maintenance window.")]
+		[Command("Maint", Permissions.Everyone, "Gets info about the next maintenance window.", CommandCategory.XIVData, "Maintenance")]
+		[Command("Maintenance", Permissions.Everyone, "Gets info about the next maintenance window.")]
 		public async Task<Embed> GetMaintenance()
 		{
 			List<NewsItem> items = await NewsAPI.Latest(Categories.Maintenance);
@@ -95,16 +96,19 @@ namespace FC.Bot.Lodestone
 			throw new UserException("I couldn't find any maintenance.");
 		}
 
-		[Command("news", Permissions.Administrators, "Updates lodestone news")]
-		public async Task Update()
+		[Command("News", Permissions.Administrators, "Updates lodestone news")]
+		public async Task News(CommandMessage message)
 		{
-			Log.Write("Updating lodestone news", "Bot");
-
-			if (!ulong.TryParse(Settings.Load().LodestoneChannel, out ulong channelId))
-				return;
+			Log.Write("Updating lodestone news for guild: " + message.Guild.Name, "Bot");
 
 			List<NewsItem> news = await NewsAPI.Feed();
 			news.Reverse();
+
+			GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(message.Guild.Id);
+
+			if (!ulong.TryParse(settings.LodestoneChannel, out ulong channelId))
+				return;
+
 			foreach (NewsItem item in news)
 			{
 				if (item.Id == null)
@@ -122,6 +126,45 @@ namespace FC.Bot.Lodestone
 
 					// don't flood channel!
 					await Task.Delay(500);
+				}
+			}
+		}
+
+		public async Task Update()
+		{
+			Log.Write("Updating lodestone news for all guilds", "Bot");
+
+			List<NewsItem> news = await NewsAPI.Feed();
+			news.Reverse();
+
+			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			{
+				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
+
+				if (!ulong.TryParse(settings.LodestoneChannel, out ulong channelId))
+					return;
+
+				foreach (NewsItem item in news)
+				{
+					if (item.Id == null)
+						continue;
+
+					PostedNews entry = await this.newsDb.LoadOrCreate(item.Id);
+
+					if (!entry.IsPosted)
+					{
+						if (item.Description == null && item.Url != null)
+							item.Description = await NewsAPI.Detail(item.Url);
+
+						Log.Write("Posting Lodestone news: " + item.Title, "Bot");
+						await item.Post(channelId);
+
+						entry.IsPosted = true;
+						await this.newsDb.Save(entry);
+
+						// don't flood channel!
+						await Task.Delay(500);
+					}
 				}
 			}
 		}

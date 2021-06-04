@@ -38,10 +38,10 @@ namespace FC.Bot.Services
 		[Command("Developer", Permissions.Everyone, "Join the developer discord!")]
 		public Task<string> Developer()
 		{
-			return Task.FromResult("Join in on the developer discussion: https://discord.gg/ZtfBTAz");
+			return Task.FromResult("Join in on the developer discussion: https://discord.gg/z8G2T8GdDD");
 		}
 
-		[Command("GoodBot", Permissions.Everyone, "Ye")]
+		[Command("GoodBot", Permissions.Everyone, "Praise me")]
 		public Task<string> GoodBot()
 		{
 			Random rn = new Random();
@@ -49,10 +49,11 @@ namespace FC.Bot.Services
 		}
 
 		[Command("Time", Permissions.Everyone, "Shows the current time in multiple time zones.")]
-		public Task<string> Time()
+		public Task<Embed> Time(CommandMessage message)
 		{
 			Instant now = SystemClock.Instance.GetCurrentInstant();
-			return Task.FromResult("The time is: " + TimeUtils.GetDateTimeString(now));
+
+			return TimeUtils.GetDateTimeList(message.Guild.Id, now);
 		}
 
 		[Command("Time", Permissions.Everyone, "Shows the current time in the given timezone")]
@@ -73,7 +74,7 @@ namespace FC.Bot.Services
 			return Task.FromResult("The time is: " + TimeUtils.GetDateTimeString(now, dtz));
 		}
 
-		[Command("Blame", Permissions.Everyone, "Blames someone")]
+		[Command("Blame", Permissions.Everyone, "Blames someone", CommandCategory.Novelty)]
 		public Task<string> Blame(CommandMessage message)
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)

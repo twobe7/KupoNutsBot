@@ -7,6 +7,7 @@ namespace FC.Bot.Characters
 	using System;
 	using System.Collections.Generic;
 	using System.IO;
+	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
@@ -31,17 +32,8 @@ namespace FC.Bot.Characters
 			await base.Initialize();
 		}
 
-		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
-		public async Task<string> IAm(CommandMessage message, string characterName, string serverName)
-		{
-			User user = await UserService.GetUser(message.Author);
-			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
-
-			return await this.RecordCharacter(user, character);
-		}
-
-		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
-		public async Task<string> IAm(CommandMessage message, uint characterId)
+		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands", CommandCategory.Character)]
+		public async Task<Embed> IAm(CommandMessage message, uint characterId)
 		{
 			User user = await UserService.GetUser(message.Author);
 			CharacterInfo character = await this.GetCharacterInfo(characterId);
@@ -49,25 +41,16 @@ namespace FC.Bot.Characters
 			return await this.RecordCharacter(user, character);
 		}
 
-		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character")]
-		public async Task<string> IAmNot(CommandMessage message, string characterName)
+		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands", CommandCategory.Character, requiresQuotes: false)]
+		public async Task<Embed> IAm(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
 		{
 			User user = await UserService.GetUser(message.Author);
-			user.RemoveCharacter(characterName);
-			await UserService.SaveUser(user);
-			return "Character unlinked!";
+			CharacterInfo character = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
+
+			return await this.RecordCharacter(user, character);
 		}
 
-		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character")]
-		public async Task<string> IAmNot(CommandMessage message, string characterName, string serverName)
-		{
-			User user = await UserService.GetUser(message.Author);
-			user.RemoveCharacter(characterName, serverName);
-			await UserService.SaveUser(user);
-			return "Character unlinked!";
-		}
-
-		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character")]
+		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character", CommandCategory.Character)]
 		public async Task<string> IAmNot(CommandMessage message, uint characterId)
 		{
 			User user = await UserService.GetUser(message.Author);
@@ -76,56 +59,74 @@ namespace FC.Bot.Characters
 			return "Character unlinked!";
 		}
 
-		[Command("IAmUsually", Permissions.Everyone, "Sets the linked lodestone character as your default")]
-		public async Task<string> IAmUsually(CommandMessage message, string characterName)
+		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character", CommandCategory.Character, requiresQuotes: false)]
+		public async Task<string> IAmNot(CommandMessage message, string characterFirstName, string characterLastName)
 		{
 			User user = await UserService.GetUser(message.Author);
-			user.SetDefaultCharacter(characterName);
+			user.RemoveCharacter(this.GetCharacterFullName(characterFirstName, characterLastName));
+			await UserService.SaveUser(user);
+			return "Character unlinked!";
+		}
+
+		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character", CommandCategory.Character, requiresQuotes: false)]
+		public async Task<string> IAmNot(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
+		{
+			User user = await UserService.GetUser(message.Author);
+			user.RemoveCharacter(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
+			await UserService.SaveUser(user);
+			return "Character unlinked!";
+		}
+
+		[Command("IAmUsually", Permissions.Everyone, "Sets the linked lodestone character as your default", CommandCategory.Character, requiresQuotes: false)]
+		public async Task<string> IAmUsually(CommandMessage message, string characterFirstName, string characterLastName)
+		{
+			User user = await UserService.GetUser(message.Author);
+			user.SetDefaultCharacter(this.GetCharacterFullName(characterFirstName, characterLastName));
 			await UserService.SaveUser(user);
 			return "Default character updated!";
 		}
 
-		[Command("IAmUsually", Permissions.Everyone, "Sets the linked lodestone character as your default")]
-		public async Task<string> IAmUsually(CommandMessage message, string characterName, string serverName)
+		[Command("IAmUsually", Permissions.Everyone, "Sets the linked lodestone character as your default", CommandCategory.Character, requiresQuotes: false)]
+		public async Task<string> IAmUsually(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
 		{
 			User user = await UserService.GetUser(message.Author);
-			user.SetDefaultCharacter(characterName, serverName);
+			user.SetDefaultCharacter(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
 			await UserService.SaveUser(user);
 			return "Default character updated!";
 		}
 
-		[Command("WhoAmI", Permissions.Everyone, "Displays your linked character")]
+		[Command("WhoAmI", Permissions.Everyone, "Displays your linked character", CommandCategory.Character)]
 		public async Task WhoAmI(CommandMessage message)
 		{
 			User user = await UserService.GetUser(message.Author);
 			await this.PostWhoIsResponse(message, user);
 		}
 
-		[Command("WhoAmI", Permissions.Everyone, "Displays your linked character")]
+		[Command("WhoAmI", Permissions.Everyone, "Displays your linked character", CommandCategory.Character)]
 		public async Task WhoAmI(CommandMessage message, int characterIndex)
 		{
 			User user = await UserService.GetUser(message.Author);
 			await this.PostWhoIsResponse(message, user, characterIndex);
 		}
 
-		[Command("WhoIs", Permissions.Everyone, "Looks up a linked character")]
+		[Command("WhoIs", Permissions.Everyone, "Looks up a linked character", CommandCategory.Character, requiresQuotes: false)]
 		public async Task WhoIs(CommandMessage message, IGuildUser user)
 		{
 			User userEntry = await UserService.GetUser(user);
 			await this.PostWhoIsResponse(message, userEntry);
 		}
 
-		[Command("WhoIs", Permissions.Everyone, "Looks up a linked character")]
+		[Command("WhoIs", Permissions.Everyone, "Looks up a linked character", CommandCategory.Character, requiresQuotes: false)]
 		public async Task WhoIs(CommandMessage message, IGuildUser user, int characterIndex)
 		{
 			User userEntry = await UserService.GetUser(user);
 			await this.PostWhoIsResponse(message, userEntry, characterIndex);
 		}
 
-		[Command("WhoIs", Permissions.Everyone, "looks up a character profile by character and server name")]
-		public async Task WhoIs(CommandMessage message, string characterName, string serverName)
+		[Command("WhoIs", Permissions.Everyone, "Looks up a character profile by character and server name", CommandCategory.Character, requiresQuotes: false)]
+		public async Task WhoIs(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
 		{
-			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
+			CharacterInfo character = await this.GetCharacterInfo(characterFirstName + ' ' + characterLastName, serverName);
 			string file = await CharacterCard.Draw(character);
 			await message.Channel.SendFileAsync(file);
 		}
@@ -171,7 +172,7 @@ namespace FC.Bot.Characters
 				if (message.Author.Id == user.DiscordUserId)
 				{
 					builder.Title = "This character has not been verified";
-					builder.Description = "To verify this character, enter the following verification code in your [lodestone profile](https://na.finalfantasyxiv.com/lodestone/my/setting/profile/).\n" + defaultCharacter.FFXIVCharacterVerification;
+					builder.Description = "To verify this character, enter the following verification code in your [lodestone profile](https://na.finalfantasyxiv.com/lodestone/my/setting/profile/): " + defaultCharacter.FFXIVCharacterVerification;
 				}
 
 				await message.Channel.SendMessageAsync(null, false, builder.Build());
@@ -214,7 +215,7 @@ namespace FC.Bot.Characters
 			}
 		}
 
-		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait")]
+		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait", CommandCategory.Character)]
 		public async Task Portrait(CommandMessage message)
 		{
 			CharacterInfo character = await this.GetCharacterInfo(message.Author);
@@ -223,7 +224,7 @@ namespace FC.Bot.Characters
 			await message.Channel.SendFileAsync(file);
 		}
 
-		[Command("Portrait", Permissions.Everyone, "Shows another user's linked character portrait")]
+		[Command("Portrait", Permissions.Everyone, "Shows another user's linked character portrait", CommandCategory.Character)]
 		public async Task Portrait(CommandMessage message, IGuildUser user)
 		{
 			CharacterInfo character = await this.GetCharacterInfo(user);
@@ -232,67 +233,92 @@ namespace FC.Bot.Characters
 			await message.Channel.SendFileAsync(file);
 		}
 
-		[Command("Portrait", Permissions.Everyone, "Looks up a character profile by character name and server name")]
-		public async Task Portrait(CommandMessage message, string characterName, string serverName)
+		[Command("Portrait", Permissions.Everyone, "Looks up a character profile by character name and server name", CommandCategory.Character)]
+		public async Task Portrait(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
 		{
-			CharacterInfo character = await this.GetCharacterInfo(characterName, serverName);
+			CharacterInfo character = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
 			string file = await CharacterPortrait.Draw(character);
 		}
 
-		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
 		public async Task<Embed> Gear(CommandMessage message, IGuildUser user)
 		{
 			CharacterInfo info = await this.GetCharacterInfo(user);
 			return info.GetGearEmbed();
 		}
 
-		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
 		public async Task<Embed> Gear(CommandMessage message)
 		{
 			CharacterInfo info = await this.GetCharacterInfo(message.Author);
 			return info.GetGearEmbed();
 		}
 
-		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character")]
-		public async Task<Embed> Gear(CommandMessage message, string characterName, string serverName)
+		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
+		public async Task<Embed> Gear(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
 		{
-			CharacterInfo info = await this.GetCharacterInfo(characterName, serverName);
+			CharacterInfo info = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
 			return info.GetGearEmbed();
 		}
 
-		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
+		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
 		public async Task<Embed> Stats(IGuildUser user)
 		{
 			CharacterInfo info = await this.GetCharacterInfo(user);
 			return info.GetAttributesEmbed();
 		}
 
-		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of your linked character")]
+		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of your linked character", CommandCategory.Character)]
 		public async Task<Embed> Stats(CommandMessage message)
 		{
 			CharacterInfo info = await this.GetCharacterInfo(message.Author);
 			return info.GetAttributesEmbed();
 		}
 
-		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character")]
-		public async Task<Embed> Stats(string characterName, string serverName)
+		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
+		public async Task<Embed> Stats(string serverName, string characterFirstName, string characterLastName)
 		{
-			CharacterInfo info = await this.GetCharacterInfo(characterName, serverName);
+			CharacterInfo info = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
 			return info.GetAttributesEmbed();
 		}
 
-		[Command("ElementalLevel", Permissions.Everyone, "Shows current Elemental Level of a character")]
-		[Command("EL", Permissions.Everyone, "Shows current Elemental Level of a character")]
+		[Command("EL", Permissions.Everyone, "Shows current Elemental Level of a character", CommandCategory.Character, commandParent: "ElementalLevel")]
+		[Command("ElementalLevel", Permissions.Everyone, "Shows current Elemental Level of a character", CommandCategory.Character)]
 		public async Task<Embed> ElementalLevel(CommandMessage message)
 		{
 			return await this.GetElementalLevel(message);
 		}
 
-		[Command("ElementalLevel", Permissions.Everyone, "Shows current Elemental Level of a character")]
-		[Command("EL", Permissions.Everyone, "Shows current Elemental Level of a character")]
+		[Command("EL", Permissions.Everyone, "Shows current Elemental Level of a character", CommandCategory.Character, commandParent: "ElementalLevel")]
+		[Command("ElementalLevel", Permissions.Everyone, "Shows current Elemental Level of a character", CommandCategory.Character)]
 		public async Task<Embed> ElementalLevel(CommandMessage message, int characterIndex)
 		{
 			return await this.GetElementalLevel(message, characterIndex);
+		}
+
+		[Command("RR", Permissions.Everyone, "Shows current Resistance Rank of a character", commandParent: "ResistanceRank")]
+		[Command("ResistanceRank", Permissions.Everyone, "Shows current Resistance Rank of a character", CommandCategory.Character)]
+		public async Task<Embed> ResistanceRank(CommandMessage message)
+		{
+			return await this.GetResistanceRank(message);
+		}
+
+		[Command("RR", Permissions.Everyone, "Shows current Resistance Rank of a character", commandParent: "ResistanceRank")]
+		[Command("ResistanceRank", Permissions.Everyone, "Shows current Resistance Rank of a character", CommandCategory.Character)]
+		public async Task<Embed> ResistanceRank(CommandMessage message, int characterIndex)
+		{
+			return await this.GetResistanceRank(message, characterIndex);
+		}
+
+		[Command("Census", Permissions.Administrators, "Perform Census")]
+		public async void GetCharacterCensus(CommandMessage message, ulong freeCompanyId)
+		{
+			// I am the only one who can run this command
+			if (message.Author.Id != 294055671396302858)
+				throw new UnauthorizedAccessException();
+
+			Embed embed = await this.GetFreeCompanyCensus(freeCompanyId);
+			await message.Channel.SendMessageAsync(embed: embed);
 		}
 
 		private async Task<Embed> GetElementalLevel(CommandMessage message, int? characterIndex = null)
@@ -326,8 +352,41 @@ namespace FC.Bot.Characters
 			return await info.GetElementalLevelEmbed();
 		}
 
-		private async Task<string> RecordCharacter(User user, CharacterInfo character)
+		private async Task<Embed> GetResistanceRank(CommandMessage message, int? characterIndex = null)
 		{
+			User user = await UserService.GetUser(message.Author);
+			User.Character? defaultCharacter = user.GetDefaultCharacter();
+			if (defaultCharacter is null)
+				throw new UserException("No characters linked! Use `IAm` to link a character");
+
+			int index = 0;
+			if (characterIndex != null)
+			{
+				defaultCharacter = null;
+				foreach (User.Character character in user.Characters)
+				{
+					index++;
+
+					if (index == characterIndex)
+					{
+						defaultCharacter = character;
+					}
+				}
+
+				if (defaultCharacter is null)
+				{
+					throw new UserException("I couldn't find a character at index: " + characterIndex);
+				}
+			}
+
+			CharacterInfo info = await this.GetCharacterInfo(defaultCharacter.FFXIVCharacterId);
+			return await info.GetResistanceRankEmbed();
+		}
+
+		private async Task<Embed> RecordCharacter(User user, CharacterInfo character)
+		{
+			EmbedBuilder embed = new EmbedBuilder();
+
 			User.Character? userCharacter = user.GetCharacter(character.Id);
 
 			if (userCharacter == null)
@@ -347,7 +406,8 @@ namespace FC.Bot.Characters
 				userCharacter.ServerName = character.Server;
 				await UserService.SaveUser(user);
 
-				return "Character linked!";
+				embed.Description = "Character linked!";
+				return embed.Build();
 			}
 			else
 			{
@@ -366,11 +426,13 @@ namespace FC.Bot.Characters
 					userCharacter.IsVerified = true;
 					await UserService.SaveUser(user);
 
-					return "Character linked! (You can now remove the Verification Id from your Character Profile)";
+					embed.Description = "Character linked! (You can now remove the Verification Id from your Character Profile)";
+					return embed.Build();
 				}
 				else
 				{
-					return "To verify character ownership, please place the following verification Id in your lodestone character profile: `" + userCharacter.FFXIVCharacterVerification + "`";
+					embed.Description = "To verify character ownership, please place the following verification Id in your [lodestone profile](https://na.finalfantasyxiv.com/lodestone/my/setting/profile/): `" + userCharacter.FFXIVCharacterVerification + "`";
+					return embed.Build();
 				}
 			}
 		}
@@ -417,5 +479,141 @@ namespace FC.Bot.Characters
 			await info.Update();
 			return info;
 		}
+
+		private string GetCharacterFullName(string first, string last)
+		{
+			// I didn't want to write this for every function
+			return first + " " + last;
+		}
+
+		private async Task<Embed> GetFreeCompanyCensus(ulong freeCompanyId)
+		{
+			EmbedBuilder embed = new EmbedBuilder();
+			embed.Title = "Free Company Census";
+
+			FreeCompanyAPI.GetResponse response = await FreeCompanyAPI.GetFreeCompany(freeCompanyId);
+
+			if (response.FreeCompanyMembers == null)
+				return embed.WithDescription("No members found").Build();
+
+			// Census variables
+			List<CensusData> data = new List<CensusData>();
+			DateTime startTime = new DateTime(1970, 1, 1);
+			DateTime activeThreshold = DateTime.Now.Date.AddMonths(-3);
+
+			// Loop members
+			foreach (FreeCompanyAPI.Member member in response.FreeCompanyMembers)
+			{
+				FreeCompanyAPI.GetResponse responseCharacter = await FreeCompanyAPI.GetCharacter(member.ID, FreeCompanyAPI.CharacterData.None, "Character.Gender,Character.Race,Character.Tribe,Character.ParseDate");
+
+				if (responseCharacter.Character == null)
+					continue;
+
+				FreeCompanyAPI.Character character = responseCharacter.Character;
+
+				CensusData entry = new CensusData();
+
+				// Race
+				entry.Race = ((CharacterInfo.Races)character.Race).ToDisplayString();
+
+				// Tribe
+				entry.Tribe = ((CharacterInfo.Tribes)character.Tribe).ToDisplayString();
+
+				// Male = 1, Female = 2
+				entry.Gender = character.Gender;
+
+				// Parse last seen date
+				DateTime parsedDate = startTime.AddSeconds(Convert.ToDouble(character.ParseDate));
+
+				// Member is active if seen in last 3 months
+				if (parsedDate > activeThreshold)
+					entry.Active = true;
+
+				// Insert delay to try space out API request
+				////await Task.Delay(250);
+			}
+
+			// Total Members
+			embed.AddField("Total Members", data.Count, true);
+
+			// Race ranking
+			StringBuilder raceRanking = new StringBuilder();
+			foreach (IGrouping<string, CensusData> raceGroup in data.GroupBy(x => x.Race))
+			{
+				// Tribes
+				IEnumerable<IGrouping<string, CensusData>> x = raceGroup.GroupBy(x => x.Tribe);
+				(string, int) tribeA = (x.FirstOrDefault().Key, x.FirstOrDefault().Count());
+				(string, int) tribeB = (x.LastOrDefault().Key, x.LastOrDefault().Count());
+
+				raceRanking.Append($"{raceGroup.Key} - {raceGroup.Count()} ");
+				raceRanking.AppendLine($"{tribeA.Item1}: {tribeA.Item2}, {tribeB.Item1}: {tribeB.Item2})");
+			}
+
+			embed.AddField("Race", raceRanking);
+
+			// Gender ranking
+			StringBuilder genderRanking = new StringBuilder();
+			foreach (IGrouping<uint, CensusData> genderGroup in data.GroupBy(x => x.Gender))
+			{
+				string gender = genderGroup.Key == 1 ? "Male" : "Female";
+				genderRanking.AppendLine($"{gender} - {genderGroup.Count()}");
+			}
+
+			embed.AddField("Gender", genderRanking);
+
+			// Only active
+			List<CensusData> activeData = data.Where(x => x.Active).ToList();
+
+			// Active Members
+			embed.AddField("Active Members", activeData.Count, true);
+
+			// Race ranking
+			StringBuilder activeRaceRanking = new StringBuilder();
+			foreach (IGrouping<string, CensusData> raceGroup in activeData.GroupBy(x => x.Race))
+			{
+				// Tribes
+				IEnumerable<IGrouping<string, CensusData>> x = raceGroup.GroupBy(x => x.Tribe);
+				(string, int) tribeA = (x.FirstOrDefault().Key, x.FirstOrDefault().Count());
+				(string, int) tribeB = (x.LastOrDefault().Key, x.LastOrDefault().Count());
+
+				activeRaceRanking.Append($"{raceGroup.Key} - {raceGroup.Count()} ");
+				activeRaceRanking.AppendLine($"{tribeA.Item1}: {tribeA.Item2}, {tribeB.Item1}: {tribeB.Item2})");
+			}
+
+			embed.AddField("Active Race", activeRaceRanking);
+
+			// Gender ranking
+			StringBuilder activeGenderRanking = new StringBuilder();
+			foreach (IGrouping<uint, CensusData> genderGroup in activeData.GroupBy(x => x.Gender))
+			{
+				string gender = genderGroup.Key == 1 ? "Male" : "Female";
+				activeGenderRanking.AppendLine($"{gender} - {genderGroup.Count()}");
+			}
+
+			embed.AddField("Active Gender", activeGenderRanking);
+
+			return embed.Build();
+		}
+
+		private class CensusData
+		{
+			public string Race { get; set; } = string.Empty;
+			public string Tribe { get; set; } = string.Empty;
+			public uint Gender { get; set; }
+			public bool Active { get; set; } = false;
+		}
+
+		////private enum Races
+		////{
+		////	None = 0,
+		////	Hyur = 1,
+		////	Elezen = 2,
+		////	Lalafell = 3,
+		////	Miqo'te = 4,
+		////	Roegadyn = 5,
+		////	Au Ra = 6,
+		////	Hrothgar = 7,
+		////	Viera = 8,
+		////}
 	}
 }

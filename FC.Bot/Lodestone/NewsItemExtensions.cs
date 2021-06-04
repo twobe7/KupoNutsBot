@@ -30,7 +30,7 @@ namespace FC.Bot.Lodestone
 
 			builder.Title = self.Title;
 			builder.Url = self.Url;
-			builder.Description = self.Description;
+			builder.Description = self.Description?.Length > 2048 ? self.Description.Substring(0, 2048) : self.Description;
 			builder.ImageUrl = self.Image;
 			builder.Color = self.GetColor();
 			builder.Timestamp = self.GetInstant().ToDateTimeOffset();

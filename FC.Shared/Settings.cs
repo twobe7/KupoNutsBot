@@ -21,12 +21,6 @@ namespace FC
 
 		public string? StatusMessage { get; set; }
 
-		public string? SundayFundayChannel { get; set; }
-
-		public string? SundayFundayMessage { get; set; }
-
-		public string? FashionReportChannel { get; set; }
-
 		public bool UseDynamoDb { get; set; } = false;
 
 		// only needed when running outside of an amazon EC2 instance, and if UseDynamoDB is true.
@@ -39,6 +33,8 @@ namespace FC
 
 		public string? DiscordSecret { get; set; }
 
+		public string? TenorKey { get; set; }
+
 		public string? TwitterConsumerKey { get; set; }
 
 		public string? TwitterConsumerSecret { get; set; }
@@ -49,7 +45,7 @@ namespace FC
 
 		public string? XIVAPIKey { get; set; }
 
-		public string? LodestoneChannel { get; set; }
+		public string? BotDiscordServer { get; set; }
 
 		public static Settings Load()
 		{

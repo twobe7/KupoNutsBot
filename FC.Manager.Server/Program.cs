@@ -33,10 +33,12 @@ namespace FC.Manager.Server
 			await AddService<Services.RPCService>();
 			await AddService<DiscordService>();
 			await AddService<AuthenticationService>();
-			await AddService<SettingsService>();
+			await AddService<EmoteService>();
 			await AddService<EventsService>();
-			await AddService<GuildService>();
 			await AddService<EventsV2Service>();
+			await AddService<GuildService>();
+			await AddService<SettingsService>();
+			await AddService<ShopService>();
 
 			// finally launch the web host.
 			await host.RunAsync();

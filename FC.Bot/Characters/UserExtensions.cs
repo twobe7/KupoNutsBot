@@ -51,9 +51,7 @@ namespace FC.Bot.Characters
 			foreach (User.Character character in self.Characters)
 			{
 				if (character.FFXIVCharacterId == ffxivCharacterId)
-				{
 					return character;
-				}
 			}
 
 			return null;
@@ -84,18 +82,14 @@ namespace FC.Bot.Characters
 			foreach (User.Character character in self.Characters)
 			{
 				if (character.IsDefault)
-				{
 					return character;
-				}
 			}
 
 			// return the first verified character
 			foreach (User.Character character in self.Characters)
 			{
 				if (character.IsVerified)
-				{
 					return character;
-				}
 			}
 
 			// no default or verified character

@@ -72,8 +72,8 @@ namespace FC.Bot.Events
 			else if (evt.StatusType == Event.Statuses.Attending)
 			{
 				builder.AddStatus(evt, Emotes.Yes);
-				builder.AddStatus(evt, Emotes.No);
 				builder.AddStatus(evt, Emotes.Maybe);
+				builder.AddStatus(evt, Emotes.No);
 			}
 
 			// Notification bell field

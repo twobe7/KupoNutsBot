@@ -8,14 +8,14 @@ namespace FC.Bot
 
 	public static class Emotes
 	{
-		public static IEmote Yes = Emote.Parse(@"<:yes:669831908003282944>");
-		public static IEmote No = Emote.Parse(@"<:no:669831924679835648>");
-		public static IEmote Maybe = Emote.Parse(@"<:maybe:669831957634351115>");
+		public static IEmote Yes = Emote.Parse(@"<:Yes:835536105586950185>");
+		public static IEmote No = Emote.Parse(@"<:No:835536115981221960>");
+		public static IEmote Maybe = Emote.Parse(@"<:Maybe:835536125887119431>");
 		public static IEmote Bell = new Emoji(@"🔔");
-		public static IEmote Tank = Emote.Parse(@"<:tank:669841051292270606>");
-		public static IEmote Healer = Emote.Parse(@"<:healer:669841051711700992>");
-		public static IEmote DPS = Emote.Parse(@"<:dps:669841051703443476>");
-		public static IEmote Home = Emote.Parse(@"<:home:678881039472394240>");
+		public static IEmote Tank = Emote.Parse(@"<:Tank:835536215574970378>");
+		public static IEmote Healer = Emote.Parse(@"<:Healer:835536228001906720>");
+		public static IEmote DPS = Emote.Parse(@"<:Dps:835536256674431006>");
+		public static IEmote Home = Emote.Parse(@"<:home:800382941834117151>");
 
 		public static bool IsEmote(IEmote a, IEmote b)
 		{

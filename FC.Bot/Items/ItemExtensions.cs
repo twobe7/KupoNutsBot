@@ -79,6 +79,26 @@ namespace FC.Bot.Items
 			return builder;
 		}
 
+		public static EmbedBuilder ToMbEmbed(this Item self)
+		{
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.Title = self.Name;
+			builder.ThumbnailUrl = Icons.GetIconURL(self.Icon);
+
+			StringBuilder desc = new StringBuilder();
+
+			// universalis link
+			desc.Append("[Universalis](");
+			desc.Append("https://universalis.app/market/");
+			desc.Append(self.Id);
+			desc.AppendLine(") (ID: " + self.Id.ToString() + ")");
+
+			builder.Description = desc.ToString();
+			builder.Color = Color.Teal;
+
+			return builder;
+		}
+
 		public static string GetDescription(this Item self)
 		{
 			if (self.Description == null)

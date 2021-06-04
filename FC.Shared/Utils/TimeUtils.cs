@@ -7,7 +7,10 @@ namespace FC.Utils
 	using System;
 	using System.Collections.Generic;
 	using System.Globalization;
+	using System.Linq;
 	using System.Text;
+	using Discord;
+	using FC.Data;
 	using FC.Events;
 	using NodaTime;
 	using NodaTime.TimeZones;
@@ -16,42 +19,27 @@ namespace FC.Utils
 	{
 		public static Instant Now
 		{
-			get
-			{
-				return SystemClock.Instance.GetCurrentInstant();
-			}
+			get { return SystemClock.Instance.GetCurrentInstant(); }
 		}
 
 		public static DateTimeZone Aukland
 		{
-			get
-			{
-				return GetTimeZone("Pacific/Auckland");
-			}
+			get { return GetTimeZone("Pacific/Auckland"); }
 		}
 
 		public static DateTimeZone Perth
 		{
-			get
-			{
-				return GetTimeZone("Australia/Perth");
-			}
+			get { return GetTimeZone("Australia/Perth"); }
 		}
 
 		public static DateTimeZone Adelaide
 		{
-			get
-			{
-				return GetTimeZone("Australia/Adelaide");
-			}
+			get { return GetTimeZone("Australia/Adelaide"); }
 		}
 
 		public static DateTimeZone Sydney
 		{
-			get
-			{
-				return GetTimeZone("Australia/Sydney");
-			}
+			get { return GetTimeZone("Australia/Sydney"); }
 		}
 
 		public static string GetDateTimeString(DateTimeOffset? dt)
@@ -62,20 +50,20 @@ namespace FC.Utils
 			return GetDateTimeString(Instant.FromDateTimeOffset((DateTimeOffset)dt));
 		}
 
-		public static string GetDateString(DateTimeOffset? dt)
-		{
-			if (dt == null)
-				return string.Empty;
-
-			return GetDateString(Instant.FromDateTimeOffset((DateTimeOffset)dt));
-		}
-
 		public static string GetDateTimeString(Instant? dt, DateTimeZone? tz = null)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.AppendLine(GetDateString(dt, tz));
 			builder.Append(GetTimeString(dt, tz));
 			return builder.ToString();
+		}
+
+		public static string GetDateString(DateTimeOffset? dt)
+		{
+			if (dt == null)
+				return string.Empty;
+
+			return GetDateString(Instant.FromDateTimeOffset((DateTimeOffset)dt));
 		}
 
 		public static string GetDateString(Instant? dt, DateTimeZone? tz = null)
@@ -112,6 +100,7 @@ namespace FC.Utils
 		public static string GetTimeString(Instant dt)
 		{
 			StringBuilder builder = new StringBuilder();
+
 			builder.Append(GetTimeString(dt, Perth, IsStandardTime(dt, Perth) ? " AWST" : " AWDT"));
 			builder.Append(" | ");
 			builder.Append(GetTimeString(dt, Adelaide, IsStandardTime(dt, Adelaide) ? " ACST" : " ACDT"));
@@ -132,14 +121,55 @@ namespace FC.Utils
 			return builder.ToString();
 		}
 
+		public static async System.Threading.Tasks.Task<Embed> GetDateTimeList(ulong guildId, Instant dt)
+		{
+			EmbedBuilder builder = new EmbedBuilder();
+
+			builder.Title = "World Time";
+			/*builder.ThumbnailUrl = Icons.GetIconURL(self.Icon);*/
+			builder.Color = Color.DarkerGrey;
+
+			StringBuilder desc = new StringBuilder();
+
+			List<string> guildTimezones = await GetTimezonesFromGuildSettings(guildId);
+
+			// No timezones configured - use default
+			if (guildTimezones.Count == 0)
+			{
+				desc.Append("The time is: " + GetDateTimeString(dt));
+				return builder.Build();
+			}
+
+			DateTime now = DateTime.Now;
+
+			List<TimeZoneInfo> timezones = new List<TimeZoneInfo>();
+
+			foreach (string timeZone in guildTimezones)
+			{
+				timezones.Add(TimeZoneInfo.FindSystemTimeZoneById(timeZone));
+			}
+
+			foreach (TimeZoneInfo tz in timezones.OrderBy(x => x.BaseUtcOffset))
+			{
+				DateTime timeZoneDateTime = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.Local, tz);
+
+				string display = tz.DisplayName.StartsWith("(UTC)")
+					? tz.DisplayName.Replace("(UTC) ", string.Empty)
+					: tz.DisplayName.Substring(12, tz.DisplayName.Length - 12);
+
+				desc.AppendLine(display + ": " + timeZoneDateTime.ToString("dddd dd MMM HH:mm"));
+			}
+
+			builder.Description = desc.ToString();
+
+			return builder.Build();
+		}
+
 		public static bool IsStandardTime(Instant instant, DateTimeZone zone)
 		{
 			ZoneInterval zoneInterval = zone.GetZoneInterval(instant);
-			Offset offset = zoneInterval.Savings;
-			if (offset.Seconds > 0)
-				return false;
 
-			return true;
+			return zoneInterval.Savings.Seconds == 0;
 		}
 
 		public static string? GetDurationString(Instant tillInstant)
@@ -159,43 +189,25 @@ namespace FC.Utils
 			if (time.Days == 0 && time.Hours == 0 && time.Minutes == 0)
 				return " now";
 
-			if (time.Days == 1)
+			if (time.Days > 0)
 			{
 				builder.Append(" ");
 				builder.Append(time.Days);
-				builder.Append(" day");
-			}
-			else if (time.Days > 1)
-			{
-				builder.Append(" ");
-				builder.Append(time.Days);
-				builder.Append(" days");
+				builder.Append(time.Days == 1 ? " day" : " days");
 			}
 
-			if (time.Hours == 1)
+			if (time.Hours > 0)
 			{
 				builder.Append(" ");
 				builder.Append(time.Hours);
-				builder.Append(" hour");
-			}
-			else if (time.Hours > 1)
-			{
-				builder.Append(" ");
-				builder.Append(time.Hours);
-				builder.Append(" hours");
+				builder.Append(time.Hours == 1 ? " hour" : " hours");
 			}
 
-			if (time.Minutes == 1)
+			if (time.Minutes > 0)
 			{
 				builder.Append(" ");
 				builder.Append(time.Minutes);
-				builder.Append(" minute");
-			}
-			else if (time.Minutes > 1)
-			{
-				builder.Append(" ");
-				builder.Append(time.Minutes);
-				builder.Append(" minutes");
+				builder.Append(time.Minutes == 1 ? " minute" : " minute");
 			}
 
 			return builder.ToString();
@@ -293,6 +305,18 @@ namespace FC.Utils
 				throw new Exception("Failed to get time zone: \"" + id + "\"");
 
 			return zone;
+		}
+
+		private static async System.Threading.Tasks.Task<List<string>> GetTimezonesFromGuildSettings(ulong guildId)
+		{
+			Table settingsDb = new Table("Settings", 0);
+
+			_ = settingsDb.Connect();
+
+			string key = guildId + typeof(GuildSettings).FullName;
+			GuildSettings settings = await settingsDb.LoadOrCreate<GuildSettings>(key);
+
+			return settings.TimeZone;
 		}
 	}
 }

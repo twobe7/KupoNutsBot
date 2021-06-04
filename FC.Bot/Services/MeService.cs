@@ -61,6 +61,16 @@ namespace FC.Bot.Services
 					return ActivityType.Watching;
 				}
 			}
+
+			public string Details
+			{
+				get { return "KUPO NUTS"; }
+			}
+
+			public ActivityProperties Flags
+			{
+				get { return ActivityProperties.None; }
+			}
 		}
 	}
 }

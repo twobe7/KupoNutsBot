@@ -173,11 +173,14 @@ namespace FC.Bot.Events.Services
 			}
 			else
 			{
-				await message.ModifyAsync(x =>
+				if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
 				{
-					x.Content = null;
-					x.Embed = embedBuilder.Build();
-				});
+					await message.ModifyAsync(x =>
+					{
+						x.Content = null;
+						x.Embed = embedBuilder.Build();
+					});
+				}
 			}
 
 			return messageId;

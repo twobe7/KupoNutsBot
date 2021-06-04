@@ -33,7 +33,7 @@ namespace FC.Bot.Quotes
 			return base.Shutdown();
 		}
 
-		[Command("Quote", Permissions.Everyone, "Gets a random quote")]
+		[Command("Quote", Permissions.Everyone, "Gets a random quote", CommandCategory.Quote)]
 		public async Task<Embed> GetQuote(CommandMessage message)
 		{
 			List<Quote> allQuotes = await this.quoteDb.LoadAll();
@@ -56,13 +56,13 @@ namespace FC.Bot.Quotes
 			return this.GetEmbed(quotes[index]);
 		}
 
-		[Command("Quote", Permissions.Everyone, "Gets a quote from yourself")]
+		[Command("Quote", Permissions.Everyone, "Gets a quote from yourself", CommandCategory.Quote)]
 		public async Task<Embed> GetQuote(CommandMessage message, int id)
 		{
 			return await this.GetQuote(message, message.Author, id);
 		}
 
-		[Command("Quote", Permissions.Everyone, "Gets a random quote from a user")]
+		[Command("Quote", Permissions.Everyone, "Gets a random quote from a user", CommandCategory.Quote)]
 		public async Task<Embed> GetQuote(CommandMessage message, IUser user)
 		{
 			List<Quote> allQuotes = await this.quoteDb.LoadAll();
@@ -88,7 +88,7 @@ namespace FC.Bot.Quotes
 			return this.GetEmbed(quotes[index]);
 		}
 
-		[Command("Quote", Permissions.Everyone, "Gets a quote from a user")]
+		[Command("Quote", Permissions.Everyone, "Gets a quote from a user", CommandCategory.Quote)]
 		public async Task<Embed> GetQuote(CommandMessage message, IUser user, int id)
 		{
 			List<Quote> allQuotes = await this.quoteDb.LoadAll();
@@ -110,19 +110,19 @@ namespace FC.Bot.Quotes
 			throw new UserException("I couldn't find a quote with that id.");
 		}
 
-		[Command("Quotes", Permissions.Everyone, "Lists all quotes from yourself")]
+		[Command("Quotes", Permissions.Everyone, "Lists all quotes from yourself", CommandCategory.Quote)]
 		public async Task<Embed> GetQuotes(CommandMessage message)
 		{
 			return await this.GetQuotes(message, message.Author);
 		}
 
-		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user")]
+		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user", CommandCategory.Quote)]
 		public async Task<Embed> GetQuotes(CommandMessage message, IUser user)
 		{
 			return await this.GetQuotes(message, user, 1);
 		}
 
-		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user")]
+		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user", CommandCategory.Quote)]
 		public async Task<Embed> GetQuotes(CommandMessage message, IUser user, int page)
 		{
 			List<Quote> allQuotes = await this.quoteDb.LoadAll();
@@ -182,7 +182,7 @@ namespace FC.Bot.Quotes
 			return builder.Build();
 		}
 
-		[Command("DeleteQuote", Permissions.Everyone, "Deletes a quote from the given user")]
+		[Command("DeleteQuote", Permissions.Everyone, "Deletes a quote from the given user", CommandCategory.Quote)]
 		public async Task<string> DeleteQuote(CommandMessage message, IUser user, int quoteId)
 		{
 			if (message.Author != user && CommandsService.GetPermissions(message.Author) != Permissions.Administrators)
@@ -206,7 +206,7 @@ namespace FC.Bot.Quotes
 			return "Quote deleted!";
 		}
 
-		[Command("DeleteQuote", Permissions.Everyone, "Deletes a quote from yourself")]
+		[Command("DeleteQuote", Permissions.Everyone, "Deletes a quote from yourself", CommandCategory.Quote)]
 		public Task<string> DeleteQuote(CommandMessage message, int quoteId)
 		{
 			return this.DeleteQuote(message, message.Author, quoteId);

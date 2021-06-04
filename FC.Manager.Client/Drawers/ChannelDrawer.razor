@@ -3,9 +3,9 @@
 <div class="form-group col-md-6">
 	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
 	<select class="custom-select" @bind="this.Selected">
-		@foreach (Channel channl in this.ChannelList)
+		@foreach (Channel channel in this.ChannelList)
 		{
-			<option value=@channl.DiscordId>@channl.Name</option>
+			<option value=@channel.DiscordId>@channel.Name</option>
 		}
 	</select>
 </div>

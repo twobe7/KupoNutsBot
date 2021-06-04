@@ -21,6 +21,7 @@ namespace FC.Bot
 	using FC.Bot.Mounts;
 	using FC.Bot.Polls;
 	using FC.Bot.Quotes;
+	using FC.Bot.RPG;
 	using FC.Bot.Services;
 	using FC.Bot.Status;
 
@@ -79,32 +80,39 @@ namespace FC.Bot
 		{
 			try
 			{
-				await this.AddService<MountService>();
+				// Dependencies - must be added in order
 				await this.AddService<SettingsService>();
-				await this.AddService<ScheduleService>();
-				await this.AddService<MeService>();
-				await this.AddService<UserService>();
-				await this.AddService<LogService>();
 				await this.AddService<CommandsService>();
+				await this.AddService<ScheduleService>();
 				await this.AddService<EventsService>();
+				await this.AddService<Eventsv2.EventsService>();
 				await this.AddService<CalendarService>();
-				await this.AddService<HelpService>();
-				await this.AddService<DebugService>();
-				await this.AddService<StatusService>();
-				await this.AddService<EchoService>();
-				await this.AddService<PollService>();
-				await this.AddService<CharacterService>();
-				await this.AddService<LodestoneService>();
-				await this.AddService<QuoteService>();
-				await this.AddService<ModerationService>();
-				await this.AddService<ItemService>();
-				await this.AddService<FashionReportService>();
-				await this.AddService<NoveltyService>();
-				await this.AddService<GuildService>();
+
+				// No dependencies
 				await this.AddService<ActionService>();
+				await this.AddService<CharacterService>();
 				await this.AddService<ChannelService>();
 				await this.AddService<ChannelOptInService>();
-				await this.AddService<Eventsv2.EventsService>();
+				await this.AddService<CurrencyService>();
+				await this.AddService<DebugService>();
+				await this.AddService<EchoService>();
+				await this.AddService<FashionReportService>();
+				await this.AddService<GuildService>();
+				await this.AddService<HelpService>();
+				await this.AddService<ItemService>();
+				await this.AddService<LodestoneService>();
+				await this.AddService<LogService>();
+				await this.AddService<MeService>();
+				await this.AddService<ModerationService>();
+				await this.AddService<MountService>();
+				await this.AddService<NoveltyService>();
+				await this.AddService<PollService>();
+				await this.AddService<QuoteService>();
+				await this.AddService<RPGService>();
+				await this.AddService<StatusService>();
+				await this.AddService<UserService>();
+
+				await this.AddService<VoiceService>();
 			}
 			catch (Exception ex)
 			{
@@ -143,7 +151,7 @@ namespace FC.Bot
 			{
 				Running = true;
 				Initializing = true;
-				Log.Write("FCChan Bot booting..", "Bot");
+				Log.Write("FCChan Bot booting...", "Bot");
 
 				string? token = Settings.Load().Token;
 
@@ -173,6 +181,9 @@ namespace FC.Bot
 					// boot the rest of the bot
 					await this.AddServices();
 
+					// Update all users in guilds
+					await this.PopulateGuildUsers();
+
 					Initializing = false;
 					Log.Write("Initialization complete", "Bot");
 
@@ -183,7 +194,7 @@ namespace FC.Bot
 					}
 				}
 
-				Log.Write("shutting down", "Bot");
+				Log.Write("Shutting down", "Bot");
 
 				if (services != null)
 				{
@@ -195,7 +206,7 @@ namespace FC.Bot
 
 				client?.Dispose();
 				Running = false;
-				Log.Write("shutdown complete", "Bot");
+				Log.Write("Shutdown complete", "Bot");
 			}
 			catch (Exception ex)
 			{
@@ -209,6 +220,17 @@ namespace FC.Bot
 			T service = Activator.CreateInstance<T>();
 			await service.Initialize();
 			services.Add(service);
+		}
+
+		private async Task PopulateGuildUsers()
+		{
+			// Had issue where commands like Rep didn't recognise users
+			// Using GetUsersAsync returned null
+			// This worked in dev so we'll populate the user list on boot
+			foreach (IGuild guild in Program.DiscordClient.Guilds)
+			{
+				await guild.DownloadUsersAsync();
+			}
 		}
 
 		private Task LogAsync(LogMessage log)

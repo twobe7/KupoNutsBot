@@ -7,6 +7,7 @@ namespace FC.Bot.Commands
 	using System;
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
+	using System.Linq;
 	using System.Net;
 	using System.Reflection;
 	using System.Text;
@@ -20,7 +21,10 @@ namespace FC.Bot.Commands
 	public class CommandsService : ServiceBase
 	{
 		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
+		private static Dictionary<string, List<Command>> groupedCommandHandlers = new Dictionary<string, List<Command>>();
 		private static Dictionary<ulong, string> prefixCache = new Dictionary<ulong, string>();
+
+		private static List<HelpCommand> helpCommands = new List<HelpCommand>();
 
 		public static string GetPrefix(IGuild guild)
 		{
@@ -43,11 +47,43 @@ namespace FC.Bot.Commands
 			{
 				foreach (CommandAttribute attribute in attributes)
 				{
-					if (!commandHandlers.ContainsKey(attribute.Command))
-						commandHandlers.Add(attribute.Command, new List<Command>());
+					if (!commandHandlers.ContainsKey(attribute.CommandLower))
+						commandHandlers.Add(attribute.CommandLower, new List<Command>());
 
-					Command cmd = new Command(method, obj, attribute.Permissions, attribute.Help);
-					commandHandlers[attribute.Command].Add(cmd);
+					Command cmd = new Command(method, obj, attribute.Permissions, attribute.CommandLower, attribute.Help, attribute.CommandCategory.ToDisplayString(), attribute.RequiresQuotes, attribute.ShowWait);
+					commandHandlers[attribute.CommandLower].Add(cmd);
+
+					// Do not add Hidden commands to Help list
+					if (attribute.CommandCategory == CommandCategory.Hidden)
+						continue;
+
+					// Add the shortcut command to grouped dictionary
+					if (!string.IsNullOrWhiteSpace(attribute.CommandParent))
+					{
+						HelpCommand? helpCmd = helpCommands.FirstOrDefault(x => x.CommandName == attribute.CommandParent);
+						if (helpCmd == null)
+						{
+							helpCommands.Add(new HelpCommand(attribute.CommandParent, attribute.CommandCategory, attribute.Help, attribute.Permissions, attribute.Command));
+						}
+						else
+						{
+							if (!helpCmd.CommandShortcuts.Contains(attribute.Command))
+								helpCmd.CommandShortcuts.Add(attribute.Command);
+						}
+					}
+					else
+					{
+						HelpCommand? helpCmd = helpCommands.FirstOrDefault(x => x.CommandName == attribute.Command);
+						if (helpCmd == null)
+						{
+							helpCommands.Add(new HelpCommand(attribute.Command, attribute.CommandCategory, attribute.Help, attribute.Permissions));
+						}
+						else
+						{
+							helpCmd.CommandCount++;
+						}
+					}
+
 					Log.Write("Registered command: \"" + attribute.Command + "\"", "Bot");
 				}
 			}
@@ -56,6 +92,16 @@ namespace FC.Bot.Commands
 		public static IReadOnlyCollection<string> GetCommands()
 		{
 			return commandHandlers.Keys;
+		}
+
+		public static Dictionary<string, List<Command>> GetGroupedCommands()
+		{
+			return groupedCommandHandlers;
+		}
+
+		public static List<HelpCommand> GetGroupedHelpCommands()
+		{
+			return helpCommands;
 		}
 
 		public static List<Command> GetCommands(string command)
@@ -237,33 +283,62 @@ namespace FC.Bot.Commands
 						}
 						else if (lastException is NotImplementedException)
 						{
-							await message.Channel.SendMessageAsync("I'm sorry, seems like I don't quite know how to do that yet.");
+							IUserMessage sentMessage = await message.Channel.SendMessageAsync("I'm sorry, seems like I don't quite know how to do that yet.");
+
+							// Clear user and bot message
+							_ = this.ClearSentMessage(message.Message);
+							_ = this.ClearSentMessage(sentMessage);
 						}
 						else if (lastException is WebException webEx)
 						{
 							HttpStatusCode? status = (webEx.Response as HttpWebResponse)?.StatusCode;
+							IUserMessage sentMessage;
 							if (status == null || status != HttpStatusCode.ServiceUnavailable)
 							{
 								Log.Write(lastException);
-								await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+								sentMessage = await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
 							}
 							else
 							{
-								await message.Channel.SendMessageAsync("I'm sorry, the service is unavailable right now.");
+								sentMessage = await message.Channel.SendMessageAsync("I'm sorry, the service is unavailable right now.");
 							}
+
+							// Clear user and bot message
+							_ = this.ClearSentMessage(message.Message);
+							_ = this.ClearSentMessage(sentMessage);
 						}
 						else
 						{
 							Log.Write(lastException);
-							await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+							IUserMessage sentMessage = await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+
+							// Clear user and bot message
+							_ = this.ClearSentMessage(message.Message);
+							_ = this.ClearSentMessage(sentMessage);
 						}
 					}
 				}
 			}
 			else
 			{
-				await message.Channel.SendMessageAsync("I'm sorry, I didn't understand that command.");
+				IUserMessage sentMessage = await message.Channel.SendMessageAsync("I'm sorry, I didn't understand that command.");
+
+				// Clear user and bot message
+				_ = this.ClearSentMessage(message.Message);
+				_ = this.ClearSentMessage(sentMessage);
 			}
+		}
+
+		private async Task ClearSentMessage(SocketMessage message, int delay = 5000)
+		{
+			await Task.Delay(delay);
+			await message.DeleteAsync();
+		}
+
+		private async Task ClearSentMessage(IUserMessage message, int delay = 5000)
+		{
+			await Task.Delay(delay);
+			await message.DeleteAsync();
 		}
 	}
 }

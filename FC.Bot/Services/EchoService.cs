@@ -81,14 +81,66 @@ namespace FC.Bot.Services
 			await Echo((SocketTextChannel)message.Channel, (SocketTextChannel)message.Channel, message.Id, 1);
 		}
 
+		[Command("Echo", Permissions.Administrators, "Copies given text to a new channel.", requiresQuotes: true)]
+		public async Task HandleEcho(CommandMessage message, SocketTextChannel channel, string text)
+		{
+			await message.Channel.DeleteMessageAsync(message.Message);
+			await channel.SendMessageAsync(text);
+		}
+
+		[Command("Echo", Permissions.Administrators, "Copies given text to the same channel.")]
+		public async Task HandleEcho(CommandMessage message, string text)
+		{
+			await message.Channel.DeleteMessageAsync(message.Message);
+			await message.Channel.SendMessageAsync(text);
+		}
+
 		[Command("Embed", Permissions.Administrators, "Creates an embed on the target channel")]
-		public async Task HandleEmbedd(SocketTextChannel channel, string title, string content)
+		public async Task HandleEmbed(SocketTextChannel channel, string title, string content)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 			builder.Description = content;
 			builder.Title = title;
 
 			await channel.SendMessageAsync(null, false, builder.Build());
+		}
+
+		[Command("ModifyEcho", Permissions.Administrators, "Modifies a bot post.", CommandCategory.Administration, requiresQuotes: true)]
+		public async Task HandleModify(CommandMessage message, SocketTextChannel channel, ulong messageId, string text)
+		{
+			await message.Channel.DeleteMessageAsync(message.Message);
+
+			IUserMessage? botMessage = await channel.GetMessageAsync(messageId) as IUserMessage;
+
+			await this.HandleModify(message.Channel, botMessage, text);
+		}
+
+		[Command("ModifyEcho", Permissions.Administrators, "Modifies a bot post.", CommandCategory.Administration, requiresQuotes: true)]
+		public async Task HandleModify(CommandMessage message, ulong messageId, string text)
+		{
+			await message.Channel.DeleteMessageAsync(message.Message);
+
+			IUserMessage? botMessage = await message.Channel.GetMessageAsync(messageId) as IUserMessage;
+
+			await this.HandleModify(message.Channel, botMessage, text);
+		}
+
+		private async Task HandleModify(ISocketMessageChannel currentChannel, IUserMessage? botMessage, string text)
+		{
+			if (botMessage != null)
+			{
+				if (botMessage.Author.Id != Program.DiscordClient.CurrentUser.Id)
+				{
+					RestUserMessage errorMessage = await currentChannel.SendMessageAsync("Given message was not sent by me, I cannot modify that _kupo!_");
+
+					await Task.Delay(5000);
+
+					await errorMessage.DeleteAsync();
+					return;
+				}
+
+				await botMessage.ModifyAsync(x => x.Content = text);
+			}
 		}
 	}
 }

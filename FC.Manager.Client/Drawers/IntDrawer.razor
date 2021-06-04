@@ -1,0 +1,6 @@
+﻿@inherits DrawerBase<int>
+
+<div class="form-group col-md-6">
+	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+	<input type="number" class="form-control" @bind="this.Value" min="0" />
+</div>

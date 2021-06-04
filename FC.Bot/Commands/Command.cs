@@ -24,18 +24,27 @@ namespace FC.Bot.Commands
 	{
 		public readonly MethodInfo Method;
 		public readonly Permissions Permission;
+		public readonly string CommandString;
 		public readonly string Help;
+		public readonly string CommandCategory;
+		public readonly bool RequiresQuotes;
+		public readonly bool ShowWait;
 		public readonly WeakReference<object> Owner;
+		public List<string>? Shortcuts;
 
 		private const int TaskTimeout = 30000;
 		private const int ThinkDelay = 500;
-		private const string WaitEmoji = "<a:spinner:628526494637096970>";
+		private const string WaitEmoji = "<a:spinner:815087592822276117>";
 
-		public Command(MethodInfo method, object owner, Permissions permissions, string help)
+		public Command(MethodInfo method, object owner, Permissions permissions, string commandString, string help, string commandCategory, bool requiresQuotes, bool showWait)
 		{
 			this.Method = method;
 			this.Permission = permissions;
+			this.CommandString = commandString.ToLower();
 			this.Help = help;
+			this.CommandCategory = commandCategory;
+			this.RequiresQuotes = requiresQuotes;
+			this.ShowWait = showWait;
 			this.Owner = new WeakReference<object>(owner);
 
 			RequestOptions.Default.RetryMode = RetryMode.AlwaysRetry;
@@ -104,14 +113,24 @@ namespace FC.Bot.Commands
 						continue;
 					}
 
-					string arg = args[argCount];
-					argCount++;
+					string arg;
+
+					if (neededArgCount == 1 && paramInfo.ParameterType == typeof(string))
+					{
+						arg = string.Join(" ", args);
+						argCount += args.Length;
+					}
+					else
+					{
+						arg = args[argCount];
+						argCount++;
+					}
 
 					object param;
 
 					try
 					{
-						param = await this.Convert(message, arg, paramInfo.ParameterType);
+						param = await this.Convert(message, arg, paramInfo.ParameterType, this.RequiresQuotes);
 					}
 					catch (UserException ex)
 					{
@@ -124,14 +143,14 @@ namespace FC.Bot.Commands
 						if (paramInfo.ParameterType == typeof(string))
 							hint = "\n(Strings must have \"quotes\" around them)";
 
-						throw new ParameterException("I didn't understand the parameter: " + arg + ".\nWas that was supposed to be a " + HelpService.GetTypeName(paramInfo.ParameterType) + " for " + HelpService.GetParam(paramInfo) + "?" + hint);
+						throw new ParameterException("I didn't understand the parameter: " + arg + ".\nWas that was supposed to be a " + HelpService.GetTypeName(paramInfo.ParameterType) + " for " + HelpService.GetParam(paramInfo, this.RequiresQuotes) + "?" + hint);
 					}
 
 					parameters.Add(param);
 				}
 			}
 
-			if (parameters.Count != allParamInfos.Length || argCount != args.Length || neededArgCount != args.Length)
+			if (parameters.Count != allParamInfos.Length || argCount != args.Length || neededArgCount > args.Length)
 				throw new ParameterException("Incorrect number of parameters. I was expecting " + neededArgCount + ", but you sent me " + args.Length + "!");
 
 			try
@@ -195,7 +214,7 @@ namespace FC.Bot.Commands
 				await Task.Delay(10);
 
 			RestUserMessage? thinkMessage = null;
-			if (!task.IsCompleted && !task.IsFaulted)
+			if (this.ShowWait && !task.IsCompleted && !task.IsFaulted)
 			{
 				EmbedBuilder builder = new EmbedBuilder();
 				builder.Title = message.Message.Content.Truncate(256);
@@ -293,12 +312,12 @@ namespace FC.Bot.Commands
 			}
 		}
 
-		private async Task<object> Convert(CommandMessage message, string arg, Type type)
+		private async Task<object> Convert(CommandMessage message, string arg, Type type, bool stringRequiresQuotes = true)
 		{
 #pragma warning disable SA1121, IDE0049
 			if (type == typeof(string))
 			{
-				if (!arg.Contains("\""))
+				if (stringRequiresQuotes && !arg.Contains("\""))
 					throw new Exception("strings must be wrapped in quotations");
 
 				return arg.Replace("\"", string.Empty);
@@ -318,6 +337,10 @@ namespace FC.Bot.Commands
 			else if (type == typeof(UInt64))
 			{
 				return UInt64.Parse(arg);
+			}
+			else if (type == typeof(ulong))
+			{
+				return ulong.Parse(arg);
 			}
 			else if (type == typeof(bool))
 			{

@@ -54,12 +54,15 @@ namespace FC.Bot.Status
 			ulong id = ulong.Parse(settings.StatusChannel);
 			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(id);
 
+			if (channel == null)
+				return;
+
 			RestUserMessage? message = null;
 
 			if (settings.StatusMessage != null)
 				message = (RestUserMessage)await channel.GetMessageAsync(ulong.Parse(settings.StatusMessage));
 
-			if (message == null)
+			if (message == null || message.Author.Id != Program.DiscordClient.CurrentUser.Id)
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
 				settings.StatusMessage = message.Id.ToString();

@@ -165,6 +165,18 @@ namespace FC.Bot.Characters
 			return self.ClassJobsElemental?.Level ?? 0;
 		}
 
+		public static int GetResistanceRank(this XIVAPICharacter self)
+		{
+			return self.ClassJobsBozjan?.Level ?? 0;
+		}
+
+		public static int GetResistanceMettle(this XIVAPICharacter self)
+		{
+			string? strMettle = self.ClassJobsBozjan?.Mettle?.ToString();
+			int.TryParse(strMettle, out int mettle);
+			return mettle;
+		}
+
 		private static bool AddItemlevel(Item? item, ref int total)
 		{
 			if (item == null)

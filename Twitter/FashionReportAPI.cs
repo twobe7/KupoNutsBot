@@ -34,6 +34,9 @@ namespace Twitter
 
 			foreach (TwitterStatus status in statuses)
 			{
+				if (status.Text == null)
+					continue;
+
 				if (!status.Text.Contains("Fashion Report Week"))
 					continue;
 

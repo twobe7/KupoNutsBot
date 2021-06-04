@@ -14,9 +14,12 @@ namespace FC.Bot.Services
 	using FC.Bot.Commands;
 	using NodaTime;
 	using NodaTime.Extensions;
+	using Tenor;
 
 	public class NoveltyService : ServiceBase
 	{
+		public const string KupoNut = @"<:kupo_nut:815575569482776607>";
+
 		public static readonly List<string> Magic8BallAnswers = new List<string>()
 		{
 			"It is certain.",
@@ -56,7 +59,7 @@ namespace FC.Bot.Services
 			@"(oﾟ▽ﾟ)o",
 		};
 
-		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~")]
+		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~", CommandCategory.Novelty)]
 		public Task<Embed> Ask(string message)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
@@ -67,19 +70,19 @@ namespace FC.Bot.Services
 			return Task.FromResult(builder.Build());
 		}
 
-		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~")]
+		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~", CommandCategory.Novelty)]
 		public Task<Embed> Ask()
 		{
 			return this.Ask("The Magic 8 Ball");
 		}
 
-		[Command("Roll", Permissions.Everyone, "Roll the dice.")]
+		[Command("Roll", Permissions.Everyone, "Roll the dice.", CommandCategory.Novelty)]
 		public string Roll()
 		{
 			return this.Roll("1d6");
 		}
 
-		[Command("Roll", Permissions.Everyone, "Roll the dice. with the given format: 1d20")]
+		[Command("Roll", Permissions.Everyone, "Roll the dice. with the given format: 1d20", CommandCategory.Novelty)]
 		public string Roll(string format)
 		{
 			string[] parts = format.Split('d', 'D');
@@ -111,19 +114,19 @@ namespace FC.Bot.Services
 			return "You rolled: " + total.ToString();
 		}
 
-		[Command("Choose", Permissions.Everyone, "Let me choose for you")]
+		[Command("Choose", Permissions.Everyone, "Let me choose for you", CommandCategory.Novelty)]
 		public string Choose(string optionA, string optionB)
 		{
 			return this.DoChoose(optionA, optionB, null, null);
 		}
 
-		[Command("Choose", Permissions.Everyone, "Let me choose for you")]
+		[Command("Choose", Permissions.Everyone, "Let me choose for you", CommandCategory.Novelty)]
 		public string Choose(string optionA, string optionB, string optionC)
 		{
 			return this.DoChoose(optionA, optionB, optionC, null);
 		}
 
-		[Command("Choose", Permissions.Everyone, "Let me choose for you")]
+		[Command("Choose", Permissions.Everyone, "Let me choose for you", CommandCategory.Novelty)]
 		public string Choose(string optionA, string optionB, string optionC, string optionD)
 		{
 			return this.DoChoose(optionA, optionB, optionC, optionD);
@@ -152,13 +155,13 @@ namespace FC.Bot.Services
 			throw new Exception("Failed to choose a valid option");
 		}
 
-		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.")]
+		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.", CommandCategory.Novelty)]
 		public string Number(int max)
 		{
 			return this.Number(0, max);
 		}
 
-		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.")]
+		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.", CommandCategory.Novelty)]
 		public string Number(int min, int max)
 		{
 			if (max <= min)
@@ -170,8 +173,8 @@ namespace FC.Bot.Services
 			return value + "!";
 		}
 
-		[Command("et", Permissions.Everyone, "Gets the current Eorzean Time")]
-		[Command("EorzeaTime", Permissions.Everyone, "Gets the current Eorzean Time")]
+		[Command("et", Permissions.Everyone, "Gets the current Eorzean Time", CommandCategory.XIVData, "EorzeaTime")]
+		[Command("EorzeaTime", Permissions.Everyone, "Gets the current Eorzean Time", CommandCategory.XIVData)]
 		public string EorzeanTime()
 		{
 			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
@@ -190,7 +193,67 @@ namespace FC.Bot.Services
 			return "It is currently: " + et.ToString("HH:mm");
 		}
 
-		[Command("Flip", Permissions.Everyone, "Flips user")]
+		[Command("Timers", Permissions.Everyone, "Display the FFXIV Reset Timers", CommandCategory.XIVData)]
+		public void Timers(CommandMessage message)
+		{
+			EmbedBuilder embed = new EmbedBuilder()
+				.WithTitle("FFXIV Timers");
+
+			// Current time for timezone
+			DateTime now = DateTime.Now;
+
+			// Weekly Timer
+			TimeSpan weeklyReset = new TimeSpan(16, 0, 0) - now.TimeOfDay;
+			string weeklyResetFormat = string.Empty;
+
+			if (now.DayOfWeek == DayOfWeek.Tuesday && weeklyReset.Hours > 0 && weeklyReset.Minutes > 0 && weeklyReset.Seconds > 0)
+			{
+				weeklyResetFormat = $"{weeklyReset.Hours.ToString().PadLeft(2, '0')}:{weeklyReset.Minutes.ToString().PadLeft(2, '0')}:{weeklyReset.Seconds.ToString().PadLeft(2, '0')}";
+			}
+			else
+			{
+				int daysUntilReset = 0;
+				DateTime weeklyResetDay = now;
+
+				if (weeklyReset.Hours < 0 || weeklyReset.Minutes < 0 || weeklyReset.Seconds < 0)
+					weeklyResetDay = weeklyResetDay.AddDays(1);
+
+				while (weeklyResetDay.DayOfWeek != DayOfWeek.Tuesday)
+				{
+					daysUntilReset++;
+					weeklyResetDay = weeklyResetDay.AddDays(1);
+				}
+
+				weeklyReset = new TimeSpan(daysUntilReset, 16, 0, 0) - now.TimeOfDay;
+				weeklyResetFormat = $"{daysUntilReset} days, {weeklyReset.Hours.ToString().PadLeft(2, '0')}:{weeklyReset.Minutes.ToString().PadLeft(2, '0')}:{weeklyReset.Seconds.ToString().PadLeft(2, '0')}";
+			}
+
+			embed.AddField(new EmbedFieldBuilder()
+				.WithName("Weekly Reset").WithValue(weeklyResetFormat));
+
+			// Daily Timer
+			TimeSpan dailyReset = new TimeSpan(23, 0, 0) - now.TimeOfDay;
+			if (dailyReset.Hours < 0 || dailyReset.Minutes < 0 || dailyReset.Seconds < 0)
+				dailyReset = new TimeSpan(1, 23, 0, 0) - now.TimeOfDay;
+
+			string dailyResetFormat = $"{dailyReset.Hours.ToString().PadLeft(2, '0')}:{dailyReset.Minutes.ToString().PadLeft(2, '0')}:{dailyReset.Seconds.ToString().PadLeft(2, '0')}";
+			embed.AddField(new EmbedFieldBuilder()
+				.WithName("Duty/Beast Tribe Daily Reset").WithValue(dailyResetFormat));
+
+			// Grand Company Timer
+			TimeSpan gcReset = new TimeSpan(4, 0, 0) - now.TimeOfDay;
+			if (gcReset.Hours < 0 || gcReset.Minutes < 0 || gcReset.Seconds < 0)
+				gcReset = new TimeSpan(1, 4, 0, 0) - now.TimeOfDay;
+
+			string gcResetFormat = $"{gcReset.Hours.ToString().PadLeft(2, '0')}:{gcReset.Minutes.ToString().PadLeft(2, '0')}:{gcReset.Seconds.ToString().PadLeft(2, '0')}";
+			embed.AddField(new EmbedFieldBuilder()
+				.WithName("Grand Company Daily Reset").WithValue(gcResetFormat));
+
+			// Post
+			message.Channel.SendMessageAsync(embed: embed.Build(), messageReference: message.MessageReference);
+		}
+
+		[Command("Flip", Permissions.Everyone, "Flips user", CommandCategory.Novelty)]
 		public string Flip(CommandMessage message, IGuildUser user)
 		{
 			string flipName = string.Empty;
@@ -221,21 +284,21 @@ namespace FC.Bot.Services
 								.Replace("i", "ᴉ", true, null)
 								.Replace("j", "ɾ", true, null)
 								.Replace("k", "ʞ", true, null)
-								.Replace("l", "l", true, null)
+								////.Replace("l", "l", true, null)
 								.Replace("m", "ɯ", true, null)
 								.Replace("n", "u", true, null)
-								.Replace("o", "o", true, null)
+								////.Replace("o", "o", true, null)
 								.Replace("p", "d", true, null)
 								.Replace("q", "b", true, null)
 								.Replace("r", "ɹ", true, null)
-								.Replace("s", "s", true, null)
+								////.Replace("s", "s", true, null)
 								.Replace("t", "ʇ", true, null)
 								.Replace("u", "n", true, null)
 								.Replace("v", "ʌ", true, null)
 								.Replace("w", "ʍ", true, null)
-								.Replace("x", "x", true, null)
-								.Replace("y", "ʎ", true, null)
-								.Replace("z", "z", true, null);
+								////.Replace("x", "x", true, null)
+								.Replace("y", "ʎ", true, null);
+								////.Replace("z", "z", true, null);
 
 			if (user.Id == Program.DiscordClient.CurrentUser.Id)
 			{
@@ -247,7 +310,7 @@ namespace FC.Bot.Services
 			}
 		}
 
-		[Command(@"Unflip", Permissions.Everyone, @"Unflips user")]
+		[Command(@"Unflip", Permissions.Everyone, "Unflips user", CommandCategory.Novelty)]
 		public string Unflip(CommandMessage message, IGuildUser user)
 		{
 			if (user.Id == Program.DiscordClient.CurrentUser.Id)
@@ -258,13 +321,32 @@ namespace FC.Bot.Services
 			return user.GetName() + @" ノ( º _ ºノ)";
 		}
 
-		[Command("Hug", Permissions.Everyone, "Hugs a user")]
-		public string Hug(CommandMessage message, IGuildUser user)
+		[Command("Hug", Permissions.Everyone, "Hugs a user", CommandCategory.Novelty)]
+		public async Task<Embed> Hug(CommandMessage message, IGuildUser user)
 		{
-			return string.Format("{0} **{1}**", Hugs.GetRandom(), user.GetName());
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.Color = Color.DarkRed;
+
+			if (message.Author.Id == user.Id)
+			{
+				builder.Title = string.Format("{0} {1}s themselves (kinda weird, _kupo_)", message.Author.GetName(), message.Command);
+			}
+			else
+			{
+				builder.Title = string.Format("{0} {1}s {2}", message.Author.GetName(), message.Command, user.GetName());
+			}
+
+			RandomAPI.Result tenorResult = await RandomAPI.Random("anime hug");
+			builder.ImageUrl = tenorResult.GetBestUrl();
+
+			// Remove calling command
+			await message.Channel.DeleteMessageAsync(message.Message);
+
+			return builder.Build();
+			////return string.Format("{0} **{1}**", Hugs.GetRandom(), user.GetName());
 		}
 
-		[Command("sarcasm", Permissions.Everyone, "makes text SaRcAsTiC")]
+		[Command("Sarcasm", Permissions.Everyone, "makes text SaRcAsTiC", CommandCategory.Novelty)]
 		public Task<string> Sarcasm(CommandMessage message, string text)
 		{
 			char[] characters = new char[text.Length];
@@ -278,6 +360,165 @@ namespace FC.Bot.Services
 
 			text = new string(characters);
 			return Task.FromResult(text);
+		}
+
+		[Command("Slap", Permissions.Everyone, "Slaps a user", CommandCategory.Novelty)]
+		public async Task<Embed> Slap(CommandMessage message, IGuildUser user)
+		{
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.Color = Color.DarkRed;
+
+			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			{
+				await message.Channel.SendMessageAsync("Nice try, _kupo!_");
+				builder.Title = "Kupo Nuts slaps " + message.Author.GetName();
+			}
+			////else if (user.Id == 294055671396302858)
+			////{
+			////	await message.Channel.SendMessageAsync("Nice try, _kupo!_");
+			////	builder.Title = "Kupo Nuts slaps " + message.Author.GetName();
+
+			////	RandomAPI.Result honeyResult = await RandomAPI.Random("anime slap");
+			////	builder.ImageUrl = honeyResult.GetBestUrl();
+
+			////	return builder.Build();
+			////}
+			else if (message.Author.Id == user.Id)
+			{
+				builder.Title = message.Author.GetName() + " slaps themselves";
+			}
+			else
+			{
+				builder.Title = message.Author.GetName() + " slaps " + user.GetName();
+			}
+
+			RandomAPI.Result tenorResult = await RandomAPI.Random("anime slap");
+			builder.ImageUrl = tenorResult.GetBestUrl();
+
+			// Remove calling command
+			await message.Channel.DeleteMessageAsync(message.Message);
+
+			return builder.Build();
+		}
+
+		[Command("Pet", Permissions.Everyone, "Pet a user", CommandCategory.Novelty, "Pat")]
+		[Command("Pat", Permissions.Everyone, "Pat a user", CommandCategory.Novelty)]
+		public async Task<Embed> Pat(CommandMessage message, IGuildUser user)
+		{
+			EmbedBuilder builder = new EmbedBuilder();
+			builder.Color = Color.DarkRed;
+
+			if (message.Author.Id == user.Id)
+			{
+				builder.Title = string.Format("{0} {1}s themselves (kinda weird, _kupo_)", message.Author.GetName(), message.Command);
+			}
+			else
+			{
+				builder.Title = string.Format("{0} {1}s {2}", message.Author.GetName(), message.Command, user.GetName());
+			}
+
+			RandomAPI.Result tenorResult = await RandomAPI.Random("anime pat");
+			builder.ImageUrl = tenorResult.GetBestUrl();
+
+			// Remove calling command
+			await message.Channel.DeleteMessageAsync(message.Message);
+
+			return builder.Build();
+		}
+
+		[Command("Rate", Permissions.Everyone, "Rates a user", CommandCategory.Novelty)]
+		public async Task Rate(CommandMessage message)
+		{
+			await this.Rate(message, message.Author);
+		}
+
+		[Command("Rate", Permissions.Everyone, "Rates a user", CommandCategory.Novelty)]
+		public async Task Rate(CommandMessage message, IGuildUser user)
+		{
+			int rating = this.GenerateRatingForToday(user, null, 11);
+
+			StringBuilder builder = new StringBuilder();
+
+			builder.AppendLine(string.Format("{0}? I'd rate you {1}/10 kupo nuts, _kupo_!", user.GetName(), rating));
+			builder.AppendLine();
+
+			for (int i = 0; i < rating; i++)
+			{
+				builder.Append(KupoNut);
+			}
+
+			await message.Channel.SendMessageAsync(builder.ToString(), messageReference: message.MessageReference);
+		}
+
+		[Command("Ship", Permissions.Everyone, "Ships two users with a daily rating", CommandCategory.Novelty)]
+		public async Task Ship(CommandMessage message, IGuildUser user)
+		{
+			await this.Ship(message, message.Author, user);
+		}
+
+		[Command("Ship", Permissions.Everyone, "Ships two users with a daily rating", CommandCategory.Novelty)]
+		public async Task Ship(CommandMessage message, IGuildUser userA, IGuildUser userB)
+		{
+			int rating = this.GenerateRatingForToday(userA, userB, 101);
+
+			string response = string.Empty;
+			if (rating < 20)
+			{
+				response = "Oh... uhhh..";
+			}
+			else if (rating < 50)
+			{
+				response = "Hmm.. I think";
+			}
+			else if (rating < 70)
+			{
+				response = "It's obvious that";
+			}
+			else if (rating < 100)
+			{
+				response = "Pretty good..";
+			}
+			else
+			{
+				response = "Wow!";
+			}
+
+			string responseMsg = string.Format("{0} {1} and {2} are a {3}% match", response, userA.GetName(), userB.GetName(), rating);
+
+			await message.Channel.SendMessageAsync(responseMsg, messageReference: message.MessageReference);
+		}
+
+		[Command("ShoutOut", Permissions.Everyone, @"Yeah, let's give a quick shout out to Christina Applegate", CommandCategory.Novelty)]
+		public async void QuickShoutOut(CommandMessage message)
+		{
+			// Remove calling command
+			await message.Channel.DeleteMessageAsync(message.Message);
+
+			EmbedBuilder embed = new EmbedBuilder()
+				.WithThumbnailUrl("https://cdn.discordapp.com/attachments/825936704023691284/830801754223935488/images_8.png")
+				.WithTitle(@"Yeah, let's give a quick shout out to Christina Applegate");
+				////.WithDescription(@"Yeah, let's give a quick shout out to Christina Applegate");
+
+			await message.Channel.SendMessageAsync(embed: embed.Build());
+
+			return;
+		}
+
+		private int GenerateRatingForToday(IGuildUser userA, IGuildUser? userB, int mod)
+		{
+			long now = DateTime.Now.Date.Ticks;
+
+			decimal id = userA.Id / 100000M;
+			decimal id2 = userB != null ? (userB.Id / 100000M) : 0;
+
+			decimal step = now + id + id2;
+
+			decimal rating = step / now;
+
+			string n = rating.ToString();
+			int num = int.Parse(n.Substring(n.Length - 2)) % mod;
+
+			return num;
 		}
 	}
 }

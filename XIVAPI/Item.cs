@@ -61,6 +61,7 @@ namespace XIVAPI
 		public int IsAdvancedMeldingPermitted { get; set; }
 		public int? Salvage { get; set; }
 		public StatBonuses? Bonuses { get; set; }
+		public int? CanBeHq { get; set; } = 0;
 
 		[Serializable]
 		public class ItemCategory

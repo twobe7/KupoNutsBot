@@ -52,6 +52,19 @@ namespace FC.Bot.Services
 			return await instance.userDb.LoadAll();
 		}
 
+		public static async Task<List<User>> GetAllUsersForGuild(ulong guildId)
+		{
+			if (instance == null)
+				throw new Exception("Attempt to access user service before it is initialized");
+
+			Dictionary<string, object> filters = new Dictionary<string, object>()
+			{
+				{ "DiscordGuildId", guildId },
+			};
+
+			return await instance.userDb.LoadAll(filters);
+		}
+
 		public override async Task Initialize()
 		{
 			instance = this;

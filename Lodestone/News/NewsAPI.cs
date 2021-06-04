@@ -18,5 +18,10 @@ namespace Lodestone.News
 		{
 			return await Request.Send<List<NewsItem>>("/news/" + category.ToString());
 		}
+
+		public static async Task<string> Detail(string url)
+		{
+			return await Request.Detail(url);
+		}
 	}
 }

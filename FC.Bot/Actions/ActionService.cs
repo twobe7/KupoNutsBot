@@ -16,8 +16,8 @@ namespace FC.Bot.Actions
 
 	public class ActionService : ServiceBase
 	{
-		[Command("ASearch", Permissions.Everyone, "Gets information on an action")]
-		[Command("ActionSearch", Permissions.Everyone, "Gets information on an action")]
+		[Command("ASearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData, "ActionSearch", false)]
+		[Command("ActionSearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData, requiresQuotes: false)]
 		public async Task<Embed> GetAction(string search)
 		{
 			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Action");
@@ -48,8 +48,8 @@ namespace FC.Bot.Actions
 			return await this.GetAction(id.Value);
 		}
 
-		[Command("ASearch", Permissions.Everyone, "Gets information on an action")]
-		[Command("ActionSearch", Permissions.Everyone, "Gets information on an action")]
+		[Command("ASearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData, "ActionSearch", false)]
+		[Command("ActionSearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData, requiresQuotes: false)]
 		public async Task<Embed> GetAction(ulong itemId)
 		{
 			XIVAPI.Action action = await ActionAPI.Get(itemId);

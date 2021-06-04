@@ -11,6 +11,7 @@
 		<WarningsAsErrors />
 		<NoWarn>1701;1702;SA1503;CS1591;SA1401;SA0001;SA1516;</NoWarn>
 		<OutputPath>.\bin\</OutputPath>
+		<BlazorLinkOnBuild>false</BlazorLinkOnBuild>
 	</PropertyGroup>
 
 	<ItemGroup>

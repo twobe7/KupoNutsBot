@@ -66,9 +66,9 @@ else
 		<div class="form-group col-md-4">
 			<label for="channelSelect">Discord Channel</label>
 			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
-				@foreach (Channel channl in this.ChannelList)
+				@foreach (Channel channel in this.ChannelList)
 				{
-					<option value=@channl.DiscordId>@channl.Name</option>
+					<option value=@channel.DiscordId>@channel.Name</option>
 				}
 			</select>
 		</div>
@@ -183,14 +183,14 @@ else
 	{
 		this.IsLoading = true;
 		this.evt = evt;
-
-		this.ColorList = new List<string>(Enum.GetNames(typeof(Event.Colors)));
-		this.StatusList = new List<string>(Enum.GetNames(typeof(Event.Statuses)));
+		
+		this.ColorList = new List<string>(typeof(Event.Colors).GetDisplayStrings());
+		this.StatusList = new List<string>(typeof(Event.Statuses).GetDisplayStrings());
 
 		this.NotifyList = new Dictionary<string, double>()
 	{
 			{ "Never", -1 },
-			{ "Immediatelly", 0},
+			{ "Immediately", 0},
 			{ "One Hour", 1 },
 			{ "One Day", 24 },
 		};

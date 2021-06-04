@@ -10,7 +10,7 @@ namespace FC.Manager.Server
 	using JWT;
 	using JWT.Algorithms;
 	using Microsoft.AspNetCore.Http;
-	using Microsoft.Extensions.Primitives;
+	////using Microsoft.Extensions.Primitives;
 
 	public static class Authentication
 	{
@@ -32,7 +32,7 @@ namespace FC.Manager.Server
 
 		public static bool IsAuthenticated(HttpRequest request)
 		{
-			if (!request.Headers.TryGetValue("Token", out StringValues val))
+			if (!request.Headers.TryGetValue("Token", out Microsoft.Extensions.Primitives.StringValues val))
 				return false;
 
 			if (val.Count != 1)

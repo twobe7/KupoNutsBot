@@ -22,7 +22,7 @@ namespace FC.Bot.Guild
 			await base.Initialize();
 		}
 
-		[Command("Oldest", Permissions.Everyone, "Lists the oldest Discord members")]
+		[Command("Oldest", Permissions.Everyone, "Lists the oldest Discord members", CommandCategory.Discord)]
 		public Task<Embed> Oldest(CommandMessage message)
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)
@@ -37,13 +37,13 @@ namespace FC.Bot.Guild
 					oldestString += string.Format("{0}. {1}\n", order, user.GetName());
 				}
 
-				return Task.FromResult(this.GetEmbed("Oldest Members", oldestString));
+				return Task.FromResult(this.GetEmbed("Oldest Members", oldestString, message.Guild.IconUrl));
 			}
 
 			return Task.FromResult(this.GetEmbed("You're the oldest!", string.Empty));
 		}
 
-		[Command("Oldest", Permissions.Everyone, "Lists the oldest Discord members")]
+		[Command("Oldest", Permissions.Everyone, "Lists the oldest Discord members", CommandCategory.Discord)]
 		public Task<Embed> Oldest(CommandMessage message, int numberToReturn)
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)
@@ -61,13 +61,13 @@ namespace FC.Bot.Guild
 					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
 				}
 
-				return Task.FromResult(this.GetEmbed("Oldest Members", oldestString));
+				return Task.FromResult(this.GetEmbed("Oldest Members", oldestString, message.Guild.IconUrl));
 			}
 
 			return Task.FromResult(this.GetEmbed("You're the oldest!", string.Empty));
 		}
 
-		[Command("Newest", Permissions.Everyone, "Lists the newest Discord members")]
+		[Command("Newest", Permissions.Everyone, "Lists the newest Discord members", CommandCategory.Discord)]
 		public Task<Embed> Newest(CommandMessage message)
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)
@@ -82,13 +82,13 @@ namespace FC.Bot.Guild
 					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
 				}
 
-				return Task.FromResult(this.GetEmbed("Newest Members", oldestString));
+				return Task.FromResult(this.GetEmbed("Newest Members", oldestString, message.Guild.IconUrl));
 			}
 
 			return Task.FromResult(this.GetEmbed("You're the youngest!", string.Empty));
 		}
 
-		[Command("Newest", Permissions.Everyone, "Lists the newest Discord members")]
+		[Command("Newest", Permissions.Everyone, "Lists the newest Discord members", CommandCategory.Discord)]
 		public Task<Embed> Newest(CommandMessage message, int numberToReturn)
 		{
 			if (message.Channel is SocketGuildChannel guildChannel)
@@ -106,18 +106,27 @@ namespace FC.Bot.Guild
 					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
 				}
 
-				return Task.FromResult(this.GetEmbed("Newest Members", oldestString));
+				return Task.FromResult(this.GetEmbed("Newest Members", oldestString, message.Guild.IconUrl));
 			}
 
 			return Task.FromResult(this.GetEmbed("You're the youngest!", string.Empty));
 		}
 
-		private Embed GetEmbed(string title, string description)
+		private Embed GetEmbed(string title, string description, string? iconUrl = null)
 		{
 			EmbedBuilder builder = new EmbedBuilder();
 
 			builder.Title = title;
 			builder.Description = description;
+
+			if (iconUrl != null)
+			{
+				// Aymeric has a webp image - let's steal it
+				if (iconUrl.EndsWith(".jpg"))
+					iconUrl = iconUrl.Replace(".jpg", ".webp?size=1024");
+
+				builder.ThumbnailUrl = iconUrl;
+			}
 
 			return builder.Build();
 		}
