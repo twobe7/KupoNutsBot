@@ -75,6 +75,14 @@ namespace FC.Bot.Services
 			}
 		}
 
+		public async void ClearTotalKupoNuts()
+		{
+			this.TotalKupoNutsCurrent = 0;
+			this.TotalKupoNutsReceived = 0;
+
+			await UserService.SaveUser(this);
+		}
+
 		public async void UpdateInventory(string itemName, int quantity)
 		{
 			if (this.Inventory.ContainsKey(itemName))

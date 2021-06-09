@@ -11,7 +11,7 @@ namespace FC.Manager.Client
 
 	public static class NavigationManagerExtensions
 	{
-		public static string GetQuerryParameter(this NavigationManager self, string parmKey)
+		public static string GetQueryParameter(this NavigationManager self, string parmKey)
 		{
 			Uri uri = new Uri(self.Uri);
 

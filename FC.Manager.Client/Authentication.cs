@@ -61,12 +61,16 @@ namespace FC.Manager.Client
 					continue;
 
 				RPCService.GuildId = guild.GetId();
+				RPCService.CanManageGuild = guild.CanManageGuild;
 				break;
 			}
 
 			if (RPCService.GuildId == 0)
 			{
-				throw new Exception("you must have the 'Manage Guild' permission on at least one guild");
+				// Set to first
+				Data.Guild defaultGuild = data.Guilds.Getfirst();
+				RPCService.GuildId = defaultGuild.GetId();
+				RPCService.CanManageGuild = defaultGuild.CanManageGuild;
 			}
 		}
 
@@ -89,6 +93,7 @@ namespace FC.Manager.Client
 				public string Icon { get; set; }
 				public bool Owner { get; set; }
 				public int Permissions { get; set; }
+				public bool IsInGuild { get; set; }
 
 				public bool IsAdministrator
 				{

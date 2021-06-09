@@ -69,6 +69,9 @@ namespace FC.Manager.Server.Services
 			List<ulong> canManageGuilds = new List<ulong>();
 			foreach (Client.Authentication.Data.Guild guild in guilds)
 			{
+				// Check if already connected to Guild
+				guild.IsInGuild = DiscordService.DiscordClient.GetGuild(guild.GetId()) != null;
+
 				if (!guild.CanManageGuild)
 					continue;
 

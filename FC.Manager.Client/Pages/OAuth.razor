@@ -11,7 +11,7 @@
 
 		try
 		{
-			string code = NavigationManager.GetQuerryParameter("code");
+			string code = NavigationManager.GetQueryParameter("code");
 			string url = NavigationManager.GetURL();
 
 			await Authentication.Authenticate(code, url);

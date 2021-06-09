@@ -9,7 +9,7 @@ namespace FC.Manager.Server.Services
 	using System.Linq;
 	using System.Threading.Tasks;
 	using Discord.WebSocket;
-	using FC.Data;
+	using FC.Bot.Services;
 	using FC.Manager.Server.RPC;
 
 	public class GuildService : ServiceBase
@@ -64,6 +64,34 @@ namespace FC.Manager.Server.Services
 		}
 
 		[GuildRpc]
+		public List<GuildUser> GetGuildUsers(ulong guildId)
+		{
+			SocketGuild guild = DiscordService.DiscordClient.GetGuild(guildId);
+
+			if (guild == null)
+				throw new Exception("Unable to access guild");
+
+			// Get the guild users
+			IReadOnlyCollection<Discord.IGuildUser> guildUsers = guild.GetUsersAsync().ToEnumerable().FirstOrDefault();
+
+			// Get database users
+			List<User> users = UserService.GetAllUsersForGuild(guildId).Result;
+
+			List<GuildUser> results = new List<GuildUser>();
+			foreach (User guildUser in users)
+			{
+				string username = "Unknown";
+				Discord.IGuildUser user = guildUsers.FirstOrDefault(x => x.Id == guildUser.DiscordUserId);
+				if (user != null)
+					username = user.Nickname ?? user.Username;
+
+				results.Add(new GuildUser(guildUser.DiscordUserId, username, guildUser.TotalKupoNutsCurrent, guildUser.TotalXPCurrent, guildUser.Level, guildUser.Reputation));
+			}
+
+			return results;
+		}
+
+		[GuildRpc]
 		public async Task<GuildSettings> GetSettings(ulong guildId)
 		{
 			return await SettingsService.GetSettings<GuildSettings>(guildId);
@@ -81,6 +109,18 @@ namespace FC.Manager.Server.Services
 		{
 			GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guildId);
 			return settings.TimeZone;
+		}
+
+		[GuildRpc]
+		public void ResetGuildUserNuts(ulong guildId)
+		{
+			// Get database users
+			List<User> users = UserService.GetAllUsersForGuild(guildId).Result;
+
+			foreach (User u in users)
+				u.ClearTotalKupoNuts();
+
+			return;
 		}
 	}
 }

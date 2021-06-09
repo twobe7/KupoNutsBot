@@ -1,0 +1,39 @@
+﻿@using FC.Events;
+
+@inherits Modal
+
+<div class="form-row">
+	<div class="form-group col-md-12">
+		<label>@this.message</label>
+	</div>
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="@this.confirmBtnClass" @onclick="this.OnDelete">@this.confirmText</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Cancel</button>
+</div>
+
+
+@code {
+	private string message;
+	private string confirmText;
+	private string confirmBtnClass;
+
+	public void Initialize(string message, string confirmText, bool isDanger)
+	{
+		this.message = message;
+		this.confirmText = confirmText;
+		this.confirmBtnClass = isDanger ? "btn btn-danger" : "btn-primary";
+	}
+
+	private void OnClose()
+	{
+		this.Close(false);
+	}
+
+	private void OnDelete()
+	{
+		this.Close(true);
+	}
+}

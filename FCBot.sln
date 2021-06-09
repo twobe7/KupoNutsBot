@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tenor", "Tenor\Tenor.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MusicPlayer", "MusicPlayer\MusicPlayer.csproj", "{E2CA19E9-068B-4E18-8DEB-5EE4B1F20ABD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FindUser", "FindUser\FindUser.csproj", "{80D9FDD8-2217-4755-A4D2-EC37DB14C27F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FindUser", "FindUser\FindUser.csproj", "{80D9FDD8-2217-4755-A4D2-EC37DB14C27F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

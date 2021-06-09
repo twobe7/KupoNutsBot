@@ -14,6 +14,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Characters\**" />
+	  <EmbeddedResource Remove="Characters\**" />
+	  <None Remove="Characters\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Remove="stylecop.json" />
 	</ItemGroup>
 
@@ -30,10 +36,6 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="System.Text.Json" Version="4.7.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Characters\" />
 	</ItemGroup>
 
 </Project>

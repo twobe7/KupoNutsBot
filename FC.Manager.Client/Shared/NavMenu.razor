@@ -8,7 +8,7 @@
 
 			@foreach (Authentication.Data.Guild guild in Authentication.Guilds)
 			{
-				@if (!guild.CanManageGuild)
+				@if (!guild.CanManageGuild && !guild.IsInGuild)
 					continue;
 
 				<option value=@guild.Id.ToString()>@guild.Name</option>
@@ -27,23 +27,34 @@
 
 		@if (IsInGuild)
 		{
-			<li class="nav-item px-3">
-				<NavLink class="nav-link" href="events">
-					<span class="oi oi-bell" aria-hidden="true"></span> Events
-				</NavLink>
-			</li>
+			bool canManage = Authentication.Guilds.FirstOrDefault(x => x.Id == RPC.RPCService.GuildId.ToString()).CanManageGuild;
+
+			if (canManage)
+			{
+				<li class="nav-item px-3">
+					<NavLink class="nav-link" href="events">
+						<span class="oi oi-bell" aria-hidden="true"></span> Events
+					</NavLink>
+				</li>
+
+				@*<li class="nav-item px-3">
+					<NavLink class="nav-link" href="eventsV2">
+						<span class="oi oi-bell" aria-hidden="true"></span> Events V2
+					</NavLink>
+				</li>*@
+
+				<li class="nav-item px-3">
+					<NavLink class="nav-link" href="shop">
+						<span class="oi oi-cart" aria-hidden="true"></span> Shop Configuration
+					</NavLink>
+				</li>
+			}
 
 			<li class="nav-item px-3">
-				<NavLink class="nav-link" href="shop">
-					<span class="oi oi-bell" aria-hidden="true"></span> Shop Configuration
+				<NavLink class="nav-link" href="leaderboards">
+					<span class="oi oi-bar-chart" aria-hidden="true"></span> Leaderboards
 				</NavLink>
 			</li>
-
-			@*<li class="nav-item px-3">
-				<NavLink class="nav-link" href="eventsV2">
-					<span class="oi oi-bell" aria-hidden="true"></span> Events V2
-				</NavLink>
-			</li>*@
 		}
 	</ul>
 
@@ -70,6 +81,7 @@
 		set
 		{
 			RPC.RPCService.GuildId = ulong.Parse(value);
+			RPC.RPCService.CanManageGuild = Authentication.Guilds.FirstOrDefault(x => x.Id == RPC.RPCService.GuildId.ToString()).CanManageGuild;
 			this.UpdateGuild();
 		}
 	}

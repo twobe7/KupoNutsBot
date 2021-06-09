@@ -18,6 +18,8 @@ namespace FC.Manager.Client.RPC
 
 		public static ulong GuildId;
 
+		public static bool CanManageGuild;
+
 		public static async Task<TResult> Invoke<TResult>(string method, params object[] param)
 		{
 			if (Client == null)

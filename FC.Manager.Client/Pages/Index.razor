@@ -29,6 +29,12 @@
 				</Button>
 			</div>
 		}
+		else if (!RPCService.CanManageGuild)
+		{
+			<div class="form-group col-md-12">
+				
+			</div>
+		}
 		else
 		{
 			<div class="content-box">
@@ -37,7 +43,7 @@
 						Settings Saved!
 					</div>
 				</div>
-				
+
 				<div class="form-group col-md-12 d-flex align-items-end justify-content-end">
 					<button id="btnSaveSettings" class="btn btn-primary" @onclick="this.OnSaveSettings">Save</button>
 				</div>
