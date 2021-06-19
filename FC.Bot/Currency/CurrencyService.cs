@@ -436,7 +436,8 @@ namespace FC.Bot.Services
 				User user = await UserService.GetUser(message.Author);
 				if (user.TotalKupoNutsCurrent >= bet && bet < int.MaxValue)
 				{
-					user.UpdateTotalKupoNuts(bet);
+					int nutsToSubtract = Convert.ToInt32(bet) * -1;
+					user.UpdateTotalKupoNuts(nutsToSubtract);
 
 					if (!this.blackjackLastRunTime.ContainsKey(message.Guild.Id))
 					{

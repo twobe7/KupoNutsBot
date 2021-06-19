@@ -32,7 +32,7 @@ else
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.Nuts))
+			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.Nuts).Take(10))
 			{
 				<tr class="table-clickable">
 					<td>@user.Name</td>
@@ -52,7 +52,7 @@ else
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.TotalXPCurrent))
+			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.TotalXPCurrent).Take(10))
 			{
 				<tr class="table-clickable">
 					<td>@user.Name</td>
@@ -72,7 +72,7 @@ else
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.Rep))
+			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.Rep).Take(10))
 			{
 				<tr class="table-clickable">
 					<td>@user.Name</td>

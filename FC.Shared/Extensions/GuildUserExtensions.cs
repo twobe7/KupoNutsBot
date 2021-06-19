@@ -2,10 +2,8 @@
 //
 // Licensed under the MIT license.
 
-namespace FC.Bot
+namespace Discord
 {
-	using Discord;
-
 	public static class GuildUserExtensions
 	{
 		public static string GetName(this IGuildUser self)

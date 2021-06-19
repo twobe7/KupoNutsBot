@@ -51,6 +51,8 @@ namespace FC.Bot.Services
 
 		public async void UpdateTotalKupoNuts(int kupoNuts, bool dailyNut = false)
 		{
+			Log.Write("User (" + this.DiscordUserId + ") gained/lost " + kupoNuts + " nuts", "Bot - UpdateTotalKupoNuts");
+
 			this.TotalKupoNutsCurrent += kupoNuts;
 			if (kupoNuts > 0)
 			{

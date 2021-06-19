@@ -47,7 +47,7 @@ namespace FC.Serialization
 		{
 			try
 			{
-				return JsonSerializer.Deserialize(json, type, Options);
+				return JsonSerializer.Deserialize(json, type, Options) ?? new object();
 			}
 			catch (Exception ex)
 			{

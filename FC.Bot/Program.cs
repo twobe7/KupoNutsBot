@@ -16,6 +16,7 @@ namespace FC.Bot
 	using FC.Bot.Events;
 	using FC.Bot.Events.Services;
 	using FC.Bot.Guild;
+	using FC.Bot.Housing;
 	using FC.Bot.Items;
 	using FC.Bot.Lodestone;
 	using FC.Bot.Mounts;
@@ -99,6 +100,7 @@ namespace FC.Bot
 				await this.AddService<FashionReportService>();
 				await this.AddService<GuildService>();
 				await this.AddService<HelpService>();
+				await this.AddService<HousingService>();
 				await this.AddService<ItemService>();
 				await this.AddService<LodestoneService>();
 				await this.AddService<LogService>();

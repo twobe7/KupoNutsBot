@@ -32,31 +32,78 @@ namespace FC.Bot.Services
 
 		// You *MUST* mark these commands with 'RunMode.Async'
 		// otherwise the bot will not respond until the Task times out.
-		[Command("Join", Permissions.Everyone, "Join audio to channel")]
-		public async Task JoinCmd(CommandMessage message)
+		[Command("Join", Permissions.Everyone, "Join audio to channel", CommandCategory.Music, showWait: false)]
+		public async Task<bool> JoinCmd(CommandMessage message)
 		{
-			if (this.musicPlayer == null)
-				return;
+			if (this.musicPlayer != null)
+			{
+				IVoiceState voiceState = message.Author as IVoiceState;
+				if (voiceState.VoiceChannel != null)
+				{
+					return await this.musicPlayer.JoinAudio(message.Guild, voiceState.VoiceChannel);
+				}
+				else
+				{
+					Discord.Rest.RestUserMessage responseMessage = await message.Channel.SendMessageAsync("You need to join a voice channel first, _kupo!_", messageReference: message.MessageReference);
 
-			await this.musicPlayer.JoinAudio(message.Guild, (message.Author as IVoiceState).VoiceChannel);
+					await Task.Delay(3000);
+
+					// Delete response command
+					await responseMessage.DeleteAsync();
+				}
+			}
+
+			// Delete calling command
+			await message.Message.DeleteAsync();
+
+			return false;
 		}
 
-		[Command("Leave", Permissions.Everyone, "Disconnect audio from channel")]
+		[Command("Leave", Permissions.Everyone, "Disconnect audio from channel", CommandCategory.Music)]
 		public async Task LeaveCmd(CommandMessage message)
 		{
 			if (this.musicPlayer == null)
 				return;
 
 			await this.musicPlayer.LeaveAudio(message.Guild);
+
+			// Delete calling command
+			await message.Message.DeleteAsync();
 		}
 
-		[Command("Play", Permissions.Everyone, "Play a song", showWait: false)]
+		[Command("Play", Permissions.Everyone, "Play a song", CommandCategory.Music, showWait: false)]
 		public async Task PlayCmd(CommandMessage message, string song)
 		{
 			if (this.musicPlayer == null)
 				return;
 
-			await this.musicPlayer.SendYoutubeAudioAsync(message.Message, message.Guild, message.Channel, song);
+			bool canPlay = true;
+
+			// Check if connected to Voice channel and try to connect if not
+			if (!this.musicPlayer.IsConnected(message.Guild.Id))
+				canPlay = await this.JoinCmd(message);
+
+			// If connected, play song
+			if (canPlay)
+				await this.musicPlayer.SendYoutubeAudioAsync(message.Message, message.Author, song);
+		}
+
+		[Command("Skip", Permissions.Everyone, "Skip the current song", CommandCategory.Music, showWait: false)]
+		public void SkipCmd(CommandMessage message)
+		{
+			if (this.musicPlayer == null)
+				return;
+
+			this.musicPlayer.SkipCurrentSong(message.Message, message.Guild.Id);
+		}
+
+		[Command("Playlist", Permissions.Everyone, "Show the upcoming songs", CommandCategory.Music, showWait: false)]
+		public async void ShowPlaylist(CommandMessage message)
+		{
+			if (this.musicPlayer == null)
+				return;
+
+			await this.musicPlayer.ShowPlaylistEmbed(message.Message, message.Guild.Id);
 		}
 	}
 }

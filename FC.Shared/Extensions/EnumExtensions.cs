@@ -4,11 +4,9 @@
 
 namespace System
 {
-	using System;
 	using System.Collections.Generic;
 	using System.ComponentModel;
 	using System.Reflection;
-	using System.Text;
 	using System.Text.RegularExpressions;
 
 	public static class EnumExtensions

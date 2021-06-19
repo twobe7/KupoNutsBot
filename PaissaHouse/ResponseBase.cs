@@ -2,12 +2,11 @@
 //
 // Licensed under the MIT license.
 
-namespace Tenor
+namespace PaissaHouse
 {
 	using System;
 
-	[Serializable]
-	public abstract class ResponseBase
+	public class ResponseBase
 	{
 		public string? Json;
 	}

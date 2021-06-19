@@ -14,7 +14,7 @@ namespace FC.Serialization.NodaTime
 	{
 		public override LocalDate Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
-			string id = reader.GetString();
+			string id = reader.GetString() ?? string.Empty;
 			ParseResult<LocalDate> result = LocalDatePattern.Iso.Parse(id);
 			return result.GetValueOrThrow();
 		}

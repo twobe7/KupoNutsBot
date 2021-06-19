@@ -39,13 +39,13 @@ namespace FC.Bot.Items
 			desc.Append(self.Id);
 			desc.AppendLine(")");
 
-			// gamer escape link
+			// Gamer Escape link
 			desc.Append("[Gamer Escape](");
 			desc.Append("https://ffxiv.gamerescape.com/wiki/Special:Search/");
 			desc.Append(self.Name.Replace(" ", "%20"));
 			desc.AppendLine(")");
 
-			// universalis link
+			// Universalis link
 			desc.Append("[Universalis](");
 			desc.Append("https://universalis.app/market/");
 			desc.Append(self.Id);

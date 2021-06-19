@@ -44,6 +44,7 @@
 		<ProjectReference Include="..\FFXIVCollect\FFXIVCollect.csproj" />
 		<ProjectReference Include="..\Lodestone\Lodestone.csproj" />
 		<ProjectReference Include="..\MusicPlayer\MusicPlayer.csproj" />
+		<ProjectReference Include="..\PaissaHouse\PaissaHouse.csproj" />
 		<ProjectReference Include="..\Tenor\Tenor.csproj" />
 		<ProjectReference Include="..\Twitter\Twitter.csproj" />
 		<ProjectReference Include="..\Universalis\Universalis.csproj" />

@@ -14,7 +14,7 @@ namespace FC.Serialization.NodaTime
 	{
 		public override Duration Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
-			string id = reader.GetString();
+			string id = reader.GetString() ?? string.Empty;
 			return DurationPattern.Roundtrip.Parse(id).GetValueOrThrow();
 		}
 

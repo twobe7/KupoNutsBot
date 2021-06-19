@@ -129,7 +129,11 @@ namespace FC.Bot.Currency
 			if (activeGame.UserWon)
 			{
 				User user = await UserService.GetUser(guildChannel.Guild.Id, reaction.UserId);
-				user.UpdateTotalKupoNuts(activeGame.Payout());
+
+				int payout = activeGame.Payout();
+				Log.Write("User (" + activeGame.UserId.ToString() + ") won " + payout.ToString() + " nuts with a game of Black Jack", "Bot - Blackjack");
+
+				user.UpdateTotalKupoNuts(payout);
 			}
 
 			// Game finished - Perform last build, remove reactions, and clear active game

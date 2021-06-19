@@ -19,44 +19,19 @@ namespace FC.Bot.Commands
 			this.Message = message;
 		}
 
-		public ulong Id
-		{
-			get
-			{
-				return this.Message.Id;
-			}
-		}
+		public ulong Id => this.Message.Id;
 
-		public ISocketMessageChannel Channel
-		{
-			get
-			{
-				return this.Message.Channel;
-			}
-		}
+		public ISocketMessageChannel Channel => this.Message.Channel;
 
-		public IGuildUser Author
-		{
-			get
-			{
-				return this.Message.GetAuthor();
-			}
-		}
+		public IGuildUser Author => this.Message.GetAuthor();
 
-		public IGuild Guild
-		{
-			get
-			{
-				return this.Message.GetGuild();
-			}
-		}
+		public IGuild Guild => this.Message.GetGuild();
 
-		public MessageReference MessageReference
+		public MessageReference MessageReference => new MessageReference(this.Message.Id);
+
+		public async void DeleteMessage()
 		{
-			get
-			{
-				return new MessageReference(this.Message.Id);
-			}
+			await this.Message.DeleteAsync();
 		}
 	}
 }

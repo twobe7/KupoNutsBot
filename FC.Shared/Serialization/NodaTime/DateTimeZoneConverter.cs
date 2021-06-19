@@ -13,7 +13,7 @@ namespace FC.Serialization.NodaTime
 	{
 		public override DateTimeZone Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
-			string id = reader.GetString();
+			string id = reader.GetString() ?? string.Empty;
 			return DateTimeZoneProviders.Tzdb.GetZoneOrNull(id);
 		}
 
