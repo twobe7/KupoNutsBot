@@ -159,24 +159,24 @@ namespace MusicPlayer
 					YoutubeExplode.Videos.Video video = await youtube.Videos.GetAsync(id);
 					videoInfo.Title = video.Title;
 					videoInfo.Duration = video.Duration.ToString();
-					videoInfo.Thumbnail = video.Thumbnails.Getfirst().Url;
+					videoInfo.Thumbnail = video.Thumbnails.GetFirst().Url;
 				}
 				else
 				{
 					// Get the stream from YT via search
 					IReadOnlyList<YoutubeExplode.Search.VideoSearchResult> searchResult = await youtube.Search.GetVideosAsync(query).CollectAsync(1);
-					YoutubeExplode.Search.VideoSearchResult result = searchResult.Getfirst();
+					YoutubeExplode.Search.VideoSearchResult result = searchResult.GetFirst();
 
 					videoInfo.Title = result.Title;
 					videoInfo.Duration = result.Duration.ToString();
-					videoInfo.Thumbnail = result.Thumbnails.Getfirst().Url;
+					videoInfo.Thumbnail = result.Thumbnails.GetFirst().Url;
 
 					id = result.Id;
 				}
 
 				// Get the stream from YT via video id
 				StreamManifest streamManifest = await youtube.Videos.Streams.GetManifestAsync(id);
-				AudioOnlyStreamInfo streamInfo = streamManifest.GetAudioOnlyStreams().Getfirst();
+				AudioOnlyStreamInfo streamInfo = streamManifest.GetAudioOnlyStreams().GetFirst();
 
 				videoInfo.Stream = streamInfo;
 

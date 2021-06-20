@@ -55,7 +55,7 @@ namespace FC.Bot.Items
 
 			if (item.IsUntradable != 1)
 			{
-				(MarketAPI.History? hq, MarketAPI.History? nm) = await MarketAPI.GetBestPrice("Elemental", itemId);
+				(MarketAPI.History? hq, MarketAPI.History? nm) = await MarketAPI.GetBestPriceHistory("Elemental", itemId);
 
 				if (hq != null | nm != null)
 				{
@@ -246,42 +246,45 @@ namespace FC.Bot.Items
 
 			if (item.IsUntradable != 1)
 			{
-				IOrderedEnumerable<MarketAPI.ListingDisplay> listings = await MarketAPI.GetBestPriceTest("Elemental", itemId, hqOnly, lowestByUnitPrice);
+				IOrderedEnumerable<MarketAPI.ListingDisplay> listings = await MarketAPI.GetBestPriceListing("Elemental", itemId, hqOnly, lowestByUnitPrice);
 
-				// Variables for world name spacing
-				int longestWorldNameLength = listings.Max(x => x.WorldName?.Length ?? 0);
-				int worldGap;
-				string worldGapString;
-
-				// Do thing
-				StringBuilder builder = new StringBuilder();
-				builder.AppendLine(Utils.Characters.Space);
-
-				foreach (MarketAPI.ListingDisplay listing in listings)
+				if (listings.Any())
 				{
-					worldGap = longestWorldNameLength - (listing.WorldName?.Length ?? 0);
-					worldGapString = "{0}";
+					// Variables for world name spacing
+					int longestWorldNameLength = listings.Max(x => x.WorldName?.Length ?? 0);
+					int worldGap;
+					string worldGapString;
 
-					for (int i = 0; i < worldGap; i++)
-						worldGapString += "{0}";
+					// Do thing
+					StringBuilder builder = new StringBuilder();
+					builder.AppendLine(Utils.Characters.Space);
 
-					string line = string.Format(
-						"{5} `{1} " + worldGapString + " {2} x {3}{4}`",
-						tab,
-						listing.WorldName,
-						listing.Quantity,
-						listing.MaxPricePerUnit,
-						listing.Quantity == 1 ? string.Empty : " (" + listing.MaxTotal + ")",
-						listing.Hq == true ? ItemService.HighQualityEmote : ItemService.NormalQualityEmote);
+					foreach (MarketAPI.ListingDisplay listing in listings)
+					{
+						worldGap = longestWorldNameLength - (listing.WorldName?.Length ?? 0);
+						worldGapString = "{0}";
 
-					builder.AppendLine(line);
+						for (int i = 0; i < worldGap; i++)
+							worldGapString += "{0}";
+
+						string line = string.Format(
+							"{5} `{1} " + worldGapString + " {2} x {3}{4}`",
+							tab,
+							listing.WorldName,
+							listing.Quantity,
+							listing.MaxPricePerUnit,
+							listing.Quantity == 1 ? string.Empty : " (" + listing.MaxTotal + ")",
+							listing.Hq == true ? ItemService.HighQualityEmote : ItemService.NormalQualityEmote);
+
+						builder.AppendLine(line);
+					}
+
+					builder.AppendLine();
+					builder.AppendLine($"Use {ItemService.HQEmote} to toggle HQ Only.");
+					builder.AppendLine($"Use {ItemService.GilIEmote} to toggle sorting by Unit Price/Total Price.");
+
+					embed.AddField("Best Market Board Prices", builder.ToString());
 				}
-
-				builder.AppendLine();
-				builder.AppendLine($"Use {ItemService.HQEmote} to toggle HQ Only.");
-				builder.AppendLine($"Use {ItemService.GilIEmote} to toggle sorting by Unit Price/Total Price.");
-
-				embed.AddField("Best Market Board Prices", builder.ToString());
 			}
 
 			return embed.Build();
@@ -315,7 +318,7 @@ namespace FC.Bot.Items
 							.WithThumbnailUrl(embed?.Thumbnail?.Url ?? string.Empty);
 
 							// Get MB field and duplicate - remove reaction hint text
-							EmbedField field = embed?.Fields.Getfirst() ?? default(EmbedField);
+							EmbedField field = embed?.Fields.GetFirst() ?? default(EmbedField);
 							builder.AddField(new EmbedFieldBuilder()
 								.WithName(field.Name)
 								.WithValue(field.Value.Substring(0, field.Value.Length - 124)));

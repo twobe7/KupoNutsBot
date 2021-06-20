@@ -31,8 +31,7 @@ namespace FC.Bot.Housing
 			HousingAPI.SearchResponse openPlots = await HousingAPI.Worlds(world);
 
 			// Build embed
-			EmbedBuilder builder = new EmbedBuilder()
-				.WithTitle($"Open Plots - {openPlots.Name}");
+			EmbedBuilder builder = GetEmbed(openPlots.Name);
 
 			if (openPlots.NumOpenPlots > 0)
 			{
@@ -44,22 +43,29 @@ namespace FC.Bot.Housing
 
 					// Build description
 					foreach (HousingAPI.OpenPlot plot in district.OpenPlots)
-						districtFieldBuilder.Value += plot.GetInfo + "\n";
+						districtFieldBuilder.Value += plot.GetInfo() + "\n";
 
 					// Add to embed
 					builder.AddField(districtFieldBuilder);
 				}
+
+				builder.Description += "\n\n View [Area Maps on Imgur](https://imgur.com/a/n7wzC)";
 			}
 			else
 			{
 				builder.Description = "No Open Plots Available";
 			}
 
-			// Add footer
-			builder.WithFooter(new EmbedFooterBuilder().WithText("Data from PaissaHouse Plugin - PaissaDB"));
-
 			// Send Embed
 			await message.Channel.SendMessageAsync(embed: builder.Build(), messageReference: message.MessageReference);
+		}
+
+		private static EmbedBuilder GetEmbed(string world)
+		{
+			return new EmbedBuilder()
+				.WithTitle($"Open Plots - {world}")
+				.WithFooter(new EmbedFooterBuilder()
+					.WithText("Data from PaissaHouse Plugin - PaissaDB"));
 		}
 	}
 }

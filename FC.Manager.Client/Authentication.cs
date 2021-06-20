@@ -68,7 +68,7 @@ namespace FC.Manager.Client
 			if (RPCService.GuildId == 0)
 			{
 				// Set to first
-				Data.Guild defaultGuild = data.Guilds.Getfirst();
+				Data.Guild defaultGuild = data.Guilds.GetFirst();
 				RPCService.GuildId = defaultGuild.GetId();
 				RPCService.CanManageGuild = defaultGuild.CanManageGuild;
 			}

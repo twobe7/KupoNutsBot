@@ -40,7 +40,7 @@ namespace FC.Bot.Services
 
 				if (prevMessage.Attachments.Count == 1)
 				{
-					string attachmentURL = prevMessage.Attachments.Getfirst().Url;
+					string attachmentURL = prevMessage.Attachments.GetFirst().Url;
 					string filePath = "./Temp/" + prevMessage.Id + Path.GetExtension(attachmentURL);
 
 					await FileDownloader.Download(attachmentURL, filePath);

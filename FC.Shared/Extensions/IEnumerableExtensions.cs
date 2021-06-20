@@ -6,7 +6,7 @@ namespace System.Collections.Generic
 {
 	public static class IEnumerableExtensions
 	{
-		public static T Getfirst<T>(this IEnumerable<T> self)
+		public static T GetFirst<T>(this IEnumerable<T> self)
 		{
 			foreach (T entry in self)
 			{

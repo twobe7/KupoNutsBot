@@ -69,7 +69,7 @@ namespace Universalis
 			return results.OrderBy(x => x.PricePerUnit);
 		}
 
-		public static async Task<(History?, History?)> GetBestPrice(string dataCenter, ulong itemId)
+		public static async Task<(History?, History?)> GetBestPriceHistory(string dataCenter, ulong itemId)
 		{
 			GetResponse response = await Get(dataCenter, itemId);
 
@@ -105,7 +105,7 @@ namespace Universalis
 			return (bestHq, bestNm);
 		}
 
-		public static async Task<IOrderedEnumerable<ListingDisplay>> GetBestPriceTest(string dataCenter, ulong itemId, bool? hqOnly, bool lowestByUnitPrice)
+		public static async Task<IOrderedEnumerable<ListingDisplay>> GetBestPriceListing(string dataCenter, ulong itemId, bool? hqOnly, bool lowestByUnitPrice)
 		{
 			GetResponse response = await Get(dataCenter, itemId);
 
@@ -117,32 +117,19 @@ namespace Universalis
 
 			foreach (IGrouping<string?, Listing> worldGroup in response.Listings.GroupBy(x => x.WorldName))
 			{
-				string? bestListingId = null;
-				ulong? bestPrice = ulong.MaxValue;
+				Listing? bestListing = null;
 
-				foreach (Listing entry in worldGroup)
-				{
-					if (entry.PricePerUnit == null)
-						continue;
+				// Get listings with a price per unit
+				IEnumerable<Listing> listings = worldGroup.Where(x => x.PricePerUnit != null);
 
-					if (lowestByUnitPrice)
-					{
-						if (entry.PricePerUnit < bestPrice)
-						{
-							bestListingId = entry.ListingId;
-						}
-					}
-					else
-					{
-						if (entry.Total < bestPrice)
-						{
-							bestListingId = entry.ListingId;
-						}
-					}
-				}
+				// If searching by lowest Unit Price, get lowest PricePerUnit otherwise lowest Total
+				bestListing = lowestByUnitPrice
+						? listings.OrderBy(x => x.PricePerUnit).GetFirst()
+						: listings.OrderBy(x => x.Total).GetFirst();
 
-				if (bestListingId != null)
-					results.Add(MapToHistoryDisplay(worldGroup.FirstOrDefault(x => x.ListingId == bestListingId)));
+				// If found a listing, map to history
+				if (bestListing != null)
+					results.Add(MapToHistoryDisplay(bestListing));
 			}
 
 			return results.OrderBy(x => lowestByUnitPrice ? x.PricePerUnit : x.Total);
