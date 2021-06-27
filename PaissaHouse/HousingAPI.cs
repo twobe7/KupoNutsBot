@@ -165,9 +165,34 @@ namespace PaissaHouse
 			public DateTime EstTimeOpenMax { get; set; }
 			public uint EstNumDevals { get; set; }
 
+			/// <summary>
+			/// Ward Number is 0-indexed for reasons
+			/// </summary>
+			private uint WardNumberCorrected
+			{
+				get { return this.WardNumber + 1; }
+			}
+
+			/// <summary>
+			/// Plot Number is 0-indexed for reasons
+			/// </summary>
+			private uint PlotNumberCorrected
+			{
+				get { return this.PlotNumber + 1; }
+			}
+
+			private string TimeSinceLastUpdated
+			{
+				get
+				{
+					TimeSpan lastUpdated = (DateTime.Now.ToUniversalTime() - this.LastUpdatedTime);
+					return lastUpdated.ToMediumString() + " ago";
+				}
+			}
+
 			private DistrictEnum District => (DistrictEnum)DistrictId;
 
-			private uint Grade => GetPlotGrade(this.District, this.PlotNumber);
+			private uint Grade => GetPlotGrade(this.District, this.PlotNumberCorrected);
 
 			private string KnownPriceMillions
 			{
@@ -181,12 +206,13 @@ namespace PaissaHouse
 			{
 				System.Text.StringBuilder builder = new System.Text.StringBuilder();
 				builder.Append("• ");
-				builder.Append($"Ward: {this.WardNumber}. ");
-				builder.Append($"Plot: {this.PlotNumber}. ");
+				builder.Append($"Ward: {this.WardNumberCorrected}. ");
+				builder.Append($"Plot: {this.PlotNumberCorrected}. ");
 				builder.Append($"Grade: {this.Grade}. ");
 				builder.Append($"Size: {((SizeEnum)this.Size).ToDisplayString()}. ");
 				builder.Append($"Price: **{this.KnownPriceMillions}**. ");
-				builder.Append($"Last Updated: {this.LastUpdatedTime.ToString("dd/MM HH:ss")}. ");
+				////builder.Append($"Last Updated: {this.LastUpdatedTime.ToString("dd/MM HH:ss")}. ");
+				builder.Append($"Last Updated: {this.TimeSinceLastUpdated}.");
 
 				return builder.ToString();
 			}

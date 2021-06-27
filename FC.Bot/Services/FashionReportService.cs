@@ -30,7 +30,7 @@ namespace FC.Bot.Services
 
 		[Command("FashionReport", Permissions.Everyone, "Gets the latest Fashion Report post", CommandCategory.News)]
 		[Command("fr", Permissions.Everyone, "Gets the latest Fashion Report post", CommandCategory.News, "FashionReport")]
-		public async Task<Embed> GetFashionReport()
+		public async Task GetFashionReport(CommandMessage message)
 		{
 			List<FashionReportEntry> reports = await FashionReportAPI.Get();
 			reports.Sort((a, b) =>
@@ -43,7 +43,8 @@ namespace FC.Bot.Services
 				if (entry.Id == null)
 					continue;
 
-				return this.GetEmbed(entry);
+				await message.Channel.SendMessageAsync(embed: this.GetEmbed(entry), messageReference: message.MessageReference);
+				return;
 			}
 
 			throw new UserException("I couldn't find any Fashion Report posts.");
@@ -89,14 +90,18 @@ namespace FC.Bot.Services
 
 		private Embed GetEmbed(FashionReportEntry entry)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Author = new EmbedAuthorBuilder();
-			builder.Author.IconUrl = entry.AuthorImageUrl;
-			builder.Author.Name = entry.Author;
-			builder.ImageUrl = entry.ImageUrl;
-			builder.Description = entry.Content;
-			builder.Color = Color.Magenta;
-			builder.Timestamp = entry.Time;
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Author = new EmbedAuthorBuilder
+				{
+					IconUrl = entry.AuthorImageUrl,
+					Name = entry.Author,
+				},
+				ImageUrl = entry.ImageUrl,
+				Description = entry.Content,
+				Color = Color.Magenta,
+				Timestamp = entry.Time,
+			};
 			return builder.Build();
 		}
 	}

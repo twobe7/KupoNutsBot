@@ -26,10 +26,13 @@ namespace Twitter
 			if (service == null)
 				return Task.FromResult(results);
 
-			ListTweetsOnUserTimelineOptions op = new ListTweetsOnUserTimelineOptions();
-			op.ScreenName = "@KaiyokoStar";
-			op.IncludeRts = false;
-			op.ExcludeReplies = true;
+			ListTweetsOnUserTimelineOptions op = new ListTweetsOnUserTimelineOptions
+			{
+				ScreenName = "@KaiyokoStar",
+				IncludeRts = false,
+				ExcludeReplies = true,
+			};
+
 			IEnumerable<TwitterStatus> statuses = service.ListTweetsOnUserTimeline(op);
 
 			foreach (TwitterStatus status in statuses)
@@ -43,12 +46,14 @@ namespace Twitter
 				if (!status.Text.Contains("Full Details"))
 					continue;
 
-				FashionReportEntry entry = new FashionReportEntry();
-				entry.Id = status.IdStr;
-				entry.Time = status.CreatedDate;
-				entry.Content = status.Text;
-				entry.Author = status.Author.ScreenName;
-				entry.AuthorImageUrl = status.Author.ProfileImageUrl;
+				FashionReportEntry entry = new FashionReportEntry
+				{
+					Id = status.IdStr,
+					Time = status.CreatedDate,
+					Content = status.Text,
+					Author = status.Author.ScreenName,
+					AuthorImageUrl = status.Author.ProfileImageUrl,
+				};
 
 				if (status.Entities != null && status.Entities.Media != null && status.Entities.Media.Count > 0)
 				{

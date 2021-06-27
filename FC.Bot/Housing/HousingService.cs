@@ -31,7 +31,7 @@ namespace FC.Bot.Housing
 			HousingAPI.SearchResponse openPlots = await HousingAPI.Worlds(world);
 
 			// Build embed
-			EmbedBuilder builder = GetEmbed(openPlots.Name);
+			EmbedBuilder builder = GetEmbed(openPlots.Name ?? "Unable to find World");
 
 			if (openPlots.NumOpenPlots > 0)
 			{

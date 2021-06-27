@@ -36,6 +36,7 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="System.Text.Json" Version="5.0.2" />
+		<PackageReference Include="TimeZoneNames" Version="4.2.0" />
 	</ItemGroup>
 
 </Project>

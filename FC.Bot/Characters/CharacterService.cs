@@ -137,21 +137,13 @@ namespace FC.Bot.Characters
 			if (defaultCharacter is null)
 				throw new UserException("No characters linked! Use `IAm` to link a character");
 
-			int index = 0;
 			if (characterIndex != null)
 			{
-				defaultCharacter = null;
-				foreach (User.Character character in user.Characters)
+				try
 				{
-					index++;
-
-					if (index == characterIndex)
-					{
-						defaultCharacter = character;
-					}
+					defaultCharacter = user.Characters[characterIndex.Value - 1];
 				}
-
-				if (defaultCharacter is null)
+				catch
 				{
 					throw new UserException("I couldn't find a character at index: " + characterIndex);
 				}
@@ -164,9 +156,11 @@ namespace FC.Bot.Characters
 
 			if (!defaultCharacter.IsVerified(defaultCharacterInfo))
 			{
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.Description = "This character has not been verified.";
-				builder.Color = Discord.Color.Gold;
+				EmbedBuilder builder = new EmbedBuilder
+				{
+					Description = "This character has not been verified.",
+					Color = Discord.Color.Gold,
+				};
 
 				// If this is the requesting users character, give instructions on how to verify
 				if (message.Author.Id == user.DiscordUserId)
@@ -185,11 +179,25 @@ namespace FC.Bot.Characters
 				await message.Channel.SendMessageAsync(null, false, builder.Build());
 			}
 
+			// While building the AKA, we can confirm if a name/server change has occured
+			// for queried character and update DB
+			bool hasChanges = false;
+
 			// AKA
 			StringBuilder akaDescBuilder = new StringBuilder();
-			index = 0;
+			int index = 0;
 			foreach (User.Character character in user.Characters)
 			{
+				// For the queried character, check if the name/server has changed and update
+				if (character.FFXIVCharacterId == defaultCharacterInfo.Id
+					&& ((!string.IsNullOrWhiteSpace(defaultCharacterInfo.Name) && character.CharacterName != defaultCharacterInfo.Name)
+						|| (!string.IsNullOrWhiteSpace(defaultCharacterInfo.Server) && character.ServerName != defaultCharacterInfo.Server)))
+				{
+					hasChanges = true;
+					character.CharacterName = defaultCharacterInfo.Name;
+					character.ServerName = defaultCharacterInfo.Server;
+				}
+
 				index++;
 
 				akaDescBuilder.Append(index);
@@ -206,11 +214,17 @@ namespace FC.Bot.Characters
 				akaDescBuilder.AppendLine();
 			}
 
+			// Character change detected, save user information
+			if (hasChanges)
+				_ = UserService.SaveUser(user);
+
 			if (index > 1)
 			{
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.Description = akaDescBuilder.ToString();
-				builder.Title = "Also known as:";
+				EmbedBuilder builder = new EmbedBuilder
+				{
+					Description = akaDescBuilder.ToString(),
+					Title = "Also known as:",
+				};
 				await message.Channel.SendMessageAsync(null, false, builder.Build());
 			}
 		}
@@ -391,11 +405,13 @@ namespace FC.Bot.Characters
 
 			if (userCharacter == null)
 			{
-				userCharacter = new User.Character();
-				userCharacter.FFXIVCharacterId = character.Id;
-				userCharacter.CharacterName = character.Name;
-				userCharacter.ServerName = character.Server;
-				userCharacter.IsVerified = false;
+				userCharacter = new User.Character
+				{
+					FFXIVCharacterId = character.Id,
+					CharacterName = character.Name,
+					ServerName = character.Server,
+					IsVerified = false,
+				};
 				user.Characters.Add(userCharacter);
 				await UserService.SaveUser(user);
 			}

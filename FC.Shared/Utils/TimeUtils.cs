@@ -9,11 +9,12 @@ namespace FC.Utils
 	using System.Globalization;
 	using System.Linq;
 	using System.Text;
+	using System.Threading.Tasks;
 	using Discord;
 	using FC.Data;
-	using FC.Events;
 	using NodaTime;
 	using NodaTime.TimeZones;
+	using TimeZoneNames;
 
 	public static class TimeUtils
 	{
@@ -121,13 +122,58 @@ namespace FC.Utils
 			return builder.ToString();
 		}
 
-		public static async System.Threading.Tasks.Task<Embed> GetDateTimeList(ulong guildId, Instant dt)
+		public static async Task<string> GetTimeList(ulong guildId, Instant? dt)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
+			if (dt == null)
+				return string.Empty;
 
-			builder.Title = "World Time";
-			/*builder.ThumbnailUrl = Icons.GetIconURL(self.Icon);*/
-			builder.Color = Color.DarkerGrey;
+			StringBuilder builder = new StringBuilder();
+
+			List<string> guildTimezones = await GetTimezonesFromGuildSettings(guildId);
+
+			// No timezones configured - use default
+			if (guildTimezones.Count == 0)
+				return GetTimeString(dt);
+
+			// Get full timezone info
+			List<TimeZoneInfo> timezones = new List<TimeZoneInfo>();
+			foreach (string timeZone in guildTimezones)
+				timezones.Add(TimeZoneInfo.FindSystemTimeZoneById(timeZone));
+
+			// Get time for each configured timezone
+			int idx = 1;
+			foreach (TimeZoneInfo tz in timezones.OrderBy(x => x.BaseUtcOffset))
+			{
+				DateTime timeZoneDateTime = TimeZoneInfo.ConvertTime(dt.Value.ToDateTimeUtc(), TimeZoneInfo.Utc, tz);
+
+				builder.Append(timeZoneDateTime.ToString(@"**h:mmtt**", CultureInfo.InvariantCulture).ToLower());
+				builder.Append(" ");
+				builder.Append(GetTimeZoneAbbreviation(timeZoneDateTime, tz));
+
+				// Limit to 4 timezones per line,
+				if (idx == 4)
+				{
+					builder.AppendLine(" |");
+					idx = 1;
+				}
+				else
+				{
+					builder.Append(" | ");
+					idx++;
+				}
+			}
+
+			return builder.ToString();
+		}
+
+		public static async Task<Embed> GetDateTimeList(ulong guildId, Instant dt)
+		{
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = "World Time",
+				/*builder.ThumbnailUrl = Icons.GetIconURL(self.Icon);*/
+				Color = Color.DarkerGrey,
+			};
 
 			StringBuilder desc = new StringBuilder();
 
@@ -145,19 +191,27 @@ namespace FC.Utils
 			List<TimeZoneInfo> timezones = new List<TimeZoneInfo>();
 
 			foreach (string timeZone in guildTimezones)
-			{
 				timezones.Add(TimeZoneInfo.FindSystemTimeZoneById(timeZone));
-			}
 
 			foreach (TimeZoneInfo tz in timezones.OrderBy(x => x.BaseUtcOffset))
 			{
 				DateTime timeZoneDateTime = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.Local, tz);
 
+				// Get abbreviation
+				string abbrName = GetTimeZoneAbbreviation(timeZoneDateTime, tz);
+
+				// Format display name to remove UTC from display name
 				string display = tz.DisplayName.StartsWith("(UTC)")
 					? tz.DisplayName.Replace("(UTC) ", string.Empty)
 					: tz.DisplayName.Substring(12, tz.DisplayName.Length - 12);
 
-				desc.AppendLine(display + ": " + timeZoneDateTime.ToString("dddd dd MMM HH:mm"));
+				// Append information
+				desc.Append($"**{display}**");
+				desc.Append(": ");
+				desc.Append(timeZoneDateTime.ToString("dddd dd MMM hh:mm"));
+				desc.Append(timeZoneDateTime.ToString("tt").ToLower());
+				desc.Append(" ");
+				desc.AppendLine(abbrName);
 			}
 
 			builder.Description = desc.ToString();
@@ -207,7 +261,7 @@ namespace FC.Utils
 			{
 				builder.Append(" ");
 				builder.Append(time.Minutes);
-				builder.Append(time.Minutes == 1 ? " minute" : " minute");
+				builder.Append(time.Minutes == 1 ? " minute" : " minutes");
 			}
 
 			return builder.ToString();
@@ -317,6 +371,25 @@ namespace FC.Utils
 			GuildSettings settings = await settingsDb.LoadOrCreate<GuildSettings>(key);
 
 			return settings.TimeZone;
+		}
+
+		private static string GetTimeZoneAbbreviation(DateTime timeZoneTime, TimeZoneInfo tz)
+		{
+			// Get abbreviated timezone name
+			TimeZoneValues abbr = TZNames.GetAbbreviationsForTimeZone(tz.Id, "en-au");
+
+			// Handling for things without abbreviations
+			switch (abbr.Standard)
+			{
+				case "Japan Standard Time":
+					abbr.Standard = "JST";
+					break;
+				default:
+					break;
+			}
+
+			// Check if daylight savings applies
+			return tz.IsDaylightSavingTime(timeZoneTime) ? abbr.Daylight : abbr.Standard;
 		}
 	}
 }

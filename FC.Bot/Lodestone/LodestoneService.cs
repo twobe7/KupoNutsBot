@@ -30,8 +30,8 @@ namespace FC.Bot.Lodestone
 		}
 
 		[Command("Maint", Permissions.Everyone, "Gets info about the next maintenance window.", CommandCategory.XIVData, "Maintenance")]
-		[Command("Maintenance", Permissions.Everyone, "Gets info about the next maintenance window.")]
-		public async Task<Embed> GetMaintenance()
+		[Command("Maintenance", Permissions.Everyone, "Gets info about the next maintenance window.", CommandCategory.XIVData)]
+		public async Task GetMaintenance(CommandMessage message)
 		{
 			List<NewsItem> items = await NewsAPI.Latest(Categories.Maintenance);
 
@@ -61,9 +61,12 @@ namespace FC.Bot.Lodestone
 
 			if (nextMaint != null)
 			{
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.ThumbnailUrl = "https://img.finalfantasyxiv.com/lds/h/F/DlQYVw2bqzA5ZOCfXKZ-Qe1IZU.svg";
-				builder.Title = nextMaint.Title;
+				EmbedBuilder builder = new EmbedBuilder
+				{
+					ThumbnailUrl = "http://na.lodestonenews.com/images/maintenance.png",
+					////ThumbnailUrl = "https://img.finalfantasyxiv.com/lds/h/F/DlQYVw2bqzA5ZOCfXKZ-Qe1IZU.svg",
+					Title = nextMaint.Title,
+				};
 
 				Instant? start = nextMaint.GetStart();
 				Instant? end = nextMaint.GetEnd();
@@ -87,10 +90,14 @@ namespace FC.Bot.Lodestone
 					builder.Description = "Completed: " + TimeUtils.GetDurationString(now - end) + " ago.";
 				}
 
-				builder.AddField("Starts", TimeUtils.GetDateTimeString(start));
-				builder.AddField("Ends", TimeUtils.GetDateTimeString(end));
+				////builder.AddField("Starts", TimeUtils.GetDateTimeString(start));
+				////builder.AddField("Ends", TimeUtils.GetDateTimeString(end));
+				builder.AddField("Starts", await TimeUtils.GetTimeList(message.Guild.Id, start));
+				builder.AddField("Ends", await TimeUtils.GetTimeList(message.Guild.Id, end));
 				builder.AddField("Duration", TimeUtils.GetDurationString(end - start));
-				return builder.Build();
+
+				await message.Channel.SendMessageAsync(embed: builder.Build(), messageReference: message.MessageReference);
+				return;
 			}
 
 			throw new UserException("I couldn't find any maintenance.");

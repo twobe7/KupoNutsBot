@@ -88,7 +88,7 @@ namespace FC.Bot.Services
 			if (!this.userIdLookup.ContainsKey(guildId))
 				this.userIdLookup.Add(guildId, new Dictionary<ulong, string>());
 
-			User? userEntry = null;
+			User? userEntry;
 
 			if (!this.userIdLookup[guildId].ContainsKey(userId))
 			{
@@ -112,9 +112,7 @@ namespace FC.Bot.Services
 			{
 				userEntry = await this.userDb.Load(this.userIdLookup[guildId][userId]);
 				if (userEntry != null)
-				{
 					return userEntry;
-				}
 			}
 
 			userEntry = await this.userDb.CreateEntry();
