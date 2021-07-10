@@ -65,6 +65,30 @@ namespace FC.Bot.Services
 			return await instance.userDb.LoadAll(filters);
 		}
 
+		public static async Task<List<IGuildUser>> GetUsersByNickName(IGuild guild, string name)
+		{
+			IReadOnlyCollection<IGuildUser> guildUsers = await guild.GetUsersAsync();
+
+			List<IGuildUser> userToRep = new List<IGuildUser>();
+
+			// Remove spaces in input
+			name = name.Replace(" ", string.Empty);
+
+			foreach (IGuildUser gUser in guildUsers)
+			{
+				if (!string.IsNullOrWhiteSpace(gUser.Nickname) && FC.Utils.StringUtils.ComputeLevenshtein(gUser.Nickname, name) < 3)
+				{
+					userToRep.Add(gUser);
+				}
+				else if (!string.IsNullOrWhiteSpace(gUser.Username) && FC.Utils.StringUtils.ComputeLevenshtein(gUser.Username, name) < 3)
+				{
+					userToRep.Add(gUser);
+				}
+			}
+
+			return userToRep;
+		}
+
 		public override async Task Initialize()
 		{
 			instance = this;

@@ -100,7 +100,12 @@ namespace FC.Bot.Services
 				ImageUrl = entry.ImageUrl,
 				Description = entry.Content,
 				Color = Color.Magenta,
-				Timestamp = entry.Time,
+				////Timestamp = entry.Time,
+				Footer = new EmbedFooterBuilder
+				{
+					IconUrl = "https://image.flaticon.com/icons/png/512/733/733579.png",
+					Text = $"@{entry.Author} - Posted {(DateTime.Now - entry.Time).ToMediumString()} ago",
+				},
 			};
 			return builder.Build();
 		}

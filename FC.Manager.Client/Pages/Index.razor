@@ -69,6 +69,15 @@
 
 	public List<RenderFragment> SettingsFragments { get; set; }
 
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		#if DEBUG
+			await jsRuntime.InvokeVoidAsync("setTitle", "Kupo Nuts - Dev");
+		#else
+			await jsRuntime.InvokeVoidAsync("setTitle", "Kupo Nuts Manager");
+		#endif
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
 		this.IsInGuild = false;

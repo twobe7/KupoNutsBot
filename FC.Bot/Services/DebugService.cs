@@ -111,5 +111,11 @@ namespace FC.Bot.Services
 		{
 			return Task.FromResult(channel.Name);
 		}
+
+		[Command("ThrowError", Permissions.Administrators, "Throws an error")]
+		public Task ThrowError()
+		{
+			throw new Exception("Test exception");
+		}
 	}
 }

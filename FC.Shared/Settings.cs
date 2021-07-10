@@ -47,6 +47,11 @@ namespace FC
 
 		public string? BotDiscordServer { get; set; }
 
+		public string? BotLogExceptionsChannel { get; set; }
+
+		public string? TwitchKey { get; set; }
+		public string? TwitchSecret { get; set; }
+
 		public static Settings Load()
 		{
 			if (!File.Exists(Location))

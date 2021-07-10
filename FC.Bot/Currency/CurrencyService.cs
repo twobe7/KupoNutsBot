@@ -142,8 +142,8 @@ namespace FC.Bot.Services
 				// If the user has already nutted, tell them off
 				if (user.LastDailyNut.Value > dailyReset)
 				{
-					TimeSpan timeToWait = dailyReset.AddDays(1) - user.LastDailyNut.Value;
-					postBackMessage = string.Format("Greedy {0}! You can have more Kupo Nuts in {1} minutes, {2} seconds, _kupo!_", userName, Math.Floor(timeToWait.TotalMinutes), timeToWait.Seconds);
+					TimeSpan timeToWait = dailyReset.AddDays(1) - DateTime.Now;
+					postBackMessage = $"Greedy {userName}! You can have more Kupo Nuts in {timeToWait.ToLongString()}, _kupo!_";
 
 					// Delete command message
 					await message.Channel.DeleteMessageAsync(message.Message);

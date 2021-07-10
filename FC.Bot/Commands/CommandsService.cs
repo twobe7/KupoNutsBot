@@ -243,9 +243,7 @@ namespace FC.Bot.Commands
 
 			if (commandHandlers.ContainsKey(commandStr))
 			{
-				SocketTextChannel? textChannel = message.Channel as SocketTextChannel;
-
-				if (textChannel == null)
+				if (!(message.Channel is SocketTextChannel textChannel))
 					return;
 
 				using (textChannel.EnterTypingState())
@@ -295,8 +293,11 @@ namespace FC.Bot.Commands
 							IUserMessage sentMessage;
 							if (status == null || status != HttpStatusCode.ServiceUnavailable)
 							{
-								Log.Write(lastException);
+								// Send message to user
 								sentMessage = await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+
+								// Log exception
+								await this.LogExceptionToDiscordChannel(message, lastException);
 							}
 							else
 							{
@@ -309,8 +310,11 @@ namespace FC.Bot.Commands
 						}
 						else
 						{
-							Log.Write(lastException);
+							// Send message to user
 							IUserMessage sentMessage = await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+
+							// Log exception
+							await this.LogExceptionToDiscordChannel(message, lastException);
 
 							// Clear user and bot message
 							_ = this.ClearSentMessage(message.Message);
@@ -329,16 +333,28 @@ namespace FC.Bot.Commands
 			}
 		}
 
-		private async Task ClearSentMessage(SocketMessage message, int delay = 5000)
+		private async Task ClearSentMessage(IMessage message, int delay = 5000)
 		{
 			await Task.Delay(delay);
 			await message.DeleteAsync();
 		}
 
-		private async Task ClearSentMessage(IUserMessage message, int delay = 5000)
+		private async Task LogExceptionToDiscordChannel(CommandMessage message, Exception exception)
 		{
-			await Task.Delay(delay);
-			await message.DeleteAsync();
+			// Get Settings - check if both bot server and exception channel is given
+			Settings settings = Settings.Load();
+			if (!string.IsNullOrWhiteSpace(settings?.BotDiscordServer) && !string.IsNullOrWhiteSpace(settings?.BotLogExceptionsChannel))
+			{
+				// Get the guild
+				SocketGuild kupoNutsGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
+
+				if (kupoNutsGuild == null)
+					throw new Exception("Unable to access guild");
+
+				// Post message
+				string exceptionMessage = $"Server: {message.Guild.Name}\nUser: {message.Author.GetName()}\nMessage: {message.Message.Content}.\n`{exception}`";
+				await kupoNutsGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
+			}
 		}
 	}
 }

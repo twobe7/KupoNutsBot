@@ -25,6 +25,7 @@ namespace FC.Bot
 	using FC.Bot.RPG;
 	using FC.Bot.Services;
 	using FC.Bot.Status;
+	using FC.Bot.Streamers;
 
 	public class Program
 	{
@@ -112,6 +113,7 @@ namespace FC.Bot
 				await this.AddService<QuoteService>();
 				await this.AddService<RPGService>();
 				await this.AddService<StatusService>();
+				await this.AddService<StreamerService>();
 				await this.AddService<UserService>();
 
 				await this.AddService<VoiceService>();

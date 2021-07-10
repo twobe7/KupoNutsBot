@@ -126,9 +126,32 @@ namespace FC.Bot.Characters
 		[Command("WhoIs", Permissions.Everyone, "Looks up a character profile by character and server name", CommandCategory.Character, requiresQuotes: false)]
 		public async Task WhoIs(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
 		{
-			CharacterInfo character = await this.GetCharacterInfo(characterFirstName + ' ' + characterLastName, serverName);
+			CharacterInfo character = await this.GetCharacterInfo(characterFirstName + " " + characterLastName, serverName);
 			string file = await CharacterCard.Draw(character);
-			await message.Channel.SendFileAsync(file);
+			await message.Channel.SendFileAsync(file, messageReference: message.MessageReference);
+		}
+
+		[Command("WhoIs", Permissions.Everyone, "Looks up a character profile by guild username", CommandCategory.Character, requiresQuotes: false)]
+		public async Task WhoIs(CommandMessage message, string user)
+		{
+			// Get guild users by name
+			List<IGuildUser> matchedUsers = await UserService.GetUsersByNickName(message.Guild, user);
+
+			if (matchedUsers.Count() == 1)
+			{
+				User userEntry = await UserService.GetUser(matchedUsers.FirstOrDefault());
+				await this.PostWhoIsResponse(message, userEntry);
+			}
+			else
+			{
+				Discord.Rest.RestUserMessage response = await message.Channel.SendMessageAsync("I'm sorry, I'm not sure who you mean. Try mentioning them, _kupo!_", messageReference: message.MessageReference);
+
+				// Wait, then delete both messages
+				await Task.Delay(2000);
+
+				await message.Channel.DeleteMessageAsync(response.Id);
+				await message.Channel.DeleteMessageAsync(message.Id);
+			}
 		}
 
 		public async Task PostWhoIsResponse(CommandMessage message, User user, int? characterIndex = null)
@@ -152,7 +175,7 @@ namespace FC.Bot.Characters
 			// Default character
 			CharacterInfo defaultCharacterInfo = await this.GetCharacterInfo(defaultCharacter.FFXIVCharacterId);
 			string file = await CharacterCard.Draw(defaultCharacterInfo);
-			await message.Channel.SendFileAsync(file);
+			await message.Channel.SendFileAsync(file, messageReference: message.MessageReference);
 
 			if (!defaultCharacter.IsVerified(defaultCharacterInfo))
 			{
@@ -174,8 +197,10 @@ namespace FC.Bot.Characters
 
 			if (!defaultCharacterInfo.HasMinions && !defaultCharacterInfo.HasMounts && !defaultCharacterInfo.HasAchievements)
 			{
-				EmbedBuilder builder = new EmbedBuilder();
-				builder.Description = "To show Minions, Mounts, and Achievements, please link your character at [FFXIV Collect](https://ffxivcollect.com/)";
+				EmbedBuilder builder = new EmbedBuilder
+				{
+					Description = "To show Minions, Mounts, and Achievements, please link your character at [FFXIV Collect](https://ffxivcollect.com/)",
+				};
 				await message.Channel.SendMessageAsync(null, false, builder.Build());
 			}
 
@@ -466,7 +491,7 @@ namespace FC.Bot.Characters
 
 		private async Task<CharacterInfo> GetCharacterInfo(string characterName, string serverName)
 		{
-			XIVAPI.CharacterAPI.SearchResponse response = await XIVAPI.CharacterAPI.Search(characterName, serverName);
+			CharacterAPI.SearchResponse response = await CharacterAPI.Search(characterName, serverName);
 
 			if (response.Pagination == null)
 				throw new Exception("No Pagination");

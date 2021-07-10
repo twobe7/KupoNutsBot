@@ -114,19 +114,14 @@ namespace FC.Bot.Guild
 
 		private Embed GetEmbed(string title, string description, string? iconUrl = null)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-
-			builder.Title = title;
-			builder.Description = description;
-
-			if (iconUrl != null)
+			EmbedBuilder builder = new EmbedBuilder
 			{
-				// Aymeric has a webp image - let's steal it
-				if (iconUrl.EndsWith(".jpg"))
-					iconUrl = iconUrl.Replace(".jpg", ".webp?size=1024");
+				Title = title,
+				Description = description,
+			};
 
-				builder.ThumbnailUrl = iconUrl;
-			}
+			if (!string.IsNullOrWhiteSpace(iconUrl))
+				builder.AddThumbnail(iconUrl);
 
 			return builder.Build();
 		}

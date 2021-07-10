@@ -8,7 +8,6 @@ namespace FC.Bot.RPG
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Text;
-	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.Rest;
@@ -20,8 +19,6 @@ namespace FC.Bot.RPG
 	public class RPGService : ServiceBase
 	{
 		private const double GenerationChance = 0.2;
-
-		private static readonly Regex CompiledUnicodeRegex = new Regex(@"[^\u0000-\u007F]", RegexOptions.Compiled);
 
 		private readonly List<ulong> blockedChannels = new List<ulong>()
 		{
@@ -156,19 +153,15 @@ namespace FC.Bot.RPG
 		public async Task GiveReputation(CommandMessage message, IGuildUser user)
 		{
 			// Message for return
-			string postBackMessage = string.Empty;
+			string postBackMessage;
 
 			// Handle bots
 			if (user.IsBot)
 			{
-				if (user.Id == Program.DiscordClient.CurrentUser.Id)
-				{
-					postBackMessage = string.Format("I think you're pretty neat too, _kupo!_");
-				}
-				else
-				{
-					postBackMessage = string.Format("We don't do that here.");
-				}
+				// Thank user if trying to rep Kupo Nuts or tell them no if repping a different bot
+				postBackMessage = user.Id == Program.DiscordClient.CurrentUser.Id
+					? string.Format("I think you're pretty neat too, _kupo!_")
+					: string.Format("We don't do that here.");
 
 				await message.Channel.SendMessageAsync(postBackMessage, messageReference: message.MessageReference);
 				return;
@@ -220,24 +213,8 @@ namespace FC.Bot.RPG
 		[Command("GiveRep", Permissions.Everyone, "Show someone you think they're neat.", CommandCategory.Novelty)]
 		public async Task GiveReputationByUserString(CommandMessage message, string user)
 		{
-			IReadOnlyCollection<IGuildUser> guildUsers = await message.Guild.GetUsersAsync();
-
-			List<IGuildUser> userToRep = new List<IGuildUser>();
-
-			// Remove spaces in input
-			user = user.Replace(" ", string.Empty);
-
-			foreach (IGuildUser gUser in guildUsers)
-			{
-				if (!string.IsNullOrWhiteSpace(gUser.Nickname) && ComputeLevenshtein(gUser.Nickname, user) < 3)
-				{
-					userToRep.Add(gUser);
-				}
-				else if (!string.IsNullOrWhiteSpace(gUser.Username) && ComputeLevenshtein(gUser.Username, user) < 3)
-				{
-					userToRep.Add(gUser);
-				}
-			}
+			// Get guild users by name
+			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
 
 			if (userToRep.Count() == 1)
 			{
@@ -304,53 +281,6 @@ namespace FC.Bot.RPG
 			embed.AddField(joined);
 
 			return embed.Build();
-		}
-
-		private static int ComputeLevenshtein(string s, string t)
-		{
-			// Remove unicode and spaces
-			s = CompiledUnicodeRegex.Replace(s.Replace(" ", string.Empty), string.Empty);
-			t = CompiledUnicodeRegex.Replace(t.Replace(" ", string.Empty), string.Empty);
-
-			int n = s.Length;
-			int m = t.Length;
-			int[,] d = new int[n + 1, m + 1];
-
-			// Verify arguments.
-			if (n == 0)
-			{
-				return m;
-			}
-
-			if (m == 0)
-			{
-				return n;
-			}
-
-			// Initialize arrays.
-			for (int i = 0; i <= n; d[i, 0] = i++)
-			{
-			}
-
-			for (int j = 0; j <= m; d[0, j] = j++)
-			{
-			}
-
-			// Begin looping.
-			for (int i = 1; i <= n; i++)
-			{
-				for (int j = 1; j <= m; j++)
-				{
-					// Compute cost.
-					int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-					d[i, j] = Math.Min(
-					Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-					d[i - 1, j - 1] + cost);
-				}
-			}
-
-			// Return cost.
-			return d[n, m];
 		}
 
 		private async void GainXP(User user, int? xpGained = null)

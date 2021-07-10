@@ -307,18 +307,18 @@ namespace FC.Bot.Items
 						IMessage message = await channel.GetMessageAsync(mb.Key);
 
 						// Convert to UserMessage so we can edit the embed to remove the react help message
-						IUserMessage? userMessage = message as IUserMessage;
-						if (userMessage != null)
+						if (message is IUserMessage userMessage)
 						{
 							// Get the embed and duplicate
 							IEmbed embed = message.Embeds.FirstOrDefault();
 							EmbedBuilder builder = new EmbedBuilder()
 							.WithTitle(embed.Title)
 							.WithColor(embed?.Color ?? Color.Teal)
+							.WithDescription(embed?.Description)
 							.WithThumbnailUrl(embed?.Thumbnail?.Url ?? string.Empty);
 
 							// Get MB field and duplicate - remove reaction hint text
-							EmbedField field = embed?.Fields.GetFirst() ?? default(EmbedField);
+							EmbedField field = embed?.Fields.GetFirst() ?? default;
 							builder.AddField(new EmbedFieldBuilder()
 								.WithName(field.Name)
 								.WithValue(field.Value.Substring(0, field.Value.Length - 124)));

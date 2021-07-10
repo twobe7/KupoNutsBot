@@ -172,7 +172,7 @@ namespace FC.Bot.Events
 			builder.Append(" \"");
 			builder.Append(evt.Description);
 			builder.Append("\") starts in ");
-			builder.Append(timeTill.TotalMinutes);
+			builder.Append(Math.Round(timeTill.TotalMinutes, 2));
 			builder.Append(" minutes!");
 
 			EmbedBuilder embedBuilder = new EmbedBuilder();

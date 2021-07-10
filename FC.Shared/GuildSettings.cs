@@ -27,6 +27,9 @@ namespace FC
 		[InspectorChannel]
 		public string? FashionReportChannel { get; set; }
 
+		[InspectorChannel]
+		public string? ContentCreatorChannel { get; set; }
+
 		[InspectorTimeZone]
 		public List<string> TimeZone { get; set; }
 	}
