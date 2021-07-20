@@ -37,7 +37,7 @@ namespace FC.Bot.Services
 						x.Nickname = name;
 					});
 
-					await Task.Delay(500); // don't flood
+					await Task.Delay(1000); // don't flood
 				}
 			}
 

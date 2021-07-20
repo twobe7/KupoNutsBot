@@ -4,10 +4,10 @@
 
 namespace Twitch
 {
-    using Discord;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+	using Discord;
+	using System;
+	using System.Collections.Generic;
+	using System.Threading.Tasks;
 
 	public class StreamerAPI
 	{
@@ -51,14 +51,15 @@ namespace Twitch
 
 			public string GetThumbnailUrl(uint width, uint height)
 			{
-				return this.ThumbnailUrl.Replace("{width}", width.ToString()).Replace("{height}", height.ToString());
+				return this.ThumbnailUrl.Replace("{width}", width.ToString()).Replace("{height}", height.ToString()) + $"?v={DateTimeOffset.Now.ToUnixTimeSeconds()}";
 			}
 
-			public Embed ToEmbed(uint width = 400, uint height = 250)
+			public Embed ToEmbed(uint width = 900, uint height = 600)
 			{
 				EmbedBuilder embed = new EmbedBuilder
 				{
-					ThumbnailUrl = "https://image.flaticon.com/icons/png/512/2111/2111668.png",
+					Color = Color.DarkPurple,
+					ThumbnailUrl = "https://image.flaticon.com/icons/png/256/2111/2111668.png",
 					Title = $"Now Streaming: {this.UserName}",
 					Description = this.Title,
 					ImageUrl = this.GetThumbnailUrl(width, height),

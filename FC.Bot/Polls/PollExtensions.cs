@@ -20,14 +20,12 @@ namespace FC.Bot.Polls
 	{
 		public static async Task<bool> IsValid(this Poll self)
 		{
-			SocketTextChannel? channel = Program.DiscordClient.GetChannel(self.ChannelId) as SocketTextChannel;
-			if (channel is null)
+			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
 				return false;
 
 			if (self.MessageId != 0)
 			{
-				RestUserMessage? pollMessage = await channel.GetMessageAsync(self.MessageId) as RestUserMessage;
-				if (pollMessage == null)
+				if (!(await channel.GetMessageAsync(self.MessageId) is RestUserMessage pollMessage))
 				{
 					return false;
 				}
@@ -40,12 +38,10 @@ namespace FC.Bot.Polls
 		{
 			Log.Write("Closing poll: \"" + self.Comment + "\" (" + self.Id + ")", "Bot");
 
-			SocketTextChannel? channel = Program.DiscordClient.GetChannel(self.ChannelId) as SocketTextChannel;
-			if (channel is null)
+			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
 				return;
 
-			RestUserMessage? pollMessage = await channel.GetMessageAsync(self.MessageId) as RestUserMessage;
-			if (pollMessage != null)
+			if (await channel.GetMessageAsync(self.MessageId) is RestUserMessage pollMessage)
 				await pollMessage.RemoveAllReactionsAsync();
 
 			self.ClosesInstant = TimeUtils.Now;
@@ -53,9 +49,7 @@ namespace FC.Bot.Polls
 
 		public static Task<Embed> ToEmbed(this Poll self)
 		{
-			SocketTextChannel? channel = Program.DiscordClient.GetChannel(self.ChannelId) as SocketTextChannel;
-
-			if (channel == null)
+			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
 				throw new Exception("Poll channel: " + self.ChannelId + " missing");
 
 			int totalVotes = self.CountTotalVotes();
@@ -68,7 +62,7 @@ namespace FC.Bot.Polls
 			if (!self.Closed())
 			{
 				description.Append("__Poll closes in ");
-				description.Append(TimeUtils.GetDurationString(self.ClosesInstant));
+				description.Append(TimeUtils.GetDurationString(self.ClosesInstant, 1));
 				description.AppendLine("__");
 				description.AppendLine();
 			}
@@ -126,11 +120,15 @@ namespace FC.Bot.Polls
 				title.Append(" asks:");
 			}
 
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = title.ToString();
-			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = self.Closed() ? "Poll closed. Thanks for voting!" : "Vote for an option by selecting a reaction below";
-			builder.Description = description.ToString();
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = title.ToString(),
+				Footer = new EmbedFooterBuilder
+				{
+					Text = self.Closed() ? "Poll closed. Thanks for voting!" : "Vote for an option by selecting a reaction below",
+				},
+				Description = description.ToString(),
+			};
 
 			return Task.FromResult(builder.Build());
 		}
@@ -138,9 +136,8 @@ namespace FC.Bot.Polls
 		public static async Task UpdateMessage(this Poll self)
 		{
 			Log.Write("Updating poll: \"" + self.Comment + "\" (" + self.Id + ")", "Bot");
-			SocketTextChannel? channel = Program.DiscordClient.GetChannel(self.ChannelId) as SocketTextChannel;
 
-			if (channel == null)
+			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
 				throw new Exception("Poll channel: " + self.ChannelId + " missing");
 
 			Embed embed = await self.ToEmbed();

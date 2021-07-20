@@ -18,6 +18,7 @@ namespace FC.Bot.Commands
 		Discord,
 		Quote,
 		News,
+		ContentCreators,
 		Music,
 		Miscellaneous,
 		Administration,

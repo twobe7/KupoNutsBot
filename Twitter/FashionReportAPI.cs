@@ -29,7 +29,7 @@ namespace Twitter
 			ListTweetsOnUserTimelineOptions op = new ListTweetsOnUserTimelineOptions
 			{
 				ScreenName = "@KaiyokoStar",
-				IncludeRts = false,
+				IncludeRts = true,
 				ExcludeReplies = true,
 			};
 
@@ -46,14 +46,7 @@ namespace Twitter
 				if (!status.Text.Contains("Full Details"))
 					continue;
 
-				FashionReportEntry entry = new FashionReportEntry
-				{
-					Id = status.IdStr,
-					Time = status.CreatedDate,
-					Content = status.Text,
-					Author = status.Author.ScreenName,
-					AuthorImageUrl = status.Author.ProfileImageUrl,
-				};
+				FashionReportEntry entry = GetBaseEntry(status.RetweetedStatus ?? status);
 
 				if (status.Entities != null && status.Entities.Media != null && status.Entities.Media.Count > 0)
 				{
@@ -64,6 +57,18 @@ namespace Twitter
 			}
 
 			return Task.FromResult(results);
+		}
+
+		private static FashionReportEntry GetBaseEntry(TwitterStatus status)
+		{
+			return new FashionReportEntry
+			{
+				Id = status.IdStr,
+				Time = status.CreatedDate,
+				Content = status.Text,
+				Author = status.Author.ScreenName,
+				AuthorImageUrl = status.Author.ProfileImageUrl,
+			};
 		}
 	}
 }

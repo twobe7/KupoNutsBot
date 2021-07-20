@@ -219,7 +219,7 @@ namespace FC.Bot.Commands
 			if (args.Count == 1 && args[0] == "?")
 			{
 				Embed embed = await HelpService.GetHelp(cmdMessage);
-				await message.Channel.SendMessageAsync(null, false, embed);
+				await message.Channel.SendMessageAsync(null, false, embed, messageReference: cmdMessage.MessageReference);
 				return;
 			}
 

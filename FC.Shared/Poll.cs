@@ -33,7 +33,8 @@ namespace FC
 		{
 			get
 			{
-				return InstantPattern.General.Parse(this.Closes).Value;
+				string dateDefault = DateTime.Now.AddMinutes(5).ToString("yyyy-MM-ddTHH:mm:ss'Z'");
+				return InstantPattern.General.Parse(string.IsNullOrWhiteSpace(this.Closes) ? dateDefault : this.Closes).Value;
 			}
 
 			set

@@ -269,7 +269,7 @@ namespace FC.Bot.Services
 		[Command("Flip", Permissions.Everyone, "Flips user", CommandCategory.Novelty)]
 		public string Flip(CommandMessage message, IGuildUser user)
 		{
-			string flipName = string.Empty;
+			string flipName;
 
 			// Trying to flip the bot
 			if (user.Id == Program.DiscordClient.CurrentUser.Id)
@@ -356,7 +356,6 @@ namespace FC.Bot.Services
 			await message.Channel.DeleteMessageAsync(message.Message);
 
 			return builder.Build();
-			////return string.Format("{0} **{1}**", Hugs.GetRandom(), user.GetName());
 		}
 
 		[Command("Sarcasm", Permissions.Everyone, "makes text SaRcAsTiC", CommandCategory.Novelty)]
@@ -474,7 +473,7 @@ namespace FC.Bot.Services
 		{
 			int rating = this.GenerateRatingForToday(userA, userB, 101);
 
-			string response = string.Empty;
+			string response;
 			if (rating < 20)
 			{
 				response = "Oh... uhhh..";

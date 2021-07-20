@@ -52,6 +52,8 @@ namespace FC
 		public string? TwitchKey { get; set; }
 		public string? TwitchSecret { get; set; }
 
+		public string? YouTubeKey { get; set; }
+
 		public static Settings Load()
 		{
 			if (!File.Exists(Location))

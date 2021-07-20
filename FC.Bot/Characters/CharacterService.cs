@@ -177,7 +177,10 @@ namespace FC.Bot.Characters
 			string file = await CharacterCard.Draw(defaultCharacterInfo);
 			await message.Channel.SendFileAsync(file, messageReference: message.MessageReference);
 
-			if (!defaultCharacter.IsVerified(defaultCharacterInfo))
+			// Get current Verification status
+			bool oldIsVerified = defaultCharacter.IsVerified;
+
+			if (!defaultCharacter.CheckVerification(defaultCharacterInfo))
 			{
 				EmbedBuilder builder = new EmbedBuilder
 				{
@@ -206,7 +209,8 @@ namespace FC.Bot.Characters
 
 			// While building the AKA, we can confirm if a name/server change has occured
 			// for queried character and update DB
-			bool hasChanges = false;
+			// Initial value used to see if verification has been updated
+			bool hasChanges = oldIsVerified != defaultCharacter.IsVerified;
 
 			// AKA
 			StringBuilder akaDescBuilder = new StringBuilder();
@@ -349,13 +353,11 @@ namespace FC.Bot.Characters
 			return await this.GetResistanceRank(message, characterIndex);
 		}
 
+#if DEBUG
 		[Command("Census", Permissions.Administrators, "Perform Census")]
+#endif
 		public async void GetCharacterCensus(CommandMessage message, ulong freeCompanyId)
 		{
-			// I am the only one who can run this command
-			if (message.Author.Id != 294055671396302858)
-				throw new UnauthorizedAccessException();
-
 			Embed embed = await this.GetFreeCompanyCensus(freeCompanyId);
 			await message.Channel.SendMessageAsync(embed: embed);
 		}
@@ -529,8 +531,10 @@ namespace FC.Bot.Characters
 
 		private async Task<Embed> GetFreeCompanyCensus(ulong freeCompanyId)
 		{
-			EmbedBuilder embed = new EmbedBuilder();
-			embed.Title = "Free Company Census";
+			EmbedBuilder embed = new EmbedBuilder
+			{
+				Title = "Free Company Census",
+			};
 
 			FreeCompanyAPI.GetResponse response = await FreeCompanyAPI.GetFreeCompany(freeCompanyId);
 
@@ -552,16 +556,17 @@ namespace FC.Bot.Characters
 
 				FreeCompanyAPI.Character character = responseCharacter.Character;
 
-				CensusData entry = new CensusData();
+				CensusData entry = new CensusData
+				{
+					// Race
+					Race = ((CharacterInfo.Races)character.Race).ToDisplayString(),
 
-				// Race
-				entry.Race = ((CharacterInfo.Races)character.Race).ToDisplayString();
+					// Tribe
+					Tribe = ((CharacterInfo.Tribes)character.Tribe).ToDisplayString(),
 
-				// Tribe
-				entry.Tribe = ((CharacterInfo.Tribes)character.Tribe).ToDisplayString();
-
-				// Male = 1, Female = 2
-				entry.Gender = character.Gender;
+					// Male = 1, Female = 2
+					Gender = character.Gender,
+				};
 
 				// Parse last seen date
 				DateTime parsedDate = startTime.AddSeconds(Convert.ToDouble(character.ParseDate));

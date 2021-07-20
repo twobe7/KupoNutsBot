@@ -18,7 +18,7 @@ namespace FC.Bot.Lodestone
 
 	public class LodestoneService : ServiceBase
 	{
-		private Table<PostedNews> newsDb = new Table<PostedNews>("KupoNuts_News", 0);
+		private readonly Table<PostedNews> newsDb = new Table<PostedNews>("KupoNuts_News", 0);
 
 		public override async Task Initialize()
 		{
@@ -66,6 +66,7 @@ namespace FC.Bot.Lodestone
 					ThumbnailUrl = "http://na.lodestonenews.com/images/maintenance.png",
 					////ThumbnailUrl = "https://img.finalfantasyxiv.com/lds/h/F/DlQYVw2bqzA5ZOCfXKZ-Qe1IZU.svg",
 					Title = nextMaint.Title,
+					Url = nextMaint.Url,
 				};
 
 				Instant? start = nextMaint.GetStart();

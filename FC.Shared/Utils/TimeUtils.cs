@@ -226,9 +226,9 @@ namespace FC.Utils
 			return zoneInterval.Savings.Seconds == 0;
 		}
 
-		public static string? GetDurationString(Instant tillInstant)
+		public static string? GetDurationString(Instant tillInstant, int roundMinuteTo = 15)
 		{
-			Duration timeTillStart = TimeUtils.RoundInstant(tillInstant) - TimeUtils.RoundInstant(TimeUtils.Now);
+			Duration timeTillStart = TimeUtils.RoundInstant(tillInstant, roundMinuteTo) - TimeUtils.RoundInstant(TimeUtils.Now, roundMinuteTo);
 			return TimeUtils.GetDurationString(timeTillStart);
 		}
 
@@ -267,7 +267,7 @@ namespace FC.Utils
 			return builder.ToString();
 		}
 
-		public static Instant RoundInstant(Instant instant)
+		public static Instant RoundInstant(Instant instant, int roundMinuteTo = 15)
 		{
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 			ZonedDateTime zdt = instant.InZone(zone);
@@ -276,7 +276,7 @@ namespace FC.Utils
 			instant += Duration.FromSeconds(-zdt.Second);
 
 			int minute = zdt.Minute;
-			int newMinute = (int)Math.Round(minute / 15.0) * 15;
+			int newMinute = (int)Math.Round(minute / (double)roundMinuteTo) * roundMinuteTo;
 			Duration minutechange = Duration.FromMinutes(newMinute - minute);
 			instant += minutechange;
 

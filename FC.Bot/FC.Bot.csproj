@@ -50,6 +50,7 @@
 		<ProjectReference Include="..\Twitter\Twitter.csproj" />
 		<ProjectReference Include="..\Universalis\Universalis.csproj" />
 		<ProjectReference Include="..\XIVAPI\XIVAPI.csproj" />
+		<ProjectReference Include="..\Youtube\Youtube.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

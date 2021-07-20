@@ -135,7 +135,7 @@ namespace FC.Bot.Characters
 			return self.IsVerified;
 		}
 
-		public static bool IsVerified(this User.Character self, CharacterInfo character)
+		public static bool CheckVerification(this User.Character self, CharacterInfo character)
 		{
 			if (self.IsVerified)
 				return true;
@@ -143,7 +143,7 @@ namespace FC.Bot.Characters
 			if (self.FFXIVCharacterVerification == null)
 				self.FFXIVCharacterVerification = Guid.NewGuid().ToString();
 
-			if (character.Bio?.Contains(self.FFXIVCharacterVerification) == true)
+			if ((character.Bio ?? string.Empty).Contains(self.FFXIVCharacterVerification))
 				self.IsVerified = true;
 
 			return self.IsVerified;

@@ -13,6 +13,7 @@ namespace FC.Bot
 	using FC.Bot.Actions;
 	using FC.Bot.Characters;
 	using FC.Bot.Commands;
+	using FC.Bot.ContentCreators;
 	using FC.Bot.Events;
 	using FC.Bot.Events.Services;
 	using FC.Bot.Guild;
@@ -25,7 +26,6 @@ namespace FC.Bot
 	using FC.Bot.RPG;
 	using FC.Bot.Services;
 	using FC.Bot.Status;
-	using FC.Bot.Streamers;
 
 	public class Program
 	{
@@ -89,12 +89,14 @@ namespace FC.Bot
 				await this.AddService<EventsService>();
 				await this.AddService<Eventsv2.EventsService>();
 				await this.AddService<CalendarService>();
+				await this.AddService<UserService>();
 
 				// No dependencies
 				await this.AddService<ActionService>();
 				await this.AddService<CharacterService>();
 				await this.AddService<ChannelService>();
 				await this.AddService<ChannelOptInService>();
+				await this.AddService<ContentCreatorService>();
 				await this.AddService<CurrencyService>();
 				await this.AddService<DebugService>();
 				await this.AddService<EchoService>();
@@ -111,11 +113,9 @@ namespace FC.Bot
 				await this.AddService<NoveltyService>();
 				await this.AddService<PollService>();
 				await this.AddService<QuoteService>();
+				////await this.AddService<ReactionRoleService>();
 				await this.AddService<RPGService>();
 				await this.AddService<StatusService>();
-				await this.AddService<StreamerService>();
-				await this.AddService<UserService>();
-
 				await this.AddService<VoiceService>();
 			}
 			catch (Exception ex)
