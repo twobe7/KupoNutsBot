@@ -135,11 +135,16 @@ namespace FC.Bot.Polls
 			if (duration < Duration.FromMinutes(1))
 				throw new UserException("Polls must run for at least 1 minute");
 
-			Poll poll = await this.pollDatabase.CreateEntry();
-			poll.Author = message.Author.Id;
-			poll.Comment = comment;
-			poll.ChannelId = message.Channel.Id;
-			poll.ClosesInstant = TimeUtils.Now + duration;
+			Poll poll = new Poll
+			{
+				Id = Guid.NewGuid().ToString(),
+				Author = message.Author.Id,
+				Comment = comment,
+				ChannelId = message.Channel.Id,
+				ClosesInstant = TimeUtils.Now + duration,
+			};
+
+			await this.pollDatabase.Save(poll);
 
 			foreach (string op in options)
 				poll.Options.Add(new Poll.Option(op));

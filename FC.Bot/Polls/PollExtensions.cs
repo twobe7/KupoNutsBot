@@ -20,15 +20,19 @@ namespace FC.Bot.Polls
 	{
 		public static async Task<bool> IsValid(this Poll self)
 		{
+			// Poll is invalid if channel cannot be found
 			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
 				return false;
 
 			if (self.MessageId != 0)
 			{
-				if (!(await channel.GetMessageAsync(self.MessageId) is RestUserMessage pollMessage))
-				{
+				// Poll is invalid if message has been removed
+				if (!(await channel.GetMessageAsync(self.MessageId) is RestUserMessage _))
 					return false;
-				}
+
+				// Poll is invalid if it has been closed for a month
+				if (self.Closed() && (self.ClosesInstant - TimeUtils.Now).TotalDays <= -30)
+					return false;
 			}
 
 			return true;
@@ -59,7 +63,9 @@ namespace FC.Bot.Polls
 			description.AppendLine(self.Comment);
 			description.AppendLine();
 
-			if (!self.Closed())
+			bool isClosed = self.Closed();
+
+			if (!isClosed)
 			{
 				description.Append("__Poll closes in ");
 				description.Append(TimeUtils.GetDurationString(self.ClosesInstant, 1));
@@ -111,7 +117,7 @@ namespace FC.Bot.Polls
 
 			title.Append(author == null ? "Someone" : author.GetName());
 
-			if (self.Closed())
+			if (isClosed)
 			{
 				title.Append(" asked:");
 			}
@@ -125,7 +131,7 @@ namespace FC.Bot.Polls
 				Title = title.ToString(),
 				Footer = new EmbedFooterBuilder
 				{
-					Text = self.Closed() ? "Poll closed. Thanks for voting!" : "Vote for an option by selecting a reaction below",
+					Text = isClosed ? "Poll closed. Thanks for voting!" : "Vote for an option by selecting a reaction below",
 				},
 				Description = description.ToString(),
 			};

@@ -28,15 +28,14 @@ namespace FC
 
 		public List<Option> Options { get; set; } = new List<Option>();
 
-		[DynamoDBIgnore]
+		[DynamoDBIgnore] // Ignore when using DynamoDB
+		[System.Text.Json.Serialization.JsonIgnore] // Ignore when using Json DB
 		public Instant ClosesInstant
 		{
 			get
 			{
-				string dateDefault = DateTime.Now.AddMinutes(5).ToString("yyyy-MM-ddTHH:mm:ss'Z'");
-				return InstantPattern.General.Parse(string.IsNullOrWhiteSpace(this.Closes) ? dateDefault : this.Closes).Value;
+				return InstantPattern.General.Parse(this.Closes).Value;
 			}
-
 			set
 			{
 				this.Closes = InstantPattern.General.Format(value);

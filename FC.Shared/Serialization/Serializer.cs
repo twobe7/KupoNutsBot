@@ -35,7 +35,15 @@ namespace FC.Serialization
 		{
 			try
 			{
+#pragma warning disable CS8603 // Possible null reference return.
+
+				// Apparently C#9 allows T? to be specified - Future implementation?
+				// Error CS8627
+				// A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '9.0' or greater is used.
+				// Consider changing the language version or adding a 'class', 'struct', or type
 				return JsonSerializer.Deserialize<T>(json, Options);
+
+#pragma warning restore CS8603 // Possible null reference return.
 			}
 			catch (Exception ex)
 			{
