@@ -166,6 +166,8 @@ namespace FC.Data
 
 			string path = this.GetEntryPath(document.Id);
 
+			document.Updated = DateTime.UtcNow;
+
 			string json = Serializer.Serialize<T>(document);
 			File.WriteAllText(path, json);
 

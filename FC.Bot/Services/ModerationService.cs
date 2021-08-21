@@ -7,6 +7,7 @@ namespace FC.Bot.Services
 	using System;
 	using System.Collections.Generic;
 	using System.IO;
+	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
@@ -16,8 +17,8 @@ namespace FC.Bot.Services
 
 	public class ModerationService : ServiceBase
 	{
-		[Command("Clear", Permissions.Administrators, "Clears a range of messages from the channel")]
-		public async Task Clear(CommandMessage message, int count)
+		[Command("ClearAll", Permissions.Administrators, "Clears a range of messages from the channel")]
+		public async Task ClearAll(CommandMessage message, int count)
 		{
 			IEnumerable<IMessage> messages = await message.Channel.GetMessagesAsync(count + 1).FlattenAsync();
 
@@ -26,6 +27,51 @@ namespace FC.Bot.Services
 				await messageToRemove.DeleteAsync();
 				await Task.Delay(100);
 			}
+		}
+
+		[Command("Clear", Permissions.Administrators, "Clears a range of messages from the channel, excluding pinned")]
+		public async Task ClearPinned(CommandMessage message, int count)
+		{
+			int pinnedMessages = 0;
+
+			IEnumerable<IMessage> messages = await message.Channel.GetMessagesAsync(count + 1).FlattenAsync();
+
+			foreach (IMessage messageToRemove in messages)
+			{
+				if (messageToRemove.IsPinned)
+				{
+					pinnedMessages++;
+					continue;
+				}
+
+				try
+				{
+					await messageToRemove.DeleteAsync();
+					await Task.Delay(100);
+				}
+				catch (Exception)
+				{
+					// Do nothing, just skip the 404 that happens here sometimes
+				}
+			}
+
+			// Remove extra messages to make up initial count if any of original messages were pinned
+			////if (pinnedMessages > 0)
+			////{
+			////	messages = await message.Channel.GetMessagesAsync(pinnedMessages * 2).FlattenAsync();
+			////	foreach (IMessage messageToRemove in messages.Skip(pinnedMessages))
+			////	{
+			////		try
+			////		{
+			////			await messageToRemove.DeleteAsync();
+			////			await Task.Delay(100);
+			////		}
+			////		catch (Exception)
+			////		{
+			////			// Do nothing, just skip the 404 that happens here sometimes
+			////		}
+			////	}
+			////}
 		}
 
 		[Command("Ban", Permissions.Administrators, "Bans a user")]

@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaissaHouse", "PaissaHouse\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Twitch", "Twitch\Twitch.csproj", "{FD22E2F6-7E63-46CE-8246-52C274A5B230}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Youtube", "Youtube\Youtube.csproj", "{C6D5133D-35C7-406D-AF53-DB6CF84E3DAE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Youtube", "Youtube\Youtube.csproj", "{C6D5133D-35C7-406D-AF53-DB6CF84E3DAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

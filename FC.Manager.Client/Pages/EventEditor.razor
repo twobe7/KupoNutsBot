@@ -1,4 +1,5 @@
-﻿@using FC.Events;
+﻿@using FC.Color;
+@using FC.Events;
 @using NodaTime;
 @using RPC;
 
@@ -146,7 +147,7 @@ else
 
 		set
 		{
-			this.evt.Color = (Event.Colors)Enum.Parse(typeof(Event.Colors), value);
+			this.evt.Color = (FCColor.Colors)Enum.Parse(typeof(FCColor.Colors), value);
 		}
 	}
 
@@ -183,12 +184,12 @@ else
 	{
 		this.IsLoading = true;
 		this.evt = evt;
-		
-		this.ColorList = new List<string>(typeof(Event.Colors).GetDisplayStrings());
+
+		this.ColorList = new List<string>(typeof(FCColor.Colors).GetDisplayStrings());
 		this.StatusList = new List<string>(typeof(Event.Statuses).GetDisplayStrings());
 
 		this.NotifyList = new Dictionary<string, double>()
-	{
+{
 			{ "Never", -1 },
 			{ "Immediately", 0},
 			{ "One Hour", 1 },
@@ -196,7 +197,7 @@ else
 		};
 
 		this.ChannelList = new List<Channel>()
-		{
+	{
 			new Channel(0, "None", FC.Channel.Types.Unknown),
 		};
 

@@ -4,6 +4,7 @@
 
 namespace FC.Bot.ContentCreators
 {
+	using System;
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Text;
@@ -179,69 +180,77 @@ namespace FC.Bot.ContentCreators
 				// Channel found - load streamers
 				foreach (ContentCreator streamer in streamers.Where(x => x.DiscordGuildId == guild.Id))
 				{
-					bool streamerUpdated = false;
-
-					// Twitch streamer
-					if (streamer.Twitch != null && !string.IsNullOrWhiteSpace(streamer.Twitch.UserName))
+					try
 					{
-						StreamerAPI.Stream stream = await StreamerAPI.GetStreams(streamer.Twitch.UserName);
+						bool streamerUpdated = false;
 
-						// Streamer is live and current stream hasn't been posted
-						if (stream.IsLive)
+						// Twitch streamer
+						if (streamer.Twitch != null && !string.IsNullOrWhiteSpace(streamer.Twitch.UserName))
 						{
-							if (stream.Id != streamer.Twitch.LastStreamId)
-							{
-								RestUserMessage message = await contentCreatorChannel.SendMessageAsync(embed: stream.ToEmbed());
+							StreamerAPI.Stream stream = await StreamerAPI.GetStreams(streamer.Twitch.UserName);
 
-								// Save streamer id
-								streamer.Twitch.LastStreamId = stream.Id;
-								streamer.Twitch.LastStreamEmbedMessageId = message.Id.ToString();
+							// Streamer is live
+							if (stream.IsLive)
+							{
+								// First stream or Current stream hasn't been posted and last stream longer than 30 minutes ago
+								if (streamer.Twitch.LastStream == null
+									|| (stream.Id != streamer.Twitch.LastStream?.Id && streamer.Twitch.LastStream?.CreatedMinutesAgo > 30))
+								{
+									RestUserMessage message = await contentCreatorChannel.SendMessageAsync(embed: stream.ToEmbed());
+
+									// Save streamer id
+									streamer.Twitch.LastStream = new ContentCreator.ContentInfo.Content(stream.Id, message.Id.ToString());
+									streamerUpdated = true;
+								}
+								////else
+								////{
+								////	if (!string.IsNullOrWhiteSpace(streamer.Twitch.LastStreamEmbedMessageId)
+								////		&& ulong.TryParse(streamer.Twitch.LastStreamEmbedMessageId, out ulong messageId))
+								////	{
+								////		if (await contentCreatorChannel.GetMessageAsync(messageId) is RestUserMessage message)
+								////			await message.UpdateAsync(); // .ModifyAsync(x => x.); // x => x.Embed = stream.ToEmbed());
+								////	}
+								////}
+							}
+						}
+
+						// Youtube
+						if (streamer.Youtube != null && !string.IsNullOrWhiteSpace(streamer.Youtube.LinkId))
+						{
+							// Check video upload
+							ExploderAPI.Video latestVideo = await ExploderAPI.GetLatestVideo(streamer.Youtube.LinkId);
+
+							// Latest Video hasn't been posted
+							if (latestVideo != null && latestVideo.Id != streamer.Youtube.LastVideo?.Id)
+							{
+								await contentCreatorChannel.SendMessageAsync(embed: latestVideo.ToEmbed());
+
+								// Save last video id
+								streamer.Youtube.LastVideo = new ContentCreator.ContentInfo.Content(latestVideo.Id);
 								streamerUpdated = true;
 							}
-							////else
-							////{
-							////	if (!string.IsNullOrWhiteSpace(streamer.Twitch.LastStreamEmbedMessageId)
-							////		&& ulong.TryParse(streamer.Twitch.LastStreamEmbedMessageId, out ulong messageId))
-							////	{
-							////		if (await contentCreatorChannel.GetMessageAsync(messageId) is RestUserMessage message)
-							////			await message.UpdateAsync(); // .ModifyAsync(x => x.); // x => x.Embed = stream.ToEmbed());
-							////	}
-							////}
-						}
-					}
 
-					// Youtube
-					if (streamer.Youtube != null && !string.IsNullOrWhiteSpace(streamer.Youtube.LinkId))
+							// Check live stream
+							ExploderAPI.Video liveStream = await ExploderAPI.GetLiveVideo(streamer.Youtube.LinkId);
+
+							// Live stream occurring
+							if (liveStream != null && liveStream.Id != streamer.Youtube.LastStream?.Id)
+							{
+								await contentCreatorChannel.SendMessageAsync(embed: liveStream.ToLiveEmbed());
+
+								// Save last video id
+								streamer.Youtube.LastStream = new ContentCreator.ContentInfo.Content(liveStream.Id);
+								streamerUpdated = true;
+							}
+						}
+
+						if (streamerUpdated)
+							await ContentCreatorDatabase.Save(streamer);
+					}
+					catch (Exception ex)
 					{
-						// Check video upload
-						ExploderAPI.Video latestVideo = await ExploderAPI.GetLatestVideo(streamer.Youtube.LinkId);
-
-						// Latest Video hasn't been posted
-						if (latestVideo != null && latestVideo.Id != streamer.Youtube.LastVideoId)
-						{
-							await contentCreatorChannel.SendMessageAsync(embed: latestVideo.ToEmbed());
-
-							// Save last video id
-							streamer.Youtube.LastVideoId = latestVideo.Id;
-							streamerUpdated = true;
-						}
-
-						// Check live stream
-						ExploderAPI.Video liveStream = await ExploderAPI.GetLiveVideo(streamer.Youtube.LinkId);
-
-						// Live stream occurring
-						if (liveStream != null && liveStream.Id != streamer.Youtube.LastStreamId)
-						{
-							await contentCreatorChannel.SendMessageAsync(embed: liveStream.ToLiveEmbed());
-
-							// Save last video id
-							streamer.Youtube.LastStreamId = liveStream.Id;
-							streamerUpdated = true;
-						}
+						await Utils.Logger.LogExceptionToDiscordChannel(ex, "Content Creator Update", streamer.DiscordGuildId.ToString(), streamer.GuildNickName?.ToString());
 					}
-
-					if (streamerUpdated)
-						await ContentCreatorDatabase.Save(streamer);
 				}
 			}
 		}

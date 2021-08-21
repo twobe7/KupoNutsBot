@@ -37,6 +37,7 @@ namespace FC.Manager.Server
 			await AddService<EventsService>();
 			await AddService<EventsV2Service>();
 			await AddService<GuildService>();
+			await AddService<ReactionRoleService>();
 			await AddService<SettingsService>();
 			await AddService<ShopService>();
 

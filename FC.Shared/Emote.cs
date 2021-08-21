@@ -43,5 +43,7 @@ namespace FC
 				return this.IsStandard ? this.Url : $"<:{this.Name}:{this.Id}>";
 			}
 		}
+
+		public string GetName() => this.IsStandard ? this.Url : this.Name;
 	}
 }

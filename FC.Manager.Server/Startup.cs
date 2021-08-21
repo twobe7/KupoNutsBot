@@ -11,6 +11,7 @@ namespace FC.Manager.Server
 	using Microsoft.AspNetCore.ResponseCompression;
 	using Microsoft.Extensions.DependencyInjection;
 	using Microsoft.Extensions.Hosting;
+	using Microsoft.Extensions.Logging;
 
 	public class Startup
 	{
@@ -23,6 +24,15 @@ namespace FC.Manager.Server
 			{
 				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
 					new[] { "application/octet-stream" });
+			});
+
+			// Filter out the info logs
+			services.AddLogging(builder =>
+			{
+				builder.AddFilter("Microsoft", LogLevel.Warning)
+						.AddFilter("System", LogLevel.Warning)
+						.AddFilter("NToastNotify", LogLevel.Warning)
+						.AddConsole();
 			});
 
 			services.AddBlazoredModal();

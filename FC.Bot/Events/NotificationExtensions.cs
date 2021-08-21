@@ -11,6 +11,7 @@ namespace FC.Bot.Events
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
+	using FC.Color;
 	using FC.Events;
 	using FC.Utils;
 	using NodaTime;
@@ -23,11 +24,13 @@ namespace FC.Bot.Events
 			if (channel is null)
 				return;
 
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Color = evt.Color.ToDiscordColor();
-			builder.Title = evt.Name;
-			builder.Description = evt.Description;
-			builder.ImageUrl = evt.Image;
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Color = evt.Color.ToDiscordColor(),
+				Title = evt.Name,
+				Description = evt.Description,
+				ImageUrl = evt.Image,
+			};
 
 			/*
 			 * Due to a bug on Android, we cannot use the Timestamp field for dates in the future.

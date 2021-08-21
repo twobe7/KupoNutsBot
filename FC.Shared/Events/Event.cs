@@ -8,6 +8,7 @@ namespace FC.Events
 	using System.Collections.Generic;
 	using System.Text.Json.Serialization;
 	using Amazon.DynamoDBv2.DataModel;
+	using FC.Color;
 	using FC.Utils;
 	using NodaTime;
 	using NodaTime.Text;
@@ -15,31 +16,6 @@ namespace FC.Events
 	[Serializable]
 	public class Event : EntryBase
 	{
-		public enum Colors
-		{
-			Default,
-			DarkerGrey,
-			DarkGrey,
-			LighterGrey,
-			DarkRed,
-			Red,
-			DarkOrange,
-			Orange,
-			LightOrange,
-			Gold,
-			LightGrey,
-			Magenta,
-			DarkPurple,
-			Purple,
-			DarkBlue,
-			Blue,
-			DarkGreen,
-			Green,
-			DarkTeal,
-			Teal,
-			DarkMagenta,
-		}
-
 		public enum Statuses
 		{
 			Attending,
@@ -53,7 +29,7 @@ namespace FC.Events
 		public string? Description { get; set; }
 		public string? Message { get; set; }
 		public string? Image { get; set; }
-		public Colors Color { get; set; }
+		public FCColor.Colors Color { get; set; }
 		public Statuses StatusType { get; set; }
 
 		public Occurance BaseOccurance { get; set; } = new Occurance();

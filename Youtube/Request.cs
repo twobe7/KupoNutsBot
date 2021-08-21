@@ -77,7 +77,7 @@ namespace Youtube
 			where T : ResponseBase
 		{
 			// testing
-			channelId = "UC-lHJZR3Gqxm24_Vd_AJ5Yw";
+			channelId = "UCS6mQdxq09cFfAmlTaaJyFQ";
 
 			string url = $"https://www.googleapis.com/youtube/v3/liveBroadcasts" + "&key=" + Key;
 

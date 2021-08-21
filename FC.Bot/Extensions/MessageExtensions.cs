@@ -39,14 +39,14 @@ namespace FC.Bot
 			}
 		}
 
-		public static async Task<Dictionary<string, int>> GetReactions(this IUserMessage? self)
+		public static async Task<Dictionary<IEmote, int>> GetReactions(this IUserMessage? self)
 		{
-			Dictionary<string, int> results = new Dictionary<string, int>();
+			Dictionary<IEmote, int> results = new Dictionary<IEmote, int>();
 
 			if (self == null)
 				return results;
 
-			foreach ((IEmote emote, ReactionMetadata data) in self.Reactions)
+			foreach ((IEmote emote, ReactionMetadata _) in self.Reactions)
 			{
 				IEnumerable<IUser> users = await self.GetReactionUsersAsync(emote, 999).FlattenAsync();
 
@@ -54,10 +54,10 @@ namespace FC.Bot
 				foreach (IUser user in users)
 					count++;
 
-				if (!results.ContainsKey(emote.Name))
-					results.Add(emote.Name, 0);
+				if (!results.ContainsKey(emote))
+					results.Add(emote, 0);
 
-				results[emote.Name] += count;
+				results[emote] += count;
 			}
 
 			return results;

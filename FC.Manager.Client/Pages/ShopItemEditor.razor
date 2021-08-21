@@ -8,7 +8,7 @@
 @if (this.IsLoading)
 {
 	<div class="form-row">
-		Loading
+		Loading...
 	</div>
 }
 else
@@ -39,9 +39,9 @@ else
 			<label data-toggle="tooltip" data-placement="top" title="Reaction">Emote</label>
 			<select class="custom-select" @bind="this.Reaction">
 				@foreach (Emote emote in this.EmoteList)
-					{
-				<option value=@emote.Value>@( emote.IsStandard ? emote.Url : emote.Name)</option>
-					}
+				{
+					<option value=@emote.Value>@( emote.IsStandard ? emote.Url : emote.Name)</option>
+				}
 			</select>
 		</div>
 	</div>
@@ -108,6 +108,7 @@ else
 		set
 		{
 			this.item.Role = value == "0" ? null : value;
+			this.item.RoleName = this.RoleList.FirstOrDefault(x => x.DiscordId == this.item.Role).Name;
 		}
 	}
 

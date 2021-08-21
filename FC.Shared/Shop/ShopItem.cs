@@ -37,6 +37,7 @@ namespace FC.Shop
 		public string Reaction { get; set; } = @"<:kupo_nut:815575569482776607>";
 
 		public string Role { get; set; } = string.Empty;
+		public string RoleName { get; set; } = string.Empty;
 
 		public IEmote ReactionEmote
 		{

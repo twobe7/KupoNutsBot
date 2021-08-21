@@ -44,9 +44,7 @@ namespace FC.Manager.Server.Services
 				List<object> parameters = rpc.GetParameters(req, method, req.ParamData);
 				object val = await rpc.Invoke(req, method, target, parameters);
 
-				RPCResult result = new RPCResult();
-				result.Data = Serializer.Serialize(val);
-				return result;
+				return new RPCResult() { Data = Serializer.Serialize(val) };
 			}
 			catch (Exception ex)
 			{

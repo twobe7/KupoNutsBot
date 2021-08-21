@@ -1,0 +1,142 @@
+﻿@page "/reactionrole"
+@using FC.ReactionRoles;
+@using FC.Utils;
+@using NodaTime;
+@using System.Globalization;
+@using RPC;
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@if (this.AllReactionRoleItems == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<div class="wrapper">
+		<div class="container">
+			<div class="row pt-5">
+				<h4 class="text-light">Reaction Roles</h4>
+			</div>
+			@foreach (ReactionRoles.ReactionRole rr in this.AllReactionRoleItems)
+			{
+				<div class="row box-row-rounded">
+					<div class="col-sm-12">
+						<div class="row pt-2 pb-3">
+							<div class="col-sm-8">
+								@rr.Name
+							</div>
+							<div class="col-sm-4">
+								<button id="btnEditReactionRole" class="btn btn-primary" @onclick="() => this.OnEditRole(rr)">Edit</button>
+								<button id="btnAddReactionItem" class="btn btn-primary" @onclick="() => this.OnCreateItem(rr.Id)">Add</button>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								@{ int elementCount = 0; }
+								@foreach (ReactionRoles.ReactionRoleItem item in rr.Reactions)
+								{
+									<span class="box-item-rounded">
+										@item.RoleName
+										@(item.IsStandard ? (MarkupString)item.ReactionEmote.Name : (MarkupString)("<img src='" + item.Url + "' height='40' />"))
+										<button id="btnEditReactionItem" class="btn btn-primary" @onclick="() => this.OnEditItem(item)"><span class="oi oi-cog" aria-hidden="true"></span></button>
+										<button id="btnDeleteReactionItem" class="btn btn-danger" @onclick="() => this.OnDeleteItem(item)"><span class="oi oi-minus" aria-hidden="true"></span></button>
+									</span>
+
+									@(++elementCount % 4 == 0 ? (MarkupString)"<br/><br/>" : (MarkupString)"");
+								}
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+
+		<div class="push"></div>
+	</div>
+	<div class="footer">
+		<div class="footer-content">
+			<button class="btn btn-primary" @onclick="this.OnCreateRole">New</button>
+		</div>
+	</div>
+}
+
+@code {
+
+	public List<ReactionRoles.ReactionRole> AllReactionRoleItems;
+	public List<Emote> AllEmotes { get; set; } = new List<Emote>();
+	public List<Role> AllRoles { get; set; } = new List<Role>();
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (!Authentication.IsAuthenticated)
+		{
+			this.NavigationManager.NavigateTo("/");
+			return;
+		}
+
+		await base.OnInitializedAsync();
+
+		this.AllReactionRoleItems = await RPCService.Invoke<List<ReactionRoles.ReactionRole>>("ReactionRoleService.GetReactionRoles");
+
+		// Get Emotes
+		this.AllEmotes.AddRange(await Emotes.GetEmotes());
+
+		// Get Roles
+		this.AllRoles = new List<Role> { new Role(0, "None") };
+		this.AllRoles.AddRange(await Roles.GetRoles());
+	}
+
+	protected async void OnEditRole(ReactionRoles.ReactionRole item)
+	{
+		ModalParameters parameters = new ModalParameters();
+		parameters.Add("Item", item);
+
+		await Modal.Show<ReactionRoleEditor>("Edit Reaction Role", item);
+		this.AllReactionRoleItems = await RPCService.Invoke<List<ReactionRoles.ReactionRole>>("ReactionRoleService.GetReactionRoles");
+		this.StateHasChanged();
+	}
+
+	protected async void OnEditItem(ReactionRoles.ReactionRoleItem item)
+	{
+		ModalParameters parameters = new ModalParameters();
+		parameters.Add("Item", item);
+
+		await Modal.Show<ReactionItemEditor>("Edit Reaction Item", item, this.AllEmotes, this.AllRoles);
+		this.AllReactionRoleItems = await RPCService.Invoke<List<ReactionRoles.ReactionRole>>("ReactionRoleService.GetReactionRoles");
+		this.StateHasChanged();
+	}
+
+	protected void OnCreateItem(string reactionRoleId)
+	{
+		ReactionRoles.ReactionRoleItem item = new ReactionRoles.ReactionRoleItem()
+		{
+			Id = Guid.NewGuid().ToString(),
+			ReactionRoleId = reactionRoleId,
+		};
+
+		OnEditItem(item);
+	}
+
+	protected void OnCreateRole()
+	{
+		ReactionRoles.ReactionRole item = new ReactionRoles.ReactionRole()
+		{
+			Id = Guid.NewGuid().ToString(),
+		};
+
+		OnEditRole(item);
+	}
+
+	private async void OnDeleteItem(ReactionRoles.ReactionRoleItem item)
+	{
+		bool confirmed = await Modal.Show<bool, ConfirmDelete>("Delete Role Item", item.ReactionName);
+		if (confirmed)
+		{
+			await RPCService.Invoke("ReactionRoleService.DeleteReactionItem", item.Id);
+			this.AllReactionRoleItems = await RPCService.Invoke<List<ReactionRoles.ReactionRole>>("ReactionRoleService.GetReactionRoles");
+			this.StateHasChanged();
+		}
+	}
+}

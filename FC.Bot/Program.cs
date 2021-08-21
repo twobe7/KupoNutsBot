@@ -113,7 +113,7 @@ namespace FC.Bot
 				await this.AddService<NoveltyService>();
 				await this.AddService<PollService>();
 				await this.AddService<QuoteService>();
-				////await this.AddService<ReactionRoleService>();
+				await this.AddService<ReactionRoleService>();
 				await this.AddService<RPGService>();
 				await this.AddService<StatusService>();
 				await this.AddService<VoiceService>();

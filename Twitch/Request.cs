@@ -42,12 +42,6 @@ namespace Twitch
 		internal static async Task<T> Send<T>(string username)
 			where T : ResponseBase
 		{
-			//if (!route.StartsWith('/'))
-			//	route = '/' + route;
-
-			//if (!route.Contains('?'))
-			//	route += '?';
-
 			string url = $"https://api.twitch.tv/helix/streams?user_login={username}"; // "&key=" + Key;
 
 			try
@@ -57,9 +51,8 @@ namespace Twitch
 				{
 					token = await GetOAuth();
 				}
-				// TODO: this won't work, check expiry better
-				// There may also be a refresh endpoint rather than just auth again
-				else if (token.ExpiresIn < 500)
+				// TODO: There may also be a refresh endpoint rather than just auth again
+				else if (token.Expired)
 				{
 					token = await GetOAuth();
 				}
@@ -126,6 +119,44 @@ namespace Twitch
 				if (errorResponse.StatusCode == HttpStatusCode.NotFound)
 				{
 					return Activator.CreateInstance<OAuthToken>();
+				}
+
+				throw webEx;
+			}
+			catch (Exception ex)
+			{
+				////Log.Write("Error: " + ex.Message, "Twitch");
+				throw ex;
+			}
+		}
+
+		private static async Task<OAuthValidateToken> ValidateOAuth()
+		{
+			string url = $"https://id.twitch.tv/oauth2/validate";
+
+			try
+			{
+				Log.Write("Request: " + url, "Twitch");
+
+				WebRequest req = WebRequest.Create(url);
+				req.Headers.Add("Authorization", $"OAuth {token.AccessToken}");
+
+				WebResponse response = await req.GetResponseAsync();
+
+				using StreamReader reader = new StreamReader(response.GetResponseStream());
+				string json = await reader.ReadToEndAsync();
+
+				Log.Write("Response: " + json.Length + " characters", "Twitch");
+
+				OAuthValidateToken result = NSSerializer.Deserialize<OAuthValidateToken>(json);
+				return result;
+			}
+			catch (WebException webEx)
+			{
+				HttpWebResponse errorResponse = (HttpWebResponse)webEx.Response;
+				if (errorResponse.StatusCode == HttpStatusCode.NotFound)
+				{
+					return Activator.CreateInstance<OAuthValidateToken>();
 				}
 
 				throw webEx;

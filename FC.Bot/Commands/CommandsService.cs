@@ -167,6 +167,13 @@ namespace FC.Bot.Commands
 			ulong guildId = message.GetGuild().Id;
 			string prefix = GetPrefix(guildId);
 
+			// Special case to display prefix for guild
+			if (message.Content.Contains(Program.DiscordClient.CurrentUser.Mention) && message.Content.Contains("prefix"))
+			{
+				await message.Channel.SendMessageAsync($"This discord's prefix is `{prefix}`", messageReference: new MessageReference(message.Id));
+				return;
+			}
+
 			// Ignore messages that do not start with the command character
 			if (!message.Content.StartsWith(prefix))
 				return;
@@ -297,7 +304,7 @@ namespace FC.Bot.Commands
 								sentMessage = await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
 
 								// Log exception
-								await this.LogExceptionToDiscordChannel(message, lastException);
+								await Utils.Logger.LogExceptionToDiscordChannel(lastException, message);
 							}
 							else
 							{
@@ -314,7 +321,7 @@ namespace FC.Bot.Commands
 							IUserMessage sentMessage = await message.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
 
 							// Log exception
-							await this.LogExceptionToDiscordChannel(message, lastException);
+							await Utils.Logger.LogExceptionToDiscordChannel(lastException, message);
 
 							// Clear user and bot message
 							_ = this.ClearSentMessage(message.Message);

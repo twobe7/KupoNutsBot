@@ -231,41 +231,6 @@ namespace FC.Bot.Services
 			// Add hh:mm:ss to string
 			weeklyResetFormat += $"{weeklyReset.Hours.ToString().PadLeft(2, '0')}:{weeklyReset.Minutes.ToString().PadLeft(2, '0')}:{weeklyReset.Seconds.ToString().PadLeft(2, '0')}";
 
-			////if (now.DayOfWeek == DayOfWeek.Tuesday && weeklyReset.Hours > 0 && weeklyReset.Minutes > 0 && weeklyReset.Seconds > 0)
-			////{
-			////	weeklyResetFormat = $"{weeklyReset.Hours.ToString().PadLeft(2, '0')}:{weeklyReset.Minutes.ToString().PadLeft(2, '0')}:{weeklyReset.Seconds.ToString().PadLeft(2, '0')}";
-			////}
-			////else
-			////{
-			////	int daysUntilReset = 0;
-			////	DateTime weeklyResetDay = now;
-
-			////	if (weeklyResetDay.DayOfWeek == DayOfWeek.Monday && (weeklyReset.Hours < 0 || weeklyReset.Minutes < 0 || weeklyReset.Seconds < 0))
-			////	{
-			////		weeklyReset = new TimeSpan(1, 16, 0, 0) - now.TimeOfDay;
-			////	}
-			////	else
-			////	{
-			////		if (weeklyResetDay.DayOfWeek == DayOfWeek.Tuesday && (weeklyReset.Hours < 0 || weeklyReset.Minutes < 0 || weeklyReset.Seconds < 0))
-			////			weeklyResetDay = weeklyResetDay.AddDays(1);
-
-			////		while (weeklyResetDay.DayOfWeek != DayOfWeek.Tuesday)
-			////		{
-			////			daysUntilReset++;
-			////			weeklyResetDay = weeklyResetDay.AddDays(1);
-			////		}
-
-			////		weeklyReset = new TimeSpan(daysUntilReset, 16, 0, 0) - now.TimeOfDay;
-			////	}
-
-			////	// Add days if required
-			////	if (daysUntilReset != 0)
-			////		weeklyResetFormat = $"{daysUntilReset} days, ";
-
-			////	// Add hh:mm:ss to string
-			////	weeklyResetFormat += $"{weeklyReset.Hours.ToString().PadLeft(2, '0')}:{weeklyReset.Minutes.ToString().PadLeft(2, '0')}:{weeklyReset.Seconds.ToString().PadLeft(2, '0')}";
-			////}
-
 			embed.AddField(new EmbedFieldBuilder()
 				.WithName("Weekly Reset").WithValue(weeklyResetFormat));
 

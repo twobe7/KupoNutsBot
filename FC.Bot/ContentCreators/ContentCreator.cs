@@ -75,8 +75,8 @@ namespace FC.Bot.ContentCreators
 
 			public string? UserName { get; set; }
 			public string? LinkId { get; set; }
-			public string? LastStreamId { get; set; }
-			public string? LastVideoId { get; set; }
+			public Content? LastStream { get; set; }
+			public Content? LastVideo { get; set; }
 			public Type Type { get; set; }
 			public string? LastStreamEmbedMessageId { get; set; }
 
@@ -91,6 +91,22 @@ namespace FC.Bot.ContentCreators
 						_ => string.Empty,
 					};
 				}
+			}
+
+			public class Content
+			{
+				public Content(string? id, string? embedMessageId = null)
+				{
+					this.Id = id;
+					this.EmbedMessageId = embedMessageId;
+					this.Created = DateTime.Now;
+				}
+
+				public string? Id { get; set; }
+				public DateTime Created { get; set; }
+				public string? EmbedMessageId { get; set; }
+
+				public double CreatedMinutesAgo => (DateTime.Now - this.Created).TotalMinutes;
 			}
 		}
 	}

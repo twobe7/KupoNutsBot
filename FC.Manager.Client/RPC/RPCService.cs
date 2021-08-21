@@ -25,10 +25,12 @@ namespace FC.Manager.Client.RPC
 			if (Client == null)
 				throw new Exception("No HttpClient in RPC Service");
 
-			RPCRequest req = new RPCRequest();
-			req.Method = method;
-			req.Token = Authentication.Token;
-			req.GuildId = GuildId;
+			RPCRequest req = new RPCRequest
+			{
+				Method = method,
+				Token = Authentication.Token,
+				GuildId = GuildId,
+			};
 
 			for (int i = 0; i < param.Length; i++)
 			{
@@ -42,7 +44,7 @@ namespace FC.Manager.Client.RPC
 				throw new Exception(result.Exception);
 
 			if (string.IsNullOrEmpty(result.Data))
-				return default(TResult);
+				return default;
 
 			return Serializer.Deserialize<TResult>(result.Data);
 		}
@@ -52,10 +54,12 @@ namespace FC.Manager.Client.RPC
 			if (Client == null)
 				throw new Exception("No HttpClient in RPC Service");
 
-			RPCRequest req = new RPCRequest();
-			req.Method = method;
-			req.Token = Authentication.Token;
-			req.GuildId = GuildId;
+			RPCRequest req = new RPCRequest
+			{
+				Method = method,
+				Token = Authentication.Token,
+				GuildId = GuildId,
+			};
 
 			for (int i = 0; i < param.Length; i++)
 			{
