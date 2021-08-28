@@ -54,9 +54,11 @@ namespace FC.Bot.Currency
 		public async Task<Task> StartSlot(CommandMessage message)
 		{
 			// Initial builder information
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = "Spinning";
-			builder.Color = Color.Gold;
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = "Spinning",
+				Color = Color.Gold,
+			};
 
 			// Get board and final combination
 			Dictionary<int, List<string>> board = this.GetSlotBoard();
@@ -87,12 +89,12 @@ namespace FC.Bot.Currency
 					if (winType == WinType.Win)
 					{
 						User user = await UserService.GetUser(message.Author);
-						user.UpdateTotalKupoNuts(100);
+						user.UpdateTotalKupoNuts(110);
 					}
 					else if (winType == WinType.Jackpot)
 					{
 						User user = await UserService.GetUser(message.Author);
-						user.UpdateTotalKupoNuts(1000);
+						user.UpdateTotalKupoNuts(1010);
 					}
 				}
 
