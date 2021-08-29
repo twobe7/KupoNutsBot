@@ -348,6 +348,27 @@ namespace FC.Bot.Services
 			return builder.Build();
 		}
 
+		[Command("Spray", Permissions.Everyone, "Sprays a user", CommandCategory.Novelty)]
+		public async Task<Embed> Spray(CommandMessage message, IGuildUser user)
+		{
+			EmbedBuilder builder = new EmbedBuilder()
+			{
+				Color = Color.DarkRed,
+			};
+
+			builder.Title = message.Author.Id == user.Id
+				? string.Format("{0} {1}s themselves (kinda weird, _kupo_)", message.Author.GetName(), message.Command)
+				: string.Format("{0} {1}s {2}", message.Author.GetName(), message.Command, user.GetName());
+
+			RandomAPI.Result tenorResult = await RandomAPI.Random("spraywater");
+			builder.ImageUrl = tenorResult.GetBestUrl();
+
+			// Remove calling command
+			await message.Channel.DeleteMessageAsync(message.Message);
+
+			return builder.Build();
+		}
+
 		[Command("Sarcasm", Permissions.Everyone, "makes text SaRcAsTiC", CommandCategory.Novelty)]
 		public Task<string> Sarcasm(CommandMessage message, string text)
 		{
