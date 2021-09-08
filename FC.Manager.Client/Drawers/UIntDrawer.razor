@@ -1,7 +1,7 @@
 ﻿@using FC.Attributes;
 @using System.Reflection;
 
-@inherits DrawerBase<int>
+@inherits DrawerBase<uint>
 
 <div class="form-group col-md-6">
 	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
@@ -10,8 +10,8 @@
 
 @code {
 
-	public int Min { get; set; } = int.MinValue;
-	public int Max { get; set; } = int.MaxValue;
+	public uint Min { get; set; } = uint.MinValue;
+	public uint Max { get; set; } = uint.MaxValue;
 
 	protected override Task OnInitializedAsync()
 	{
@@ -19,8 +19,8 @@
 
 		if (range != null)
 		{
-			this.Min = (int)range.Min;
-			this.Max = (int)range.Max;
+			this.Min = (uint) range.Min;
+			this.Max = (uint) range.Max;
 		}
 
 		return Task.CompletedTask;

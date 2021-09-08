@@ -84,6 +84,7 @@ namespace FC.Bot
 			{
 				// Dependencies - must be added in order
 				await this.AddService<SettingsService>();
+				await this.AddService<LeaderboardSettingsService>();
 				await this.AddService<CommandsService>();
 				await this.AddService<ScheduleService>();
 				await this.AddService<EventsService>();

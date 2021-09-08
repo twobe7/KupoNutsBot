@@ -16,5 +16,21 @@ namespace System.Collections.Generic
 			key = self.Key;
 			value = self.Value;
 		}
+
+		/// <summary>
+		/// Attempts to update given key in dictionary to given value. Adds key/value if key doesn't exist.
+		/// </summary>
+		/// <typeparam name="TKey">Type of in Dictionary.</typeparam>
+		/// <typeparam name="TValue">Type of Value in Dictionary.</typeparam>
+		/// <param name="self">Current Dict object.</param>
+		/// <param name="key">Key to find within Dictionary.</param>
+		/// <param name="value">Value to update within Dictionary.</param>
+		public static void UpdateOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key, TValue value)
+		{
+			if (!self.ContainsKey(key))
+				self.Add(key, value);
+			else
+				self[key] = value;
+		}
 	}
 }

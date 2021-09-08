@@ -174,11 +174,15 @@ namespace FC.Bot.Quotes
 				quotesList.Append(numPages);
 			}
 
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Author = new EmbedAuthorBuilder();
-			builder.Author.Name = guildUser.GetName();
-			builder.Author.IconUrl = guildUser.GetAvatarUrl();
-			builder.Description = quotesList.ToString();
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Author = new EmbedAuthorBuilder
+				{
+					Name = guildUser.GetName(),
+					IconUrl = guildUser.GetAvatarUrl(),
+				},
+				Description = quotesList.ToString(),
+			};
 			return builder.Build();
 		}
 
@@ -188,10 +192,12 @@ namespace FC.Bot.Quotes
 			if (message.Author != user && CommandsService.GetPermissions(message.Author) != Permissions.Administrators)
 				throw new UserException("You don't have permission to do that.");
 
-			Dictionary<string, object> filters = new Dictionary<string, object>();
-			filters.Add("UserId", user.Id);
-			filters.Add("GuildId", message.Guild.Id);
-			filters.Add("QuoteId", quoteId);
+			Dictionary<string, object> filters = new Dictionary<string, object>
+			{
+				{ "UserId", user.Id },
+				{ "GuildId", message.Guild.Id },
+				{ "QuoteId", quoteId },
+			};
 
 			List<Quote> allQuotes = await this.quoteDb.LoadAll(filters);
 
@@ -231,6 +237,7 @@ namespace FC.Bot.Quotes
 					quote.Content = message.Content;
 					quote.UserId = message.Author.Id;
 					quote.GuildId = guildChannel.Guild.Id;
+					quote.MessageLink = this.GetMessageLink(message);
 					quote.UserName = message.Author.Username;
 					quote.QuoteId = await this.GetNextQuoteId(message.GetGuild(), message.GetAuthor());
 					quote.SetDateTime(message.CreatedAt);
@@ -252,9 +259,11 @@ namespace FC.Bot.Quotes
 
 		private async Task<int> GetNextQuoteId(ulong guildId, ulong userId)
 		{
-			Dictionary<string, object> filters = new Dictionary<string, object>();
-			filters.Add("UserId", userId);
-			filters.Add("GuildId", guildId);
+			Dictionary<string, object> filters = new Dictionary<string, object>
+			{
+				{ "UserId", userId },
+				{ "GuildId", guildId },
+			};
 
 			List<Quote> allQuotes = await this.quoteDb.LoadAll(filters);
 
@@ -276,21 +285,28 @@ namespace FC.Bot.Quotes
 
 		private Embed GetEmbed(Quote self)
 		{
-			SocketGuild guild = Program.DiscordClient.GetGuild((ulong)self.GuildId);
-			SocketGuildUser user = guild.GetUser((ulong)self.UserId);
+			SocketGuild guild = Program.DiscordClient.GetGuild(self.GuildId);
+			SocketGuildUser user = guild.GetUser(self.UserId);
 
-			EmbedBuilder builder = new EmbedBuilder();
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Author = new EmbedAuthorBuilder
+				{
+					Name = user.GetName(),
+					IconUrl = user.GetAvatarUrl(),
+				},
+				Description = self.GetQuoteDescription(),
+				Timestamp = self.GetDateTime().ToDateTimeOffset(),
 
-			builder.Author = new EmbedAuthorBuilder();
-			builder.Author.Name = user.GetName();
-			builder.Author.IconUrl = user.GetAvatarUrl();
-			builder.Description = self.Content;
-			builder.Timestamp = self.GetDateTime().ToDateTimeOffset();
-
-			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = "Id: " + self.QuoteId;
+				Footer = new EmbedFooterBuilder
+				{
+					Text = "Id: " + self.QuoteId,
+				},
+			};
 
 			return builder.Build();
 		}
+
+		private string GetMessageLink(IUserMessage message) => $"https://discord.com/channels/{message.GetGuild().Id}/{message.Channel.Id}/{message.Id}";
 	}
 }

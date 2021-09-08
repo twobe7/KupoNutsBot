@@ -32,11 +32,13 @@ namespace FC.Manager.Server
 			// Add services
 			await AddService<Services.RPCService>();
 			await AddService<DiscordService>();
+
 			await AddService<AuthenticationService>();
 			await AddService<EmoteService>();
 			await AddService<EventsService>();
 			await AddService<EventsV2Service>();
 			await AddService<GuildService>();
+			await AddService<LeaderboardSettingsService>();
 			await AddService<ReactionRoleService>();
 			await AddService<SettingsService>();
 			await AddService<ShopService>();

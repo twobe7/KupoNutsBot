@@ -3,9 +3,9 @@
 <div class="form-group col-md-6">
 	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
 	<select class="custom-select" @bind="this.Selected">
-		@foreach (Channel channel in this.ChannelList)
+		@foreach (Role role in this.RoleList)
 		{
-			<option value=@channel.DiscordId>@channel.Name</option>
+			<option value=@role.DiscordId>@role.Name</option>
 		}
 	</select>
 </div>
@@ -14,7 +14,7 @@
 
 	private ulong selected;
 
-	public List<Channel> ChannelList { get; set; }
+	public List<Role> RoleList { get; set; }
 
 	// Can't bind to ulongs, so keep it as a string here.
 	public string Selected
@@ -31,7 +31,7 @@
 	}
 
 	// Special case since we use an attribute for this drawer.
-	// we should consider adding a custom type for Channels.
+	// we should consider adding a custom type for Roles.
 	public override bool CanEdit(Type type)
 	{
 		return false;
@@ -39,12 +39,16 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		this.ChannelList = new List<Channel>()
+		this.RoleList = new List<Role>()
 		{
-			new Channel(0, "None", FC.Channel.Types.Unknown),
+			new Role(0, "None"),
+			new Role(1, "Everyone"),
 		};
 
-		this.ChannelList.AddRange(await Channels.GetChannels());
+		this.RoleList.AddRange(await Roles.GetRoles());
+
+		// Remove the everyone role as it has a unique value in every server
+		this.RoleList.RemoveAll(new Predicate<Role>(x => x.Name == "@everyone"));
 
 		Type type = this.GetValueType();
 

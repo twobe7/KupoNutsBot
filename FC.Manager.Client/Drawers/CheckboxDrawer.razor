@@ -1,0 +1,9 @@
+﻿@inherits DrawerBase<bool>
+
+<div class="form-group col-md-6">
+	<label for="">&nbsp;</label>
+	<div class="custom-control custom-checkbox">
+		<input class="custom-control-input" type="checkbox" id="@("chkBox" + this.Property.Name)" value="false" @bind="this.Value" />
+		<label title="@this.Tooltip" class="custom-control-label" for="@("chkBox" + this.Property.Name)">@this.Label</label>
+	</div>
+</div>

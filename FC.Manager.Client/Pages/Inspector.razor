@@ -73,11 +73,17 @@
 		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
 			return typeof(Drawers.ChannelDrawer);
 
+		if (property.GetCustomAttribute<InspectorRoleAttribute>() != null)
+			return typeof(Drawers.RoleDrawer);
+
 		if (property.GetCustomAttribute<InspectorTimeZoneAttribute>() != null)
 			return typeof(Drawers.TimeZoneDrawer);
 
 		if (property.GetCustomAttribute<InspectorEmoteAttribute>() != null)
 			return typeof(Drawers.EmoteDrawer);
+
+		if (property.GetCustomAttribute<InspectorCheckBoxAttribute>() != null)
+			return typeof(Drawers.CheckboxDrawer);
 
 		if (drawers.ContainsKey(property.PropertyType))
 			return drawers[property.PropertyType];

@@ -156,6 +156,14 @@ namespace FC.Bot.Characters
 
 		public async Task PostWhoIsResponse(CommandMessage message, User user, int? characterIndex = null)
 		{
+			// Special case to just load Kupo Nuts' portrait from disk.
+			if (user.DiscordUserId == Program.DiscordClient.CurrentUser.Id)
+			{
+				await message.Channel.SendMessageAsync("Thats me!");
+				await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/self.png");
+				return;
+			}
+
 			User.Character? defaultCharacter = user.GetDefaultCharacter();
 			if (defaultCharacter is null)
 				throw new UserException("No characters linked! Use `IAm` to link a character");

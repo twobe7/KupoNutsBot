@@ -48,8 +48,10 @@ namespace FC.Bot.RPG
 			User user = await UserService.GetUser(message.Author);
 			string userName = message.Author.GetName();
 
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = userName + "'s Level";
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = userName + "'s Level",
+			};
 
 			StringBuilder description = new StringBuilder();
 			description.AppendLine("Current Level: " + user.Level);
@@ -97,10 +99,12 @@ namespace FC.Bot.RPG
 				count++;
 			}
 
-			EmbedBuilder embedBuilder = new EmbedBuilder();
-			embedBuilder.Title = "Level Leaderboard";
-			embedBuilder.Description = builder.ToString();
-			embedBuilder.Color = Color.Blue;
+			EmbedBuilder embedBuilder = new EmbedBuilder
+			{
+				Title = "Level Leaderboard",
+				Description = builder.ToString(),
+				Color = Color.Blue,
+			};
 			return embedBuilder.Build();
 		}
 
@@ -141,10 +145,12 @@ namespace FC.Bot.RPG
 				count++;
 			}
 
-			EmbedBuilder embedBuilder = new EmbedBuilder();
-			embedBuilder.Title = "Reputation Leaderboard";
-			embedBuilder.Description = builder.ToString();
-			embedBuilder.Color = Color.Blue;
+			EmbedBuilder embedBuilder = new EmbedBuilder
+			{
+				Title = "Reputation Leaderboard",
+				Description = builder.ToString(),
+				Color = Color.Blue,
+			};
 			return embedBuilder.Build();
 		}
 
@@ -152,19 +158,36 @@ namespace FC.Bot.RPG
 		[Command("GiveRep", Permissions.Everyone, "Show someone you think they're neat.", CommandCategory.Novelty)]
 		public async Task GiveReputation(CommandMessage message, IGuildUser user)
 		{
-			// Message for return
-			string postBackMessage;
-
 			// Handle bots
 			if (user.IsBot)
 			{
 				// Thank user if trying to rep Kupo Nuts or tell them no if repping a different bot
-				postBackMessage = user.Id == Program.DiscordClient.CurrentUser.Id
+				string botMessage = user.Id == Program.DiscordClient.CurrentUser.Id
 					? string.Format("I think you're pretty neat too, _kupo!_")
-					: string.Format("We don't do that here.");
+					: string.Format("They wouldn't understand...");
 
-				await message.Channel.SendMessageAsync(postBackMessage, messageReference: message.MessageReference);
+				await message.Channel.SendMessageAsync(botMessage, messageReference: message.MessageReference);
 				return;
+			}
+
+			// Get leaderboard settings
+			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(message.Guild.Id);
+
+			if (settings.ReputationAddRole == "0")
+			{
+				// Rep disabled on server
+				await message.Channel.SendMessageAsync("Rep has been disabled by Server Admin", messageReference: message.MessageReference);
+				return;
+			}
+			else if (settings.ReputationAddRole != "1")
+			{
+				// Rep role required to add
+				if (ulong.TryParse(settings.ReputationAddRole, out ulong repRole) && !message.Author.RoleIds.Contains(repRole))
+				{
+					// Rep Role required to add not assigned to user
+					await message.Channel.SendMessageAsync("You do not have permission to add Rep.", messageReference: message.MessageReference);
+					return;
+				}
 			}
 
 			// Get sending user information
@@ -182,11 +205,15 @@ namespace FC.Bot.RPG
 			if (DateTime.Now < dailyReset)
 				dailyReset = dailyReset.AddDays(-1);
 
-			if (!fromUser.LastRepGiven.HasValue || fromUser.LastRepGiven < dailyReset)
+			// Message for return
+			string postBackMessage;
+
+			// If rep limit is disabled or user has not repped today
+			if (!settings.LimitReputationPerDay || !fromUser.LastRepGiven.HasValue || fromUser.LastRepGiven < dailyReset)
 			{
 				if (fromUser.Id == toUser.Id)
 				{
-					postBackMessage = string.Format("You can't rep yourself, _kupo!_");
+					postBackMessage = "You can't rep yourself, _kupo!_";
 				}
 				else
 				{
@@ -197,12 +224,12 @@ namespace FC.Bot.RPG
 					toUser.Reputation += 1;
 					_ = UserService.SaveUser(toUser);
 
-					postBackMessage = string.Format("Hey {0}, {1} thinks you're pretty neat, _kupo!_", toUserName, fromUserName);
+					postBackMessage = $"Hey {toUserName}, {fromUserName} thinks you're pretty neat, _kupo!_\nYour rep is now: {toUser.Reputation}";
 				}
 			}
 			else
 			{
-				postBackMessage = string.Format("You have already given your rep today!");
+				postBackMessage = "You have already given your rep today!";
 			}
 
 			await message.Channel.SendMessageAsync(postBackMessage, messageReference: message.MessageReference);
@@ -219,6 +246,88 @@ namespace FC.Bot.RPG
 			if (userToRep.Count() == 1)
 			{
 				await this.GiveReputation(message, userToRep.FirstOrDefault());
+			}
+			else
+			{
+				RestUserMessage response = await message.Channel.SendMessageAsync("I'm sorry, I'm not sure who you mean. Try mentioning them, _kupo!_", messageReference: message.MessageReference);
+
+				// Wait, then delete both messages
+				await Task.Delay(2000);
+
+				await message.Channel.DeleteMessageAsync(response.Id);
+				await message.Channel.DeleteMessageAsync(message.Id);
+			}
+
+			return;
+		}
+
+		[Command("RemoveRep", Permissions.Everyone, "Removes Rep from User.", CommandCategory.Novelty)]
+		public async Task RemoveReputation(CommandMessage message, IGuildUser user)
+		{
+			// Handle bots
+			if (user.IsBot)
+			{
+				await message.Channel.SendMessageAsync("Bots cannot gain reputation.", messageReference: message.MessageReference);
+				return;
+			}
+
+			// Get leaderboard settings
+			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(message.Guild.Id);
+
+			if (settings.ReputationRemoveRole == "0")
+			{
+				// Rep disabled on server
+				await message.Channel.SendMessageAsync("Rep Removal has been disabled by Server Admin", messageReference: message.MessageReference);
+				return;
+			}
+			else if (settings.ReputationRemoveRole != "1")
+			{
+				// Rep role required to remove
+				if (ulong.TryParse(settings.ReputationRemoveRole, out ulong repRole) && !message.Author.RoleIds.Contains(repRole))
+				{
+					// Rep Role required to remove not assigned to user
+					await message.Channel.SendMessageAsync("You do not have permission to remove Rep.", messageReference: message.MessageReference);
+					return;
+				}
+			}
+
+			// Get sending user information
+			User fromUser = await UserService.GetUser(message.Author);
+			string fromUserName = message.Author.GetName();
+
+			// Get receiving user information
+			User toUser = await UserService.GetUser(user);
+			string toUserName = user.GetName();
+
+			// Message for return
+			string postBackMessage;
+
+			if (fromUser.Id == toUser.Id)
+			{
+				postBackMessage = "You can't remove your own rep, _kupo!_";
+			}
+			else
+			{
+				// Update user information
+				toUser.Reputation -= 1;
+				_ = UserService.SaveUser(toUser);
+
+				postBackMessage = $"Hey {toUserName}, {fromUserName} thinks you've done bad, _kupo!_\nYour rep is now: {toUser.Reputation}";
+			}
+
+			await message.Channel.SendMessageAsync(postBackMessage, messageReference: message.MessageReference);
+			return;
+		}
+
+		[Command("RemoveRep", Permissions.Everyone, "Removes Rep from User.", CommandCategory.Novelty)]
+		public async Task RemoveReputationByUserString(CommandMessage message, string user)
+		{
+			// Get guild users by name
+			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
+
+			if (userToRep.Count() == 1)
+			{
+				await this.RemoveReputation(message, userToRep.FirstOrDefault());
 			}
 			else
 			{

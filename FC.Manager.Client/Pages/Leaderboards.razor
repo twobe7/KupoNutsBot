@@ -86,6 +86,7 @@ else
 </div>
 	<div class="footer">
 		<div class="footer-content">
+			<button class="btn btn-secondary" @onclick="this.OnSettings">Settings</button>
 			@*<button class="btn btn-primary" @onclick="this.OnCreateNew">New</button>*@
 		</div>
 	</div>
@@ -135,4 +136,15 @@ else
 	////	item.Id = Guid.NewGuid().ToString();
 	////	OnEdit(item);
 	////}
+
+	protected async void OnSettings()
+	{
+		LeaderboardSettings set = await RPCService.Invoke<LeaderboardSettings>("LeaderboardSettingsService.GetSettings");
+		set = await Inspector.Inspect(set);
+
+		if (set == null)
+			return;
+
+		await RPCService.Invoke<LeaderboardSettings>("LeaderboardSettingsService.SaveSettings", set);
+	}
 }

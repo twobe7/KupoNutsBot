@@ -71,7 +71,7 @@ namespace FC.Bot.ContentCreators
 		[Command("TestYTUploader", Permissions.Administrators, "Test Uploader - Lacrima")]
 		public async Task TestUploader(CommandMessage message)
 		{
-			ExploderAPI.Video video = await ExploderAPI.GetLatestVideo("UCk_PCfHt9qefbsbSJMsKpRg");
+			ExploderAPI.Video video = await ExploderAPI.GetLatestVideo("UCBGZf_eNHJPCFxVxzEEWMeA");
 
 			// Send Embed
 			await message.Channel.SendMessageAsync(embed: video.ToEmbed(), messageReference: message.MessageReference);
@@ -120,7 +120,7 @@ namespace FC.Bot.ContentCreators
 			{
 				// TODO: Add YT when implemented
 				string prefix = CommandsService.GetPrefix(message.Guild.Id);
-				embed.Description = $"No streamers found!\nUsers can add themselves with {prefix}IStreamTwitch command";
+				embed.Description = $"No streamers found!\nUsers can add themselves with {prefix}ICreatorTwitch or {prefix}ICreatorYoutube command";
 			}
 			else
 			{
@@ -184,6 +184,18 @@ namespace FC.Bot.ContentCreators
 					{
 						bool streamerUpdated = false;
 
+						// Check if display name should be updated
+						SocketGuildUser user = guild.Users.FirstOrDefault(x => x.Id == streamer.DiscordGuildId);
+						if (user != null)
+						{
+							string displayName = string.IsNullOrWhiteSpace(user.Nickname) ? user.Username : user.Nickname;
+							if (streamer.GuildNickName != displayName)
+							{
+								streamer.GuildNickName = displayName;
+								streamerUpdated = true;
+							}
+						}
+
 						// Twitch streamer
 						if (streamer.Twitch != null && !string.IsNullOrWhiteSpace(streamer.Twitch.UserName))
 						{
@@ -194,7 +206,8 @@ namespace FC.Bot.ContentCreators
 							{
 								// First stream or Current stream hasn't been posted and last stream longer than 30 minutes ago
 								if (streamer.Twitch.LastStream == null
-									|| (stream.Id != streamer.Twitch.LastStream?.Id && streamer.Twitch.LastStream?.CreatedMinutesAgo > 30))
+									|| (stream.Id != streamer.Twitch.LastStream?.Id
+										&& (stream.ParsedStartedAt - (streamer.Twitch.LastStream?.Created ?? DateTime.MinValue)).TotalMinutes > 30))
 								{
 									RestUserMessage message = await contentCreatorChannel.SendMessageAsync(embed: stream.ToEmbed());
 

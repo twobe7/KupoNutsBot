@@ -45,6 +45,8 @@ namespace Twitch
 			public string[]? TagIds { get; set; }
 			public bool? IsMature { get; set; }
 
+			public DateTime ParsedStartedAt => DateTime.TryParse(this.StartedAt, out DateTime result) ? result : DateTime.Now;
+
 			public bool IsLive => !string.IsNullOrWhiteSpace(this.Id);
 
 			public string ChannelName => $"[{this.UserName}](https://twitch.tv/{this.UserName})";
@@ -54,13 +56,13 @@ namespace Twitch
 				return this.ThumbnailUrl.Replace("{width}", width.ToString()).Replace("{height}", height.ToString()) + $"?v={DateTimeOffset.Now.ToUnixTimeSeconds()}";
 			}
 
-			public Embed ToEmbed(uint width = 900, uint height = 600)
+			public Embed ToEmbed(uint width = 900, uint height = 600, string username = null)
 			{
 				EmbedBuilder embed = new EmbedBuilder
 				{
 					Color = Color.DarkPurple,
 					ThumbnailUrl = "https://image.flaticon.com/icons/png/256/2111/2111668.png",
-					Title = $"Now Streaming: {this.UserName}",
+					Title = $"Now Streaming: {username ?? this.UserName}",
 					Description = this.Title,
 					ImageUrl = this.GetThumbnailUrl(width, height),
 				};

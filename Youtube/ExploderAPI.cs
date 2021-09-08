@@ -170,7 +170,7 @@ namespace Youtube
 
 			private string FormatDescription()
 			{
-				return Description.Replace("\n\n\n\n", "\n\n").Truncate(512) + "\n";
+				return string.IsNullOrWhiteSpace(Description) ? "*No Description*" : Description.Replace("\n\n\n\n", "\n\n").Truncate(512) + "\n";
 			}
 		}
 	}
