@@ -95,7 +95,7 @@ namespace FC.Bot.Lodestone
 				////builder.AddField("Ends", TimeUtils.GetDateTimeString(end));
 				builder.AddField("Starts", await TimeUtils.GetTimeList(message.Guild.Id, start));
 				builder.AddField("Ends", await TimeUtils.GetTimeList(message.Guild.Id, end));
-				builder.AddField("Duration", TimeUtils.GetDurationString(end - start));
+				builder.AddField("Duration", TimeUtils.GetDurationString(end - start) ?? "Unknown");
 
 				await message.Channel.SendMessageAsync(embed: builder.Build(), messageReference: message.MessageReference);
 				return;

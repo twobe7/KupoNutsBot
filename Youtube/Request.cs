@@ -130,6 +130,51 @@ namespace Youtube
 			}
 		}
 
+		internal static async Task<T> GetYoutubeVideoInfo<T>(string videoId)
+			where T : ResponseBase
+		{
+			// testing
+			videoId = "neokjf-dn3k";
+
+			string url = $"https://www.googleapis.com/youtube/v3/videos?id={videoId}&part=snippet&key={Key}";
+
+			try
+			{
+				Log.Write("Request: " + url, "Youtube API");
+
+				WebRequest req = WebRequest.Create(url);
+
+				req.Headers.Add("Client-ID", Key);
+				////req.Headers.Add("Authorization", $"Bearer {token.AccessToken}");
+
+				WebResponse response = await req.GetResponseAsync();
+
+				using StreamReader reader = new StreamReader(response.GetResponseStream());
+				string json = await reader.ReadToEndAsync();
+
+				Log.Write("Response: " + json.Length + " characters", "Youtube API");
+
+				T result = Serializer.Deserialize<T>(json);
+				result.Json = json;
+				return result;
+			}
+			catch (WebException webEx)
+			{
+				HttpWebResponse errorResponse = (HttpWebResponse)webEx.Response;
+				if (errorResponse.StatusCode == HttpStatusCode.NotFound)
+				{
+					return Activator.CreateInstance<T>();
+				}
+
+				throw webEx;
+			}
+			catch (Exception ex)
+			{
+				////Log.Write("Error: " + ex.Message, "Youtube API");
+				throw ex;
+			}
+		}
+
 		////private static async Task<OAuthToken> GetOAuth()
 		////{
 		////	string url = $"https://id.twitch.tv/oauth2/token?client_id={Key}&client_secret={Secret}&grant_type=client_credentials&scope=";

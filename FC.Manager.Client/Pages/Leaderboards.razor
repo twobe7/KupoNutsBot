@@ -86,8 +86,10 @@ else
 </div>
 	<div class="footer">
 		<div class="footer-content">
-			<button class="btn btn-secondary" @onclick="this.OnSettings">Settings</button>
-			@*<button class="btn btn-primary" @onclick="this.OnCreateNew">New</button>*@
+			@if (RPCService.CanManageGuild)
+			{
+				<button class="btn btn-secondary" @onclick="this.OnSettings">Settings</button>
+			}
 		</div>
 	</div>
 }

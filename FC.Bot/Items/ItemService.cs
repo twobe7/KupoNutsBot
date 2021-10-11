@@ -205,7 +205,14 @@ namespace FC.Bot.Items
 			if (results.Count <= 0)
 				throw new UserException("I couldn't find any items that match that search.");
 
-			if (results.Count > 1)
+			ulong? id;
+
+			SearchAPI.Result exactMatch = results.FirstOrDefault(x => search.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
+			if (exactMatch != null)
+			{
+				id = exactMatch.ID;
+			}
+			else if (results.Count > 1)
 			{
 				EmbedBuilder embed = new EmbedBuilder();
 
@@ -221,13 +228,15 @@ namespace FC.Bot.Items
 				await message.Channel.SendMessageAsync(embed: embed.Build());
 				return;
 			}
-
-			ulong? id = results[0].ID;
+			else
+			{
+				id = results[0].ID;
+			}
 
 			if (id == null)
 				throw new Exception("No Id in item");
 
-			await this.GetMarketBoardItem(message, (ulong)id);
+			await this.GetMarketBoardItem(message, id.Value);
 			return;
 		}
 

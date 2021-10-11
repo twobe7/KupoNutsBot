@@ -235,7 +235,7 @@ namespace FC.Utils
 		public static string? GetDurationString(Duration? timeNull)
 		{
 			if (timeNull == null)
-				return null;
+				return string.Empty;
 
 			Duration time = (Duration)timeNull;
 			StringBuilder builder = new StringBuilder();

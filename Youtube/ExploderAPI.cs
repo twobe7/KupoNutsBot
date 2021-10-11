@@ -117,7 +117,7 @@ namespace Youtube
 
 			public string TitleUrl => $"[{this.Title}]({this.Url})";
 			public string ChannelUrl => $"[{this.Author}](https://www.youtube.com/channel/{this.ChannelId})";
-			public string UploadedAgo => (DateTime.Now - this.UploadDate).ToMediumString() + " ago";
+			public string UploadedAgo => (DateTime.Now.ToUniversalTime() - this.UploadDate).ToMediumString() + " ago";
 
 			public Embed ToEmbed(uint width = 400, uint height = 250)
 			{

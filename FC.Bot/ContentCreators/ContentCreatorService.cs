@@ -236,6 +236,10 @@ namespace FC.Bot.ContentCreators
 							// Latest Video hasn't been posted
 							if (latestVideo != null && latestVideo.Id != streamer.Youtube.LastVideo?.Id)
 							{
+								YoutubeAPI.YoutubeVideo youtubeVideo = await YoutubeAPI.GetVideoInformation(latestVideo.Id);
+
+								latestVideo.UploadDate = youtubeVideo.Items.FirstOrDefault()?.Snippet.PublishedAt ?? latestVideo.UploadDate;
+
 								await contentCreatorChannel.SendMessageAsync(embed: latestVideo.ToEmbed());
 
 								// Save last video id
