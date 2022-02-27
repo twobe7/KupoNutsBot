@@ -16,14 +16,14 @@ namespace FC.Bot.Utils
 			if (!string.IsNullOrWhiteSpace(settings?.BotDiscordServer) && !string.IsNullOrWhiteSpace(settings?.BotLogExceptionsChannel))
 			{
 				// Get the guild
-				Discord.WebSocket.SocketGuild kupoNutsGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
+				Discord.WebSocket.SocketGuild botGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
 
-				if (kupoNutsGuild == null)
+				if (botGuild == null)
 					throw new Exception("Unable to access guild");
 
 				// Post message
 				string exceptionMessage = $"Server: {message.Guild.Name}\nUser: {message.Author.GetName()}\nMessage: {message.Message.Content}.\n`{exception}`";
-				await kupoNutsGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
+				await botGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
 			}
 		}
 
@@ -34,14 +34,14 @@ namespace FC.Bot.Utils
 			if (!string.IsNullOrWhiteSpace(settings?.BotDiscordServer) && !string.IsNullOrWhiteSpace(settings?.BotLogExceptionsChannel))
 			{
 				// Get the guild
-				Discord.WebSocket.SocketGuild kupoNutsGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
+				Discord.WebSocket.SocketGuild botGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
 
-				if (kupoNutsGuild == null)
+				if (botGuild == null)
 					throw new Exception("Unable to access guild");
 
 				// Post message
 				string exceptionMessage = $"Server: {guild ?? "Unknown"}\nUser: {user ?? "Unknown"}\nMessage: {messageContent}.\n`{exception}`";
-				await kupoNutsGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
+				await botGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
 			}
 		}
 	}
