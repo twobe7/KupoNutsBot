@@ -51,10 +51,8 @@ namespace FC.Bot.Services
 		[Command("Time", Permissions.Everyone, "Shows the current time in multiple time zones.")]
 		public async Task Time(CommandMessage message)
 		{
-			Instant now = SystemClock.Instance.GetCurrentInstant();
-
-			Embed embed = await TimeUtils.GetDateTimeList(message.Guild.Id, now);
-			await message.Channel.SendMessageAsync(embed: embed, messageReference: message.MessageReference);
+			long now = SystemClock.Instance.GetCurrentInstant().ToUnixTimeSeconds();
+			await message.Channel.SendMessageAsync(text: $"<t:{now}:f>", messageReference: message.MessageReference);
 
 			return;
 		}
