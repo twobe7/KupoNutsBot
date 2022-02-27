@@ -6,6 +6,7 @@ namespace FC.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Linq;
 	using System.Runtime.InteropServices;
 	using System.Text;
 	using System.Threading.Tasks;
@@ -62,10 +63,12 @@ namespace FC.Bot.Services
 		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~", CommandCategory.Novelty)]
 		public Task<Embed> Ask(string message)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = message;
-			builder.Description = Magic8BallAnswers.GetRandom();
-			builder.Color = Color.DarkBlue;
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = message,
+				Description = Magic8BallAnswers.GetRandom(),
+				Color = Color.DarkBlue,
+			};
 
 			return Task.FromResult(builder.Build());
 		}
@@ -90,12 +93,10 @@ namespace FC.Bot.Services
 			if (parts.Length != 2)
 				throw new UserException("Invalid dice format! dice should be `[Number of Dice]d[number of faces]` like `1d20` or `2d6`");
 
-			int count = 0;
-			if (!int.TryParse(parts[0], out count))
+			if (!int.TryParse(parts[0], out int count))
 				throw new UserException("I didn't understand the dice number: \"" + parts[0] + "\", was that a number?");
 
-			int faces = 0;
-			if (!int.TryParse(parts[1], out faces))
+			if (!int.TryParse(parts[1], out int faces))
 				throw new UserException("I didn't understand the dice faces: \"" + parts[1] + "\", was that a number?");
 
 			if (count <= 0)
@@ -144,15 +145,14 @@ namespace FC.Bot.Services
 			Random rn = new Random();
 			int value = rn.Next(count);
 
-			switch (value)
+			return value switch
 			{
-				case 0: return "I choose... " + optionA + "!";
-				case 1: return "I choose... " + optionB + "!";
-				case 2: return "I choose... " + optionC + "!";
-				case 3: return "I choose... " + optionD + "!";
-			}
-
-			throw new Exception("Failed to choose a valid option");
+				0 => "I choose... " + optionA + "!",
+				1 => "I choose... " + optionB + "!",
+				2 => "I choose... " + optionC + "!",
+				3 => "I choose... " + optionD + "!",
+				_ => throw new Exception("Failed to choose a valid option"),
+			};
 		}
 
 		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.", CommandCategory.Novelty)]
@@ -314,7 +314,7 @@ namespace FC.Bot.Services
 		}
 
 		[Command(@"Unflip", Permissions.Everyone, "Unflips user", CommandCategory.Novelty)]
-		public string Unflip(CommandMessage message, IGuildUser user)
+		public string Unflip(IGuildUser user)
 		{
 			if (user.Id == Program.DiscordClient.CurrentUser.Id)
 			{
@@ -327,8 +327,8 @@ namespace FC.Bot.Services
 		[Command("Hug", Permissions.Everyone, "Hugs a user", CommandCategory.Novelty)]
 		public async Task<Embed> Hug(CommandMessage message, IGuildUser user)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Color = Color.DarkRed;
+			EmbedBuilder builder = new EmbedBuilder()
+				.WithColor(Color.DarkRed);
 
 			if (message.Author.Id == user.Id)
 			{
@@ -370,7 +370,7 @@ namespace FC.Bot.Services
 		}
 
 		[Command("Sarcasm", Permissions.Everyone, "makes text SaRcAsTiC", CommandCategory.Novelty)]
-		public Task<string> Sarcasm(CommandMessage message, string text)
+		public Task<string> Sarcasm(string text)
 		{
 			char[] characters = new char[text.Length];
 			bool upper = true;
@@ -388,8 +388,8 @@ namespace FC.Bot.Services
 		[Command("Slap", Permissions.Everyone, "Slaps a user", CommandCategory.Novelty)]
 		public async Task<Embed> Slap(CommandMessage message, IGuildUser user)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Color = Color.DarkRed;
+			EmbedBuilder builder = new EmbedBuilder()
+				.WithColor(Color.DarkRed);
 
 			if (user.Id == Program.DiscordClient.CurrentUser.Id)
 			{
@@ -447,6 +447,31 @@ namespace FC.Bot.Services
 			await message.Channel.DeleteMessageAsync(message.Message);
 
 			return builder.Build();
+		}
+
+		[Command("Pet", Permissions.Everyone, "Pet a user", CommandCategory.Novelty, "Pat")]
+		[Command("Pat", Permissions.Everyone, "Pat a user", CommandCategory.Novelty)]
+		public async Task Pat(CommandMessage message, string user)
+		{
+			// Get guild users by name
+			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
+
+			if (userToRep.Count() == 1)
+			{
+				await this.Pat(message, userToRep.FirstOrDefault());
+			}
+			else
+			{
+				RestUserMessage response = await message.Channel.SendMessageAsync("I'm sorry, I'm not sure who you mean. Try mentioning them, _kupo!_", messageReference: message.MessageReference);
+
+				// Wait, then delete both messages
+				await Task.Delay(2000);
+
+				await message.Channel.DeleteMessageAsync(response.Id);
+				await message.Channel.DeleteMessageAsync(message.Id);
+			}
+
+			return;
 		}
 
 		[Command("Rate", Permissions.Everyone, "Rates a user", CommandCategory.Novelty)]

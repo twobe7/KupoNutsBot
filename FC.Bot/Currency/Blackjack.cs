@@ -73,18 +73,18 @@ namespace FC.Bot.Currency
 			// New game
 			activeGame = new ActiveGame(message.Author.Id, this.betAmount);
 
+			// Hold message response
+			RestUserMessage? bjMessage;
+
 			// User already won - what luck
 			if (activeGame.UserHandValue == 21)
 			{
 				// Final builder information
 				EmbedBuilder builder = GetEmbedBuilder(true, true);
-				RestUserMessage? bjMessage = await message.Channel.SendMessageAsync(null, false, builder.Build(), messageReference: message.MessageReference);
+				bjMessage = await message.Channel.SendMessageAsync(null, false, builder.Build(), messageReference: message.MessageReference);
 
 				activeGame = null;
 				await Task.Delay(3000);
-
-				// Stop game
-				_ = Task.Run(async () => await StopBlackjack(bjMessage));
 			}
 			else
 			{
@@ -92,7 +92,7 @@ namespace FC.Bot.Currency
 				EmbedBuilder builder = GetEmbedBuilder();
 
 				// First deal
-				RestUserMessage? bjMessage = await message.Channel.SendMessageAsync(null, false, builder.Build(), messageReference: message.MessageReference);
+				bjMessage = await message.Channel.SendMessageAsync(null, false, builder.Build(), messageReference: message.MessageReference);
 
 				// Update active game
 				activeGame.MessageId = bjMessage.Id;
@@ -102,10 +102,10 @@ namespace FC.Bot.Currency
 
 				// Handle reacts
 				Program.DiscordClient.ReactionAdded += OnReactionAdded;
-
-				// Stop game after no response
-				_ = Task.Run(async () => await StopBlackjack(bjMessage));
 			}
+
+			// Stop game
+			_ = Task.Run(async () => await StopBlackjack(bjMessage));
 
 			return Task.CompletedTask;
 		}
@@ -145,9 +145,11 @@ namespace FC.Bot.Currency
 		private static EmbedBuilder GetEmbedBuilder(bool revealDealerHand = false, bool finalBuild = false)
 		{
 			// Initial builder information
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = "Blackjack";
-			builder.Color = Color.Gold;
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = "Blackjack",
+				Color = Color.Gold,
+			};
 
 			if (activeGame == null)
 				return builder;

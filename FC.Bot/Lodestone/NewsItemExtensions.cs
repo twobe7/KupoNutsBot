@@ -26,16 +26,19 @@ namespace FC.Bot.Lodestone
 
 		public static Embed ToEmbed(this NewsItem self)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-
-			builder.Title = self.Title;
-			builder.Url = self.Url;
-			builder.Description = self.Description?.Length > 2048 ? self.Description.Substring(0, 2048) : self.Description;
-			builder.ImageUrl = self.Image;
-			builder.Color = self.GetColor();
-			builder.Timestamp = self.GetInstant().ToDateTimeOffset();
-			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = self.Category;
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = self.Title,
+				Url = self.Url,
+				Description = self.Description?.Length > 2048 ? self.Description.Substring(0, 2048) : self.Description,
+				ImageUrl = self.Image,
+				Color = self.GetColor(),
+				Timestamp = self.GetInstant().ToDateTimeOffset(),
+				Footer = new EmbedFooterBuilder
+				{
+					Text = self.Category,
+				},
+			};
 
 			return builder.Build();
 		}
@@ -63,17 +66,16 @@ namespace FC.Bot.Lodestone
 
 		public static Color GetColor(this NewsItem self)
 		{
-			switch (self.Category)
+			return self.Category switch
 			{
-				case "topics": return Color.DarkGrey;
-				case "notices": return Color.Green;
-				case "maintenance": return Color.Orange;
-				case "updates": return Color.Gold;
-				case "status": return Color.LighterGrey;
-				case "developers": return Color.Teal;
-			}
-
-			throw new Exception("Unknown category: " + self.Category);
+				"topics" => Color.DarkGrey,
+				"notices" => Color.Green,
+				"maintenance" => Color.Orange,
+				"updates" => Color.Gold,
+				"status" => Color.LighterGrey,
+				"developers" => Color.Teal,
+				_ => throw new Exception("Unknown category: " + self.Category),
+			};
 		}
 	}
 }

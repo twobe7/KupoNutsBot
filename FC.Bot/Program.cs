@@ -135,12 +135,14 @@ namespace FC.Bot
 					if (idStr != null)
 					{
 						ulong id = ulong.Parse(idStr);
-						SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(id);
-						EmbedBuilder enbedBuilder = new EmbedBuilder();
-						enbedBuilder.Color = Color.Red;
-						enbedBuilder.Title = "Kupo Nut Bot encountered an error";
-						enbedBuilder.Description = exceptionLog;
-						enbedBuilder.Timestamp = DateTimeOffset.UtcNow;
+						SocketTextChannel channel = (SocketTextChannel)DiscordClient.GetChannel(id);
+						EmbedBuilder enbedBuilder = new EmbedBuilder
+						{
+							Color = Color.Red,
+							Title = "Kupo Nut Bot encountered an error",
+							Description = exceptionLog,
+							Timestamp = DateTimeOffset.UtcNow,
+						};
 						channel.SendMessageAsync(null, false, enbedBuilder.Build());
 					}
 				}

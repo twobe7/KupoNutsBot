@@ -133,8 +133,11 @@ namespace Youtube
 		internal static async Task<T> GetYoutubeVideoInfo<T>(string videoId)
 			where T : ResponseBase
 		{
-			// testing
+
+#if DEBUG
+			// testing id
 			videoId = "neokjf-dn3k";
+#endif
 
 			string url = $"https://www.googleapis.com/youtube/v3/videos?id={videoId}&part=snippet&key={Key}";
 
