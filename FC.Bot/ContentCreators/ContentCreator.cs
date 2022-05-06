@@ -79,6 +79,7 @@ namespace FC.Bot.ContentCreators
 			public Content? LastVideo { get; set; }
 			public Type Type { get; set; }
 			public string? LastStreamEmbedMessageId { get; set; }
+			public uint ErrorCount { get; set; }
 
 			public string Link
 			{
