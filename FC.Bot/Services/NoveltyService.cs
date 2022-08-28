@@ -627,14 +627,8 @@ namespace FC.Bot.Services
 			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
 			double eorzeaConstant = 20.571428571428573;
 
-			// time is off by 19 minutes on windows, but not Linux...
-			double offset = 19 * 60;
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				offset = 0;
-
 			double timeSeconds = (DateTime.Now.ToUniversalTime() - epoch).TotalSeconds;
-			double eorzeaSeconds = (timeSeconds * eorzeaConstant) + offset;
+			double eorzeaSeconds = timeSeconds * eorzeaConstant;
 			DateTime et = epoch + TimeSpan.FromSeconds(eorzeaSeconds);
 
 			return et;
