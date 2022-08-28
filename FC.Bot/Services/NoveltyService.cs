@@ -80,14 +80,21 @@ namespace FC.Bot.Services
 		}
 
 		[Command("Roll", Permissions.Everyone, "Roll the dice.", CommandCategory.Novelty)]
-		public string Roll()
+		public void Roll(CommandMessage message)
 		{
-			return this.Roll("1d6");
+			this.Roll(message, "1d6");
 		}
 
 		[Command("Roll", Permissions.Everyone, "Roll the dice. with the given format: 1d20", CommandCategory.Novelty)]
-		public string Roll(string format)
+		public void Roll(CommandMessage message, string format)
 		{
+			if (format.ToLower() == "housing")
+			{
+				// Post meme message
+				message.Channel.SendMessageAsync(text: "You rolled a...0. May you have better luck next time.", messageReference: message.MessageReference);
+				return;
+			}
+
 			string[] parts = format.Split('d', 'D');
 
 			if (parts.Length != 2)
@@ -112,7 +119,8 @@ namespace FC.Bot.Services
 				total += rn.Next(faces) + 1;
 			}
 
-			return "You rolled: " + total.ToString();
+			// Post
+			message.Channel.SendMessageAsync(text: $"You rolled: {total}", messageReference: message.MessageReference);
 		}
 
 		[Command("Choose", Permissions.Everyone, "Let me choose for you", CommandCategory.Novelty)]
@@ -177,20 +185,7 @@ namespace FC.Bot.Services
 		[Command("EorzeaTime", Permissions.Everyone, "Gets the current Eorzean Time", CommandCategory.XIVData)]
 		public string EorzeanTime()
 		{
-			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
-			double eorzeaConstant = 20.571428571428573;
-
-			// time is off by 19 minutes on windows, but not Linux...
-			double offset = 19 * 60;
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				offset = 0;
-
-			double timeSeconds = (DateTime.Now.ToUniversalTime() - epoch).TotalSeconds;
-			double eorzeaSeconds = (timeSeconds * eorzeaConstant) + offset;
-			DateTime et = epoch + TimeSpan.FromSeconds(eorzeaSeconds);
-
-			return "It is currently: " + et.ToString("HH:mm");
+			return "It is currently: " + this.GetEorzeanTime().ToString("HH:mm");
 		}
 
 		[Command("Timers", Permissions.Everyone, "Display the FFXIV Reset Timers", CommandCategory.XIVData)]
@@ -550,6 +545,99 @@ namespace FC.Bot.Services
 			await message.Channel.SendMessageAsync(embed: embed.Build());
 
 			return;
+		}
+
+		/// <summary>
+		/// Returns the current weather and time of Island Sanctuary.
+		/// </summary>
+		/// <remarks>Data from https://ffxiv.pf-n.co/skywatcher.</remarks>
+		/// <param name="message">The received command message.</param>
+		[Command("ISWeather", Permissions.Everyone, "Get Island Sanctuary Weather", CommandCategory.Novelty)]
+		public async void GetIslandSantuaryWeather(CommandMessage message)
+		{
+			////var rates = new List<(int, int)>
+			////{
+			////	(1, 25),
+			////	(2, 45),
+			////	(3, 10),
+			////	(7, 10),
+			////	(4, 5),
+			////	(8, 5),
+			////};
+
+			var rates = new List<(string weather, int chance)>
+			{
+				("Clear Skies", 25),
+				("Fair Skies", 45),
+				("Clouds", 10),
+				("Rain", 10),
+				("Fog", 5),
+				("Showers", 5),
+			};
+
+			var currentWeather = "Unknown";
+			var upcomingWeather = "Unknown";
+			var currentTime = this.GetEorzeanTime().ToString("HH:mm");
+
+			// Get Seed
+			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
+			var seed = Math.Floor((DateTime.Now.ToUniversalTime() - epoch).TotalMilliseconds / 1400000);
+
+			// Hash Seed
+			var timeChunk = ((seed + 1) % 3) * 8;
+
+			var hashedSeed = this.GetHashedSeed(seed, timeChunk);
+			var upcomingHashedSeed = this.GetHashedSeed(seed, (timeChunk + 8) % 24);
+
+			// Get Weather
+			var cumChance = 0;
+			foreach (var (weather, chance) in rates)
+			{
+				cumChance += chance;
+				if (cumChance > hashedSeed)
+				{
+					if (currentWeather == "Unknown")
+						currentWeather = weather;
+				}
+
+				if (cumChance > upcomingHashedSeed)
+				{
+					if (upcomingWeather == "Unknown")
+						upcomingWeather = weather;
+				}
+			}
+
+			var response = $"Time: {currentTime}.\nCurrent Weather: {currentWeather}\nUpcoming Weather: {upcomingWeather}";
+
+			await message.Channel.SendMessageAsync(response, messageReference: message.MessageReference);
+		}
+
+		private uint GetHashedSeed(double seed, double timeChunk)
+		{
+			var hashBase = (int)((Math.Floor(seed / 3) * 100) + timeChunk);
+			var step1 = (uint)((hashBase << 11) ^ hashBase) >> 0;
+			var step2 = ((step1 >> 8) ^ step1) >> 0;
+			return step2 % 100;
+		}
+
+		private DateTime GetEorzeanTime()
+		{
+			/* (1 Eorzean hour = 175 seconds) */
+
+			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
+			double eorzeaConstant = 20.571428571428573;
+
+			// time is off by 19 minutes on windows, but not Linux...
+			double offset = 19 * 60;
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				offset = 0;
+
+			double timeSeconds = (DateTime.Now.ToUniversalTime() - epoch).TotalSeconds;
+			double eorzeaSeconds = (timeSeconds * eorzeaConstant) + offset;
+			DateTime et = epoch + TimeSpan.FromSeconds(eorzeaSeconds);
+
+			return et;
 		}
 
 		private int GenerateRatingForToday(IGuildUser userA, IGuildUser? userB, int mod)
