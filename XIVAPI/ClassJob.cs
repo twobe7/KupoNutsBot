@@ -5,12 +5,33 @@
 namespace XIVAPI
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Text;
+	using NetStone.Model.Parseables.Character.ClassJob;
 
 	[Serializable]
 	public class ClassJob
 	{
+		public ClassJob()
+		{
+		}
+
+		public ClassJob(Character.Jobs job, ClassJobEntry classJob)
+		{
+			this.Name = job.ToDisplayString();
+			this.Job = new Class(job);
+			this.Level = 0;
+
+			if (classJob == null)
+				return;
+
+			this.ExpLevel = (ulong)classJob.ExpCurrent;
+			this.ExpLevelMax = (ulong)classJob.ExpMax;
+			this.ExpLevelTogo = (ulong)classJob.ExpToGo;
+			this.IsSpecialised = classJob.IsSpecialized;
+			this.Level = classJob.Level;
+
+			////this.Mettle = classJob.Mettle;
+		}
+
 		public Class? Class { get; set; }
 		public ulong ExpLevel { get; set; } = 0;
 		public ulong ExpLevelMax { get; set; } = 0;

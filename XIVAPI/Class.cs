@@ -11,8 +11,17 @@ namespace XIVAPI
 	[Serializable]
 	public class Class
 	{
+		public Class(Character.Jobs job)
+		{
+			this.ID = (uint)job;
+			this.Name = job.ToDisplayString();
+		}
+
+		public Class()
+		{
+		}
+
 		public string Abbreviation { get; set; } = string.Empty;
-		//// public ? ClassJobCategory
 		public uint ID { get; set; }
 		public string Icon { get; set; } = string.Empty;
 		public string Name { get; set; } = string.Empty;

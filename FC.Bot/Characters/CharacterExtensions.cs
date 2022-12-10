@@ -37,11 +37,13 @@ namespace FC.Bot.Characters
 			if (self.GearSet == null || self.GearSet.Gear == null)
 				throw new Exception("No gear set on character.");
 
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.ImageUrl = self.Portrait;
-			builder.ThumbnailUrl = "https://xivapi.com/" + self.GearSet.Gear.MainHand?.Item?.Icon;
-			builder.Title = self.Name;
-			builder.Description = "Average item level: " + self.GetAverageLevel().ToString();
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				ImageUrl = self.Portrait,
+				ThumbnailUrl = "https://xivapi.com/" + self.GearSet.Gear.MainHand?.Item?.Icon,
+				Title = self.Name,
+				Description = "Average item level: " + self.GetAverageLevel().ToString(),
+			};
 
 			builder.AddGear("Main Hand", self.GearSet.Gear.MainHand, false);
 			builder.AddGear("Off Hand", self.GearSet.Gear.OffHand, false);
@@ -56,6 +58,42 @@ namespace FC.Bot.Characters
 			builder.AddGear("Bracelets", self.GearSet.Gear.Bracelets, true);
 			builder.AddGear("Ring", self.GearSet.Gear.Ring1, true);
 			builder.AddGear("Ring", self.GearSet.Gear.Ring2, true);
+
+			return builder.Build();
+		}
+
+		public static Embed GetGear(this XIVAPICharacter self, NetStone.Model.Parseables.Character.Gear.CharacterGear? netGear)
+		{
+			if (netGear == null)
+				throw new Exception("No gear set on character.");
+
+			////if (self.GearSet?.Gear == null)
+			////	throw new Exception();
+
+			// Main hand game data
+			////NetStone.GameData.NamedGameData? mainHandData = netGear.Mainhand.?.GetGameData();
+
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				ImageUrl = self.Portrait,
+				ThumbnailUrl = "https://xivapi.com/", // + netGear.Mainhand?.GetGameData()?.Icon,
+				Title = self.Name,
+				////Description = "Average item level: " + self.GetAverageLevel().ToString(),
+			};
+
+			builder.AddGear("Main Hand", netGear.Mainhand, false);
+			builder.AddGear("Off Hand", netGear.Offhand, false);
+			builder.AddGear("Head", netGear.Head, true);
+			builder.AddGear("Body", netGear.Body, true);
+			builder.AddGear("Hands", netGear.Hands, true);
+			builder.AddGear("Waist", netGear.Waist, true);
+			builder.AddGear("Legs", netGear.Legs, true);
+			builder.AddGear("Feet", netGear.Feet, true);
+			builder.AddGear("Earrings", netGear.Earrings, true);
+			builder.AddGear("Necklace", netGear.Necklace, true);
+			builder.AddGear("Bracelets", netGear.Bracelets, true);
+			builder.AddGear("Ring", netGear.Ring1, true);
+			builder.AddGear("Ring", netGear.Ring2, true);
 
 			return builder.Build();
 		}
@@ -145,6 +183,46 @@ namespace FC.Bot.Characters
 			return builder.ToString();
 		}
 
+		public static string GetString(this NetStone.Model.Parseables.Character.Gear.GearEntry self)
+		{
+			if (!self.Exists)
+				return string.Empty;
+
+			StringBuilder builder = new StringBuilder();
+			builder.Append("[");
+			builder.Append(self.ItemName);
+			builder.Append("](");
+			builder.Append(self.ItemDatabaseLink.AbsoluteUri); // "https://garlandtools.org/db/#item/");
+
+			if (!string.IsNullOrWhiteSpace(self.GlamourName))
+			{
+				builder.Append(" \"");
+				builder.Append(self.GlamourName);
+				builder.Append("\"");
+			}
+
+			builder.AppendLine(")");
+
+			////builder.Append("iLv: ");
+			////builder.Append(self.Item.LevelItem.ToString());
+			builder.Append(" ");
+
+			foreach (string materia in self.Materia)
+			{
+				if (string.IsNullOrWhiteSpace(materia))
+					continue;
+
+				builder.Append("[⬤](");
+				////builder.Append("https://garlandtools.org/db/#item/");
+				////builder.Append(materia.ID);
+				////builder.Append(" \"");
+				builder.Append(materia);
+				////builder.Append("\") ");
+			}
+
+			return builder.ToString();
+		}
+
 		public static Dictionary<AttributeCategories, List<AttributeValue>> GetAttributes(this GearSet self)
 		{
 			Dictionary<AttributeCategories, List<AttributeValue>> result = new Dictionary<AttributeCategories, List<AttributeValue>>();
@@ -187,6 +265,14 @@ namespace FC.Bot.Characters
 		}
 
 		private static void AddGear(this EmbedBuilder builder, string name, GearSet.GearValue? gear, bool inline)
+		{
+			if (gear == null)
+				return;
+
+			builder.AddField(name, gear.GetString(), inline);
+		}
+
+		private static void AddGear(this EmbedBuilder builder, string name, NetStone.Model.Parseables.Character.Gear.GearEntry? gear, bool inline)
 		{
 			if (gear == null)
 				return;

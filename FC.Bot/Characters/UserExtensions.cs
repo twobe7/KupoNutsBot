@@ -124,9 +124,11 @@ namespace FC.Bot.Characters
 			if (self.FFXIVCharacterVerification == null)
 				self.FFXIVCharacterVerification = Guid.NewGuid().ToString();
 
-			XIVAPI.CharacterAPI.GetResponse xivapi = await XIVAPI.CharacterAPI.Get(self.FFXIVCharacterId);
+			NetStone.LodestoneClient client = await NetStone.LodestoneClient.GetClientAsync();
+			NetStone.Model.Parseables.Character.LodestoneCharacter? character = await client.GetCharacter(self.FFXIVCharacterId.ToString());
+			////XIVAPI.CharacterAPI.GetResponse xivapi = await XIVAPI.CharacterAPI.Get(self.FFXIVCharacterId);
 
-			if (xivapi.Character?.Bio?.Contains(self.FFXIVCharacterVerification) == true)
+			if (character?.Bio?.Contains(self.FFXIVCharacterVerification) == true)
 			{
 				self.IsVerified = true;
 				await UserService.SaveUser(owner);

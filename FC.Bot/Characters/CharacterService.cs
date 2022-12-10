@@ -137,9 +137,9 @@ namespace FC.Bot.Characters
 			// Get guild users by name
 			List<IGuildUser> matchedUsers = await UserService.GetUsersByNickName(message.Guild, user);
 
-			if (matchedUsers.Count() == 1)
+			if (matchedUsers.Count == 1)
 			{
-				User userEntry = await UserService.GetUser(matchedUsers.FirstOrDefault());
+				User userEntry = await UserService.GetUser(matchedUsers.First());
 				await this.PostWhoIsResponse(message, userEntry);
 			}
 			else
@@ -245,7 +245,7 @@ namespace FC.Bot.Characters
 				akaDescBuilder.Append(character.ServerName);
 				akaDescBuilder.Append(")");
 
-				if (!await character.IsVerified(user))
+				if (!character.IsVerified)
 					akaDescBuilder.Append(" *(Not Verified)*");
 
 				akaDescBuilder.AppendLine();
@@ -292,7 +292,7 @@ namespace FC.Bot.Characters
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
-		public async Task<Embed> Gear(CommandMessage message, IGuildUser user)
+		public async Task<Embed> Gear(IGuildUser user)
 		{
 			CharacterInfo info = await this.GetCharacterInfo(user);
 			return info.GetGearEmbed();
@@ -306,7 +306,7 @@ namespace FC.Bot.Characters
 		}
 
 		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
-		public async Task<Embed> Gear(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
+		public async Task<Embed> Gear(string serverName, string characterFirstName, string characterLastName)
 		{
 			CharacterInfo info = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
 			return info.GetGearEmbed();
@@ -501,26 +501,44 @@ namespace FC.Bot.Characters
 
 		private async Task<CharacterInfo> GetCharacterInfo(string characterName, string serverName)
 		{
-			CharacterAPI.SearchResponse response = await CharacterAPI.Search(characterName, serverName);
+			if (!string.IsNullOrEmpty(serverName))
+			{
+				var txtInfo = new System.Globalization.CultureInfo("en-au", false).TextInfo;
+				serverName = txtInfo.ToTitleCase(serverName.ToLower());
+			}
 
-			if (response.Pagination == null)
-				throw new Exception("No Pagination");
+			NetStone.LodestoneClient client = await NetStone.LodestoneClient.GetClientAsync();
+			var response = await client.SearchCharacter(new NetStone.Search.Character.CharacterSearchQuery
+			{
+				CharacterName = characterName,
+				World = serverName,
+			});
+
+			////CharacterAPI.SearchResponse response = await CharacterAPI.Search(characterName, serverName);
+
+			////if (response.Pagination == null)
+			////	throw new Exception("No Pagination");
 
 			if (response.Results == null)
 			{
 				throw new Exception("No Results");
 			}
-			else if (response.Results.Count == 0)
+			else if (response.Results.Count() == 0)
 			{
 				throw new UserException("I couldn't find a character with that name.");
 			}
-			else if (response.Results.Count != 1)
+			else if (response.Results.Count() != 1)
 			{
-				throw new UserException("I found " + response.Results.Count + " characters with that name.");
+				throw new UserException($"I found {response.Results.Count()} characters with that name.");
 			}
 			else
 			{
-				return await this.GetCharacterInfo(response.Results[0].ID);
+				if (!uint.TryParse(response.Results.First().Id, out uint charId))
+				{
+					throw new UserException($"I couldn't find a character with that name.");
+				}
+
+				return await this.GetCharacterInfo(charId);
 			}
 		}
 
@@ -596,8 +614,8 @@ namespace FC.Bot.Characters
 			{
 				// Tribes
 				IEnumerable<IGrouping<string, CensusData>> x = raceGroup.GroupBy(x => x.Tribe);
-				(string, int) tribeA = (x.FirstOrDefault().Key, x.FirstOrDefault().Count());
-				(string, int) tribeB = (x.LastOrDefault().Key, x.LastOrDefault().Count());
+				(string, int) tribeA = (x.First().Key, x.First().Count());
+				(string, int) tribeB = (x.Last().Key, x.Last().Count());
 
 				raceRanking.Append($"{raceGroup.Key} - {raceGroup.Count()} ");
 				raceRanking.AppendLine($"{tribeA.Item1}: {tribeA.Item2}, {tribeB.Item1}: {tribeB.Item2})");
@@ -627,8 +645,8 @@ namespace FC.Bot.Characters
 			{
 				// Tribes
 				IEnumerable<IGrouping<string, CensusData>> x = raceGroup.GroupBy(x => x.Tribe);
-				(string, int) tribeA = (x.FirstOrDefault().Key, x.FirstOrDefault().Count());
-				(string, int) tribeB = (x.LastOrDefault().Key, x.LastOrDefault().Count());
+				(string, int) tribeA = (x.First().Key, x.First().Count());
+				(string, int) tribeB = (x.Last().Key, x.Last().Count());
 
 				activeRaceRanking.Append($"{raceGroup.Key} - {raceGroup.Count()} ");
 				activeRaceRanking.AppendLine($"{tribeA.Item1}: {tribeA.Item2}, {tribeB.Item1}: {tribeB.Item2})");
@@ -656,18 +674,5 @@ namespace FC.Bot.Characters
 			public uint Gender { get; set; }
 			public bool Active { get; set; } = false;
 		}
-
-		////private enum Races
-		////{
-		////	None = 0,
-		////	Hyur = 1,
-		////	Elezen = 2,
-		////	Lalafell = 3,
-		////	Miqo'te = 4,
-		////	Roegadyn = 5,
-		////	Au Ra = 6,
-		////	Hrothgar = 7,
-		////	Viera = 8,
-		////}
 	}
 }

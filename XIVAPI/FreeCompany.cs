@@ -11,6 +11,25 @@ namespace XIVAPI
 	[Serializable]
 	public class FreeCompany
 	{
+		public FreeCompany(NetStone.Model.Parseables.FreeCompany.LodestoneFreeCompany freeCompany)
+		{
+			this.Name = freeCompany.Name;
+			this.Tag = freeCompany.Tag;
+
+			if (freeCompany.CrestLayers.BottomLayer != null)
+				this.Crest.Add(freeCompany.CrestLayers.BottomLayer.ToString());
+
+			if (freeCompany.CrestLayers.MiddleLayer != null)
+				this.Crest.Add(freeCompany.CrestLayers.MiddleLayer.ToString());
+
+			if (freeCompany.CrestLayers.TopLayer != null)
+				this.Crest.Add(freeCompany.CrestLayers.TopLayer.ToString());
+		}
+
+		public FreeCompany()
+		{
+		}
+
 		public uint ActiveMemberCount { get; set; }
 		public string Name { get; set; } = string.Empty;
 		public string Tag { get; set; } = string.Empty;

@@ -5,10 +5,11 @@
 namespace FC.Bot.Characters
 {
 	using System;
-	using System.Collections.Generic;
 	using System.ComponentModel;
 	using System.Threading.Tasks;
 	using Discord;
+	using NetStone;
+	using NetStone.Model.Parseables.Character;
 	using XIVAPI;
 
 	using FFXIVCollectCharacter = FFXIVCollect.CharacterAPI.Character;
@@ -21,6 +22,8 @@ namespace FC.Bot.Characters
 		private FFXIVCollectCharacter? ffxivCollectCharacter;
 		private XIVAPICharacter? xivApiCharacter;
 		private FreeCompany? freeCompany;
+
+		private NetStone.Model.Parseables.Character.Gear.CharacterGear? netStoneGear;
 
 		public CharacterInfo(uint id)
 		{
@@ -76,15 +79,15 @@ namespace FC.Bot.Characters
 		public string? Town => this.xivApiCharacter?.Town?.Name;
 		public string? NameDay => this.xivApiCharacter?.Nameday;
 		public Data? GuardianDeity => this.xivApiCharacter?.GuardianDeity;
-		public XIVAPI.GrandCompany? GrandCompany => this.xivApiCharacter?.GrandCompany;
-		public XIVAPI.FreeCompany? FreeCompany => this.freeCompany;
+		public GrandCompany? GrandCompany => this.xivApiCharacter?.GrandCompany;
+		public FreeCompany? FreeCompany => this.freeCompany;
 		public string? Server => this.xivApiCharacter?.Server;
 		public string? DataCenter => this.xivApiCharacter?.DC;
 		public string? Bio => this.xivApiCharacter?.Bio;
 
 		public bool HasMounts => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Mounts != null;
-		public bool HasMinions => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Mounts != null;
-		public bool HasAchievements => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Mounts != null;
+		public bool HasMinions => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Minions != null;
+		public bool HasAchievements => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Achievements != null;
 
 		public (int Count, int Total) Mounts
 		{
@@ -143,7 +146,7 @@ namespace FC.Bot.Characters
 			if (this.xivApiCharacter == null)
 				throw new Exception("No XIVAPI character");
 
-			return this.xivApiCharacter.GetGear();
+			return this.xivApiCharacter.GetGear(this.GetNetStoneGear());
 		}
 
 		public Embed GetAttributesEmbed()
@@ -156,43 +159,100 @@ namespace FC.Bot.Characters
 
 		public async Task<Embed> GetElementalLevelEmbed()
 		{
-			XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, columns: "Character.ClassJobsElemental");
+			////XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, columns: "Character.ClassJobsElemental");
 
-			if (charResponse.Character == null)
+			// Get Client
+			LodestoneClient client = await LodestoneClient.GetClientAsync();
+			LodestoneCharacter? character = await client.GetCharacter(this.Id.ToString());
+
+			if (character == null)
 				throw new Exception("No character found.");
 
-			EmbedBuilder builder = new EmbedBuilder();
+			// Set level
+			int level = 0;
+			long exp = 0;
 
-			builder.Title = this.xivApiCharacter.Name;
-			builder.Description = "Elemental Level: " + (charResponse.Character?.GetElementalLevel() ?? 0);
+			// Get Elemental Level
+			NetStone.Model.Parseables.Character.ClassJob.CharacterClassJob? classJobInfo = await character?.GetClassJobInfo();
+
+			// Try get the Level
+			try
+			{
+				level = classJobInfo.Eureka.Level;
+				exp = classJobInfo.Eureka.ExpCurrent;
+			}
+			catch
+			{
+			}
+
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = this.xivApiCharacter.Name,
+				Description = $"Elemental Level: {level}\nExperience: {exp.ToString("N0")}",
+			};
 
 			return builder.Build();
 		}
 
 		public async Task<Embed> GetResistanceRankEmbed()
 		{
-			XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, columns: "Character.ClassJobsBozjan");
+			////XIVAPI.CharacterAPI.GetResponse charResponse = await XIVAPI.CharacterAPI.Get(this.Id, columns: "Character.ClassJobsBozjan");
 
-			if (charResponse.Character == null)
+			// Get Client
+			LodestoneClient client = await LodestoneClient.GetClientAsync();
+			LodestoneCharacter? character = await client.GetCharacter(this.Id.ToString());
+
+			if (character == null)
 				throw new Exception("No character found.");
 
-			EmbedBuilder builder = new EmbedBuilder();
+			// Set level / mettle
+			int level = 0;
+			long mettle = 0;
 
-			builder.Title = this.xivApiCharacter.Name;
-			builder.Description = "Resistance Rank: " + (charResponse.Character?.GetResistanceRank() ?? 0) + "\n" + "Current Mettle: " + (charResponse.Character?.GetResistanceMettle() ?? 0);
+			// Get Resistance Rank
+			NetStone.Model.Parseables.Character.ClassJob.CharacterClassJob? classJobInfo = await character?.GetClassJobInfo();
+
+			// Try get the Level and Mettle
+			try
+			{
+				level = classJobInfo.Bozja.Level;
+				mettle = classJobInfo.Bozja.ExpCurrent;
+			}
+			catch
+			{
+			}
+
+			EmbedBuilder builder = new EmbedBuilder
+			{
+				Title = this.xivApiCharacter.Name,
+				Description = $"Resistance Rank: {level}\nCurrent Mettle: {mettle.ToString("N0")}",
+			};
 
 			return builder.Build();
 		}
 
+		public NetStone.Model.Parseables.Character.Gear.CharacterGear? GetNetStoneGear()
+		{
+			return this.netStoneGear;
+		}
+
 		private async Task UpdateXivApi()
 		{
-			CharacterAPI.GetResponse charResponse = await CharacterAPI.Get(this.Id, CharacterAPI.CharacterData.ClassJobs | CharacterAPI.CharacterData.FreeCompany);
+			////CharacterAPI.GetResponse charResponse = await CharacterAPI.Get(this.Id, CharacterAPI.CharacterData.ClassJobs | CharacterAPI.CharacterData.FreeCompany);
 
-			if (charResponse.Character == null)
+			// Get Client
+			LodestoneClient client = await LodestoneClient.GetClientAsync();
+			LodestoneCharacter? character = await client.GetCharacter(this.Id.ToString());
+
+			if (character == null)
 				throw new UserException("I couldn't find that character.");
 
-			this.xivApiCharacter = charResponse.Character;
-			this.freeCompany = charResponse.FreeCompany;
+			this.xivApiCharacter = new XIVAPICharacter(character);
+
+			this.netStoneGear = character.Gear;
+
+			if (character.FreeCompany != null)
+				this.freeCompany = new FreeCompany(await client.GetFreeCompany(character.FreeCompany.Id));
 		}
 
 		private async Task UpdateFfxivCollect()

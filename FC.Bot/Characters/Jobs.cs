@@ -4,8 +4,6 @@
 
 namespace FC.Bot.Characters
 {
-	using System;
-
 	public enum Jobs
 	{
 		Paladin = 19,
@@ -16,9 +14,11 @@ namespace FC.Bot.Characters
 		Dragoon = 22,
 		Ninja = 30,
 		Samurai = 34,
+		Reaper = 40,
 		Whitemage = 24,
 		Scholar = 28,
 		Astrologian = 33,
+		Sage = 39,
 		Bard = 23,
 		Machinist = 31,
 		Dancer = 38,
