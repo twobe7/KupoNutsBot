@@ -30,6 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\NetStone\NetStone\NetStone.csproj" />
 	  <ProjectReference Include="..\FC.Shared\FC.Shared.csproj" />
 	</ItemGroup>
 

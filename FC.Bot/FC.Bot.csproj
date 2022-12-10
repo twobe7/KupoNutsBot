@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<DocumentationFile>..\bin\FC.Bot.xml</DocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -29,8 +29,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Discord.Net" Version="2.3.1" />
-		<PackageReference Include="NodaTime" Version="2.4.6" />
+		<PackageReference Include="Discord.Net" Version="3.8.1" />
+		<PackageReference Include="NodaTime" Version="3.1.5" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
 		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0007" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
@@ -40,6 +40,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\NetStone\NetStone\NetStone.csproj" />
 		<ProjectReference Include="..\FC.Shared\FC.Shared.csproj" />
 		<ProjectReference Include="..\FFXIVCollect\FFXIVCollect.csproj" />
 		<ProjectReference Include="..\Lodestone\Lodestone.csproj" />
