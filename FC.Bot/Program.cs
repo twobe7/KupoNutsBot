@@ -136,14 +136,14 @@ namespace FC.Bot
 					{
 						ulong id = ulong.Parse(idStr);
 						SocketTextChannel channel = (SocketTextChannel)DiscordClient.GetChannel(id);
-						EmbedBuilder enbedBuilder = new EmbedBuilder
+						EmbedBuilder embedBuilder = new EmbedBuilder
 						{
 							Color = Color.Red,
 							Title = "Kupo Nut Bot encountered an error",
 							Description = exceptionLog,
 							Timestamp = DateTimeOffset.UtcNow,
 						};
-						channel.SendMessageAsync(null, false, enbedBuilder.Build());
+						channel.SendMessageAsync(null, false, embedBuilder.Build());
 					}
 				}
 				catch (Exception)
@@ -192,6 +192,14 @@ namespace FC.Bot
 
 					// boot the rest of the bot
 					await this.AddServices();
+
+					// Add a slash command
+					var command = new SlashCommandBuilder
+					{
+						Name = "goodbot",
+						Description = "Praise me!",
+					};
+					await client.CreateGlobalApplicationCommandAsync(command.Build());
 
 					// Update all users in guilds
 					await this.PopulateGuildUsers();

@@ -7,12 +7,18 @@ namespace FC.Bot.Commands
 	using System;
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
+	using System.IO;
 	using System.Linq;
 	using System.Net;
+	using System.Net.Http;
+	using System.Net.Http.Json;
+	using System.Reactive.Linq;
 	using System.Reflection;
 	using System.Text;
 	using System.Text.RegularExpressions;
+	using System.Threading;
 	using System.Threading.Tasks;
+	using AngleSharp;
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
@@ -131,6 +137,7 @@ namespace FC.Bot.Commands
 		public override async Task Initialize()
 		{
 			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
+			Program.DiscordClient.SlashCommandExecuted += this.OnSlashCommandExecuted;
 
 			ScheduleService.RunOnSchedule(this.Update, 15);
 			await this.Update();
@@ -139,6 +146,7 @@ namespace FC.Bot.Commands
 		public override Task Shutdown()
 		{
 			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
+			Program.DiscordClient.SlashCommandExecuted -= this.OnSlashCommandExecuted;
 
 			return Task.CompletedTask;
 		}
@@ -157,7 +165,7 @@ namespace FC.Bot.Commands
 		private async Task OnMessageReceived(SocketMessage message)
 		{
 			// Ignore messages that did not come from users
-			if (!(message is SocketUserMessage))
+			if (message is not SocketUserMessage)
 				return;
 
 			// Ignore our own messages
@@ -168,10 +176,32 @@ namespace FC.Bot.Commands
 			string prefix = GetPrefix(guildId);
 
 			// Special case to display prefix for guild
-			if (message.Content.Contains(Program.DiscordClient.CurrentUser.Mention) && message.Content.Contains("prefix"))
+			if (message.Content.Contains(Program.DiscordClient.CurrentUser.Mention.Replace("!", string.Empty)) && message.Content.Contains("prefix"))
 			{
 				await message.Channel.SendMessageAsync($"This discord's prefix is `{prefix}`", messageReference: new MessageReference(message.Id));
 				return;
+			}
+
+			// That tiktok thing
+			if (message.Content.Contains(".tiktok.com"))
+			{
+				bool isValidUrl = Uri.TryCreate(message.Content, UriKind.Absolute, out Uri? uriResult)
+					&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+				if (isValidUrl && uriResult != null)
+				{
+					using var client = new HttpClient();
+					var response = await client.GetStringAsync($"https://unshorten.me/s/{uriResult.AbsoluteUri}");
+
+					if (response.IndexOf("?_") != -1)
+					{
+						response = response.Substring(0, response.IndexOf("?_"));
+					}
+
+					response = response.Replace("tiktok", "vxtiktok");
+
+					await message.Channel.SendMessageAsync(text: response, messageReference: new MessageReference(message.Id));
+					return;
+				}
 			}
 
 			// Ignore messages that do not start with the command character
@@ -344,6 +374,112 @@ namespace FC.Bot.Commands
 		{
 			await Task.Delay(delay);
 			await message.DeleteAsync();
+		}
+
+		private async Task OnSlashCommandExecuted(SocketSlashCommand slashCommand)
+		{
+			if (Program.Initializing)
+			{
+				IUserMessage waitMessage = await slashCommand.Channel.SendMessageAsync("Just drinking my morning coffee... Give me a minute...");
+
+				while (Program.Initializing)
+				{
+					await Task.Delay(1000);
+				}
+
+				await waitMessage.DeleteAsync();
+			}
+
+			if (commandHandlers.ContainsKey(slashCommand.Data.Name))
+			{
+				if (slashCommand.Channel is not SocketTextChannel textChannel)
+					return;
+
+				using (textChannel.EnterTypingState())
+				{
+					Exception? lastException = null;
+					foreach (Command command in commandHandlers[slashCommand.Data.Name])
+					{
+						try
+						{
+							lastException = null;
+							await command.InvokeSlash(slashCommand);
+							break;
+						}
+						catch (ParameterException ex)
+						{
+							lastException = ex;
+						}
+						catch (Exception ex)
+						{
+							lastException = ex;
+							break;
+						}
+					}
+
+					if (lastException != null)
+					{
+						if (lastException is UserException userEx)
+						{
+							await slashCommand.Channel.SendMessageAsync(userEx.Message);
+						}
+						else if (lastException is ParameterException paramEx)
+						{
+							await slashCommand.Channel.SendMessageAsync(paramEx.Message);
+							////await slashCommand.Channel.SendMessageAsync(null, false, await HelpService.GetHelp(message, commandStr));
+						}
+						else if (lastException is NotImplementedException)
+						{
+							IUserMessage sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, seems like I don't quite know how to do that yet.");
+
+							// Clear user and bot message
+							await slashCommand.DeleteOriginalResponseAsync();
+							_ = this.ClearSentMessage(sentMessage);
+						}
+						else if (lastException is WebException webEx)
+						{
+							HttpStatusCode? status = (webEx.Response as HttpWebResponse)?.StatusCode;
+							IUserMessage sentMessage;
+							if (status == null || status != HttpStatusCode.ServiceUnavailable)
+							{
+								// Send message to user
+								sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+
+								// Log exception
+								////await Utils.Logger.LogExceptionToDiscordChannel(lastException, message);
+							}
+							else
+							{
+								sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, the service is unavailable right now.");
+							}
+
+							// Clear user and bot message
+							await slashCommand.DeleteOriginalResponseAsync();
+							_ = this.ClearSentMessage(sentMessage);
+						}
+						else
+						{
+							// Send message to user
+							IUserMessage sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
+
+							// Log exception
+							////await Utils.Logger.LogExceptionToDiscordChannel(lastException, message);
+
+							// Clear user and bot message
+							await slashCommand.DeleteOriginalResponseAsync();
+							_ = this.ClearSentMessage(sentMessage);
+						}
+					}
+				}
+			}
+			else
+			{
+				IUserMessage sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, I didn't understand that command.");
+
+				// Clear user and bot message
+				await slashCommand.DeleteOriginalResponseAsync();
+				_ = this.ClearSentMessage(sentMessage);
+			}
 		}
 
 		private async Task LogExceptionToDiscordChannel(CommandMessage message, Exception exception)
