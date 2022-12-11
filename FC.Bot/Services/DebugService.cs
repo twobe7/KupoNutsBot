@@ -75,6 +75,60 @@ namespace FC.Bot.Services
 			return Task.FromResult("The time is: " + TimeUtils.GetDateTimeString(now, dtz));
 		}
 
+		[Command("Unix", Permissions.Everyone, "Converts string to unix time", CommandCategory.Novelty, "ConvertToUnixTime")]
+		[Command("ConvertToUnixTime", Permissions.Everyone, "Converts string to unix time")]
+		public Task<string> ToUnixTime(string time, string timezone)
+		{
+			return this.ToUnixTime(DateTime.Now.Date.ToString("dd/MM/yyyy"), time, timezone);
+		}
+
+		[Command("Unix", Permissions.Everyone, "Converts string to unix time", CommandCategory.Novelty, "ConvertToUnixTime")]
+		[Command("ConvertToUnixTime", Permissions.Everyone, "Converts string to unix time")]
+		public Task<string> ToUnixTime(string date, string time, string timezone)
+		{
+			string response;
+
+			if (DateTime.TryParse($"{date} {time}", out DateTime parsedDateTime))
+			{
+				ICollection<string>? tzAbbr = TimeZoneNames.TZNames.GetTimeZonesForCountry("au", "en-au").Keys;
+				foreach (string? tzId in tzAbbr)
+				{
+					int offsetInHours = 0;
+
+					TimeZoneNames.TimeZoneValues? abbr = TimeZoneNames.TZNames.GetAbbreviationsForTimeZone(tzId, "en-au");
+
+					// Increase by 1 hour if Daylight
+					if (abbr.Daylight == timezone)
+						offsetInHours += 1;
+
+					if (abbr.Generic == timezone || abbr.Daylight == timezone || abbr.Standard == timezone)
+					{
+						DateTimeZone? dateTimeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(tzId);
+						if (dateTimeZone != null)
+						{
+							ZonedDateTime zoned = default(Instant).InZone(dateTimeZone);
+
+							offsetInHours += zoned.Offset.Seconds / 60 / 60;
+
+							TimeSpan diffTS = new TimeSpan(offsetInHours, 0, 0);
+
+							parsedDateTime = parsedDateTime.Add(-diffTS);
+
+							TimeSpan timespan = parsedDateTime.TimeOfDay;
+
+							Instant tt = Instant.FromUtc(parsedDateTime.Year, parsedDateTime.Month, parsedDateTime.Day, timespan.Hours, timespan.Minutes);
+
+							response = tt.ToUnixTimeSeconds().ToString();
+
+							return Task.FromResult($"<t:{response}:f>");
+						}
+					}
+				}
+			}
+
+			return Task.FromResult("I'm unable to convert that.");
+		}
+
 		[Command("Blame", Permissions.Everyone, "Blames someone", CommandCategory.Novelty)]
 		public Task<string> Blame(CommandMessage message)
 		{
