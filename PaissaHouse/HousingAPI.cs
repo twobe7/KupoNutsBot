@@ -4,95 +4,13 @@
 
 namespace PaissaHouse
 {
-    using Newtonsoft.Json;
-    using System;
+	using System;
 	using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Threading.Tasks;
+	using System.ComponentModel;
+	using System.Threading.Tasks;
 
 	public class HousingAPI
 	{
-		/// <summary>
-		/// Enum for worlds
-		/// </summary>
-		/// <remarks>Populated from https://github.com/xivapi/ffxiv-datamining/blob/master/csv/World.csv.</remarks>
-		private enum WorldEnum
-		{
-			Asura = 23,
-			Belias = 24,
-			Chaos = 25,
-			Hecatoncheir = 26,
-			Moomba = 27,
-			Pandaemonium = 28,
-			Shinryu = 29,
-			Unicorn = 30,
-			Yojimbo = 31,
-			Zeromus = 32,
-			Twintania = 33,
-			Brynhildr = 34,
-			Famfrit = 35,
-			Lich = 36,
-			Mateus = 37,
-			Shemhazai = 38,
-			Omega = 39,
-			Jenova = 40,
-			Zalera = 41,
-			Zodiark = 42,
-			Alexander = 43,
-			Anima = 44,
-			Carbuncle = 45,
-			Fenrir = 46,
-			Hades = 47,
-			Ixion = 48,
-			Kujata = 49,
-			Typhon = 50,
-			Ultima = 51,
-			Valefor = 52,
-			Exodus = 53,
-			Faerie = 54,
-			Lamia = 55,
-			Phoenix = 56,
-			Siren = 57,
-			Garuda = 58,
-			Ifrit = 59,
-			Ramuh = 60,
-			Titan = 61,
-			Diabolos = 62,
-			Gilgamesh = 63,
-			Leviathan = 64,
-			Midgardsormr = 65,
-			Odin = 66,
-			Shiva = 67,
-			Atomos = 68,
-			Bahamut = 69,
-			Chocobo = 70,
-			Moogle = 71,
-			Tonberry = 72,
-			Adamantoise = 73,
-			Coeurl = 74,
-			Malboro = 75,
-			Tiamat = 76,
-			Ultros = 77,
-			Behemoth = 78,
-			Cactuar = 79,
-			Cerberus = 80,
-			Goblin = 81,
-			Mandragora = 82,
-			Louisoix = 83,
-			Syldra = 84,
-			Spriggan = 85,
-			Aegis = 90,
-			Balmung = 91,
-			Durandal = 92,
-			Excalibur = 93,
-			Gungnir = 94,
-			Hyperion = 95,
-			Masamune = 96,
-			Ragnarok = 97,
-			Ridill = 98,
-			Sargatanas = 99,
-		}
-
 		private enum DistrictEnum
 		{
 			Mist = 339,
@@ -192,7 +110,7 @@ namespace PaissaHouse
 		public static async Task<SearchResponse> Worlds(string name)
 		{
 			// Convert world name to enum for ID, no results if we cannot parse name
-			if (!Enum.TryParse(name, true, out WorldEnum world))
+			if (!Enum.TryParse(name, true, out FC.XIVData.World world))
 				return new SearchResponse();
 
 			string route = "/worlds/" + (int) world;
@@ -211,7 +129,7 @@ namespace PaissaHouse
 			public string Name { get; set; }
 			public List<District> Districts { get; set; }
 			public uint NumOpenPlots { get; set; }
-			public DateTime OldestPlotTime { get; set; }
+			public float OldestPlotTime { get; set; }
 		}
 
 		[Serializable]
@@ -220,7 +138,7 @@ namespace PaissaHouse
 			public uint Id { get; set; }
 			public string Name { get; set; }
 			public uint NumOpenPlots { get; set; }
-			public DateTime OldestPlotTime { get; set; }
+			public float OldestPlotTime { get; set; }
 			public List<OpenPlot> OpenPlots { get; set; }
 		}
 
@@ -232,10 +150,10 @@ namespace PaissaHouse
 			public uint WardNumber { get; set; }
 			public uint PlotNumber { get; set; }
 			public uint Size { get; set; }
-			public ulong KnownPrice { get; set; }
-			public DateTime LastUpdatedTime { get; set; }
-			public DateTime EstTimeOpenMin { get; set; }
-			public DateTime EstTimeOpenMax { get; set; }
+			public ulong LastSeenPrice { get; set; }
+			public float LastUpdatedTime { get; set; }
+			public float EstTimeOpenMin { get; set; }
+			public float EstTimeOpenMax { get; set; }
 			public uint EstNumDevals { get; set; }
 
 			/// <summary>
@@ -258,7 +176,7 @@ namespace PaissaHouse
 			{
 				get
 				{
-					TimeSpan lastUpdated = (DateTime.Now.ToUniversalTime() - this.LastUpdatedTime);
+					TimeSpan lastUpdated = DateTime.Now.ToUniversalTime() - DateTimeOffset.FromUnixTimeSeconds((long)this.LastUpdatedTime);
 					return lastUpdated.ToMediumString() + " ago";
 				}
 			}
@@ -271,7 +189,7 @@ namespace PaissaHouse
 			{
 				get
 				{
-					return (this.KnownPrice / 1000000M).ToString("N3") + "m";
+					return (this.LastSeenPrice / 1000000M).ToString("N3") + "m";
 				}
 			}
 

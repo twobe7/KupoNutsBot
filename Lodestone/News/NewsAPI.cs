@@ -16,7 +16,7 @@ namespace Lodestone.News
 
 		public static async Task<List<NewsItem>> Latest(Categories category)
 		{
-			return await Request.Send<List<NewsItem>>("/news/" + category.ToString());
+			return await Request.Send<List<NewsItem>>("/news/" + category.ToString().ToLower());
 		}
 
 		public static async Task<string> Detail(string url)

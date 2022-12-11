@@ -178,7 +178,7 @@ namespace FC.Bot.Commands
 			if (!message.Content.StartsWith(prefix))
 				return;
 
-			string command = message.Content.Substring(prefix.Length);
+			string command = message.Content[prefix.Length..];
 			command = command.TrimStart(' ', '	');
 
 			// replace funky quote-left and quote-right with normal quotes.

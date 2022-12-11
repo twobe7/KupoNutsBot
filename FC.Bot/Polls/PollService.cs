@@ -181,7 +181,7 @@ namespace FC.Bot.Polls
 			await this.pollDatabase.Save(poll);
 		}
 
-		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{

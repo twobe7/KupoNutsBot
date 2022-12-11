@@ -243,9 +243,9 @@ namespace FC.Bot.RPG
 			// Get guild users by name
 			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
 
-			if (userToRep.Count() == 1)
+			if (userToRep.Count == 1)
 			{
-				await this.GiveReputation(message, userToRep.FirstOrDefault());
+				await this.GiveReputation(message, userToRep.First());
 			}
 			else
 			{
@@ -325,9 +325,9 @@ namespace FC.Bot.RPG
 			// Get guild users by name
 			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
 
-			if (userToRep.Count() == 1)
+			if (userToRep.Count == 1)
 			{
-				await this.RemoveReputation(message, userToRep.FirstOrDefault());
+				await this.RemoveReputation(message, userToRep.First());
 			}
 			else
 			{

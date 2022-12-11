@@ -177,7 +177,7 @@ namespace FC.Bot.Events
 			return timeTillEvent.Value <= notifyDuration.Value;
 		}
 
-		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
@@ -197,7 +197,7 @@ namespace FC.Bot.Events
 					// we need to detect this case in the 'Update' loop to clear old notifications.
 					// but for now, we'll handle it when someone reacts.
 					this.messageEventLookup.Remove(message.Id.ToString());
-					await channel.DeleteMessageAsync(message.Value);
+					await channel.Value.DeleteMessageAsync(message.Value);
 					return;
 				}
 
@@ -234,7 +234,7 @@ namespace FC.Bot.Events
 
 				await evt.Notify.Post(evt);
 
-				RestUserMessage userMessage = (RestUserMessage)await channel.GetMessageAsync(message.Id);
+				RestUserMessage userMessage = (RestUserMessage)await channel.Value.GetMessageAsync(message.Id);
 				SocketUser user = Program.DiscordClient.GetUser(reaction.UserId);
 				await userMessage.RemoveReactionAsync(reaction.Emote, user);
 			}

@@ -6,12 +6,12 @@ namespace FC.Bot.Utils
 {
 	using System;
 	using System.IO;
-	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 
 	public static class FileDownloader
 	{
-		public static Task Download(string url, string path)
+		public static async Task<Task> Download(string url, string path)
 		{
 			string? dir = Path.GetDirectoryName(path);
 
@@ -21,11 +21,12 @@ namespace FC.Bot.Utils
 			if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 
-			using (WebClient client = new WebClient())
-			{
-				Log.Write("download: " + url + " to " + path, "Bot");
-				client.DownloadFile(url, path);
-			}
+			Log.Write("download: " + url + " to " + path, "Bot");
+
+			using HttpClient client = new ();
+			using var s = await client.GetStreamAsync(url);
+			using var fs = new FileStream(path, FileMode.CreateNew);
+			await s.CopyToAsync(fs);
 
 			return Task.CompletedTask;
 		}

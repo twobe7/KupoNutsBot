@@ -6,6 +6,7 @@ namespace FC.Bot.Lodestone
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Linq;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
@@ -64,7 +65,6 @@ namespace FC.Bot.Lodestone
 				EmbedBuilder builder = new EmbedBuilder
 				{
 					ThumbnailUrl = "http://na.lodestonenews.com/images/maintenance.png",
-					////ThumbnailUrl = "https://img.finalfantasyxiv.com/lds/h/F/DlQYVw2bqzA5ZOCfXKZ-Qe1IZU.svg",
 					Title = nextMaint.Title,
 					Url = nextMaint.Url,
 				};
@@ -85,16 +85,15 @@ namespace FC.Bot.Lodestone
 				else if (timeUntilEnd.TotalMinutes > 0)
 				{
 					builder.Description = "Ends In: " + TimeUtils.GetDurationString(end - now);
+					builder.ThumbnailUrl = "http://na.lodestonenews.com/images/status.png";
 				}
 				else
 				{
 					builder.Description = "Completed: " + TimeUtils.GetDurationString(now - end) + " ago.";
 				}
 
-				////builder.AddField("Starts", TimeUtils.GetDateTimeString(start));
-				////builder.AddField("Ends", TimeUtils.GetDateTimeString(end));
-				builder.AddField("Starts", await TimeUtils.GetTimeList(message.Guild.Id, start));
-				builder.AddField("Ends", await TimeUtils.GetTimeList(message.Guild.Id, end));
+				builder.AddField("Starts", TimeUtils.GetDiscordTimestamp(start.GetValueOrDefault().ToUnixTimeSeconds()));
+				builder.AddField("Ends", TimeUtils.GetDiscordTimestamp(end.GetValueOrDefault().ToUnixTimeSeconds()));
 				builder.AddField("Duration", TimeUtils.GetDurationString(end - start) ?? "Unknown");
 
 				await message.Channel.SendMessageAsync(embed: builder.Build(), messageReference: message.MessageReference);
@@ -124,12 +123,13 @@ namespace FC.Bot.Lodestone
 
 				PostedNews entry = await this.newsDb.LoadOrCreate(item.Id);
 
-				if (!entry.IsPosted)
+				if (!entry.PostedGuildIdList.Contains(message.Guild.Id))
 				{
 					Log.Write("Posting Lodestone news: " + item.Title, "Bot");
 					await item.Post(channelId);
 
 					entry.IsPosted = true;
+					entry.PostedGuildIdList.Add(message.Guild.Id);
 					await this.newsDb.Save(entry);
 
 					// don't flood channel!
@@ -145,41 +145,53 @@ namespace FC.Bot.Lodestone
 			List<NewsItem> news = await NewsAPI.Feed();
 			news.Reverse();
 
+			Dictionary<ulong, ulong> guildLodestoneChannel = new Dictionary<ulong, ulong>();
+
 			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
 			{
 				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
+				if (ulong.TryParse(settings.LodestoneChannel, out ulong channelId))
+					guildLodestoneChannel.Add(guild.Id, channelId);
+			}
 
-				if (!ulong.TryParse(settings.LodestoneChannel, out ulong channelId))
-					return;
+			foreach (NewsItem item in news)
+			{
+				if (item.Id == null)
+					continue;
 
-				foreach (NewsItem item in news)
+				// Get entry from DB
+				PostedNews entry = await this.newsDb.LoadOrCreate(item.Id);
+
+				bool updated = false;
+
+				foreach (KeyValuePair<ulong, ulong> guild in guildLodestoneChannel)
 				{
-					if (item.Id == null)
-						continue;
-
-					PostedNews entry = await this.newsDb.LoadOrCreate(item.Id);
-
-					if (!entry.IsPosted)
+					if (!entry.PostedGuildIdList.Contains(guild.Key))
 					{
 						if (item.Description == null && item.Url != null)
 							item.Description = await NewsAPI.Detail(item.Url);
 
-						Log.Write("Posting Lodestone news: " + item.Title, "Bot");
-						await item.Post(channelId);
+						Log.Write($"Posting Lodestone news for {guild.Key}: {item.Title}", "Bot");
+						await item.Post(guild.Value);
 
 						entry.IsPosted = true;
-						await this.newsDb.Save(entry);
-
-						// don't flood channel!
-						await Task.Delay(500);
+						entry.PostedGuildIdList.Add(guild.Key);
+						updated = true;
 					}
 				}
+
+				// don't flood channel!
+				await Task.Delay(500);
+
+				if (updated)
+					await this.newsDb.Save(entry);
 			}
 		}
 
 		public class PostedNews : EntryBase
 		{
 			public bool IsPosted { get; set; }
+			public List<ulong> PostedGuildIdList { get; set; } = new List<ulong>();
 		}
 	}
 }

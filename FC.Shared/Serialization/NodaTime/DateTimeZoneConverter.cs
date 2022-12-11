@@ -11,7 +11,7 @@ namespace FC.Serialization.NodaTime
 
 	public class DateTimeZoneConverter : JsonConverter<DateTimeZone>
 	{
-		public override DateTimeZone Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+		public override DateTimeZone? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 		{
 			string id = reader.GetString() ?? string.Empty;
 			return DateTimeZoneProviders.Tzdb.GetZoneOrNull(id);

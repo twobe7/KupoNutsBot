@@ -141,7 +141,7 @@ namespace FC.Bot.Currency
 			return embed.Build();
 		}
 
-		private static async Task OnReactionAdded(Cacheable<IUserMessage, ulong> incomingMessage, ISocketMessageChannel channel, SocketReaction reaction)
+		private static async Task OnReactionAdded(Cacheable<IUserMessage, ulong> incomingMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
@@ -171,17 +171,17 @@ namespace FC.Bot.Currency
 					return;
 				}
 
-				if (channel is SocketGuildChannel guildChannel)
+				if (channel.Value is SocketGuildChannel guildChannel)
 				{
 					IUserMessage message = await incomingMessage.DownloadAsync();
 					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
 
 					// Try to get the purchasing item
-					ShopItem itemToBuy = shopItems.FirstOrDefault(x => x.ReactionEmote.GetString() == reaction.Emote.GetString());
+					ShopItem? itemToBuy = shopItems.FirstOrDefault(x => x.ReactionEmote.GetString() == reaction.Emote.GetString());
 
 					User user = await UserService.GetUser(guildChannel.Guild.Id, reaction.UserId);
 
-					if (user.TotalKupoNutsCurrent >= itemToBuy.Cost)
+					if (user.TotalKupoNutsCurrent >= itemToBuy?.Cost)
 					{
 						// Take payment
 						user.UpdateTotalKupoNuts(-itemToBuy.Cost);
@@ -206,7 +206,7 @@ namespace FC.Bot.Currency
 						SocketGuildUser failUser = guildChannel.GetUser(reaction.UserId);
 
 						// Convert message to failure embed
-						Embed embed = GetFailureEmbed(failUser.GetName(), "a " + itemToBuy.Name);
+						Embed embed = GetFailureEmbed(failUser.GetName(), "a " + itemToBuy?.Name);
 						await message.ModifyAsync(x => x.Embed = embed);
 
 						await Task.Delay(5000);

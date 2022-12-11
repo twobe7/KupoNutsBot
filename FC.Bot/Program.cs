@@ -168,7 +168,12 @@ namespace FC.Bot
 				}
 				else
 				{
-					client = new DiscordSocketClient();
+					var config = new DiscordSocketConfig
+					{
+						GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers,
+					};
+
+					client = new DiscordSocketClient(config);
 
 					bool ready = false;
 					DiscordClient.Log += this.LogAsync;

@@ -18,7 +18,7 @@ namespace Lodestone
 			if (!route.StartsWith('/'))
 				route = '/' + route;
 
-			string url = "http://na.lodestonenews.com" + route;
+			string url = "https://lodestonenews.com" + route;
 
 			try
 			{

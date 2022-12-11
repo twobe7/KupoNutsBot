@@ -17,7 +17,7 @@ namespace FC
 
 		public static void Write(string message, string category)
 		{
-			string str = "[" + DateTime.Now.ToString(@"HH:mm:ss") + "][" + category + "] " + message;
+			string str = $"[{DateTime.Now:HH:mm:ss}][{category}] {message}";
 			Console.WriteLine(str);
 			MessageLogged?.Invoke(str);
 		}
@@ -45,5 +45,23 @@ namespace FC
 
 			ExceptionLogged?.Invoke(builder.ToString());
 		}
+
+		////public static async System.Threading.Tasks.Task LogExceptionToDiscordChannel(Exception exception, string messageContent, string? guild = null, string? user = null)
+		////{
+		////	// Get Settings - check if both bot server and exception channel is given
+		////	Settings settings = Settings.Load();
+		////	if (!string.IsNullOrWhiteSpace(settings?.BotDiscordServer) && !string.IsNullOrWhiteSpace(settings?.BotLogExceptionsChannel))
+		////	{
+		////		// Get the guild
+		////		Discord.WebSocket.SocketGuild kupoNutsGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
+
+		////		if (kupoNutsGuild == null)
+		////			throw new Exception("Unable to access guild");
+
+		////		// Post message
+		////		string exceptionMessage = $"Server: {guild ?? "Unknown"}\nUser: {user ?? "Unknown"}\nMessage: {messageContent}.\n`{exception}`";
+		////		await kupoNutsGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
+		////	}
+		////}
 	}
 }

@@ -218,14 +218,14 @@ namespace FC.Bot.Quotes
 			return this.DeleteQuote(message, message.Author, quoteId);
 		}
 
-		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> messageCache, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> messageCache, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
 				if (reaction.Emote.Name != "💬")
 					return;
 
-				if (channel is SocketGuildChannel guildChannel)
+				if (channel is Cacheable<IMessageChannel, ulong> guildChannel)
 				{
 					IUserMessage message = await messageCache.DownloadAsync();
 					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
@@ -236,7 +236,7 @@ namespace FC.Bot.Quotes
 					Quote quote = await this.quoteDb.LoadOrCreate(message.Author.Id + "_" + message.Id);
 					quote.Content = message.Content;
 					quote.UserId = message.Author.Id;
-					quote.GuildId = guildChannel.Guild.Id;
+					quote.GuildId = guildChannel.Value.Id;
 					quote.MessageLink = this.GetMessageLink(message);
 					quote.UserName = message.Author.Username;
 					quote.QuoteId = await this.GetNextQuoteId(message.GetGuild(), message.GetAuthor());

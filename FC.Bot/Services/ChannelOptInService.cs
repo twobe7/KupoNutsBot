@@ -99,7 +99,7 @@ namespace FC.Bot.Services
 			await message.AddReactionAsync(emote);
 		}
 
-		private async Task DiscordClient_ReactionAdded(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
+		private async Task DiscordClient_ReactionAdded(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
 		{
 			if (arg3.UserId == Program.DiscordClient.CurrentUser.Id)
 				return;

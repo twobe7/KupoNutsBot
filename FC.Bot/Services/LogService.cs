@@ -47,9 +47,16 @@ namespace FC.Bot.Services
 			await this.PostMessage(user.Guild, user, Color.Green, "Joined");
 		}
 
-		private async Task DiscordClient_UserLeft(SocketGuildUser user)
+		private async Task DiscordClient_UserLeft(SocketGuild guild, SocketUser user)
 		{
-			await this.PostMessage(user.Guild, user, Color.LightGrey, "Left");
+			if (user is IGuildUser guildUser)
+			{
+				await this.PostMessage(guild, guildUser, Color.LightGrey, "Left");
+			}
+			else
+			{
+				throw new Exception("User is not a guild user: " + user);
+			}
 		}
 
 		private async Task DiscordClient_UserBanned(SocketUser user, SocketGuild guild)

@@ -207,11 +207,11 @@ namespace FC.Bot.Services
 			helpCommands = helpCommands.Skip(startIndex * PageSize).Take(PageSize);
 
 			// Start Embed
-			EmbedBuilder embed = new EmbedBuilder();
-			StringBuilder builder = new StringBuilder();
+			EmbedBuilder embed = new ();
+			StringBuilder builder = new ();
 
 			// Category name
-			embed.Title = helpCommands.FirstOrDefault().CommandCategory.ToDisplayString() + " Commands";
+			embed.Title = helpCommands.First().CommandCategory.ToDisplayString() + " Commands";
 
 			// Iterate commands
 			foreach (HelpCommand category in helpCommands)
@@ -353,7 +353,7 @@ namespace FC.Bot.Services
 			return Task.CompletedTask;
 		}
 
-		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> incomingMessage, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> incomingMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
@@ -386,7 +386,7 @@ namespace FC.Bot.Services
 					return;
 				}
 
-				if (channel is SocketGuildChannel guildChannel)
+				if (channel.Value is IMessageChannel guildChannel)
 				{
 					IUserMessage message = await incomingMessage.DownloadAsync();
 					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);

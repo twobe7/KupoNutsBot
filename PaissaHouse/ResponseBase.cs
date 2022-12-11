@@ -9,5 +9,7 @@ namespace PaissaHouse
 	public class ResponseBase
 	{
 		public string? Json;
+		public bool IsError => !string.IsNullOrEmpty(this.ErrorMessage);
+		public string? ErrorMessage;
 	}
 }

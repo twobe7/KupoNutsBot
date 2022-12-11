@@ -185,7 +185,7 @@ namespace FC.Bot.ContentCreators
 						bool streamerUpdated = false;
 
 						// Check if display name should be updated
-						SocketGuildUser user = guild.Users.FirstOrDefault(x => x.Id == streamer.DiscordGuildId);
+						SocketGuildUser? user = guild.Users.FirstOrDefault(x => x.Id == streamer.DiscordGuildId);
 						if (user != null)
 						{
 							string displayName = string.IsNullOrWhiteSpace(user.Nickname) ? user.Username : user.Nickname;

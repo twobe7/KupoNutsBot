@@ -10,7 +10,6 @@ namespace FC.Manager.Server
 	using JWT;
 	using JWT.Algorithms;
 	using Microsoft.AspNetCore.Http;
-	////using Microsoft.Extensions.Primitives;
 
 	public static class Authentication
 	{
@@ -24,7 +23,7 @@ namespace FC.Manager.Server
 
 		public static void GenerateSecret()
 		{
-			RandomNumberGenerator gen = RNGCryptoServiceProvider.Create();
+			RandomNumberGenerator gen = RandomNumberGenerator.Create();
 			byte[] data = new byte[SecretSize];
 			gen.GetBytes(data);
 			Secret = data;

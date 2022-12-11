@@ -451,9 +451,9 @@ namespace FC.Bot.Services
 			// Get guild users by name
 			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
 
-			if (userToRep.Count() == 1)
+			if (userToRep.Count == 1)
 			{
-				await this.Pat(message, userToRep.FirstOrDefault());
+				await this.Pat(message, userToRep.First());
 			}
 			else
 			{

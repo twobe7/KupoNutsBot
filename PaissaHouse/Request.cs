@@ -47,6 +47,16 @@ namespace PaissaHouse
 
 				T result = NSSerializer.Deserialize<T>(json);
 				result.Json = json;
+
+				try
+				{
+					DisabledResponse disabledResponse = NSSerializer.Deserialize<DisabledResponse>(json);
+					if (disabledResponse != null && result != null)
+						result.ErrorMessage = disabledResponse.Message;
+				}
+				finally
+				{ }
+
 				return result;
 			}
 			catch (WebException webEx)
@@ -64,6 +74,12 @@ namespace PaissaHouse
 				Log.Write("Error: " + ex.Message, "Paissa House");
 				throw ex;
 			}
+		}
+
+		internal class DisabledResponse
+		{
+			public string Message;
+			public bool Indefinite;
 		}
 	}
 }

@@ -110,7 +110,7 @@ namespace FC.Bot.Currency
 			return Task.CompletedTask;
 		}
 
-		private static async void PlayDealerHand(IUserMessage message, SocketGuildChannel guildChannel, SocketReaction reaction)
+		private static async void PlayDealerHand(IUserMessage message, Cacheable<IMessageChannel, ulong> guildChannel, SocketReaction reaction)
 		{
 			// No active game, no handling
 			if (activeGame == null)
@@ -128,7 +128,7 @@ namespace FC.Bot.Currency
 			// Payout
 			if (activeGame.UserWon)
 			{
-				User user = await UserService.GetUser(guildChannel.Guild.Id, reaction.UserId);
+				User user = await UserService.GetUser(guildChannel.Value.Id, reaction.UserId);
 
 				int payout = activeGame.Payout();
 				Log.Write("User (" + activeGame.UserId.ToString() + ") won " + payout.ToString() + " nuts with a game of Black Jack", "Bot - Blackjack");
@@ -188,7 +188,7 @@ namespace FC.Bot.Currency
 			return builder;
 		}
 
-		private static async Task OnReactionAdded(Cacheable<IUserMessage, ulong> incomingMessage, ISocketMessageChannel channel, SocketReaction reaction)
+		private static async Task OnReactionAdded(Cacheable<IUserMessage, ulong> incomingMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
@@ -222,7 +222,7 @@ namespace FC.Bot.Currency
 					return;
 				}
 
-				if (channel is SocketGuildChannel guildChannel)
+				if (channel is Cacheable<IMessageChannel, ulong> guildChannel)
 				{
 					IUserMessage message = await incomingMessage.DownloadAsync();
 					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);

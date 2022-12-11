@@ -24,7 +24,7 @@ namespace FC.Bot.Housing
 			return base.Shutdown();
 		}
 
-		[Command("OpenPlots", Permissions.Everyone, "Shows your level and current xp", CommandCategory.XIVData)]
+		[Command("OpenPlots", Permissions.Everyone, "Check available housing plots", CommandCategory.XIVData)]
 		public async Task GetOpenPlotsForWorld(CommandMessage message, string world)
 		{
 			// Get user information
@@ -33,7 +33,21 @@ namespace FC.Bot.Housing
 			// Build embed
 			EmbedBuilder builder = GetEmbed(openPlots.Name ?? "Unable to find World");
 
-			if (openPlots.NumOpenPlots > 0)
+			// TODO: Update for Empyreum - Can be removed once plots have been taken
+			HousingAPI.District? empyreumDistrict = openPlots.Districts.FirstOrDefault(x => x.Name == "Empyreum");
+			uint empyreumOpenPlots = empyreumDistrict?.NumOpenPlots ?? 0;
+			if (empyreumDistrict != null && empyreumOpenPlots > 30)
+			{
+				empyreumDistrict.NumOpenPlots = 0;
+				openPlots.NumOpenPlots -= empyreumOpenPlots;
+			}
+
+			if (openPlots.IsError)
+			{
+				builder.Title = "Open Plots - Error Occurred";
+				builder.Description = "Paissa DB says: " + openPlots.ErrorMessage;
+			}
+			else if (openPlots.NumOpenPlots > 0)
 			{
 				foreach (HousingAPI.District district in openPlots.Districts.Where(x => x.NumOpenPlots > 0))
 				{

@@ -509,7 +509,7 @@ namespace FC.Bot.Services
 			return Task.CompletedTask;
 		}
 
-		private async Task OnReactionAddedInventory(Cacheable<IUserMessage, ulong> incomingMessage, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task OnReactionAddedInventory(Cacheable<IUserMessage, ulong> incomingMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
@@ -536,7 +536,7 @@ namespace FC.Bot.Services
 				});
 
 				// Get shop item
-				ShopItem itemToRedeem = items.FirstOrDefault();
+				ShopItem? itemToRedeem = items.FirstOrDefault();
 
 				// Only handle relevant reacts
 				if (itemToRedeem == null)
@@ -545,7 +545,7 @@ namespace FC.Bot.Services
 					return;
 				}
 
-				if (channel is SocketGuildChannel guildChannel)
+				if (channel.Value is SocketGuildChannel guildChannel)
 				{
 					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
 
@@ -558,9 +558,9 @@ namespace FC.Bot.Services
 						user.UpdateInventory(itemToRedeem.Name, -1);
 
 						// Get the embed and duplicate
-						IEmbed embed = message.Embeds.FirstOrDefault();
+						IEmbed? embed = message.Embeds.FirstOrDefault();
 						EmbedBuilder redeemEmbed = new EmbedBuilder()
-							.WithTitle(embed.Title)
+							.WithTitle(embed?.Title)
 							.WithColor(embed?.Color ?? Color.Blue)
 							.WithDescription($"{itemToRedeem.Name} redeemed, _kupo!_");
 

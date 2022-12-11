@@ -191,19 +191,19 @@ namespace FC.Bot.Events
 			}
 		}
 
-		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
 				// Try get reaction role
-				ReactionRole reactionRole = await this.GetReactionRoleIfValid(message, channel, reaction);
+				ReactionRole reactionRole = await this.GetReactionRoleIfValid(message, channel.Value, reaction);
 
 				// Reaction Role not found or no Reactions - skip
 				if (reactionRole == null || !reactionRole.Reactions.Any())
 					return;
 
 				// If Item matching added Reaction doesn't exist for reaction role - skip
-				ReactionRoleItem item = reactionRole.Reactions.FirstOrDefault(x => x.ReactionEmote.Name == reaction.Emote.Name && x.Role != null);
+				ReactionRoleItem? item = reactionRole.Reactions.FirstOrDefault(x => x.ReactionEmote.Name == reaction.Emote.Name && x.Role != null);
 				if (item == null)
 					return;
 
@@ -224,24 +224,24 @@ namespace FC.Bot.Events
 				await Utils.Logger.LogExceptionToDiscordChannel(
 					ex,
 					$"Role Reaction Added - MessageId: {message.Id}",
-					(channel as IGuildChannel)?.GuildId.ToString(),
+					channel.Value.Id.ToString(),
 					(reaction.User.GetValueOrDefault() as IGuildUser)?.GetName());
 			}
 		}
 
-		private async Task ReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task ReactionRemoved(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
 				// Try get reaction role
-				ReactionRole reactionRole = await this.GetReactionRoleIfValid(message, channel, reaction);
+				ReactionRole reactionRole = await this.GetReactionRoleIfValid(message, channel.Value, reaction);
 
 				// Reaction Role not found or no Reactions - skip
 				if (reactionRole == null || !reactionRole.Reactions.Any())
 					return;
 
 				// If Item matching added Reaction doesn't exist for reaction role - skip
-				ReactionRoleItem item = reactionRole.Reactions.FirstOrDefault(x => x.ReactionEmote.Name == reaction.Emote.Name && x.Role != null);
+				ReactionRoleItem? item = reactionRole.Reactions.FirstOrDefault(x => x.ReactionEmote.Name == reaction.Emote.Name && x.Role != null);
 				if (item == null)
 					return;
 
@@ -262,7 +262,7 @@ namespace FC.Bot.Events
 			}
 		}
 
-		private async Task<ReactionRole> GetReactionRoleIfValid(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task<ReactionRole> GetReactionRoleIfValid(Cacheable<IUserMessage, ulong> message, IMessageChannel channel, SocketReaction reaction)
 		{
 			// Don't modify bot roles
 			if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)

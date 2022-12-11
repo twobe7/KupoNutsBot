@@ -354,11 +354,19 @@ namespace FC.Utils
 
 		public static DateTimeZone GetTimeZone(string id)
 		{
-			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(id);
+			DateTimeZone? zone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(id);
 			if (zone == null)
 				throw new Exception("Failed to get time zone: \"" + id + "\"");
 
 			return zone;
+		}
+
+		public static string GetDiscordTimestamp(long? unixMilliseconds)
+		{
+			if (unixMilliseconds == null)
+				unixMilliseconds = SystemClock.Instance.GetCurrentInstant().ToUnixTimeSeconds();
+
+			return $"<t:{unixMilliseconds}:f>";
 		}
 
 		private static async System.Threading.Tasks.Task<List<string>> GetTimezonesFromGuildSettings(ulong guildId)
