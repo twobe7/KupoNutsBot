@@ -105,7 +105,155 @@ namespace FC.Bot.Items
 			return await this.GetItem((ulong)id);
 		}
 
-		public async Task<Embed> GetMarketBoardItem(ulong itemId)
+		// TODO: Create Default DC in Server Settings
+		// Allow no DC to be parsed to command and use default configuration
+		////[Command("MB", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData, "MarketBoard")]
+		////[Command("MarketBoard", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData)]
+		////public async Task GetMarketBoardItem(CommandMessage message, ulong itemId)
+		////{
+		////	Embed embed = await this.GetMarketBoardEmbed(itemId);
+
+		////	RestUserMessage mbEmbedMessage = await message.Channel.SendMessageAsync(embed: embed);
+
+		////	await mbEmbedMessage.AddReactionsAsync(MBEmotes.ToArray());
+
+		////	// Add to window list
+		////	activeMBEmbeds.Add(mbEmbedMessage.Id, new ActiveMBWindow(message.Author.Id, itemId, null, false));
+
+		////	// Begin the clean up task if it's not already running
+		////	if (activeMBWindowTask == null || !activeMBWindowTask.Status.Equals(TaskStatus.Running))
+		////	{
+		////		Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
+		////		activeMBWindowTask = Task.Run(async () => await this.ClearReactionsAfterDelay(message.Channel));
+		////	}
+		////}
+
+		[Command("MB", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData, "MarketBoard")]
+		[Command("MarketBoard", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData)]
+		public async Task GetMarketBoardItem(CommandMessage message, string dataCentre, ulong itemId)
+		{
+			// Test if Data Centre is valid
+			if (!Enum.TryParse(dataCentre, true, out XIVData.DataCentre dc))
+				throw new UserException("Invalid Data Centre name.");
+
+			Embed embed = await this.GetMarketBoardEmbed(itemId, dc);
+
+			RestUserMessage mbEmbedMessage = await message.Channel.SendMessageAsync(embed: embed, messageReference: message.MessageReference);
+
+			await mbEmbedMessage.AddReactionsAsync(MBEmotes.ToArray());
+
+			// Add to window list
+			activeMBEmbeds.Add(mbEmbedMessage.Id, new ActiveMBWindow(message.Author.Id, itemId, dc, null, false));
+
+			// Begin the clean up task if it's not already running
+			if (activeMBWindowTask == null || !activeMBWindowTask.Status.Equals(TaskStatus.Running))
+			{
+				Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
+				activeMBWindowTask = Task.Run(async () => await this.ClearReactionsAfterDelay(message.Channel));
+			}
+		}
+
+		[Command("MB", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData, "MarketBoard")]
+		[Command("MarketBoard", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData)]
+		public async Task GetMarketBoardItem(CommandMessage message, string dataCentre, string search)
+		{
+			// Test if Data Centre is valid
+			if (!Enum.TryParse(dataCentre, true, out XIVData.DataCentre dc))
+			{
+				var errorMessage = await message.Channel.SendMessageAsync($"I didn't recognise that Data Centre. Try `{CommandsService.GetPrefix(message.Guild)}mb {{DataCentre}} {dataCentre} {search}`", messageReference: message.MessageReference);
+				await Task.Delay(5000);
+				await errorMessage.DeleteAsync();
+				message.DeleteMessage();
+				return;
+			}
+
+			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
+
+			if (results.Count <= 0)
+				throw new UserException("I couldn't find any items that match that search.");
+
+			ulong? id;
+
+			SearchAPI.Result? exactMatch = results.FirstOrDefault(x => search.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
+			if (exactMatch != null)
+			{
+				id = exactMatch.ID;
+			}
+			else if (results.Count > 1)
+			{
+				EmbedBuilder embed = new EmbedBuilder();
+
+				StringBuilder description = new StringBuilder();
+				for (int i = 0; i < Math.Min(results.Count, 10); i++)
+				{
+					description.AppendLine(results[i].ID + " - " + results[i].Name);
+				}
+
+				embed.Title = results.Count + " results found";
+				embed.Description = description.ToString();
+
+				await message.Channel.SendMessageAsync(embed: embed.Build(), messageReference: message.MessageReference);
+				return;
+			}
+			else
+			{
+				id = results[0].ID;
+			}
+
+			if (id == null)
+				throw new Exception("No Id in item");
+
+			await this.GetMarketBoardItem(message, dataCentre, id.Value);
+			return;
+		}
+
+		// TODO: Create Default DC in Server Settings
+		// Allow no DC to be parsed to command and use default configuration
+		////[Command("MB", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData, "MarketBoard")]
+		////[Command("MarketBoard", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData)]
+		////public async Task GetMarketBoardItem(CommandMessage message, string search)
+		////{
+		////	List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
+
+		////	if (results.Count <= 0)
+		////		throw new UserException("I couldn't find any items that match that search.");
+
+		////	ulong? id;
+
+		////	SearchAPI.Result exactMatch = results.FirstOrDefault(x => search.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
+		////	if (exactMatch != null)
+		////	{
+		////		id = exactMatch.ID;
+		////	}
+		////	else if (results.Count > 1)
+		////	{
+		////		EmbedBuilder embed = new EmbedBuilder();
+
+		////		StringBuilder description = new StringBuilder();
+		////		for (int i = 0; i < Math.Min(results.Count, 10); i++)
+		////		{
+		////			description.AppendLine(results[i].ID + " - " + results[i].Name);
+		////		}
+
+		////		embed.Title = results.Count + " results found";
+		////		embed.Description = description.ToString();
+
+		////		await message.Channel.SendMessageAsync(embed: embed.Build());
+		////		return;
+		////	}
+		////	else
+		////	{
+		////		id = results[0].ID;
+		////	}
+
+		////	if (id == null)
+		////		throw new Exception("No Id in item");
+
+		////	await this.GetMarketBoardItem(message, id.Value);
+		////	return;
+		////}
+
+		private async Task<Embed> GetMarketBoardItem(ulong itemId)
 		{
 			Item item = await ItemAPI.Get(itemId);
 
@@ -145,7 +293,7 @@ namespace FC.Bot.Items
 			return embed.Build();
 		}
 
-		public async Task<Embed> GetMarketBoardItem(string search)
+		private async Task<Embed> GetMarketBoardItem(string search)
 		{
 			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
 
@@ -175,72 +323,7 @@ namespace FC.Bot.Items
 			return await this.GetMarketBoardItem((ulong)id);
 		}
 
-		[Command("MB", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData, "MarketBoard")]
-		[Command("MarketBoard", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData)]
-		public async Task GetMarketBoardItem(CommandMessage message, ulong itemId)
-		{
-			Embed embed = await this.GetMarketBoardEmbed(itemId);
-
-			RestUserMessage mbEmbedMessage = await message.Channel.SendMessageAsync(embed: embed);
-
-			await mbEmbedMessage.AddReactionsAsync(MBEmotes.ToArray());
-
-			// Add to window list
-			activeMBEmbeds.Add(mbEmbedMessage.Id, new ActiveMBWindow(message.Author.Id, itemId, null, false));
-
-			// Begin the clean up task if it's not already running
-			if (activeMBWindowTask == null || !activeMBWindowTask.Status.Equals(TaskStatus.Running))
-			{
-				Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
-				activeMBWindowTask = Task.Run(async () => await this.ClearReactionsAfterDelay(message.Channel));
-			}
-		}
-
-		[Command("MB", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData, "MarketBoard")]
-		[Command("MarketBoard", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData)]
-		public async Task GetMarketBoardItem(CommandMessage message, string search)
-		{
-			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
-
-			if (results.Count <= 0)
-				throw new UserException("I couldn't find any items that match that search.");
-
-			ulong? id;
-
-			SearchAPI.Result exactMatch = results.FirstOrDefault(x => search.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
-			if (exactMatch != null)
-			{
-				id = exactMatch.ID;
-			}
-			else if (results.Count > 1)
-			{
-				EmbedBuilder embed = new EmbedBuilder();
-
-				StringBuilder description = new StringBuilder();
-				for (int i = 0; i < Math.Min(results.Count, 10); i++)
-				{
-					description.AppendLine(results[i].ID + " - " + results[i].Name);
-				}
-
-				embed.Title = results.Count + " results found";
-				embed.Description = description.ToString();
-
-				await message.Channel.SendMessageAsync(embed: embed.Build());
-				return;
-			}
-			else
-			{
-				id = results[0].ID;
-			}
-
-			if (id == null)
-				throw new Exception("No Id in item");
-
-			await this.GetMarketBoardItem(message, id.Value);
-			return;
-		}
-
-		private async Task<Embed> GetMarketBoardEmbed(ulong itemId, bool? hqOnly = null, bool lowestByUnitPrice = false)
+		private async Task<Embed> GetMarketBoardEmbed(ulong itemId, XIVData.DataCentre dataCentre, bool? hqOnly = null, bool lowestByUnitPrice = false)
 		{
 			Item item = await ItemAPI.Get(itemId);
 
@@ -255,7 +338,7 @@ namespace FC.Bot.Items
 
 			if (item.IsUntradable != 1)
 			{
-				IOrderedEnumerable<MarketAPI.ListingDisplay> listings = await MarketAPI.GetBestPriceListing("Elemental", itemId, hqOnly, lowestByUnitPrice);
+				IOrderedEnumerable<MarketAPI.ListingDisplay> listings = await MarketAPI.GetBestPriceListing(dataCentre.ToString(), itemId, hqOnly, lowestByUnitPrice);
 
 				if (listings.Any())
 				{
@@ -319,9 +402,9 @@ namespace FC.Bot.Items
 						if (message is IUserMessage userMessage)
 						{
 							// Get the embed and duplicate
-							IEmbed embed = message.Embeds.FirstOrDefault();
+							IEmbed? embed = message.Embeds.FirstOrDefault();
 							EmbedBuilder builder = new EmbedBuilder()
-							.WithTitle(embed.Title)
+							.WithTitle(embed?.Title)
 							.WithColor(embed?.Color ?? Color.Teal)
 							.WithDescription(embed?.Description)
 							.WithThumbnailUrl(embed?.Thumbnail?.Url ?? string.Empty);
@@ -351,7 +434,7 @@ namespace FC.Bot.Items
 			return Task.CompletedTask;
 		}
 
-		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> incomingMessage, ISocketMessageChannel channel, SocketReaction reaction)
+		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> incomingMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 		{
 			try
 			{
@@ -386,7 +469,7 @@ namespace FC.Bot.Items
 					return;
 				}
 
-				if (channel is SocketGuildChannel guildChannel)
+				if (channel.Value is IMessageChannel guildChannel)
 				{
 					IUserMessage message = await incomingMessage.DownloadAsync();
 					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
@@ -406,7 +489,7 @@ namespace FC.Bot.Items
 
 					if (refresh)
 					{
-						Embed embed = await this.GetMarketBoardEmbed(mBWindow.ItemId, mBWindow.HqOnly, mBWindow.LowestByUnitPrice);
+						Embed embed = await this.GetMarketBoardEmbed(mBWindow.ItemId, mBWindow.DataCentre, mBWindow.HqOnly, mBWindow.LowestByUnitPrice);
 						await message.ModifyAsync(x => x.Embed = embed);
 					}
 				}
@@ -419,10 +502,11 @@ namespace FC.Bot.Items
 
 		private class ActiveMBWindow
 		{
-			public ActiveMBWindow(ulong userId, ulong itemId, bool? hqOnly, bool lowestByUnitPrice)
+			public ActiveMBWindow(ulong userId, ulong itemId, XIVData.DataCentre dataCentre, bool? hqOnly, bool lowestByUnitPrice)
 			{
 				this.UserId = userId;
 				this.ItemId = itemId;
+				this.DataCentre = dataCentre;
 				this.HqOnly = hqOnly;
 				this.LowestByUnitPrice = lowestByUnitPrice;
 
@@ -431,6 +515,7 @@ namespace FC.Bot.Items
 
 			public ulong UserId { get; set; }
 			public ulong ItemId { get; set; }
+			public XIVData.DataCentre DataCentre { get; set; }
 			public bool? HqOnly { get; set; }
 			public bool LowestByUnitPrice { get; set; }
 			public DateTime LastInteractedWith { get; set; }
