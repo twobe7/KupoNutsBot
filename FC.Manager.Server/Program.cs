@@ -34,6 +34,7 @@ namespace FC.Manager.Server
 			await AddService<DiscordService>();
 
 			await AddService<AuthenticationService>();
+			await AddService<ContentCreatorService>();
 			await AddService<EmoteService>();
 			await AddService<EventsService>();
 			await AddService<EventsV2Service>();

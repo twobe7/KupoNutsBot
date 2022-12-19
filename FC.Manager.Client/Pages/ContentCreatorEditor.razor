@@ -1,0 +1,91 @@
+﻿@using FC.ContentCreator;
+@using NodaTime;
+@using RPC;
+@using System.Reflection;
+
+@inherits Modal
+
+@if (this.IsLoading)
+{
+	<div class="form-row">
+		Loading...
+	</div>
+}
+else
+{
+	<div class="form-row">
+		<!--  Guid nickname -->
+		<div class="form-group col-md-12">
+			<label for="itemName">Name</label>
+			<input disabled class="form-control" id="creatorNickName" name="itemName" @bind="this.creator.GuildNickName"></input>
+		</div>
+
+		@if (this.creator.Twitch != null)
+		{
+			<!--  Twitch Name -->
+			<div class="form-group col-md-12">
+				<label for="itemDesc">Twitch Username</label>
+				<input disabled class="form-control" id="creatorTwitch" name="itemDesc" rows="5" @bind="this.creator.Twitch.UserName"></input>
+			</div>
+		}
+
+		@if (this.creator.Youtube != null)
+		{
+			<!--  Youtube Name -->
+			<div class="form-group col-md-12">
+				<label for="itemDesc">Youtube Username</label>
+				<input class="form-control" id="creatorYoutube" name="itemDesc" rows="5" @bind="this.creator.Youtube.UserName"></input>
+			</div>
+		}
+		
+	</div>
+
+}
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	@*<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>*@
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+
+@code {
+
+	public bool IsLoading { get; set; }
+
+
+	private ContentCreator creator;
+
+	public Task Initialize(ContentCreator creator)
+	{
+		this.IsLoading = true;
+		this.creator = creator;
+
+		this.IsLoading = false;
+
+		return Task.CompletedTask;
+	}
+
+	////private async void OnSave()
+	////{
+	////	await RPCService.Invoke("ContentCreatorService.UpdateContentCreator", this.creator);
+	////	this.Close();
+	////}
+
+	private void OnClose()
+	{
+		this.Close();
+	}
+
+	private async void OnDelete()
+	{
+		this.Close();
+
+		bool confirmed = await Modal.Show<bool, ConfirmDelete>("Delete Content Creator", this.creator.GuildNickName);
+		if (confirmed)
+		{
+			await RPCService.Invoke("ContentCreatorService.DeleteContentCreator", this.creator.Id);
+		}
+	}
+}

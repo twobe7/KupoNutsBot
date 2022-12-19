@@ -1,7 +1,7 @@
 ﻿@inject IModalService Modal
 @inject NavigationManager NavigationManager
 
-<div class="wrapper">
+<div id="nav-menu" class="wrapper">
 
 	<div class="form-group" style="margin: 16px 16px 0px 16px">
 		<select class="form-control" @bind="this.SelectedGuild">
@@ -52,6 +52,12 @@
 				<li class="nav-item px-3">
 					<NavLink class="nav-link" href="reactionrole">
 						<span class="oi oi-people" aria-hidden="true"></span> Reaction Roles
+					</NavLink>
+				</li>
+
+				<li class="nav-item px-3">
+					<NavLink class="nav-link" href="contentcreators">
+						<span class="oi oi-video" aria-hidden="true"></span> Content Creators
 					</NavLink>
 				</li>
 			}

@@ -1,0 +1,112 @@
+﻿@page "/contentcreators"
+@using FC.ContentCreator;
+@using FC.Utils;
+@using NodaTime;
+@using System.Globalization;
+@using RPC;
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@if (this.AllContentCreators == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<div class="wrapper">
+		<table class="table table-dark">
+			<thead>
+				<tr>
+					<th width="20%">Name</th>
+					<th>Twitch</th>
+					<th>Last Twitch Stream</th>
+					<th>Youtube</th>
+					<th>Last Youtube Stream</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (ContentCreator item in this.AllContentCreators)
+				{
+					<tr @onclick="() => this.OnEdit(item)" class="table-clickable">
+						<td>@item.GuildNickName</td>
+						<td>@GetUserName(item.Twitch)</td>
+						<td>@GetLatestDateTime(item.Twitch)</td>
+						<td>@GetUserName(item.Youtube)</td>
+						<td>@GetLatestDateTime(item.Youtube)</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+
+		<div class="push"></div>
+	</div>
+	<div class="footer">
+		<div class="footer-content">
+			@*<button class="btn btn-primary" @onclick="this.OnCreateNew">New</button>*@
+		</div>
+	</div>
+}
+
+@code {
+
+	public List<ContentCreator> AllContentCreators;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (!Authentication.IsAuthenticated)
+		{
+			this.NavigationManager.NavigateTo("/");
+			return;
+		}
+
+		await base.OnInitializedAsync();
+
+		this.AllContentCreators = await RPCService.Invoke<List<ContentCreator>>("ContentCreatorService.GetContentCreators");
+	}
+
+	protected async void OnEdit(ContentCreator item)
+	{
+		ModalParameters parameters = new ModalParameters();
+		parameters.Add("Item", item);
+
+		await Modal.Show<ContentCreatorEditor>("Edit Content Creator", item);
+		this.AllContentCreators = await RPCService.Invoke<List<ContentCreator>>("ContentCreatorService.GetContentCreators");
+		this.StateHasChanged();
+	}
+
+	private string GetUserName(ContentCreator.ContentInfo info)
+	{
+		return info?.UserName ?? "Not Registered";
+	}
+
+	private string GetLatestDateTime(ContentCreator.ContentInfo info)
+	{
+		DateTime? latestStream = null;
+		if (info?.LastVideo?.Created != null || info?.LastStream?.Created != null)
+		{
+			latestStream = info.LastVideo?.Created <= info.LastStream?.Created
+				? info.LastStream?.Created
+				: info.LastVideo?.Created;
+		}
+		return latestStream.HasValue ? latestStream.Value.ToShortDateString() : "No Stream";
+	}
+
+	////protected void OnCreateNew()
+	////{
+	////	ContentCreator item = new ContentCreator();
+	////	item.Id = Guid.NewGuid().ToString();
+	////	OnEdit(item);
+	////}
+
+	////protected async void OnSettings()
+	////{
+	////	FC.Events.EventsSettings set = await RPCService.Invoke<FC.Events.EventsSettings>("EventsV2Service.GetSettings");
+	////	set = await Inspector.Inspect(set);
+
+	////	if (set == null)
+	////		return;
+
+	////	await RPCService.Invoke<FC.Events.EventsSettings>("EventsV2Service.SaveSettings", set);
+	////}
+}

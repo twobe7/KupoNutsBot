@@ -2,7 +2,7 @@
 //
 // Licensed under the MIT license.
 
-namespace FC.Bot.ContentCreators
+namespace FC.ContentCreator
 {
 	using System;
 

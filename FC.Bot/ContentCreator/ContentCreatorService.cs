@@ -2,7 +2,7 @@
 //
 // Licensed under the MIT license.
 
-namespace FC.Bot.ContentCreators
+namespace FC.Bot.ContentCreator
 {
 	using System;
 	using System.Collections.Generic;
@@ -14,13 +14,22 @@ namespace FC.Bot.ContentCreators
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
+	using FC.ContentCreator;
 	using FC.Data;
+
 	using Twitch;
 	using Youtube;
 
 	public class ContentCreatorService : ServiceBase
 	{
 		public static Table<ContentCreator> ContentCreatorDatabase = new Table<ContentCreator>("KupoNuts_ContentCreator", 0);
+
+		public readonly DiscordSocketClient DiscordClient;
+
+		public ContentCreatorService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public override async Task Initialize()
 		{
@@ -39,7 +48,7 @@ namespace FC.Bot.ContentCreators
 
 #if DEBUG // Commands for testing specific users
 		[Command("TestStreamer", Permissions.Administrators, "Test Streamer")]
-		public async Task TestStreamer(CommandMessage message, string user)
+		public async Task TestStreamer(ICommandMessage message, string user)
 		{
 			StreamerAPI.Stream stream = await StreamerAPI.GetStreams(user);
 
@@ -54,7 +63,7 @@ namespace FC.Bot.ContentCreators
 		}
 
 		[Command("TestStreamer", Permissions.Administrators, "Test Streamer - Aiyanya")]
-		public async Task TestStreamer(CommandMessage message)
+		public async Task TestStreamer(ICommandMessage message)
 		{
 			StreamerAPI.Stream stream = await StreamerAPI.GetStreams("Aiyanya");
 
@@ -69,7 +78,7 @@ namespace FC.Bot.ContentCreators
 		}
 
 		[Command("TestYTUploader", Permissions.Administrators, "Test Uploader - Lacrima")]
-		public async Task TestUploader(CommandMessage message)
+		public async Task TestUploader(ICommandMessage message)
 		{
 			ExploderAPI.Video video = await ExploderAPI.GetLatestVideo("UCBGZf_eNHJPCFxVxzEEWMeA");
 
@@ -79,33 +88,33 @@ namespace FC.Bot.ContentCreators
 #endif
 
 		[Command("ICreatorTwitch", Permissions.Everyone, "Set your twitch stream", CommandCategory.ContentCreators, showWait: false)]
-		public async Task SetTwitchInformation(CommandMessage message, string username)
+		public async Task SetTwitchInformation(ICommandMessage message, string username)
 		{
 			await this.SetContentCreator(message, username, ContentCreator.Type.Twitch);
 		}
 
 		[Command("RemoveCreatorTwitch", Permissions.Everyone, "Remove your set Twitch stream", CommandCategory.ContentCreators)]
-		public async Task RemoveTwitchInformation(CommandMessage message)
+		public async Task RemoveTwitchInformation(ICommandMessage message)
 		{
 			await this.RemoveContentCreator(message, ContentCreator.Type.Twitch);
 		}
 
 		[Command("ICreatorYoutube", Permissions.Everyone, "Set your youtube channel using channel Id or username", showWait: false)]
-		public async Task SetYoutubeInformation(CommandMessage message, string identifier)
+		public async Task SetYoutubeInformation(ICommandMessage message, string identifier)
 		{
 			(string channelId, string username) = await ExploderAPI.GetChannelInformation(identifier);
 			await this.SetContentCreator(message, username, ContentCreator.Type.Youtube, channelId);
 		}
 
 		[Command("RemoveCreatorYoutube", Permissions.Everyone, "Remove your set Youtube information", CommandCategory.ContentCreators)]
-		public async Task RemoveYoutubeInformation(CommandMessage message)
+		public async Task RemoveYoutubeInformation(ICommandMessage message)
 		{
 			await this.RemoveContentCreator(message, ContentCreator.Type.Youtube);
 		}
 
 		[Command("CC", Permissions.Everyone, "View current content creators", CommandCategory.ContentCreators, "ContentCreators")]
 		[Command("ContentCreators", Permissions.Everyone, "View current content creators", CommandCategory.ContentCreators)]
-		public async Task ViewContentCreators(CommandMessage message)
+		public async Task ViewContentCreators(ICommandMessage message)
 		{
 			// Load streamers
 			List<ContentCreator> streamers = await ContentCreatorDatabase.LoadAll(new Dictionary<string, object> { { "DiscordGuildId", message.Guild.Id } });
@@ -161,7 +170,7 @@ namespace FC.Bot.ContentCreators
 			// Load streamers
 			List<ContentCreator> streamers = await ContentCreatorDatabase.LoadAll();
 
-			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			foreach (SocketGuild guild in this.DiscordClient.Guilds)
 			{
 				// Load guild settings and check if content creator channel specified
 				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
@@ -173,7 +182,7 @@ namespace FC.Bot.ContentCreators
 					continue;
 
 				// Do not process if couldn't find channel
-				SocketTextChannel contentCreatorChannel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
+				SocketTextChannel contentCreatorChannel = (SocketTextChannel)this.DiscordClient.GetChannel(channelId);
 				if (contentCreatorChannel == null)
 					continue;
 
@@ -320,7 +329,7 @@ namespace FC.Bot.ContentCreators
 			}
 		}
 
-		private async Task SetContentCreator(CommandMessage message, string identifier, ContentCreator.Type type, string? linkId = null)
+		private async Task SetContentCreator(ICommandMessage message, string identifier, ContentCreator.Type type, string? linkId = null)
 		{
 			ContentCreator streamer = await ContentCreatorDatabase.LoadOrCreate(message.Author.Id.ToString());
 
@@ -338,10 +347,10 @@ namespace FC.Bot.ContentCreators
 			// Delay then delete command and response message
 			await Task.Delay(2000);
 			await response.DeleteAsync();
-			message.DeleteMessage();
+			await message.DeleteMessage();
 		}
 
-		private async Task RemoveContentCreator(CommandMessage message, ContentCreator.Type type)
+		private async Task RemoveContentCreator(ICommandMessage message, ContentCreator.Type type)
 		{
 			ContentCreator? streamer = await ContentCreatorDatabase.Load(message.Author.Id.ToString());
 			if (streamer != null)
@@ -353,7 +362,7 @@ namespace FC.Bot.ContentCreators
 			// Delay then delete command and response message
 			await Task.Delay(2000);
 			await response.DeleteAsync();
-			message.DeleteMessage();
+			await message.DeleteMessage();
 		}
 
 		private async Task RemoveContentCreator(ContentCreator streamer, ContentCreator.Type type)
