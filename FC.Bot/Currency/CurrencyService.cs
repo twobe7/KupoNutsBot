@@ -314,6 +314,8 @@ namespace FC.Bot.Services
 		[SlashCommand("slots", "Spin it to win it!")]
 		public async Task Slots()
 		{
+			await this.DeferAsync();
+
 			if (await this.ValidateLastRunTime(this.Context, CurrencyGame.Slots))
 			{
 				if (await this.ValidateDailyCurrencyGameAllowance(this.Context))
@@ -329,7 +331,7 @@ namespace FC.Bot.Services
 					}
 					else
 					{
-						await this.RespondAsync("You must have 10 Kupo Nuts to play the Slots, _kupo!_");
+						await this.FollowupAsync("You must have 10 Kupo Nuts to play the Slots, _kupo!_");
 
 						await Task.Delay(2000);
 
@@ -513,7 +515,7 @@ namespace FC.Bot.Services
 			// No games allowed
 			if (settings.CurrencyGamesAllowedPerDay == 0)
 			{
-				await context.Interaction.RespondAsync("Currency games have been disabled by Server Admin.");
+				await context.Interaction.FollowupAsync("Currency games have been disabled by Server Admin.");
 
 				await Task.Delay(2000);
 

@@ -67,7 +67,7 @@ namespace FC.Bot.Currency
 			this.SpinSlotGrid(builder, board, 0, out WinType winType);
 
 			// First layout
-			await ctx.Interaction.RespondAsync(null, new Embed[] { builder.Build() });
+			await ctx.Interaction.FollowupAsync(null, new Embed[] { builder.Build() });
 
 			// Make it spin
 			for (int spin = 1; spin < 6; spin++)
