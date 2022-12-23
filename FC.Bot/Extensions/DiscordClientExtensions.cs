@@ -9,7 +9,7 @@ namespace FC.Bot.Extensions
 	using System.Text;
 	using Discord.WebSocket;
 
-	public static class DiscrodClientExtensions
+	public static class DiscordClientExtensions
 	{
 		public static SocketGuild GetGuild(this DiscordSocketClient self, string guildId)
 		{

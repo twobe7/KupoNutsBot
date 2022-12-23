@@ -26,11 +26,18 @@ namespace FC.Bot.Commands
 
 	public class CommandsService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+
 		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
 		private static Dictionary<string, List<Command>> groupedCommandHandlers = new Dictionary<string, List<Command>>();
 		private static Dictionary<ulong, string> prefixCache = new Dictionary<ulong, string>();
 
 		private static List<HelpCommand> helpCommands = new List<HelpCommand>();
+
+		public CommandsService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public static string GetPrefix(IGuild guild)
 		{
@@ -136,8 +143,7 @@ namespace FC.Bot.Commands
 
 		public override async Task Initialize()
 		{
-			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
-			Program.DiscordClient.SlashCommandExecuted += this.OnSlashCommandExecuted;
+			this.DiscordClient.MessageReceived += this.OnMessageReceived;
 
 			ScheduleService.RunOnSchedule(this.Update, 15);
 			await this.Update();
@@ -145,8 +151,7 @@ namespace FC.Bot.Commands
 
 		public override Task Shutdown()
 		{
-			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
-			Program.DiscordClient.SlashCommandExecuted -= this.OnSlashCommandExecuted;
+			this.DiscordClient.MessageReceived -= this.OnMessageReceived;
 
 			return Task.CompletedTask;
 		}
@@ -154,7 +159,7 @@ namespace FC.Bot.Commands
 		private async Task Update()
 		{
 			prefixCache.Clear();
-			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			foreach (SocketGuild guild in this.DiscordClient.Guilds)
 			{
 				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
 
@@ -169,14 +174,14 @@ namespace FC.Bot.Commands
 				return;
 
 			// Ignore our own messages
-			if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
+			if (message.Author.Id == this.DiscordClient.CurrentUser.Id)
 				return;
 
 			ulong guildId = message.GetGuild().Id;
 			string prefix = GetPrefix(guildId);
 
 			// Special case to display prefix for guild
-			if (message.Content.Contains(Program.DiscordClient.CurrentUser.Mention.Replace("!", string.Empty)) && message.Content.Contains("prefix"))
+			if (message.Content.Contains(this.DiscordClient.CurrentUser.Mention.Replace("!", string.Empty)) && message.Content.Contains("prefix"))
 			{
 				await message.Channel.SendMessageAsync($"This discord's prefix is `{prefix}`", messageReference: new MessageReference(message.Id));
 				return;
@@ -194,7 +199,7 @@ namespace FC.Bot.Commands
 
 					if (response.IndexOf("?_") != -1)
 					{
-						response = response.Substring(0, response.IndexOf("?_"));
+						response = response[..response.IndexOf("?_")];
 					}
 
 					response = response.Replace("tiktok", "vxtiktok");
@@ -230,17 +235,15 @@ namespace FC.Bot.Commands
 		private async Task ProcessCommandInput(SocketMessage message, string command)
 		{
 			string[] parts = Regex.Split(command, "(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-			////string[] parts = command.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
 			command = parts[0];
-			List<string> args = new List<string>();
+			List<string> args = new ();
 
 			if (parts.Length > 1)
 			{
 				for (int i = 1; i < parts.Length; i++)
 				{
 					string arg = parts[i];
-					////arg = arg.Replace("\"", string.Empty);
 
 					if (string.IsNullOrEmpty(arg))
 						continue;
@@ -280,7 +283,7 @@ namespace FC.Bot.Commands
 
 			if (commandHandlers.ContainsKey(commandStr))
 			{
-				if (!(message.Channel is SocketTextChannel textChannel))
+				if (message.Channel is not SocketTextChannel textChannel)
 					return;
 
 				using (textChannel.EnterTypingState())
@@ -376,112 +379,6 @@ namespace FC.Bot.Commands
 			await message.DeleteAsync();
 		}
 
-		private async Task OnSlashCommandExecuted(SocketSlashCommand slashCommand)
-		{
-			if (Program.Initializing)
-			{
-				IUserMessage waitMessage = await slashCommand.Channel.SendMessageAsync("Just drinking my morning coffee... Give me a minute...");
-
-				while (Program.Initializing)
-				{
-					await Task.Delay(1000);
-				}
-
-				await waitMessage.DeleteAsync();
-			}
-
-			if (commandHandlers.ContainsKey(slashCommand.Data.Name))
-			{
-				if (slashCommand.Channel is not SocketTextChannel textChannel)
-					return;
-
-				using (textChannel.EnterTypingState())
-				{
-					Exception? lastException = null;
-					foreach (Command command in commandHandlers[slashCommand.Data.Name])
-					{
-						try
-						{
-							lastException = null;
-							await command.InvokeSlash(slashCommand);
-							break;
-						}
-						catch (ParameterException ex)
-						{
-							lastException = ex;
-						}
-						catch (Exception ex)
-						{
-							lastException = ex;
-							break;
-						}
-					}
-
-					if (lastException != null)
-					{
-						if (lastException is UserException userEx)
-						{
-							await slashCommand.Channel.SendMessageAsync(userEx.Message);
-						}
-						else if (lastException is ParameterException paramEx)
-						{
-							await slashCommand.Channel.SendMessageAsync(paramEx.Message);
-							////await slashCommand.Channel.SendMessageAsync(null, false, await HelpService.GetHelp(message, commandStr));
-						}
-						else if (lastException is NotImplementedException)
-						{
-							IUserMessage sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, seems like I don't quite know how to do that yet.");
-
-							// Clear user and bot message
-							await slashCommand.DeleteOriginalResponseAsync();
-							_ = this.ClearSentMessage(sentMessage);
-						}
-						else if (lastException is WebException webEx)
-						{
-							HttpStatusCode? status = (webEx.Response as HttpWebResponse)?.StatusCode;
-							IUserMessage sentMessage;
-							if (status == null || status != HttpStatusCode.ServiceUnavailable)
-							{
-								// Send message to user
-								sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
-
-								// Log exception
-								////await Utils.Logger.LogExceptionToDiscordChannel(lastException, message);
-							}
-							else
-							{
-								sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, the service is unavailable right now.");
-							}
-
-							// Clear user and bot message
-							await slashCommand.DeleteOriginalResponseAsync();
-							_ = this.ClearSentMessage(sentMessage);
-						}
-						else
-						{
-							// Send message to user
-							IUserMessage sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, something went wrong while handling that.");
-
-							// Log exception
-							////await Utils.Logger.LogExceptionToDiscordChannel(lastException, message);
-
-							// Clear user and bot message
-							await slashCommand.DeleteOriginalResponseAsync();
-							_ = this.ClearSentMessage(sentMessage);
-						}
-					}
-				}
-			}
-			else
-			{
-				IUserMessage sentMessage = await slashCommand.Channel.SendMessageAsync("I'm sorry, I didn't understand that command.");
-
-				// Clear user and bot message
-				await slashCommand.DeleteOriginalResponseAsync();
-				_ = this.ClearSentMessage(sentMessage);
-			}
-		}
-
 		private async Task LogExceptionToDiscordChannel(CommandMessage message, Exception exception)
 		{
 			// Get Settings - check if both bot server and exception channel is given
@@ -489,7 +386,7 @@ namespace FC.Bot.Commands
 			if (!string.IsNullOrWhiteSpace(settings?.BotDiscordServer) && !string.IsNullOrWhiteSpace(settings?.BotLogExceptionsChannel))
 			{
 				// Get the guild
-				SocketGuild kupoNutsGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
+				SocketGuild kupoNutsGuild = this.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
 
 				if (kupoNutsGuild == null)
 					throw new Exception("Unable to access guild");

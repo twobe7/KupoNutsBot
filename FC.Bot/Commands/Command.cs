@@ -12,15 +12,12 @@ namespace FC.Bot.Commands
 	using System.Runtime.ExceptionServices;
 	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
-	using AngleSharp.Dom;
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Bot.Services;
 	using FC.Bot.Utils;
-	using Newtonsoft.Json.Linq;
 	using NodaTime;
-	using NodaTime.Text;
 
 	public class Command
 	{
@@ -165,44 +162,6 @@ namespace FC.Bot.Commands
 			}
 		}
 
-		public async Task InvokeSlash(SocketSlashCommand command) // CommandMessage message, object? owner, )
-		{
-			object? returnObject;
-
-			if (!this.Owner.TryGetTarget(out object? owner) || owner == null)
-				throw new Exception("Attempt to invoke command on null owner.");
-
-			try
-			{
-#pragma warning disable SA1011 // Closing square brackets should be spaced correctly
-				returnObject = this.Method.Invoke(owner, null);
-#pragma warning restore SA1011 // Closing square brackets should be spaced correctly
-			}
-			catch (TargetInvocationException ex)
-			{
-				if (ex.InnerException == null)
-					throw ex;
-
-				throw (Exception)ex.InnerException;
-			}
-
-			if (returnObject is null)
-				return;
-
-			if (returnObject is string rString)
-			{
-				await command.Channel.SendMessageAsync(rString);
-				return;
-			}
-			else if (returnObject is Task task)
-			{
-				await this.HandleSlashTask(command, task);
-				return;
-			}
-
-			throw new Exception("Unknown command return type: " + returnObject.GetType());
-		}
-
 		private async Task Invoke(CommandMessage message, object? owner, object[] param)
 		{
 			object? returnObject;
@@ -246,7 +205,7 @@ namespace FC.Bot.Commands
 				return;
 			}
 
-			Stopwatch sw = new Stopwatch();
+			Stopwatch sw = new ();
 			sw.Start();
 
 			// if we take too long, post the think message.
@@ -308,78 +267,6 @@ namespace FC.Bot.Commands
 			await this.HandleTaskResult(message, thinkMessage, task);
 		}
 
-		private async Task HandleSlashTask(SocketSlashCommand command, Task task)
-		{
-			// early out for instant tasks
-			if (task.IsCompleted && !task.IsFaulted)
-			{
-				await task;
-				await this.HandleSlashTaskResult(command, null, task);
-				return;
-			}
-
-			Stopwatch sw = new Stopwatch();
-			sw.Start();
-
-			// if we take too long, post the think message.
-			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < ThinkDelay)
-				await Task.Delay(10);
-
-			RestUserMessage? thinkMessage = null;
-			if (this.ShowWait && !task.IsCompleted && !task.IsFaulted)
-			{
-				EmbedBuilder builder = new EmbedBuilder
-				{
-					Title = command.Data.Name,
-					Description = WaitEmoji,
-				};
-				thinkMessage = await command.Channel.SendMessageAsync(null, false, builder.Build());
-
-				// Discord doesn't like it when we edit embed to soon after posting them, as the edit
-				// sometimes doesn't 'stick'.
-				await Task.Delay(250);
-			}
-
-			// If we take way too long, post an abort message.
-			while (!task.IsCompleted && !task.IsFaulted && sw.ElapsedMilliseconds < TaskTimeout)
-				await Task.Delay(10);
-
-			if (sw.ElapsedMilliseconds >= TaskTimeout && thinkMessage != null)
-			{
-				await thinkMessage.ModifyAsync(x =>
-				{
-					x.Content = "I'm sorry. I seem to have lost my train of thought...";
-					x.Embed = null;
-				});
-
-				Log.Write("Task timeout: " + command.Data.Name, "Bot");
-				return;
-			}
-
-			// Handle tasks that have gone poorly.
-			if (task.IsFaulted)
-			{
-				if (thinkMessage != null)
-					await command.Channel.DeleteMessageAsync(thinkMessage);
-
-				if (task.Exception != null)
-				{
-					Exception ex = task.Exception;
-
-					if (task.Exception.InnerException != null)
-						ex = task.Exception.InnerException;
-
-					ExceptionDispatchInfo.Capture(ex).Throw();
-				}
-				else
-				{
-					throw new Exception("Task failed");
-				}
-			}
-
-			await this.HandleSlashTaskResult(command, thinkMessage, task);
-		}
-
 		private async Task HandleTaskResult(CommandMessage message, RestUserMessage? editMessage, Task task)
 		{
 			string? resultMessage = null;
@@ -422,53 +309,6 @@ namespace FC.Bot.Commands
 				if (resultMessage != null || resultEmbed != null)
 				{
 					await message.Channel.SendMessageAsync(resultMessage, false, resultEmbed);
-				}
-			}
-		}
-
-		private async Task HandleSlashTaskResult(SocketSlashCommand command, RestUserMessage? editMessage, Task task)
-		{
-			string? resultMessage = null;
-			////Embed[] embeds;
-			Embed? resultEmbed = null;
-
-			if (task is Task<Embed> embedTask)
-			{
-				resultEmbed = embedTask.Result;
-			}
-			else if (task is Task<string> stringTask)
-			{
-				resultMessage = stringTask.Result;
-			}
-			else if (task is Task<(string, Embed)> bothTask)
-			{
-				(string taskMessage, Embed taskEmbed) = bothTask.Result;
-				resultMessage = taskMessage;
-				resultEmbed = taskEmbed;
-			}
-
-			if (editMessage != null)
-			{
-				if (resultMessage == null && resultEmbed == null)
-				{
-					await editMessage.DeleteAsync();
-				}
-				else
-				{
-					await editMessage.ModifyAsync(x =>
-					{
-						x.Content = resultMessage;
-						x.Embed = resultEmbed;
-					});
-				}
-
-				return;
-			}
-			else
-			{
-				if (resultMessage != null || resultEmbed != null)
-				{
-					await command.RespondAsync(resultMessage, resultEmbed != null ? new[] { resultEmbed } : null, false);
 				}
 			}
 		}

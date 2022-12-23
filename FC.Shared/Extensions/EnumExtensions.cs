@@ -22,8 +22,9 @@ namespace System
 				FieldInfo field = type.GetField(name);
 				if (field != null)
 				{
-					DescriptionAttribute? attr = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) as DescriptionAttribute;
-					return attr != null ? attr.Description : Regex.Replace(field.Name, " ");
+					return Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attr
+						? attr.Description
+						: Regex.Replace(field.Name, " ");
 				}
 			}
 
@@ -41,8 +42,10 @@ namespace System
 					FieldInfo field = enumType.GetField(name);
 					if (field != null)
 					{
-						DescriptionAttribute? attr = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) as DescriptionAttribute;
-						list.Add(attr != null ? attr.Description : Regex.Replace(field.Name, " "));
+						var displayString = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attr
+							? attr.Description
+							: Regex.Replace(field.Name, " ");
+						list.Add(displayString);
 					}
 				}
 			}
