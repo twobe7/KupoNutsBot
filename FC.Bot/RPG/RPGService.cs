@@ -18,6 +18,8 @@ namespace FC.Bot.RPG
 
 	public class RPGService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+
 		private const double GenerationChance = 0.2;
 
 		private readonly List<ulong> blockedChannels = new List<ulong>()
@@ -28,16 +30,21 @@ namespace FC.Bot.RPG
 			838350518853566474,
 		};
 
+		public RPGService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
+
 		public override async Task Initialize()
 		{
 			await base.Initialize();
 
-			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
+			this.DiscordClient.MessageReceived += this.OnMessageReceived;
 		}
 
 		public override Task Shutdown()
 		{
-			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
+			this.DiscordClient.MessageReceived -= this.OnMessageReceived;
 			return base.Shutdown();
 		}
 
@@ -59,7 +66,7 @@ namespace FC.Bot.RPG
 			builder.Description = description.ToString();
 
 			// Remove calling command
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -162,7 +169,7 @@ namespace FC.Bot.RPG
 			if (user.IsBot)
 			{
 				// Thank user if trying to rep Kupo Nuts or tell them no if repping a different bot
-				string botMessage = user.Id == Program.DiscordClient.CurrentUser.Id
+				string botMessage = user.Id == this.DiscordClient.CurrentUser.Id
 					? string.Format("I think you're pretty neat too, _kupo!_")
 					: string.Format("They wouldn't understand...");
 
@@ -407,7 +414,7 @@ namespace FC.Bot.RPG
 				if (this.blockedChannels.Contains(message.Channel.Id))
 					return;
 
-				if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
+				if (message.Author.Id == this.DiscordClient.CurrentUser.Id)
 					return;
 
 				if (message.Author.IsBot)

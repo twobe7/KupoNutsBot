@@ -19,7 +19,14 @@ namespace FC.Bot.Lodestone
 
 	public class LodestoneService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+
 		private readonly Table<PostedNews> newsDb = new Table<PostedNews>("KupoNuts_News", 0);
+
+		public LodestoneService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public override async Task Initialize()
 		{
@@ -145,9 +152,13 @@ namespace FC.Bot.Lodestone
 			List<NewsItem> news = await NewsAPI.Feed();
 			news.Reverse();
 
+#if DEBUG
+			news = new List<NewsItem>();
+#endif
+
 			Dictionary<ulong, ulong> guildLodestoneChannel = new Dictionary<ulong, ulong>();
 
-			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			foreach (SocketGuild guild in this.DiscordClient.Guilds)
 			{
 				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
 				if (ulong.TryParse(settings.LodestoneChannel, out ulong channelId))

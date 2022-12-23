@@ -5,11 +5,16 @@
 namespace FC.Bot.Services
 {
 	using System.Threading.Tasks;
+	using Discord.WebSocket;
 	using FC.Data;
 
 	public class LeaderboardSettingsService : ServiceBase
 	{
 		private static readonly Table LeaderboardSettingsDb = new Table("LeaderboardSettings", 0);
+
+		public LeaderboardSettingsService(DiscordSocketClient discordClient)
+		{
+		}
 
 		public static async Task<T> GetSettings<T>(ulong guildId)
 			where T : SettingsEntry, new()

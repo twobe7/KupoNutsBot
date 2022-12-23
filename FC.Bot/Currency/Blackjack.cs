@@ -16,7 +16,7 @@ namespace FC.Bot.Currency
 
 	public class Blackjack
 	{
-		private static readonly List<IEmote> Reactions = new List<IEmote>()
+		private static readonly List<IEmote> Reactions = new ()
 		{
 			Emote.Parse("<:hit:838773536235061275>"),
 			Emote.Parse("<:stand:838773499349827664>"),
@@ -24,7 +24,7 @@ namespace FC.Bot.Currency
 
 		private static readonly IEmote FaceDown = new Emoji("🟦");
 
-		private static readonly List<IEmote> Deck = new List<IEmote>()
+		private static readonly List<IEmote> Deck = new ()
 		{
 			new Emoji(@"🇦"),
 			new Emoji(":two:"),
@@ -43,7 +43,7 @@ namespace FC.Bot.Currency
 
 		private static ActiveGame? activeGame;
 
-		private uint betAmount = 10;
+		private readonly uint betAmount = 10;
 
 		public Blackjack()
 		{
@@ -55,33 +55,32 @@ namespace FC.Bot.Currency
 			this.betAmount = betAmount;
 		}
 
-		public async Task<Task> StartBlackjack(CommandMessage message)
+		public async Task<Task> StartBlackjack(IInteractionContext ctx)
 		{
 			// Only allow one game to be played at a time
 			if (activeGame != null)
 			{
-				RestUserMessage rMessage = await message.Channel.SendMessageAsync("Hand has already been dealt. Please wait, _kupo!_");
+				await ctx.Interaction.FollowupAsync("Hand has already been dealt. Please wait, _kupo!_");
 
 				await Task.Delay(2000);
 
-				await rMessage.DeleteAsync();
-				await message.Channel.DeleteMessageAsync(message.Id);
+				await ctx.Interaction.DeleteOriginalResponseAsync();
 
 				return Task.CompletedTask;
 			}
 
 			// New game
-			activeGame = new ActiveGame(message.Author.Id, this.betAmount);
+			activeGame = new ActiveGame(ctx.User.Id, this.betAmount);
 
 			// Hold message response
-			RestUserMessage? bjMessage;
+			IUserMessage? bjMessage;
 
 			// User already won - what luck
 			if (activeGame.UserHandValue == 21)
 			{
 				// Final builder information
 				EmbedBuilder builder = GetEmbedBuilder(true, true);
-				bjMessage = await message.Channel.SendMessageAsync(null, false, builder.Build(), messageReference: message.MessageReference);
+				bjMessage = await ctx.Interaction.FollowupAsync(embed: builder.Build());
 
 				activeGame = null;
 				await Task.Delay(3000);
@@ -92,7 +91,7 @@ namespace FC.Bot.Currency
 				EmbedBuilder builder = GetEmbedBuilder();
 
 				// First deal
-				bjMessage = await message.Channel.SendMessageAsync(null, false, builder.Build(), messageReference: message.MessageReference);
+				bjMessage = await ctx.Interaction.FollowupAsync(embed: builder.Build());
 
 				// Update active game
 				activeGame.MessageId = bjMessage.Id;
@@ -260,7 +259,7 @@ namespace FC.Bot.Currency
 			}
 		}
 
-		private static async Task<Task> StopBlackjack(RestUserMessage message)
+		private static async Task<Task> StopBlackjack(IUserMessage message)
 		{
 			// Keep delaying until not active
 			while (activeGame != null && (DateTime.Now - activeGame.LastInteractedWith).TotalSeconds < 30)

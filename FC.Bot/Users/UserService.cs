@@ -16,12 +16,19 @@ namespace FC.Bot.Services
 
 	public class UserService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+
 		private static UserService? instance;
 
 		private Dictionary<ulong, Dictionary<ulong, string>> userIdLookup = new Dictionary<ulong, Dictionary<ulong, string>>();
 		private Table<User> userDb = new Table<User>("KupoNuts_Users", 0);
 
 		private Dictionary<ulong, Dictionary<ulong, Dictionary<uint, string>>> userCharacterIdLookup = new Dictionary<ulong, Dictionary<ulong, Dictionary<uint, string>>>();
+
+		public UserService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public static async Task<User> GetUser(IGuildUser user)
 		{
@@ -95,7 +102,7 @@ namespace FC.Bot.Services
 			await base.Initialize();
 			await this.userDb.Connect();
 
-			Program.DiscordClient.UserJoined += this.DiscordClient_UserJoined;
+			this.DiscordClient.UserJoined += this.DiscordClient_UserJoined;
 		}
 
 		private async Task DiscordClient_UserJoined(SocketGuildUser arg)

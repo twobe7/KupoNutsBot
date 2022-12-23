@@ -7,11 +7,16 @@ namespace FC.Bot.Services
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using Discord.WebSocket;
 	using FC.Data;
 
 	public class ChannelService : ServiceBase
 	{
 		private static Table<ChannelData> channelTable = new Table<ChannelData>("KupoNuts_Channels", 0);
+
+		public ChannelService(DiscordSocketClient discordClient)
+		{
+		}
 
 		public static async Task<ChannelData> GetChannelData(ulong guild, ulong channel)
 		{

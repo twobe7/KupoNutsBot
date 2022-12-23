@@ -8,6 +8,7 @@ namespace FC.Bot.Services
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.Audio;
+	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using MusicPlayer;
 
@@ -15,6 +16,10 @@ namespace FC.Bot.Services
 	{
 		private readonly ConcurrentDictionary<ulong, IAudioClient> connectedChannels = new ConcurrentDictionary<ulong, IAudioClient>();
 		private MusicPlayer? musicPlayer;
+
+		public VoiceService(DiscordSocketClient discordClient)
+		{
+		}
 
 		public override async Task Initialize()
 		{
@@ -54,7 +59,7 @@ namespace FC.Bot.Services
 			}
 
 			// Delete calling command
-			await message.Message.DeleteAsync();
+			message.DeleteMessage();
 
 			return false;
 		}
@@ -68,7 +73,7 @@ namespace FC.Bot.Services
 			await this.musicPlayer.LeaveAudio(message.Guild);
 
 			// Delete calling command
-			await message.Message.DeleteAsync();
+			message.DeleteMessage();
 		}
 
 		[Command("Play", Permissions.Everyone, "Play a song", CommandCategory.Music, showWait: false)]

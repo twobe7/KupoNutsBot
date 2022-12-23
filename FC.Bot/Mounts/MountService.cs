@@ -9,12 +9,17 @@ namespace FC.Bot.Mounts
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using FFXIVCollect;
 
 	public class MountService : ServiceBase
 	{
+		public MountService(DiscordSocketClient discordClient)
+		{
+		}
+
 		[Command("MSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData, "MountSearch")]
 		[Command("MountSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData)]
 		public async Task<Embed> GetMount(string search)

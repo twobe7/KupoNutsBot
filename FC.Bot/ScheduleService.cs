@@ -7,6 +7,7 @@ namespace FC.Bot
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using Discord.WebSocket;
 	using FC.Bot.Services;
 
 	public class ScheduleService : ServiceBase
@@ -15,6 +16,10 @@ namespace FC.Bot
 
 		private static List<Schedule> schedules = new List<Schedule>();
 		private Task? scheduleTask;
+
+		public ScheduleService(DiscordSocketClient discordClient)
+		{
+		}
 
 		public static void RunOnSchedule(Func<Task> method, int minutesDelay = 15)
 		{

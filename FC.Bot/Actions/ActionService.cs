@@ -9,13 +9,19 @@ namespace FC.Bot.Actions
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
-	using Universalis;
 	using XIVAPI;
 
 	public class ActionService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+		public ActionService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
+
 		[Command("ASearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData, "ActionSearch")]
 		[Command("ActionSearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData)]
 		public async Task<Embed> GetAction(ulong itemId)

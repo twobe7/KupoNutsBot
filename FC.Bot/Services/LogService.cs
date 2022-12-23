@@ -12,22 +12,28 @@ namespace FC.Bot.Services
 
 	public class LogService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+		public LogService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
+
 		public override Task Initialize()
 		{
-			Program.DiscordClient.UserJoined += this.DiscordClient_UserJoined;
-			Program.DiscordClient.UserLeft += this.DiscordClient_UserLeft;
-			Program.DiscordClient.UserBanned += this.DiscordClient_UserBanned;
-			Program.DiscordClient.UserUnbanned += this.DiscordClient_UserUnbanned;
+			this.DiscordClient.UserJoined += this.DiscordClient_UserJoined;
+			this.DiscordClient.UserLeft += this.DiscordClient_UserLeft;
+			this.DiscordClient.UserBanned += this.DiscordClient_UserBanned;
+			this.DiscordClient.UserUnbanned += this.DiscordClient_UserUnbanned;
 
 			return base.Initialize();
 		}
 
 		public override async Task Shutdown()
 		{
-			Program.DiscordClient.UserJoined -= this.DiscordClient_UserJoined;
-			Program.DiscordClient.UserLeft -= this.DiscordClient_UserLeft;
-			Program.DiscordClient.UserBanned -= this.DiscordClient_UserBanned;
-			Program.DiscordClient.UserUnbanned -= this.DiscordClient_UserUnbanned;
+			this.DiscordClient.UserJoined -= this.DiscordClient_UserJoined;
+			this.DiscordClient.UserLeft -= this.DiscordClient_UserLeft;
+			this.DiscordClient.UserBanned -= this.DiscordClient_UserBanned;
+			this.DiscordClient.UserUnbanned -= this.DiscordClient_UserUnbanned;
 
 			await base.Shutdown();
 		}

@@ -11,17 +11,18 @@ namespace FC.Bot.Services
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.Rest;
+	using Discord.WebSocket;
 	using FC.Bot.Commands;
-	using NodaTime;
-	using NodaTime.Extensions;
 	using Tenor;
 
+	[Group("novelty", "Pass the time")]
 	public class NoveltyService : ServiceBase
 	{
 		public const string KupoNut = @"<:kupo_nut:815575569482776607>";
 
-		public static readonly List<string> Magic8BallAnswers = new List<string>()
+		public static readonly List<string> Magic8BallAnswers = new ()
 		{
 			"It is certain.",
 			"It is decidedly so.",
@@ -47,7 +48,7 @@ namespace FC.Bot.Services
 			"Very doubtful.",
 		};
 
-		public static readonly List<string> Hugs = new List<string>()
+		public static readonly List<string> Hugs = new ()
 		{
 			@"(づ｡◕‿‿◕｡)づ",
 			@"(づ￣ ³￣)づ",
@@ -59,6 +60,13 @@ namespace FC.Bot.Services
 			@"(つ◉益◉)つ",
 			@"(oﾟ▽ﾟ)o",
 		};
+
+		public readonly DiscordSocketClient DiscordClient;
+
+		public NoveltyService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~", CommandCategory.Novelty)]
 		public Task<Embed> Ask(string message)
@@ -77,6 +85,35 @@ namespace FC.Bot.Services
 		public Task<Embed> Ask()
 		{
 			return this.Ask("The Magic 8 Ball");
+		}
+
+		[Command("Blame", Permissions.Everyone, "Blames someone", CommandCategory.Novelty)]
+		public Task<string> Blame(CommandMessage message)
+		{
+			if (message.Channel is SocketGuildChannel guildChannel)
+			{
+				List<IGuildUser> targets = new List<IGuildUser>();
+				targets.Add(message.Author);
+
+				foreach (SocketGuildUser tTarget in guildChannel.Guild.Users)
+				{
+					if (CommandsService.GetPermissions(tTarget) != Permissions.Administrators)
+						continue;
+
+					targets.Add(tTarget);
+				}
+
+				Random rnd = new Random();
+				int val = rnd.Next(targets.Count);
+				IGuildUser target = targets[val];
+
+				if (target.Id == this.DiscordClient.CurrentUser.Id)
+					return Task.FromResult("This is my fault. =(");
+
+				return Task.FromResult("This is your fault, " + target.GetName() + ".");
+			}
+
+			return Task.FromResult("This is your fault, " + message.Author.GetName() + ".");
 		}
 
 		[Command("Roll", Permissions.Everyone, "Roll the dice.", CommandCategory.Novelty)]
@@ -181,15 +218,14 @@ namespace FC.Bot.Services
 			return value + "!";
 		}
 
-		[Command("et", Permissions.Everyone, "Gets the current Eorzean Time", CommandCategory.XIVData, "EorzeaTime")]
-		[Command("EorzeaTime", Permissions.Everyone, "Gets the current Eorzean Time", CommandCategory.XIVData)]
-		public string EorzeanTime()
+		[SlashCommand("eorzeatime", "Gets the current Eorzean Time")]
+		public async Task EorzeanTime()
 		{
-			return "It is currently: " + this.GetEorzeanTime().ToString("HH:mm");
+			await this.RespondAsync($"It is currently: {GetEorzeanTime():HH:mm}");
 		}
 
-		[Command("Timers", Permissions.Everyone, "Display the FFXIV Reset Timers", CommandCategory.XIVData)]
-		public void Timers(CommandMessage message)
+		[SlashCommand("timers", "Display the FFXIV Reset Timers")]
+		public async Task Timers()
 		{
 			EmbedBuilder embed = new EmbedBuilder()
 				.WithTitle("FFXIV Timers");
@@ -224,7 +260,7 @@ namespace FC.Bot.Services
 				weeklyResetFormat = $"{weeklyReset.Days} days, ";
 
 			// Add hh:mm:ss to string
-			weeklyResetFormat += $"{weeklyReset.Hours.ToString().PadLeft(2, '0')}:{weeklyReset.Minutes.ToString().PadLeft(2, '0')}:{weeklyReset.Seconds.ToString().PadLeft(2, '0')}";
+			weeklyResetFormat += $"{PadLeft(weeklyReset.Hours)}:{PadLeft(weeklyReset.Minutes)}:{PadLeft(weeklyReset.Seconds)}";
 
 			embed.AddField(new EmbedFieldBuilder()
 				.WithName("Weekly Reset").WithValue(weeklyResetFormat));
@@ -234,7 +270,7 @@ namespace FC.Bot.Services
 			if (dailyReset.Hours < 0 || dailyReset.Minutes < 0 || dailyReset.Seconds < 0)
 				dailyReset = new TimeSpan(1, 23, 0, 0) - now.TimeOfDay;
 
-			string dailyResetFormat = $"{dailyReset.Hours.ToString().PadLeft(2, '0')}:{dailyReset.Minutes.ToString().PadLeft(2, '0')}:{dailyReset.Seconds.ToString().PadLeft(2, '0')}";
+			string dailyResetFormat = $"{PadLeft(dailyReset.Hours)}:{PadLeft(dailyReset.Minutes)}:{PadLeft(dailyReset.Seconds)}";
 			embed.AddField(new EmbedFieldBuilder()
 				.WithName("Duty/Beast Tribe Daily Reset").WithValue(dailyResetFormat));
 
@@ -243,12 +279,12 @@ namespace FC.Bot.Services
 			if (gcReset.Hours < 0 || gcReset.Minutes < 0 || gcReset.Seconds < 0)
 				gcReset = new TimeSpan(1, 4, 0, 0) - now.TimeOfDay;
 
-			string gcResetFormat = $"{gcReset.Hours.ToString().PadLeft(2, '0')}:{gcReset.Minutes.ToString().PadLeft(2, '0')}:{gcReset.Seconds.ToString().PadLeft(2, '0')}";
+			string gcResetFormat = $"{PadLeft(gcReset.Hours)}:{PadLeft(gcReset.Minutes)}:{PadLeft(gcReset.Seconds)}";
 			embed.AddField(new EmbedFieldBuilder()
 				.WithName("Grand Company Daily Reset").WithValue(gcResetFormat));
 
 			// Post
-			message.Channel.SendMessageAsync(embed: embed.Build(), messageReference: message.MessageReference);
+			await this.RespondAsync(embed: embed.Build());
 		}
 
 		[Command("Flip", Permissions.Everyone, "Flips user", CommandCategory.Novelty)]
@@ -257,7 +293,7 @@ namespace FC.Bot.Services
 			string flipName;
 
 			// Trying to flip the bot
-			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			if (user.Id == this.DiscordClient.CurrentUser.Id)
 			{
 				flipName = message.Author.GetName();
 			}
@@ -282,23 +318,18 @@ namespace FC.Bot.Services
 								.Replace("i", "ᴉ", true, null)
 								.Replace("j", "ɾ", true, null)
 								.Replace("k", "ʞ", true, null)
-								////.Replace("l", "l", true, null)
 								.Replace("m", "ɯ", true, null)
 								.Replace("n", "u", true, null)
-								////.Replace("o", "o", true, null)
 								.Replace("p", "d", true, null)
 								.Replace("q", "b", true, null)
 								.Replace("r", "ɹ", true, null)
-								////.Replace("s", "s", true, null)
 								.Replace("t", "ʇ", true, null)
 								.Replace("u", "n", true, null)
 								.Replace("v", "ʌ", true, null)
 								.Replace("w", "ʍ", true, null)
-								////.Replace("x", "x", true, null)
 								.Replace("y", "ʎ", true, null);
-								////.Replace("z", "z", true, null);
 
-			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			if (user.Id == this.DiscordClient.CurrentUser.Id)
 			{
 				return "I don't think so!\n\n(╯°□°）╯︵ " + name;
 			}
@@ -308,10 +339,10 @@ namespace FC.Bot.Services
 			}
 		}
 
-		[Command(@"Unflip", Permissions.Everyone, "Unflips user", CommandCategory.Novelty)]
+		[Command("Unflip", Permissions.Everyone, "Unflips user", CommandCategory.Novelty)]
 		public string Unflip(IGuildUser user)
 		{
-			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			if (user.Id == this.DiscordClient.CurrentUser.Id)
 			{
 				return ":woman_gesturing_no:";
 			}
@@ -338,7 +369,7 @@ namespace FC.Bot.Services
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
 			// Remove calling command
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -359,7 +390,7 @@ namespace FC.Bot.Services
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
 			// Remove calling command
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -386,21 +417,11 @@ namespace FC.Bot.Services
 			EmbedBuilder builder = new EmbedBuilder()
 				.WithColor(Color.DarkRed);
 
-			if (user.Id == Program.DiscordClient.CurrentUser.Id)
+			if (user.Id == this.DiscordClient.CurrentUser.Id)
 			{
 				await message.Channel.SendMessageAsync("Nice try, _kupo!_");
 				builder.Title = "Kupo Nuts slaps " + message.Author.GetName();
 			}
-			////else if (user.Id == 294055671396302858)
-			////{
-			////	await message.Channel.SendMessageAsync("Nice try, _kupo!_");
-			////	builder.Title = "Kupo Nuts slaps " + message.Author.GetName();
-
-			////	RandomAPI.Result honeyResult = await RandomAPI.Random("anime slap");
-			////	builder.ImageUrl = honeyResult.GetBestUrl();
-
-			////	return builder.Build();
-			////}
 			else if (message.Author.Id == user.Id)
 			{
 				builder.Title = message.Author.GetName() + " slaps themselves";
@@ -414,7 +435,7 @@ namespace FC.Bot.Services
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
 			// Remove calling command
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -439,7 +460,7 @@ namespace FC.Bot.Services
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
 			// Remove calling command
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -478,7 +499,7 @@ namespace FC.Bot.Services
 		[Command("Rate", Permissions.Everyone, "Rates a user", CommandCategory.Novelty)]
 		public async Task Rate(CommandMessage message, IGuildUser user)
 		{
-			int rating = this.GenerateRatingForToday(user, null, 11);
+			int rating = GenerateRatingForToday(user, null, 11);
 
 			StringBuilder builder = new StringBuilder();
 
@@ -502,7 +523,7 @@ namespace FC.Bot.Services
 		[Command("Ship", Permissions.Everyone, "Ships two users with a daily rating", CommandCategory.Novelty)]
 		public async Task Ship(CommandMessage message, IGuildUser userA, IGuildUser userB)
 		{
-			int rating = this.GenerateRatingForToday(userA, userB, 101);
+			int rating = GenerateRatingForToday(userA, userB, 101);
 
 			string response;
 			if (rating < 20)
@@ -535,12 +556,11 @@ namespace FC.Bot.Services
 		public async void QuickShoutOut(CommandMessage message)
 		{
 			// Remove calling command
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 
 			EmbedBuilder embed = new EmbedBuilder()
 				.WithThumbnailUrl("https://cdn.discordapp.com/attachments/825936704023691284/830801754223935488/images_8.png")
 				.WithTitle(@"Yeah, let's give a quick shout out to Christina Applegate");
-				////.WithDescription(@"Yeah, let's give a quick shout out to Christina Applegate");
 
 			await message.Channel.SendMessageAsync(embed: embed.Build());
 
@@ -555,16 +575,6 @@ namespace FC.Bot.Services
 		[Command("ISWeather", Permissions.Everyone, "Get Island Sanctuary Weather", CommandCategory.Novelty)]
 		public async void GetIslandSantuaryWeather(CommandMessage message)
 		{
-			////var rates = new List<(int, int)>
-			////{
-			////	(1, 25),
-			////	(2, 45),
-			////	(3, 10),
-			////	(7, 10),
-			////	(4, 5),
-			////	(8, 5),
-			////};
-
 			var rates = new List<(string weather, int chance)>
 			{
 				("Clear Skies", 25),
@@ -577,7 +587,7 @@ namespace FC.Bot.Services
 
 			var currentWeather = "Unknown";
 			var upcomingWeather = "Unknown";
-			var currentTime = this.GetEorzeanTime().ToString("HH:mm");
+			var currentTime = GetEorzeanTime().ToString("HH:mm");
 
 			// Get Seed
 			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
@@ -586,8 +596,8 @@ namespace FC.Bot.Services
 			// Hash Seed
 			var timeChunk = ((seed + 1) % 3) * 8;
 
-			var hashedSeed = this.GetHashedSeed(seed, timeChunk);
-			var upcomingHashedSeed = this.GetHashedSeed(seed, (timeChunk + 8) % 24);
+			var hashedSeed = GetHashedSeed(seed, timeChunk);
+			var upcomingHashedSeed = GetHashedSeed(seed, (timeChunk + 8) % 24);
 
 			// Get Weather
 			var cumChance = 0;
@@ -612,7 +622,12 @@ namespace FC.Bot.Services
 			await message.Channel.SendMessageAsync(response, messageReference: message.MessageReference);
 		}
 
-		private uint GetHashedSeed(double seed, double timeChunk)
+		private static string PadLeft(int value, int numberToPad = 2)
+		{
+			return value.ToString().PadLeft(numberToPad, '0');
+		}
+
+		private static uint GetHashedSeed(double seed, double timeChunk)
 		{
 			var hashBase = (int)((Math.Floor(seed / 3) * 100) + timeChunk);
 			var step1 = (uint)((hashBase << 11) ^ hashBase) >> 0;
@@ -620,7 +635,7 @@ namespace FC.Bot.Services
 			return step2 % 100;
 		}
 
-		private DateTime GetEorzeanTime()
+		private static DateTime GetEorzeanTime()
 		{
 			/* (1 Eorzean hour = 175 seconds) */
 
@@ -634,7 +649,7 @@ namespace FC.Bot.Services
 			return et;
 		}
 
-		private int GenerateRatingForToday(IGuildUser userA, IGuildUser? userB, int mod)
+		private static int GenerateRatingForToday(IGuildUser userA, IGuildUser? userB, int mod)
 		{
 			long now = DateTime.Now.Date.Ticks;
 

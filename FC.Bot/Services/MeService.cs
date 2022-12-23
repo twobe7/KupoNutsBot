@@ -10,6 +10,12 @@ namespace FC.Bot.Services
 
 	public class MeService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+		public MeService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
+
 		public override async Task Initialize()
 		{
 			await base.Initialize();
@@ -20,7 +26,7 @@ namespace FC.Bot.Services
 
 		private async Task Update()
 		{
-			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			foreach (SocketGuild guild in this.DiscordClient.Guilds)
 			{
 				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
 
@@ -28,7 +34,7 @@ namespace FC.Bot.Services
 				if (!string.IsNullOrEmpty(settings.NickName))
 					name = settings.NickName;
 
-				SocketGuildUser guildUser = guild.GetUser(Program.DiscordClient.CurrentUser.Id);
+				SocketGuildUser guildUser = guild.GetUser(this.DiscordClient.CurrentUser.Id);
 
 				if (guildUser != null)
 				{
@@ -41,7 +47,7 @@ namespace FC.Bot.Services
 				}
 			}
 
-			await Program.DiscordClient.SetActivityAsync(new BotActivity());
+			await this.DiscordClient.SetActivityAsync(new BotActivity());
 		}
 
 		private class BotActivity : IActivity
@@ -50,7 +56,7 @@ namespace FC.Bot.Services
 			{
 				get
 				{
-					return "over " + Program.DiscordClient.Guilds.Count + " guilds";
+					return $"over {Program.DiscordClient.Guilds.Count} guilds";
 				}
 			}
 

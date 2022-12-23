@@ -48,7 +48,7 @@ namespace FC.Bot.ContentCreator
 
 #if DEBUG // Commands for testing specific users
 		[Command("TestStreamer", Permissions.Administrators, "Test Streamer")]
-		public async Task TestStreamer(ICommandMessage message, string user)
+		public async Task TestStreamer(CommandMessage message, string user)
 		{
 			StreamerAPI.Stream stream = await StreamerAPI.GetStreams(user);
 
@@ -63,7 +63,7 @@ namespace FC.Bot.ContentCreator
 		}
 
 		[Command("TestStreamer", Permissions.Administrators, "Test Streamer - Aiyanya")]
-		public async Task TestStreamer(ICommandMessage message)
+		public async Task TestStreamer(CommandMessage message)
 		{
 			StreamerAPI.Stream stream = await StreamerAPI.GetStreams("Aiyanya");
 
@@ -78,7 +78,7 @@ namespace FC.Bot.ContentCreator
 		}
 
 		[Command("TestYTUploader", Permissions.Administrators, "Test Uploader - Lacrima")]
-		public async Task TestUploader(ICommandMessage message)
+		public async Task TestUploader(CommandMessage message)
 		{
 			ExploderAPI.Video video = await ExploderAPI.GetLatestVideo("UCBGZf_eNHJPCFxVxzEEWMeA");
 
@@ -88,33 +88,33 @@ namespace FC.Bot.ContentCreator
 #endif
 
 		[Command("ICreatorTwitch", Permissions.Everyone, "Set your twitch stream", CommandCategory.ContentCreators, showWait: false)]
-		public async Task SetTwitchInformation(ICommandMessage message, string username)
+		public async Task SetTwitchInformation(CommandMessage message, string username)
 		{
 			await this.SetContentCreator(message, username, ContentCreator.Type.Twitch);
 		}
 
 		[Command("RemoveCreatorTwitch", Permissions.Everyone, "Remove your set Twitch stream", CommandCategory.ContentCreators)]
-		public async Task RemoveTwitchInformation(ICommandMessage message)
+		public async Task RemoveTwitchInformation(CommandMessage message)
 		{
 			await this.RemoveContentCreator(message, ContentCreator.Type.Twitch);
 		}
 
 		[Command("ICreatorYoutube", Permissions.Everyone, "Set your youtube channel using channel Id or username", showWait: false)]
-		public async Task SetYoutubeInformation(ICommandMessage message, string identifier)
+		public async Task SetYoutubeInformation(CommandMessage message, string identifier)
 		{
 			(string channelId, string username) = await ExploderAPI.GetChannelInformation(identifier);
 			await this.SetContentCreator(message, username, ContentCreator.Type.Youtube, channelId);
 		}
 
 		[Command("RemoveCreatorYoutube", Permissions.Everyone, "Remove your set Youtube information", CommandCategory.ContentCreators)]
-		public async Task RemoveYoutubeInformation(ICommandMessage message)
+		public async Task RemoveYoutubeInformation(CommandMessage message)
 		{
 			await this.RemoveContentCreator(message, ContentCreator.Type.Youtube);
 		}
 
 		[Command("CC", Permissions.Everyone, "View current content creators", CommandCategory.ContentCreators, "ContentCreators")]
 		[Command("ContentCreators", Permissions.Everyone, "View current content creators", CommandCategory.ContentCreators)]
-		public async Task ViewContentCreators(ICommandMessage message)
+		public async Task ViewContentCreators(CommandMessage message)
 		{
 			// Load streamers
 			List<ContentCreator> streamers = await ContentCreatorDatabase.LoadAll(new Dictionary<string, object> { { "DiscordGuildId", message.Guild.Id } });
@@ -329,7 +329,7 @@ namespace FC.Bot.ContentCreator
 			}
 		}
 
-		private async Task SetContentCreator(ICommandMessage message, string identifier, ContentCreator.Type type, string? linkId = null)
+		private async Task SetContentCreator(CommandMessage message, string identifier, ContentCreator.Type type, string? linkId = null)
 		{
 			ContentCreator streamer = await ContentCreatorDatabase.LoadOrCreate(message.Author.Id.ToString());
 
@@ -347,10 +347,10 @@ namespace FC.Bot.ContentCreator
 			// Delay then delete command and response message
 			await Task.Delay(2000);
 			await response.DeleteAsync();
-			await message.DeleteMessage();
+			message.DeleteMessage();
 		}
 
-		private async Task RemoveContentCreator(ICommandMessage message, ContentCreator.Type type)
+		private async Task RemoveContentCreator(CommandMessage message, ContentCreator.Type type)
 		{
 			ContentCreator? streamer = await ContentCreatorDatabase.Load(message.Author.Id.ToString());
 			if (streamer != null)
@@ -362,7 +362,7 @@ namespace FC.Bot.ContentCreator
 			// Delay then delete command and response message
 			await Task.Delay(2000);
 			await response.DeleteAsync();
-			await message.DeleteMessage();
+			message.DeleteMessage();
 		}
 
 		private async Task RemoveContentCreator(ContentCreator streamer, ContentCreator.Type type)

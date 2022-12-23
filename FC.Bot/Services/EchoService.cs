@@ -17,6 +17,13 @@ namespace FC.Bot.Services
 
 	public class EchoService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+
+		public EchoService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
+
 		public static async Task<List<RestUserMessage>> Echo(SocketTextChannel from, SocketTextChannel to, ulong fromMessageID, int count)
 		{
 			if (from is null)
@@ -84,14 +91,14 @@ namespace FC.Bot.Services
 		[Command("Echo", Permissions.Administrators, "Copies given text to a new channel.", requiresQuotes: true)]
 		public async Task HandleEcho(CommandMessage message, SocketTextChannel channel, string text)
 		{
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 			await channel.SendMessageAsync(text);
 		}
 
 		[Command("Echo", Permissions.Administrators, "Copies given text to the same channel.")]
 		public async Task HandleEcho(CommandMessage message, string text)
 		{
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 			await message.Channel.SendMessageAsync(text);
 		}
 
@@ -108,7 +115,7 @@ namespace FC.Bot.Services
 		[Command("ModifyEcho", Permissions.Administrators, "Modifies a bot post.", CommandCategory.Administration, requiresQuotes: true)]
 		public async Task HandleModify(CommandMessage message, SocketTextChannel channel, ulong messageId, string text)
 		{
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 
 			IUserMessage? botMessage = await channel.GetMessageAsync(messageId) as IUserMessage;
 
@@ -118,7 +125,7 @@ namespace FC.Bot.Services
 		[Command("ModifyEcho", Permissions.Administrators, "Modifies a bot post.", CommandCategory.Administration, requiresQuotes: true)]
 		public async Task HandleModify(CommandMessage message, ulong messageId, string text)
 		{
-			await message.Channel.DeleteMessageAsync(message.Message);
+			message.DeleteMessage();
 
 			IUserMessage? botMessage = await message.Channel.GetMessageAsync(messageId) as IUserMessage;
 
@@ -129,7 +136,7 @@ namespace FC.Bot.Services
 		{
 			if (botMessage != null)
 			{
-				if (botMessage.Author.Id != Program.DiscordClient.CurrentUser.Id)
+				if (botMessage.Author.Id != this.DiscordClient.CurrentUser.Id)
 				{
 					RestUserMessage errorMessage = await currentChannel.SendMessageAsync("Given message was not sent by me, I cannot modify that _kupo!_");
 

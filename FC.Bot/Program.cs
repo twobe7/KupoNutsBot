@@ -9,11 +9,14 @@ namespace FC.Bot
 	using System.Threading;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
 	using FC.Bot.Actions;
 	using FC.Bot.Characters;
+	using FC.Bot.CommandModules;
 	using FC.Bot.Commands;
-	using FC.Bot.ContentCreators;
+	using FC.Bot.ContentCreator;
+	using FC.Bot.Currency;
 	using FC.Bot.Events;
 	using FC.Bot.Events.Services;
 	using FC.Bot.Guild;
@@ -26,13 +29,20 @@ namespace FC.Bot
 	using FC.Bot.RPG;
 	using FC.Bot.Services;
 	using FC.Bot.Status;
+	using Microsoft.Extensions.DependencyInjection;
 
 	public class Program
 	{
 		private static List<ServiceBase> services = new List<ServiceBase>();
 		private static bool exiting = false;
-
 		private static DiscordSocketClient? client;
+
+		private readonly IServiceProvider serviceProvider;
+
+		public Program()
+		{
+			this.serviceProvider = CreateProvider();
+		}
 
 		public static DiscordSocketClient DiscordClient
 		{
@@ -59,7 +69,7 @@ namespace FC.Bot
 
 		public static Task Run(string[] args)
 		{
-			Program prog = new Program();
+			Program prog = new ();
 			return prog.DoRun();
 		}
 
@@ -73,10 +83,69 @@ namespace FC.Bot
 			}
 		}
 
-		public static async Task<IGuildUser> GetBotUserForGuild(IGuild guild)
+		public static IServiceProvider CreateProvider()
 		{
-			return await guild.GetUserAsync(DiscordClient.CurrentUser.Id);
+			var config = new DiscordSocketConfig
+			{
+				GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers,
+				AlwaysDownloadUsers = true,
+			};
+
+			var servConfig = new InteractionServiceConfig
+			{
+				AutoServiceScopes = false,
+				LogLevel = LogSeverity.Info,
+				DefaultRunMode = RunMode.Async,
+			};
+
+			var collection = new ServiceCollection()
+				.AddSingleton(config)
+				.AddSingleton<DiscordSocketClient>()
+				.AddSingleton(servConfig)
+				.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+				.AddSingleton<SettingsService>()
+				.AddSingleton<LeaderboardSettingsService>()
+				.AddSingleton<CommandsService>()
+				.AddSingleton<ScheduleService>()
+				.AddSingleton<EventsService>()
+				.AddSingleton<Eventsv2.EventsService>()
+				.AddSingleton<CalendarService>()
+				.AddSingleton<UserService>()
+				.AddSingleton<ActionService>()
+				.AddSingleton<CharacterService>()
+				.AddSingleton<ChannelService>()
+				.AddSingleton<ChannelOptInService>()
+				.AddSingleton<ContentCreatorService>()
+				.AddSingleton<EchoService>()
+				.AddSingleton<FashionReportService>()
+				.AddSingleton<GuildService>()
+				.AddSingleton<HelpService>()
+				.AddSingleton<HousingService>()
+				.AddSingleton<ItemService>()
+				.AddSingleton<LodestoneService>()
+				.AddSingleton<LogService>()
+				.AddSingleton<MeService>()
+				.AddSingleton<ModerationService>()
+				.AddSingleton<MountService>()
+				.AddSingleton<NoveltyService>()
+				.AddSingleton<PollService>()
+				.AddSingleton<QuoteService>()
+				.AddSingleton<ReactionRoleService>()
+				.AddSingleton<RPGService>()
+				.AddSingleton<StatusService>()
+				.AddSingleton<VoiceService>()
+				.AddSingleton<DebugModule>()
+				.AddSingleton<CurrencyRunTimes>()
+				.AddSingleton<CurrencyService>()
+				;
+
+			return collection.BuildServiceProvider();
 		}
+
+		////public static async Task<IGuildUser> GetBotUserForGuild(IGuild guild)
+		////{
+		////	return await guild.GetUserAsync(DiscordClient.CurrentUser.Id);
+		////}
 
 		protected virtual async Task AddServices()
 		{
@@ -99,7 +168,6 @@ namespace FC.Bot
 				await this.AddService<ChannelOptInService>();
 				await this.AddService<ContentCreatorService>();
 				await this.AddService<CurrencyService>();
-				await this.AddService<DebugService>();
 				await this.AddService<EchoService>();
 				await this.AddService<FashionReportService>();
 				await this.AddService<GuildService>();
@@ -125,32 +193,32 @@ namespace FC.Bot
 			}
 		}
 
-		private static void Log_ExceptionLogged(string exceptionLog)
-		{
-			if (client != null)
-			{
-				try
-				{
-					string? idStr = Settings.Load().LogChannel;
-					if (idStr != null)
-					{
-						ulong id = ulong.Parse(idStr);
-						SocketTextChannel channel = (SocketTextChannel)DiscordClient.GetChannel(id);
-						EmbedBuilder embedBuilder = new EmbedBuilder
-						{
-							Color = Color.Red,
-							Title = "Kupo Nut Bot encountered an error",
-							Description = exceptionLog,
-							Timestamp = DateTimeOffset.UtcNow,
-						};
-						channel.SendMessageAsync(null, false, embedBuilder.Build());
-					}
-				}
-				catch (Exception)
-				{
-				}
-			}
-		}
+		////private static void Log_ExceptionLogged(string exceptionLog)
+		////{
+		////	if (client != null)
+		////	{
+		////		try
+		////		{
+		////			string? idStr = Settings.Load().LogChannel;
+		////			if (idStr != null)
+		////			{
+		////				ulong id = ulong.Parse(idStr);
+		////				SocketTextChannel channel = (SocketTextChannel)DiscordClient.GetChannel(id);
+		////				EmbedBuilder embedBuilder = new EmbedBuilder
+		////				{
+		////					Color = Color.Red,
+		////					Title = "Kupo Nut Bot encountered an error",
+		////					Description = exceptionLog,
+		////					Timestamp = DateTimeOffset.UtcNow,
+		////				};
+		////				channel.SendMessageAsync(null, false, embedBuilder.Build());
+		////			}
+		////		}
+		////		catch (Exception)
+		////		{
+		////		}
+		////	}
+		////}
 
 		private async Task DoRun()
 		{
@@ -168,24 +236,20 @@ namespace FC.Bot
 				}
 				else
 				{
-					var config = new DiscordSocketConfig
-					{
-						GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers,
-					};
-
-					client = new DiscordSocketClient(config);
-
 					bool ready = false;
-					DiscordClient.Log += this.LogAsync;
+					client = this.serviceProvider.GetRequiredService<DiscordSocketClient>();
 
-					DiscordClient.Ready += () =>
+					client.Log += this.LogAsync;
+					client.SlashCommandExecuted += this.OnSlashCommandExecuted;
+
+					client.Ready += () =>
 					{
 						ready = true;
 						return Task.CompletedTask;
 					};
 
-					await DiscordClient.LoginAsync(TokenType.Bot, token);
-					await DiscordClient.StartAsync();
+					await client.LoginAsync(TokenType.Bot, token);
+					await client.StartAsync();
 
 					while (!ready)
 						await Task.Yield();
@@ -193,16 +257,26 @@ namespace FC.Bot
 					// boot the rest of the bot
 					await this.AddServices();
 
-					// Add a slash command
-					var command = new SlashCommandBuilder
+					// Register Slash commands
+					var interactionService = this.serviceProvider.GetRequiredService<InteractionService>();
+					await interactionService.AddModuleAsync(typeof(DebugModule), this.serviceProvider);
+#if DEBUG
+					Settings settings = Settings.Load();
+					if (!string.IsNullOrWhiteSpace(settings?.BotDiscordServer))
 					{
-						Name = "goodbot",
-						Description = "Praise me!",
-					};
-					await client.CreateGlobalApplicationCommandAsync(command.Build());
+						// Get the guild
+						SocketGuild botGuild = client.GetGuild(ulong.Parse(settings.BotDiscordServer));
+						if (botGuild == null)
+							throw new Exception("Unable to access guild");
 
-					// Update all users in guilds
-					await this.PopulateGuildUsers();
+						await interactionService.RegisterCommandsToGuildAsync(botGuild.Id);
+					}
+#else
+					await interactionService.RegisterCommandsGloballyAsync();
+#endif
+
+					interactionService.Log += this.LogAsync;
+					interactionService.SlashCommandExecuted += this.InteractionSlashCommandExecuted;
 
 					Initializing = false;
 					Log.Write("Initialization complete", "Bot");
@@ -215,6 +289,8 @@ namespace FC.Bot
 				}
 
 				Log.Write("Shutting down", "Bot");
+
+				Program.DiscordClient.SlashCommandExecuted -= this.OnSlashCommandExecuted;
 
 				if (services != null)
 				{
@@ -237,26 +313,64 @@ namespace FC.Bot
 		private async Task AddService<T>()
 			where T : ServiceBase
 		{
-			T service = Activator.CreateInstance<T>();
+			T service = this.serviceProvider.GetRequiredService<T>();
+			CommandsService.BindCommands(service);
 			await service.Initialize();
 			services.Add(service);
-		}
-
-		private async Task PopulateGuildUsers()
-		{
-			// Had issue where commands like Rep didn't recognise users
-			// Using GetUsersAsync returned null
-			// This worked in dev so we'll populate the user list on boot
-			foreach (IGuild guild in Program.DiscordClient.Guilds)
-			{
-				await guild.DownloadUsersAsync();
-			}
 		}
 
 		private Task LogAsync(LogMessage log)
 		{
 			Log.Write(log.ToString(), "Bot");
 			return Task.CompletedTask;
+		}
+
+		private async Task OnSlashCommandExecuted(SocketSlashCommand slashCommand)
+		{
+			if (Program.Initializing)
+			{
+				await slashCommand.DeferAsync(true);
+
+				while (Program.Initializing)
+				{
+					await Task.Delay(1000);
+				}
+			}
+
+			var interactionService = this.serviceProvider.GetRequiredService<InteractionService>();
+			var ctx = new SocketInteractionContext(client, slashCommand);
+
+			await interactionService.ExecuteCommandAsync(ctx, this.serviceProvider);
+		}
+
+		private async Task InteractionSlashCommandExecuted(SlashCommandInfo info, IInteractionContext context, IResult result)
+		{
+			if (info == null)
+				return;
+
+			if (Program.Initializing)
+			{
+				await context.Interaction.DeferAsync(true);
+
+				while (Program.Initializing)
+				{
+					await Task.Delay(1000);
+				}
+			}
+
+			var innerResult = await info.CheckPreconditionsAsync(context, this.serviceProvider);
+			if (!innerResult.IsSuccess)
+			{
+				var errorMessage = $"```diff\n- {innerResult.ErrorReason}\n```";
+				if (context.Interaction.HasResponded)
+				{
+					await context.Interaction.FollowupAsync(text: errorMessage, ephemeral: true);
+				}
+				else
+				{
+					await context.Interaction.RespondAsync(text: errorMessage, ephemeral: true);
+				}
+			}
 		}
 	}
 }

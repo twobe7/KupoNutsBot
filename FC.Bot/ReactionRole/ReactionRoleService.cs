@@ -22,8 +22,16 @@ namespace FC.Bot.Events
 		public static Table<ReactionRole> ReactionRoleDatabase = new Table<ReactionRole>("KupoNuts_ReactionRole", 0);
 		public static Table<ReactionRoleItem> ReactionRoleItemDatabase = new Table<ReactionRoleItem>("KupoNuts_ReactionRoleItem", 0);
 
+		public readonly DiscordSocketClient DiscordClient;
+
 		private static ReactionRoleService? instance;
+
 		private Dictionary<ulong, string> messageReactionRoleLookup = new Dictionary<ulong, string>();
+
+		public ReactionRoleService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public static ReactionRoleService Instance
 		{
@@ -46,15 +54,15 @@ namespace FC.Bot.Events
 			ScheduleService.RunOnSchedule(this.Update, 15);
 			await this.Update();
 
-			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
-			Program.DiscordClient.ReactionRemoved += this.ReactionRemoved;
+			this.DiscordClient.ReactionAdded += this.ReactionAdded;
+			this.DiscordClient.ReactionRemoved += this.ReactionRemoved;
 		}
 
 		public override Task Shutdown()
 		{
 			instance = null;
-			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
-			Program.DiscordClient.ReactionRemoved -= this.ReactionRemoved;
+			this.DiscordClient.ReactionAdded -= this.ReactionAdded;
+			this.DiscordClient.ReactionRemoved -= this.ReactionRemoved;
 
 			return Task.CompletedTask;
 		}
@@ -63,7 +71,7 @@ namespace FC.Bot.Events
 		public async Task ManualUpdate(CommandMessage message)
 		{
 			await this.Update();
-			await message.Message.DeleteAsync();
+			message.DeleteMessage();
 		}
 
 		public async Task Update()
@@ -85,7 +93,7 @@ namespace FC.Bot.Events
 					continue;
 
 				// Ensure there is a valid guild
-				SocketGuild? guild = Program.DiscordClient.GetGuild(rr.GuildId);
+				SocketGuild? guild = this.DiscordClient.GetGuild(rr.GuildId);
 				if (guild == null)
 					continue;
 
@@ -265,7 +273,7 @@ namespace FC.Bot.Events
 		private async Task<ReactionRole> GetReactionRoleIfValid(Cacheable<IUserMessage, ulong> message, IMessageChannel channel, SocketReaction reaction)
 		{
 			// Don't modify bot roles
-			if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
+			if (reaction.UserId == this.DiscordClient.CurrentUser.Id)
 				return new ReactionRole();
 
 			// Don't process if message is not a reaction role message

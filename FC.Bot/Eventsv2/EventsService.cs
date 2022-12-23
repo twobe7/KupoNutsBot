@@ -8,6 +8,7 @@ namespace FC.Bot.Eventsv2
 	using System.Collections.Generic;
 	using System.Text;
 	using System.Threading.Tasks;
+	using Discord.WebSocket;
 	using FC.Bot.Services;
 	using FC.Data;
 	using FC.Eventsv2;
@@ -17,6 +18,10 @@ namespace FC.Bot.Eventsv2
 	public class EventsService : ServiceBase
 	{
 		private static Table<Event> eventsDatabase = new Table<Event>("Events", 2);
+
+		public EventsService(DiscordSocketClient discordClient)
+		{
+		}
 
 		public static Task SaveEvent(Event evt)
 		{

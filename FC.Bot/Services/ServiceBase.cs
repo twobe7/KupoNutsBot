@@ -4,14 +4,17 @@
 
 namespace FC.Bot.Services
 {
+	using System;
+	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using Discord.Interactions;
+	using Discord.WebSocket;
 	using FC.Bot.Commands;
 
-	public abstract class ServiceBase
+	public abstract class ServiceBase : InteractionModuleBase
 	{
 		public ServiceBase()
 		{
-			CommandsService.BindCommands(this);
 		}
 
 		public bool Alive

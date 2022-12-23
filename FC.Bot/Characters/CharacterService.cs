@@ -27,6 +27,12 @@ namespace FC.Bot.Characters
 
 	public class CharacterService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+		public CharacterService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
+
 		public override async Task Initialize()
 		{
 			await base.Initialize();
@@ -157,7 +163,7 @@ namespace FC.Bot.Characters
 		public async Task PostWhoIsResponse(CommandMessage message, User user, int? characterIndex = null)
 		{
 			// Special case to just load Kupo Nuts' portrait from disk.
-			if (user.DiscordUserId == Program.DiscordClient.CurrentUser.Id)
+			if (user.DiscordUserId == this.DiscordClient.CurrentUser.Id)
 			{
 				await message.Channel.SendMessageAsync("Thats me!");
 				await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/self.png");

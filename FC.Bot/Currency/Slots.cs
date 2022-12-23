@@ -51,7 +51,7 @@ namespace FC.Bot.Currency
 			Jackpot = 2,
 		}
 
-		public async Task<Task> StartSlot(CommandMessage message)
+		public async Task<Task> StartSlot(IInteractionContext ctx)
 		{
 			// Initial builder information
 			EmbedBuilder builder = new EmbedBuilder
@@ -64,11 +64,10 @@ namespace FC.Bot.Currency
 			Dictionary<int, List<string>> board = this.GetSlotBoard();
 
 			// Update board
-			WinType winType = WinType.Lose;
-			this.SpinSlotGrid(builder, board, 0, out winType);
+			this.SpinSlotGrid(builder, board, 0, out WinType winType);
 
 			// First layout
-			RestUserMessage? slotMessage = await message.Channel.SendMessageAsync(null, false, builder.Build(), messageReference: message.MessageReference);
+			await ctx.Interaction.RespondAsync(null, new Embed[] { builder.Build() });
 
 			// Make it spin
 			for (int spin = 1; spin < 6; spin++)
@@ -88,20 +87,17 @@ namespace FC.Bot.Currency
 
 					if (winType == WinType.Win)
 					{
-						User user = await UserService.GetUser(message.Author);
+						User user = await UserService.GetUser(ctx.Guild.Id, ctx.User.Id);
 						user.UpdateTotalKupoNuts(110);
 					}
 					else if (winType == WinType.Jackpot)
 					{
-						User user = await UserService.GetUser(message.Author);
+						User user = await UserService.GetUser(ctx.Guild.Id, ctx.User.Id);
 						user.UpdateTotalKupoNuts(1010);
 					}
 				}
 
-				await slotMessage.ModifyAsync(x =>
-				{
-					x.Embed = builder.Build();
-				});
+				await ctx.Interaction.ModifyOriginalResponseAsync(x => x.Embed = builder.Build());
 			}
 
 			return Task.CompletedTask;

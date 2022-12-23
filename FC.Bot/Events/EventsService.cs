@@ -22,8 +22,15 @@ namespace FC.Bot.Events
 	{
 		public static Table<Event> EventsDatabase = new Table<Event>("KupoNuts_Events", 1);
 
+		public readonly DiscordSocketClient DiscordClient;
+
 		private static EventsService? instance;
 		private Dictionary<string, string> messageEventLookup = new Dictionary<string, string>();
+
+		public EventsService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public static EventsService Instance
 		{
@@ -70,13 +77,13 @@ namespace FC.Bot.Events
 			ScheduleService.RunOnSchedule(this.Update, 15);
 			await this.Update();
 
-			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
+			this.DiscordClient.ReactionAdded += this.ReactionAdded;
 		}
 
 		public override Task Shutdown()
 		{
 			instance = null;
-			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
+			this.DiscordClient.ReactionAdded -= this.ReactionAdded;
 
 			return Task.CompletedTask;
 		}
@@ -185,7 +192,7 @@ namespace FC.Bot.Events
 					return;
 
 				// don't mark yourself as attending!
-				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
+				if (reaction.UserId == this.DiscordClient.CurrentUser.Id)
 					return;
 
 				string eventId = this.messageEventLookup[message.Id.ToString()];
@@ -235,7 +242,7 @@ namespace FC.Bot.Events
 				await evt.Notify.Post(evt);
 
 				RestUserMessage userMessage = (RestUserMessage)await channel.Value.GetMessageAsync(message.Id);
-				SocketUser user = Program.DiscordClient.GetUser(reaction.UserId);
+				SocketUser user = this.DiscordClient.GetUser(reaction.UserId);
 				await userMessage.RemoveReactionAsync(reaction.Emote, user);
 			}
 			catch (Exception ex)

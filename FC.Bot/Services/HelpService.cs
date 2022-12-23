@@ -25,6 +25,8 @@ namespace FC.Bot.Services
 		public static Emoji Next = new Emoji("⏩");
 		public static Emoji Last = new Emoji("⏭️");
 
+		public readonly DiscordSocketClient DiscordClient;
+
 		private static readonly int PageSize = 10;
 
 		private static readonly List<Emoji> HelpEmotes = new List<Emoji>()
@@ -35,6 +37,11 @@ namespace FC.Bot.Services
 		private static Task? activeHelpWindowTask;
 
 		private static Dictionary<ulong, ActiveHelp> activeHelpEmbeds = new Dictionary<ulong, ActiveHelp>();
+
+		public HelpService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public static string GetTypeName(Type type)
 		{
@@ -137,13 +144,13 @@ namespace FC.Bot.Services
 
 		public override async Task Initialize()
 		{
-			Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
+			this.DiscordClient.ReactionAdded += this.OnReactionAdded;
 			await base.Initialize();
 		}
 
 		public override Task Shutdown()
 		{
-			Program.DiscordClient.ReactionAdded -= this.OnReactionAdded;
+			this.DiscordClient.ReactionAdded -= this.OnReactionAdded;
 			return base.Shutdown();
 		}
 
@@ -358,7 +365,7 @@ namespace FC.Bot.Services
 			try
 			{
 				// Don't react to your own reacts!
-				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
+				if (reaction.UserId == this.DiscordClient.CurrentUser.Id)
 					return;
 
 				// Only handle reacts to help embed

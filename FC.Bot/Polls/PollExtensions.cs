@@ -21,13 +21,13 @@ namespace FC.Bot.Polls
 		public static async Task<bool> IsValid(this Poll self)
 		{
 			// Poll is invalid if channel cannot be found
-			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
+			if (Program.DiscordClient.GetChannel(self.ChannelId) is not SocketTextChannel channel)
 				return false;
 
 			if (self.MessageId != 0)
 			{
 				// Poll is invalid if message has been removed
-				if (!(await channel.GetMessageAsync(self.MessageId) is RestUserMessage _))
+				if (await channel.GetMessageAsync(self.MessageId) is not RestUserMessage _)
 					return false;
 
 				// Poll is invalid if it has been closed for a month
@@ -42,7 +42,7 @@ namespace FC.Bot.Polls
 		{
 			Log.Write("Closing poll: \"" + self.Comment + "\" (" + self.Id + ")", "Bot");
 
-			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
+			if (Program.DiscordClient.GetChannel(self.ChannelId) is not SocketTextChannel channel)
 				return;
 
 			if (await channel.GetMessageAsync(self.MessageId) is RestUserMessage pollMessage)
@@ -53,7 +53,7 @@ namespace FC.Bot.Polls
 
 		public static Task<Embed> ToEmbed(this Poll self)
 		{
-			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
+			if (Program.DiscordClient.GetChannel(self.ChannelId) is not SocketTextChannel channel)
 				throw new Exception("Poll channel: " + self.ChannelId + " missing");
 
 			int totalVotes = self.CountTotalVotes();
@@ -143,7 +143,7 @@ namespace FC.Bot.Polls
 		{
 			Log.Write("Updating poll: \"" + self.Comment + "\" (" + self.Id + ")", "Bot");
 
-			if (!(Program.DiscordClient.GetChannel(self.ChannelId) is SocketTextChannel channel))
+			if (Program.DiscordClient.GetChannel(self.ChannelId) is not SocketTextChannel channel)
 				throw new Exception("Poll channel: " + self.ChannelId + " missing");
 
 			Embed embed = await self.ToEmbed();

@@ -17,6 +17,10 @@ namespace FC.Bot.Guild
 
 	public class GuildService : ServiceBase
 	{
+		public GuildService(DiscordSocketClient discordClient)
+		{
+		}
+
 		public override async Task Initialize()
 		{
 			await base.Initialize();

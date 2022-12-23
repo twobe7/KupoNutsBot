@@ -8,12 +8,17 @@ namespace FC.Bot.Housing
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using PaissaHouse;
 
 	public class HousingService : ServiceBase
 	{
+		public HousingService(DiscordSocketClient discordClient)
+		{
+		}
+
 		public override async Task Initialize()
 		{
 			await base.Initialize();

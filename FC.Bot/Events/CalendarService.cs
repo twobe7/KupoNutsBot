@@ -20,6 +20,12 @@ namespace FC.Bot.Events.Services
 
 	public class CalendarService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+		public CalendarService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
+
 		public override async Task Initialize()
 		{
 			ScheduleService.RunOnSchedule(this.Update, 15);
@@ -31,7 +37,7 @@ namespace FC.Bot.Events.Services
 		{
 			Log.Write("Updating Calendar", "Bot");
 
-			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			foreach (SocketGuild guild in this.DiscordClient.Guilds)
 			{
 				EventsSettings settings = await SettingsService.GetSettings<EventsSettings>(guild.Id);
 				if (settings == null)
@@ -40,13 +46,9 @@ namespace FC.Bot.Events.Services
 				if (settings.CalendarChannel == null)
 					continue;
 
-				ulong channelId = 0;
-				ulong weekMessageID = 0;
-				ulong futureMessageID = 0;
-
-				ulong.TryParse(settings.CalendarChannel, out channelId);
-				ulong.TryParse(settings.CalendarWeekMessageId, out weekMessageID);
-				ulong.TryParse(settings.CalendarFutureMessageId, out futureMessageID);
+				_ = ulong.TryParse(settings.CalendarChannel, out ulong channelId);
+				_ = ulong.TryParse(settings.CalendarWeekMessageId, out ulong weekMessageID);
+				_ = ulong.TryParse(settings.CalendarFutureMessageId, out ulong futureMessageID);
 
 				if (channelId == 0)
 					return;
@@ -100,7 +102,7 @@ namespace FC.Bot.Events.Services
 
 		private async Task<ulong> Update(ulong guildId, ulong channelId, ulong messageId, string header, int minDays, int maxDays)
 		{
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
+			SocketTextChannel channel = (SocketTextChannel)this.DiscordClient.GetChannel(channelId);
 
 			StringBuilder builder = new StringBuilder();
 			/*builder.Append("**");
@@ -173,7 +175,7 @@ namespace FC.Bot.Events.Services
 			}
 			else
 			{
-				if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
+				if (message.Author.Id == this.DiscordClient.CurrentUser.Id)
 				{
 					await message.ModifyAsync(x =>
 					{

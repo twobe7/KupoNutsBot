@@ -17,6 +17,10 @@ namespace FC.Bot.Services
 
 	public class ModerationService : ServiceBase
 	{
+		public ModerationService(DiscordSocketClient discordClient)
+		{
+		}
+
 		[Command("ClearAll", Permissions.Administrators, "Clears a range of messages from the channel")]
 		public async Task ClearAll(CommandMessage message, int count)
 		{

@@ -30,15 +30,22 @@ namespace FC.Bot.Polls
 			"🇬",
 		};
 
+		public readonly DiscordSocketClient DiscordClient;
+
 		private Dictionary<ulong, string> pollLookup = new Dictionary<ulong, string>();
 
 		private Table<Poll> pollDatabase = new Table<Poll>("KupoNuts_Polls", 2);
+
+		public PollService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public override async Task Initialize()
 		{
 			await this.pollDatabase.Connect();
 
-			Program.DiscordClient.ReactionAdded += this.ReactionAdded;
+			this.DiscordClient.ReactionAdded += this.ReactionAdded;
 
 			ScheduleService.RunOnSchedule(this.UpdatePolls, 15);
 			await this.UpdatePolls();
@@ -46,7 +53,7 @@ namespace FC.Bot.Polls
 
 		public override Task Shutdown()
 		{
-			Program.DiscordClient.ReactionAdded -= this.ReactionAdded;
+			this.DiscordClient.ReactionAdded -= this.ReactionAdded;
 			return Task.CompletedTask;
 		}
 
@@ -151,7 +158,7 @@ namespace FC.Bot.Polls
 
 			await this.UpdatePoll(poll);
 
-			await message.Message.DeleteAsync();
+			message.DeleteMessage();
 
 			return true;
 		}
@@ -191,7 +198,7 @@ namespace FC.Bot.Polls
 				if (!reaction.User.IsSpecified)
 					return;
 
-				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
+				if (reaction.UserId == this.DiscordClient.CurrentUser.Id)
 					return;
 
 				string pollId = this.pollLookup[message.Id];

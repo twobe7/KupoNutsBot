@@ -4,12 +4,15 @@
 
 namespace FC.XIVData
 {
+	using Discord.Interactions;
+
 	/// <summary>
 	/// Enum for Data Centre.
 	/// </summary>
 	/// <remarks>Populated from https://github.com/xivapi/ffxiv-datamining/blob/master/csv/WorldDCGroupType.csv. </remarks>
 	public enum DataCentre
 	{
+		[Hide]
 		Invalid = 0,
 		Elemental = 1,
 		Gaia = 2,
@@ -20,6 +23,7 @@ namespace FC.XIVData
 		Light = 7,
 		Crystal = 8,
 		Materia = 9,
+		[Hide]
 		Beta = 99,
 	}
 

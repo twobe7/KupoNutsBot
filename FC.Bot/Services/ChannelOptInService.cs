@@ -16,7 +16,14 @@ namespace FC.Bot.Services
 
 	public class ChannelOptInService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+
 		private static Dictionary<(ulong, ulong), ChannelData.OptInInfo> watchChannels = new Dictionary<(ulong, ulong), ChannelData.OptInInfo>();
+
+		public ChannelOptInService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public override async Task Initialize()
 		{
@@ -40,13 +47,13 @@ namespace FC.Bot.Services
 				watchChannels.Add((guildId, channelId), channelData.OptIn);
 			}
 
-			Program.DiscordClient.MessageReceived += this.DiscordClient_MessageReceived;
-			Program.DiscordClient.ReactionAdded += this.DiscordClient_ReactionAdded;
+			this.DiscordClient.MessageReceived += this.DiscordClient_MessageReceived;
+			this.DiscordClient.ReactionAdded += this.DiscordClient_ReactionAdded;
 		}
 
 		public override Task Shutdown()
 		{
-			Program.DiscordClient.MessageReceived -= this.DiscordClient_MessageReceived;
+			this.DiscordClient.MessageReceived -= this.DiscordClient_MessageReceived;
 			return base.Shutdown();
 		}
 
@@ -80,7 +87,7 @@ namespace FC.Bot.Services
 
 		private async Task DiscordClient_MessageReceived(SocketMessage arg)
 		{
-			if (!(arg.Channel is SocketGuildChannel guildChannel))
+			if (arg.Channel is not SocketGuildChannel guildChannel)
 				return;
 
 			ulong guildId = arg.GetGuild().Id;
@@ -101,7 +108,7 @@ namespace FC.Bot.Services
 
 		private async Task DiscordClient_ReactionAdded(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
 		{
-			if (arg3.UserId == Program.DiscordClient.CurrentUser.Id)
+			if (arg3.UserId == this.DiscordClient.CurrentUser.Id)
 				return;
 
 			IUserMessage msg = await arg1.GetOrDownloadAsync();
@@ -123,7 +130,7 @@ namespace FC.Bot.Services
 				{
 					await msg.RemoveReactionAsync(arg3.Emote, arg3.User.GetValueOrDefault());
 
-					SocketGuild guild = Program.DiscordClient.GetGuild(guildId);
+					SocketGuild guild = this.DiscordClient.GetGuild(guildId);
 					SocketRole role = guild.GetRole(ulong.Parse(data.Role));
 					SocketGuildUser user = guild.GetUser(arg3.UserId);
 

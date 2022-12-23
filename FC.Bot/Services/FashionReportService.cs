@@ -16,7 +16,14 @@ namespace FC.Bot.Services
 
 	public class FashionReportService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+
 		private Table<FashionReportEntry> db = new Table<FashionReportEntry>("KupoNuts_FashionReport", 0);
+
+		public FashionReportService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public override async Task Initialize()
 		{
@@ -71,7 +78,7 @@ namespace FC.Bot.Services
 		{
 			Log.Write("Posting Fashion Report: " + entry.Content, "Bot");
 
-			foreach (SocketGuild guild in Program.DiscordClient.Guilds)
+			foreach (SocketGuild guild in this.DiscordClient.Guilds)
 			{
 				GuildSettings settings = await SettingsService.GetSettings<GuildSettings>(guild.Id);
 
@@ -79,7 +86,7 @@ namespace FC.Bot.Services
 					continue;
 
 				ulong channelId = ulong.Parse(settings.FashionReportChannel);
-				SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(channelId);
+				SocketTextChannel channel = (SocketTextChannel)this.DiscordClient.GetChannel(channelId);
 
 				if (channel == null)
 					continue;

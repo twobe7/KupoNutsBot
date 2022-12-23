@@ -17,7 +17,13 @@ namespace FC.Bot.Status
 
 	public class StatusService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
 		private bool online;
+
+		public StatusService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public override async Task Initialize()
 		{
@@ -52,7 +58,7 @@ namespace FC.Bot.Status
 			builder.AddField("Last Online", TimeUtils.GetDateTimeString(TimeUtils.Now), true);
 
 			ulong id = ulong.Parse(settings.StatusChannel);
-			SocketTextChannel channel = (SocketTextChannel)Program.DiscordClient.GetChannel(id);
+			SocketTextChannel channel = (SocketTextChannel)this.DiscordClient.GetChannel(id);
 
 			if (channel == null)
 				return;
@@ -62,7 +68,7 @@ namespace FC.Bot.Status
 			if (settings.StatusMessage != null)
 				message = (RestUserMessage)await channel.GetMessageAsync(ulong.Parse(settings.StatusMessage));
 
-			if (message == null || message.Author.Id != Program.DiscordClient.CurrentUser.Id)
+			if (message == null || message.Author.Id != this.DiscordClient.CurrentUser.Id)
 			{
 				message = await channel.SendMessageAsync(null, false, builder.Build());
 				settings.StatusMessage = message.Id.ToString();

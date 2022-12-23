@@ -18,18 +18,25 @@ namespace FC.Bot.Quotes
 
 	public class QuoteService : ServiceBase
 	{
+		public readonly DiscordSocketClient DiscordClient;
+
 		private Table<Quote> quoteDb = new Table<Quote>("KupoNuts_Quotes", Quote.Version);
+
+		public QuoteService(DiscordSocketClient discordClient)
+		{
+			this.DiscordClient = discordClient;
+		}
 
 		public override async Task Initialize()
 		{
 			await this.quoteDb.Connect();
 
-			Program.DiscordClient.ReactionAdded += this.OnReactionAdded;
+			this.DiscordClient.ReactionAdded += this.OnReactionAdded;
 		}
 
 		public override Task Shutdown()
 		{
-			Program.DiscordClient.ReactionAdded -= this.OnReactionAdded;
+			this.DiscordClient.ReactionAdded -= this.OnReactionAdded;
 			return base.Shutdown();
 		}
 
@@ -285,7 +292,7 @@ namespace FC.Bot.Quotes
 
 		private Embed GetEmbed(Quote self)
 		{
-			SocketGuild guild = Program.DiscordClient.GetGuild(self.GuildId);
+			SocketGuild guild = this.DiscordClient.GetGuild(self.GuildId);
 			SocketGuildUser user = guild.GetUser(self.UserId);
 
 			EmbedBuilder builder = new EmbedBuilder

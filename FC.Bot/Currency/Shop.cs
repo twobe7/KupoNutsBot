@@ -24,10 +24,6 @@ namespace FC.Bot.Currency
 		public const string GoldKupoNut = @"<:kupo_nut_gold:820579501469597697>";
 		public const string Chub = @"<:Chub:820582269596073984>";
 
-		////public static IEmote NutEmote = Emote.Parse(KupoNut);
-		////public static IEmote GoldNutEmote = Emote.Parse(GoldKupoNut);
-		////public static IEmote ChubEmote = Emote.Parse(Chub);
-
 		private static List<ShopItem> shopItems = new List<ShopItem>();
 		private static List<IEmote> shopEmotes = new List<IEmote>();
 

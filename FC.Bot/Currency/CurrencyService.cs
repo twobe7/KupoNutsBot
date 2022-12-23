@@ -10,25 +10,28 @@ namespace FC.Bot.Services
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Currency;
+	using FC.Bot.Extensions;
 	using FC.Data;
 	using FC.Shop;
+	using Microsoft.Extensions.DependencyInjection;
 
+	[Group("currency", "Currency based commands including games")]
 	public class CurrencyService : ServiceBase
 	{
-		public const string KupoNut = "<:kupo_nut:815575569482776607>";
-
-		public static Table<ShopItem> ShopItemDatabase = new Table<ShopItem>("KupoNuts_ShopItems", 0);
-
-		public static IEmote NutEmote = Emote.Parse(KupoNut);
+		public readonly DiscordSocketClient DiscordClient;
 
 		private const double GenerationChance = 0.05;
+		private const int GameCoolDownInSeconds = 30;
+
+		private static readonly Table<ShopItem> ShopItemDatabase = new ("KupoNuts_ShopItems", 0);
 
 		// TODO: Move into Guild Settings - allow user to provide list of channels to be blocked
-		private readonly List<ulong> blockedChannels = new List<ulong>()
+		private readonly List<ulong> blockedChannels = new ()
 		{
 			837682896805691473,
 			838350357074935838,
@@ -36,12 +39,23 @@ namespace FC.Bot.Services
 			838350518853566474,
 		};
 
-		private Dictionary<ulong, DateTime?> activeInventoryWindows = new Dictionary<ulong, DateTime?>();
-
 		// Run times
-		private Dictionary<ulong, DateTime?> slotsLastRunTime = new Dictionary<ulong, DateTime?>();
-		private Dictionary<ulong, DateTime?> blackjackLastRunTime = new Dictionary<ulong, DateTime?>();
-		private Dictionary<ulong, uint> userDailyGameCount = new Dictionary<ulong, uint>();
+		private readonly Dictionary<ulong, DateTime?> slotsLastRunTime;
+		private readonly Dictionary<ulong, DateTime?> activeInventoryWindows;
+		private readonly Dictionary<ulong, DateTime?> blackjackLastRunTime;
+		private readonly Dictionary<ulong, uint> userDailyGameCount;
+
+		public CurrencyService(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
+		{
+			this.DiscordClient = discordClient;
+
+			// Set run times
+			var runTimes = serviceProvider.GetRequiredService<CurrencyRunTimes>();
+			this.slotsLastRunTime = runTimes.SlotsLastRunTime;
+			this.activeInventoryWindows = runTimes.ActiveInventoryWindows;
+			this.blackjackLastRunTime = runTimes.BlackjackLastRunTime;
+			this.userDailyGameCount = runTimes.UserDailyGameCount;
+		}
 
 		private enum CurrencyGame
 		{
@@ -55,22 +69,23 @@ namespace FC.Bot.Services
 
 			await ShopItemDatabase.Connect();
 
-			Program.DiscordClient.MessageReceived += this.OnMessageReceived;
+			this.DiscordClient.MessageReceived += this.OnMessageReceived;
 
 			ScheduleService.RunOnSchedule(this.ClearDailyGameCount, 60);
 		}
 
 		public override Task Shutdown()
 		{
-			Program.DiscordClient.MessageReceived -= this.OnMessageReceived;
+			this.DiscordClient.MessageReceived -= this.OnMessageReceived;
 			return base.Shutdown();
 		}
 
-		[Command("NL", Permissions.Everyone, "Shows the kupo nut leader boards", CommandCategory.Currency, "NutLeadboard")]
-		[Command("NutLeadboard", Permissions.Everyone, "Shows the kupo nut leader boards", CommandCategory.Currency)]
-		public async Task<Embed> ShowLeaders(CommandMessage message)
+		[SlashCommand("nut-leaderboard", "Shows the kupo nut leader boards")]
+		public async Task ShowLeaders()
 		{
-			IGuild guild = message.Guild;
+			await this.DeferAsync();
+
+			IGuild guild = this.Context.Guild;
 
 			List<User> users = await UserService.GetAllUsersForGuild(guild.Id);
 
@@ -79,7 +94,7 @@ namespace FC.Bot.Services
 				return -a.TotalKupoNutsCurrent.CompareTo(b.TotalKupoNutsCurrent);
 			});
 
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new ();
 
 			int count = 1;
 			foreach (User user in users)
@@ -102,22 +117,24 @@ namespace FC.Bot.Services
 				count++;
 			}
 
-			EmbedBuilder embedBuilder = new EmbedBuilder()
+			EmbedBuilder embedBuilder = new ()
 			{
 				Title = "Kupo Nut Leaderboard",
 				Description = builder.ToString(),
 			};
-			return embedBuilder.Build();
+
+			await this.FollowupAsync(embed: embedBuilder.Build());
 		}
 
-		[Command("Nuts", Permissions.Everyone, "Check your pile of Kupo Nuts", CommandCategory.Currency)]
-		public async Task<Embed> Nuts(CommandMessage message)
+		[SlashCommand("nuts", "Check your pile of Kupo Nuts")]
+		public async Task Nuts()
 		{
 			// Get user information
-			User user = await UserService.GetUser(message.Author);
-			string userName = message.Author.GetName();
+			var guildUser = await this.Context.Guild.GetUserAsync(this.Context.User.Id);
+			User user = await UserService.GetUser(guildUser);
+			string userName = guildUser.GetName();
 
-			EmbedBuilder builder = new EmbedBuilder() { Title = userName + "'s Kupo Nut Stash!" };
+			EmbedBuilder builder = new () { Title = userName + "'s Kupo Nut Stash!" };
 
 			StringBuilder description = new StringBuilder();
 			description.AppendLine("Current Total: " + user.TotalKupoNutsCurrent);
@@ -125,19 +142,16 @@ namespace FC.Bot.Services
 			builder.Description = description.ToString();
 
 			// Remove calling command
-			await message.Channel.DeleteMessageAsync(message.Message);
-
-			return builder.Build();
+			await this.RespondAsync(embeds: new Embed[] { builder.Build() });
 		}
 
-		[Command("DN", Permissions.Everyone, "Get your daily nut.", CommandCategory.Currency, "DailyNuts")]
-		[Command("DailyNut", Permissions.Everyone, "Get your daily nut.", CommandCategory.Currency, "DailyNuts")]
-		[Command("DailyNuts", Permissions.Everyone, "Get your daily nut.", CommandCategory.Currency)]
-		public async void DailyNuts(CommandMessage message)
+		[SlashCommand("dailynuts", "Get your daily nut")]
+		public async Task DailyNuts()
 		{
 			// Get user information
-			User user = await UserService.GetUser(message.Author);
-			string userName = message.Author.GetName();
+			var guildUser = await this.Context.Guild.GetUserAsync(this.Context.User.Id);
+			User user = await UserService.GetUser(guildUser);
+			string userName = guildUser.GetName();
 
 			string postBackMessage;
 
@@ -156,14 +170,11 @@ namespace FC.Bot.Services
 					TimeSpan timeToWait = dailyReset.AddDays(1) - DateTime.Now;
 					postBackMessage = $"Greedy {userName}! You can have more Kupo Nuts in {timeToWait.ToLongString()}, _kupo!_";
 
-					// Delete command message
-					await message.Channel.DeleteMessageAsync(message.Message);
-
-					RestUserMessage failedMessage = await message.Channel.SendMessageAsync(postBackMessage);
+					await this.RespondAsync(postBackMessage);
 
 					await Task.Delay(10000);
 
-					await failedMessage.DeleteAsync();
+					await this.DeleteOriginalResponseAsync();
 
 					return;
 				}
@@ -177,34 +188,34 @@ namespace FC.Bot.Services
 
 			postBackMessage = string.Format("{0}, please enjoy these {1} Kupo Nuts! _Kupo!_", userName, nutsReceieved);
 
-			// Delete command message
-			await message.Channel.DeleteMessageAsync(message.Message);
-
 			// Send message
-			await message.Channel.SendMessageAsync(postBackMessage);
+			await this.RespondAsync(postBackMessage);
 		}
 
-		[Command("GiveNuts", Permissions.Everyone, "Share your Kupo Nuts with someone.", CommandCategory.Currency)]
-		public async Task<string> GiveNuts(CommandMessage message, int numberOfNuts, IGuildUser user)
+		[SlashCommand("givenuts", "Share your Kupo Nuts with someone")]
+		public async Task GiveNuts(int numberOfNuts, IGuildUser user)
 		{
+			await this.DeferAsync(ephemeral: true);
+
 			// Message for return
 			string postBackMessage;
 
 			// Get sender user name
-			string fromUserName = message.Author.GetName();
+			var guildUser = await this.Context.Guild.GetUserAsync(this.Context.User.Id);
+			string fromUserName = guildUser.GetName();
 
 			// Handle bots
 			if (user.IsBot)
 			{
-				postBackMessage = user.Id == Program.DiscordClient.CurrentUser.Id
+				postBackMessage = user.Id == this.DiscordClient.CurrentUser.Id
 					? string.Format("Thanks {0} but I have plenty of Kupo Nuts. You hang onto these, _kupo!_", fromUserName)
 					: string.Format("That Bot has no need for delicious Kupo Nuts!");
 
-				return await Task.FromResult(postBackMessage);
+				await this.RespondAsync(postBackMessage);
 			}
 
 			// Get sending user information
-			User fromUser = await UserService.GetUser(message.Author);
+			User fromUser = await UserService.GetUser(guildUser);
 
 			// Get receiving user information
 			User toUser = await UserService.GetUser(user);
@@ -229,7 +240,7 @@ namespace FC.Bot.Services
 				postBackMessage = string.Format("You only have {0} Kupo Nuts to give!", fromUser.TotalKupoNutsCurrent);
 			}
 
-			return await Task.FromResult(postBackMessage);
+			await this.RespondAsync(postBackMessage);
 		}
 
 		[Command("Inventory", Permissions.Everyone, "Shows your current inventory", CommandCategory.Currency)]
@@ -279,7 +290,7 @@ namespace FC.Bot.Services
 			await userMessage.AddReactionsAsync(items.Select(x => x.ReactionEmote).ToArray());
 
 			// Handle reacts
-			Program.DiscordClient.ReactionAdded += this.OnReactionAddedInventory;
+			this.DiscordClient.ReactionAdded += this.OnReactionAddedInventory;
 
 			// Add to active windows
 			this.activeInventoryWindows.Add(userMessage.Id, DateTime.Now);
@@ -300,129 +311,155 @@ namespace FC.Bot.Services
 			return await new Shop(items).DisplayShop(message);
 		}
 
-		[Command("Slots", Permissions.Everyone, "Spin it to win it!", CommandCategory.Currency, showWait: false)]
-		public async Task<Task> Slots(CommandMessage message)
+		[SlashCommand("slots", "Spin it to win it!")]
+		public async Task Slots()
 		{
-			if (await this.ValidateLastRunTime(message, CurrencyGame.Slots))
+			if (await this.ValidateLastRunTime(this.Context, CurrencyGame.Slots))
 			{
-				if (await this.ValidateDailyCurrencyGameAllowance(message))
+				if (await this.ValidateDailyCurrencyGameAllowance(this.Context))
 				{
-					User user = await UserService.GetUser(message.Author);
+					User user = await UserService.GetUser(this.Context.Guild.Id, this.Context.User.Id);
 					if (user.TotalKupoNutsCurrent > 10)
 					{
 						user.UpdateTotalKupoNuts(-10);
 
-						this.UpdateLastRunTime(CurrencyGame.Slots, message.Author.Id, message.Guild.Id);
+						this.UpdateLastRunTime(CurrencyGame.Slots, this.Context.User.Id, this.Context.Guild.Id);
 
-						return await new Slots().StartSlot(message);
+						await new Slots().StartSlot(this.Context);
 					}
 					else
 					{
-						IUserMessage response = await message.Channel.SendMessageAsync("You must have 10 Kupo Nuts to play the Slots, _kupo!_");
+						await this.RespondAsync("You must have 10 Kupo Nuts to play the Slots, _kupo!_");
 
 						await Task.Delay(2000);
 
-						await message.Channel.DeleteMessageAsync(message.Id);
-						await response.DeleteAsync();
+						await this.DeleteOriginalResponseAsync();
 					}
 				}
 			}
-
-			return Task.CompletedTask;
 		}
 
-		[Command("BJ", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
-		[Command("Bjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
-		[Command("Blackjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, showWait: false)]
-		public async Task<Task> Blackjack(CommandMessage message)
+		////[SlashCommand("blackjack", "Play a hand of blackjack!")]
+		////////[Command("BJ", Permissions.Everyone, "!", CommandCategory.Currency, "Blackjack", showWait: false)]
+		////////[Command("Bjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
+		////////[Command("Blackjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, showWait: false)]
+		////public async Task<Task> Blackjack()
+		////{
+		////	await this.DeferAsync(ephemeral: true);
+
+		////	if (await this.ValidateLastRunTime(this.Context, CurrencyGame.Blackjack))
+		////	{
+		////		if (await this.ValidateDailyCurrencyGameAllowance(this.Context))
+		////		{
+		////			User user = await UserService.GetUser(this.Context.Guild.Id, this.Context.User.Id);
+
+		////			if (user.TotalKupoNutsCurrent >= 10)
+		////			{
+		////				user.UpdateTotalKupoNuts(-10);
+
+		////				this.UpdateLastRunTime(CurrencyGame.Blackjack, this.Context.User.Id, this.Context.Guild.Id);
+
+		////				return await new Blackjack(10).StartBlackjack(this.Context);
+		////			}
+		////			else
+		////			{
+		////				await this.RespondAsync("You must have 10 Kupo Nuts to play Blackjack, _kupo!_");
+
+		////				await Task.Delay(2000);
+
+		////				await this.DeleteOriginalResponseAsync();
+		////			}
+		////		}
+		////	}
+
+		////	return Task.CompletedTask;
+		////}
+
+		[SlashCommand("blackjack", "Play a hand of blackjack!")]
+		////[Command("BJ", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
+		////[Command("Bjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
+		////[Command("Blackjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, showWait: false)]
+		public async Task Blackjack(uint bet = 10)
 		{
-			if (await this.ValidateLastRunTime(message, CurrencyGame.Blackjack))
+			await this.DeferAsync();
+
+			if (await this.ValidateLastRunTime(this.Context, CurrencyGame.Blackjack))
 			{
-				if (await this.ValidateDailyCurrencyGameAllowance(message))
+				if (await this.ValidateDailyCurrencyGameAllowance(this.Context))
 				{
-					User user = await UserService.GetUser(message.Author);
-
-					if (user.TotalKupoNutsCurrent >= 10)
-					{
-						user.UpdateTotalKupoNuts(-10);
-
-						this.UpdateLastRunTime(CurrencyGame.Blackjack, message.Author.Id, message.Guild.Id);
-
-						return await new Blackjack(10).StartBlackjack(message);
-					}
-					else
-					{
-						IUserMessage response = await message.Channel.SendMessageAsync("You must have 10 Kupo Nuts to play Blackjack, _kupo!_");
-
-						await Task.Delay(2000);
-
-						await message.Channel.DeleteMessageAsync(message.Id);
-						await response.DeleteAsync();
-					}
-				}
-			}
-
-			return Task.CompletedTask;
-		}
-
-		[Command("BJ", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
-		[Command("Bjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
-		[Command("Blackjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, showWait: false)]
-		public async Task<Task> Blackjack(CommandMessage message, uint bet)
-		{
-			if (await this.ValidateLastRunTime(message, CurrencyGame.Blackjack))
-			{
-				if (await this.ValidateDailyCurrencyGameAllowance(message))
-				{
-					User user = await UserService.GetUser(message.Author);
+					User user = await UserService.GetUser(this.Context.Guild.Id, this.Context.User.Id);
 					if (user.TotalKupoNutsCurrent >= bet && bet < int.MaxValue)
 					{
 						int nutsToSubtract = Convert.ToInt32(bet) * -1;
 						user.UpdateTotalKupoNuts(nutsToSubtract);
 
-						this.UpdateLastRunTime(CurrencyGame.Blackjack, message.Author.Id, message.Guild.Id);
+						this.UpdateLastRunTime(CurrencyGame.Blackjack, this.Context.User.Id, this.Context.Guild.Id);
 
-						return await new Blackjack(bet).StartBlackjack(message);
+						await new Blackjack(bet).StartBlackjack(this.Context);
 					}
 					else
 					{
-						IUserMessage response = await message.Channel.SendMessageAsync($"You don't have {bet} Kupo Nuts to play Blackjack, _kupo!_");
+						await this.RespondAsync($"You don't have {bet} Kupo Nuts to play Blackjack, _kupo!_");
 
 						await Task.Delay(2000);
 
-						await message.Channel.DeleteMessageAsync(message.Id);
-						await response.DeleteAsync();
+						await this.DeleteOriginalResponseAsync();
 					}
 				}
 			}
-
-			return Task.CompletedTask;
 		}
 
-		private async Task<bool> ValidateLastRunTime(CommandMessage message, CurrencyGame gameType)
-		{
-			// Guild id
-			ulong guildId = message.Guild.Id;
+		////private async Task<bool> ValidateLastRunTime(CommandMessage message, CurrencyGame gameType)
+		////{
+		////	// Guild id
+		////	ulong guildId = message.Guild.Id;
 
+		////	// Set variables
+		////	DateTime? guildLastRunTime = null;
+		////	bool runTimeContainsGuild = this.LastRunTimeForType(gameType).ContainsKey(guildId);
+
+		////	if (runTimeContainsGuild)
+		////		guildLastRunTime = this.LastRunTimeForType(gameType)[guildId];
+
+		////	if (runTimeContainsGuild
+		////		&& guildLastRunTime.HasValue
+		////		&& (DateTime.Now - guildLastRunTime.Value).TotalSeconds < GameCoolDownInSeconds)
+		////	{
+		////		double timeToWait = GameCoolDownInSeconds - (DateTime.Now - guildLastRunTime.Value).TotalSeconds;
+
+		////		IUserMessage response = await message.Channel.SendMessageAsync("Sorry, you need to wait another " + Math.Floor(timeToWait) + " seconds, _kupo!_");
+
+		////		await Task.Delay(2000);
+
+		////		await message.Channel.DeleteMessageAsync(message.Id);
+		////		await response.DeleteAsync();
+
+		////		return false;
+		////	}
+
+		////	return true;
+		////}
+
+		private async Task<bool> ValidateLastRunTime(IInteractionContext context, CurrencyGame gameType)
+		{
 			// Set variables
 			DateTime? guildLastRunTime = null;
-			bool runTimeContainsGuild = this.LastRunTimeForType(gameType).ContainsKey(guildId);
+			bool runTimeContainsGuild = this.LastRunTimeForType(gameType).ContainsKey(context.Guild.Id);
 
 			if (runTimeContainsGuild)
-				guildLastRunTime = this.LastRunTimeForType(gameType)[guildId];
+				guildLastRunTime = this.LastRunTimeForType(gameType)[context.Guild.Id];
 
 			if (runTimeContainsGuild
 				&& guildLastRunTime.HasValue
-				&& (DateTime.Now - guildLastRunTime.Value).TotalSeconds < 30)
+				&& (DateTime.Now - guildLastRunTime.Value).TotalSeconds < GameCoolDownInSeconds)
 			{
-				double timeToWait = 30 - (DateTime.Now - guildLastRunTime.Value).TotalSeconds;
+				double timeToWait = GameCoolDownInSeconds - (DateTime.Now - guildLastRunTime.Value).TotalSeconds;
 
-				IUserMessage response = await message.Channel.SendMessageAsync("Sorry, you need to wait another " + Math.Floor(timeToWait) + " seconds, _kupo!_");
+				await context.Interaction.FollowupAsync("Sorry, you need to wait another " + Math.Floor(timeToWait) + " seconds, _kupo!_");
 
 				await Task.Delay(2000);
 
-				await message.Channel.DeleteMessageAsync(message.Id);
-				await response.DeleteAsync();
+				await context.Interaction.DeleteOriginalResponseAsync();
 
 				return false;
 			}
@@ -430,37 +467,73 @@ namespace FC.Bot.Services
 			return true;
 		}
 
-		private async Task<bool> ValidateDailyCurrencyGameAllowance(CommandMessage message)
+		////private async Task<bool> ValidateDailyCurrencyGameAllowance(CommandMessage message)
+		////{
+		////	// Get settings and user
+		////	LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(message.Guild.Id);
+
+		////	// No games allowed
+		////	if (settings.CurrencyGamesAllowedPerDay == 0)
+		////	{
+		////		IUserMessage response = await message.Channel.SendMessageAsync("Currency games have been disabled by Server Admin.");
+
+		////		await Task.Delay(2000);
+
+		////		await message.Channel.DeleteMessageAsync(message.Id);
+		////		await response.DeleteAsync();
+
+		////		return false;
+		////	}
+
+		////	// Get count of games played for user
+		////	if (!this.userDailyGameCount.TryGetValue(message.Author.Id, out uint gameCount))
+		////		gameCount = 0;
+
+		////	if (settings.CurrencyGamesAllowedPerDay <= 0 || gameCount >= settings.CurrencyGamesAllowedPerDay)
+		////	{
+		////		// User has reached max games allowed today
+		////		IUserMessage response = await message.Channel.SendMessageAsync("You cannot play any more games today, _kupo!_");
+
+		////		await Task.Delay(2000);
+
+		////		await message.Channel.DeleteMessageAsync(message.Id);
+		////		await response.DeleteAsync();
+
+		////		return false;
+		////	}
+
+		////	return true;
+		////}
+
+		private async Task<bool> ValidateDailyCurrencyGameAllowance(IInteractionContext context)
 		{
 			// Get settings and user
-			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(message.Guild.Id);
+			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(context.Guild.Id);
 
 			// No games allowed
 			if (settings.CurrencyGamesAllowedPerDay == 0)
 			{
-				IUserMessage response = await message.Channel.SendMessageAsync("Currency games have been disabled by Server Admin.");
+				await context.Interaction.RespondAsync("Currency games have been disabled by Server Admin.");
 
 				await Task.Delay(2000);
 
-				await message.Channel.DeleteMessageAsync(message.Id);
-				await response.DeleteAsync();
+				await context.Interaction.DeleteOriginalResponseAsync();
 
 				return false;
 			}
 
 			// Get count of games played for user
-			if (!this.userDailyGameCount.TryGetValue(message.Author.Id, out uint gameCount))
+			if (!this.userDailyGameCount.TryGetValue(context.User.Id, out uint gameCount))
 				gameCount = 0;
 
 			if (settings.CurrencyGamesAllowedPerDay <= 0 || gameCount >= settings.CurrencyGamesAllowedPerDay)
 			{
 				// User has reached max games allowed today
-				IUserMessage response = await message.Channel.SendMessageAsync("You cannot play any more games today, _kupo!_");
+				await context.Interaction.RespondAsync("You cannot play any more games today, _kupo!_");
 
 				await Task.Delay(2000);
 
-				await message.Channel.DeleteMessageAsync(message.Id);
-				await response.DeleteAsync();
+				await context.Interaction.DeleteOriginalResponseAsync();
 
 				return false;
 			}
@@ -504,7 +577,7 @@ namespace FC.Bot.Services
 			// Clear handler if no more active inventories
 			this.activeInventoryWindows.Remove(message.Id);
 			if (this.activeInventoryWindows.Count == 0)
-				Program.DiscordClient.ReactionAdded -= this.OnReactionAddedInventory;
+				this.DiscordClient.ReactionAdded -= this.OnReactionAddedInventory;
 
 			return Task.CompletedTask;
 		}
@@ -514,7 +587,7 @@ namespace FC.Bot.Services
 			try
 			{
 				// Don't react to your own reacts!
-				if (reaction.UserId == Program.DiscordClient.CurrentUser.Id)
+				if (reaction.UserId == this.DiscordClient.CurrentUser.Id)
 					return;
 
 				// Get message and reference (so we know who the message belongs to)
@@ -595,7 +668,7 @@ namespace FC.Bot.Services
 				if (this.blockedChannels.Contains(message.Channel.Id))
 					return;
 
-				if (message.Author.Id == Program.DiscordClient.CurrentUser.Id)
+				if (message.Author.Id == this.DiscordClient.CurrentUser.Id)
 					return;
 
 				if (message.Author.IsBot)
