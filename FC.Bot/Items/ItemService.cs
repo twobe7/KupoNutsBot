@@ -321,11 +321,22 @@ namespace FC.Bot.Items
 								.WithDescription(embed?.Description)
 								.WithThumbnailUrl(embed?.Thumbnail?.Url ?? string.Empty);
 
-							// Get MB field and duplicate - remove reaction hint text
-							EmbedField field = embed?.Fields.GetFirst() ?? default;
-							builder.AddField(new EmbedFieldBuilder()
-								.WithName(field.Name)
-								.WithValue(field.Value[..^124]));
+							// Duplicate fields on embed
+							var embedFields = embed?.Fields;
+							if (embedFields != null)
+							{
+								foreach (var field in embedFields)
+								{
+									// Remove reaction help text from prices field
+									var fieldValue = field.Name == "Best Market Board Prices"
+										? field.Value[..^124]
+										: field.Value;
+
+									builder.AddField(new EmbedFieldBuilder()
+										.WithName(field.Name)
+										.WithValue(fieldValue));
+								}
+							}
 
 							await userMessage.ModifyAsync(x => x.Embed = builder.Build());
 						}
