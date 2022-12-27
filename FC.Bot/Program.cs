@@ -29,6 +29,8 @@ namespace FC.Bot
 	using FC.Bot.RPG;
 	using FC.Bot.Services;
 	using FC.Bot.Status;
+	using FC.Bot.Utils;
+	using FC.XIVData;
 	using Microsoft.Extensions.DependencyInjection;
 
 	public class Program
@@ -137,6 +139,8 @@ namespace FC.Bot
 				.AddSingleton<DebugModule>()
 				.AddSingleton<CurrencyRunTimes>()
 				.AddSingleton<CurrencyService>()
+				.AddSingleton<ItemAutocomplete>()
+				.AddSingleton<ItemAutocompleteHandler>()
 				;
 
 			return collection.BuildServiceProvider();
@@ -241,6 +245,7 @@ namespace FC.Bot
 
 					client.Log += this.LogAsync;
 					client.SlashCommandExecuted += this.OnSlashCommandExecuted;
+					client.AutocompleteExecuted += this.OnClientAutoCompleteExecuted;
 
 					client.Ready += () =>
 					{
@@ -277,6 +282,11 @@ namespace FC.Bot
 
 					interactionService.Log += this.LogAsync;
 					interactionService.SlashCommandExecuted += this.InteractionSlashCommandExecuted;
+					////interactionService.AutocompleteHandlerExecuted += this.OnAutocompleteHandlerExecuted;
+					////interactionService.AutocompleteCommandExecuted += this.OnAutocompleteCommandExecuted;
+
+					// Initialise the item autocomplete
+					this.serviceProvider.GetRequiredService<ItemAutocomplete>();
 
 					Initializing = false;
 					Log.Write("Initialization complete", "Bot");
@@ -371,6 +381,35 @@ namespace FC.Bot
 					await context.Interaction.RespondAsync(text: errorMessage, ephemeral: true);
 				}
 			}
+		}
+
+		////private async Task OnAutocompleteHandlerExecuted(IAutocompleteHandler handler, IInteractionContext context, IResult result)
+		////{
+		////	await Task.Delay(1);
+		////	return;
+		////}
+
+		////private async Task OnAutocompleteCommandExecuted(AutocompleteCommandInfo info, IInteractionContext context, IResult result)
+		////{
+		////	await Task.Delay(1);
+		////	return;
+		////}
+
+		private async Task OnClientAutoCompleteExecuted(SocketAutocompleteInteraction socketAutocompleteInteraction)
+		{
+			try
+			{
+				var interactionService = this.serviceProvider.GetRequiredService<InteractionService>();
+				var ctx = new SocketInteractionContext(client, socketAutocompleteInteraction);
+
+				await interactionService.ExecuteCommandAsync(ctx, this.serviceProvider);
+			}
+			catch (Exception ex)
+			{
+				await Logger.LogExceptionToDiscordChannel(ex, "Error in Autocomplete");
+			}
+
+			return;
 		}
 	}
 }

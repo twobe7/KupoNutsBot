@@ -54,38 +54,17 @@ namespace FC.Bot.Items
 			this.DiscordClient = discordClient;
 		}
 
-		[Command("ISearch", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData, "ItemSearch")]
-		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData)]
-		public async Task<Embed> GetItem(ulong itemId)
+		[SlashCommand("item-search", "Gets information on an item")]
+		public async Task GetItem([Autocomplete(typeof(ItemAutocompleteHandler))] string search)
 		{
-			Item item = await ItemAPI.Get(itemId);
+			await this.DeferAsync();
 
-			EmbedBuilder embed = item.ToEmbed();
-
-			if (item.IsUntradable != 1)
+			if (ulong.TryParse(search, out ulong searchAsUlong))
 			{
-				(MarketAPI.History? hq, MarketAPI.History? nm) = await MarketAPI.GetBestPriceHistory("Elemental", itemId);
-
-				if (hq != null | nm != null)
-				{
-					StringBuilder builder = new StringBuilder();
-					if (hq != null)
-						builder.Append(hq.ToStringEx());
-
-					if (nm != null)
-						builder.Append(nm.ToStringEx());
-
-					embed.AddField("Best Market Board Prices", builder.ToString());
-				}
+				await this.FollowupAsync(embed: await this.GetItem(searchAsUlong));
+				return;
 			}
 
-			return embed.Build();
-		}
-
-		[Command("ISearch", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData, "ItemSearch")]
-		[Command("ItemSearch", Permissions.Everyone, "Gets information on an item", CommandCategory.XIVData)]
-		public async Task<Embed> GetItem(string search)
-		{
 			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
 
 			if (results.Count <= 0)
@@ -103,7 +82,9 @@ namespace FC.Bot.Items
 
 				embed.Title = $"{results.Count} results found for \"{search}\"";
 				embed.Description = description.ToString();
-				return embed.Build();
+
+				await this.FollowupAsync(embed: embed.Build());
+				return;
 			}
 
 			ulong? id = results[0].ID;
@@ -111,11 +92,11 @@ namespace FC.Bot.Items
 			if (id == null)
 				throw new Exception("No Id in item");
 
-			return await this.GetItem((ulong)id);
+			await this.FollowupAsync(embed: await this.GetItem((ulong)id));
 		}
 
 		[SlashCommand("marketboard", "Retrieves item listing from Universalis Marketboard")]
-		public async Task GetMarketBoardItem(DataCentre dataCentre, string search)
+		public async Task GetMarketBoardItem(DataCentre dataCentre, [Autocomplete(typeof(ItemAutocompleteHandler))] string search)
 		{
 			await this.DeferAsync();
 
@@ -166,6 +147,33 @@ namespace FC.Bot.Items
 			await this.GetMarketBoardItem(dataCentre, id.Value);
 		}
 
+		private async Task<Embed> GetItem(ulong itemId)
+		{
+			Item item = await ItemAPI.Get(itemId);
+
+			EmbedBuilder embed = item.ToEmbed();
+
+			if (item.IsUntradable != 1)
+			{
+				// TODO: Add default data centre here
+				(MarketAPI.History? hq, MarketAPI.History? nm) = await MarketAPI.GetBestPriceHistory("Materia", itemId);
+
+				if (hq != null | nm != null)
+				{
+					StringBuilder builder = new StringBuilder();
+					if (hq != null)
+						builder.Append(hq.ToStringEx());
+
+					if (nm != null)
+						builder.Append(nm.ToStringEx());
+
+					embed.AddField("Best Market Board Prices", builder.ToString());
+				}
+			}
+
+			return embed.Build();
+		}
+
 		private async Task GetMarketBoardItem(DataCentre dataCentre, ulong itemId)
 		{
 			Embed embed = await this.GetMarketBoardEmbed(itemId, dataCentre);
@@ -185,45 +193,45 @@ namespace FC.Bot.Items
 			}
 		}
 
-		private async Task<Embed> GetMarketBoardItem(ulong itemId)
-		{
-			Item item = await ItemAPI.Get(itemId);
+		////private async Task<Embed> GetMarketBoardItem(ulong itemId)
+		////{
+		////	Item item = await ItemAPI.Get(itemId);
 
-			EmbedBuilder embed = item.ToMbEmbed();
+		////	EmbedBuilder embed = item.ToMbEmbed();
 
-			if (item.IsUntradable != 1)
-			{
-				IOrderedEnumerable<MarketAPI.History> prices = await MarketAPI.GetBestPriceFromAllWorlds("Elemental", itemId);
+		////	if (item.IsUntradable != 1)
+		////	{
+		////		IOrderedEnumerable<MarketAPI.History> prices = await MarketAPI.GetBestPriceFromAllWorlds("Materia", itemId);
 
-				if (prices.Any())
-				{
-					StringBuilder hqBuilder = new ();
-					StringBuilder nqBuilder = new ();
+		////		if (prices.Any())
+		////		{
+		////			StringBuilder hqBuilder = new ();
+		////			StringBuilder nqBuilder = new ();
 
-					if (prices.Any(x => x.Hq == true))
-						hqBuilder.AppendLine("High Quality");
+		////			if (prices.Any(x => x.Hq == true))
+		////				hqBuilder.AppendLine("High Quality");
 
-					if (prices.Any(x => x.Hq == false))
-						nqBuilder.AppendLine("Normal Quality");
+		////			if (prices.Any(x => x.Hq == false))
+		////				nqBuilder.AppendLine("Normal Quality");
 
-					foreach (MarketAPI.History price in prices)
-					{
-						if (price.Hq == true)
-							hqBuilder.AppendLine(Utils.Characters.Tab + price.ToStringEx());
+		////			foreach (MarketAPI.History price in prices)
+		////			{
+		////				if (price.Hq == true)
+		////					hqBuilder.AppendLine(Utils.Characters.Tab + price.ToStringEx());
 
-						if (price.Hq == false)
-							nqBuilder.AppendLine(Utils.Characters.Tab + price.ToStringEx());
-					}
+		////				if (price.Hq == false)
+		////					nqBuilder.AppendLine(Utils.Characters.Tab + price.ToStringEx());
+		////			}
 
-					if (hqBuilder.Length > 0 && nqBuilder.Length > 0)
-						hqBuilder.AppendLine();
+		////			if (hqBuilder.Length > 0 && nqBuilder.Length > 0)
+		////				hqBuilder.AppendLine();
 
-					embed.AddField("Best Market Board Prices", hqBuilder.ToString() + nqBuilder.ToString());
-				}
-			}
+		////			embed.AddField("Best Market Board Prices", hqBuilder.ToString() + nqBuilder.ToString());
+		////		}
+		////	}
 
-			return embed.Build();
-		}
+		////	return embed.Build();
+		////}
 
 		private async Task<Embed> GetMarketBoardEmbed(ulong itemId, DataCentre dataCentre, bool? hqOnly = null, bool lowestByUnitPrice = false)
 		{
