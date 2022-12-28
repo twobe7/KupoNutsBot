@@ -256,6 +256,8 @@ namespace FC.Bot.Commands
 					if (task.Exception.InnerException != null)
 						ex = task.Exception.InnerException;
 
+					await Logger.LogExceptionToDiscordChannel(ex, message);
+
 					ExceptionDispatchInfo.Capture(ex).Throw();
 				}
 				else
