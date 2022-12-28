@@ -25,7 +25,7 @@ namespace FC.Bot.Utils
 
 			using HttpClient client = new ();
 			using var s = await client.GetStreamAsync(url);
-			using var fs = new FileStream(path, FileMode.CreateNew);
+			using var fs = new FileStream(path, FileMode.Create);
 			await s.CopyToAsync(fs);
 
 			return Task.CompletedTask;

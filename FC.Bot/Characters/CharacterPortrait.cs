@@ -10,11 +10,10 @@ namespace FC.Bot.Characters
 	using FC.Bot.ImageSharp;
 	using FC.Bot.Utils;
 	using FC.Utils;
-	using SixLabors.Fonts;
 	using SixLabors.ImageSharp;
+	using SixLabors.ImageSharp.Drawing.Processing;
 	using SixLabors.ImageSharp.PixelFormats;
 	using SixLabors.ImageSharp.Processing;
-	using SixLabors.Primitives;
 
 	public static class CharacterPortrait
 	{
@@ -23,7 +22,7 @@ namespace FC.Bot.Characters
 			if (character.Portrait == null)
 				throw new Exception("Character has no portrait");
 
-			string portraitPath = PathUtils.Current + "/Temp/" + character.Id + ".jpg";
+			string portraitPath = $"{PathUtils.Current}/Temp/{character.Id}.jpg";
 			await FileDownloader.Download(character.Portrait, portraitPath);
 
 			Image<Rgba32> charImg = Image.Load<Rgba32>(portraitPath);
@@ -41,11 +40,11 @@ namespace FC.Bot.Characters
 			PointF boxD = new PointF(5, charImg.Height - 5);
 
 			finalImg.Mutate(x => x.FillPolygon(Brushes.Solid(Color.Black.WithAlpha(0.4F)), boxA, boxB, boxC, boxD));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Server + " - " + character.DataCenter, Fonts.AxisRegular.CreateFont(26), Color.White, new Point(finalImg.Width / 2, charImg.Height - 95)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, $"{character.Server} - {character.DataCenter}", Fonts.AxisRegular.CreateFont(26), Color.White, new Point(finalImg.Width / 2, charImg.Height - 95)));
 			finalImg.Mutate(x => x.DrawTextAnySize(FontStyles.CenterText, character.Name, Fonts.OptimuSemiBold, Color.White, new Rectangle(finalImg.Width / 2, finalImg.Height - 50, 600, 70)));
 
 			// Save
-			string outputPath = PathUtils.Current + "/Temp/" + character.Id + "_render.png";
+			string outputPath = $"{PathUtils.Current}/Temp/{character.Id}_render.png";
 			finalImg.Save(outputPath);
 
 			return outputPath;

@@ -10,11 +10,9 @@ namespace FC.Bot.Characters
 	using FC.Bot.ImageSharp;
 	using FC.Bot.Utils;
 	using FC.Utils;
-	using SixLabors.Fonts;
 	using SixLabors.ImageSharp;
 	using SixLabors.ImageSharp.PixelFormats;
 	using SixLabors.ImageSharp.Processing;
-	using SixLabors.Primitives;
 
 	public static class CharacterCard
 	{
@@ -23,10 +21,10 @@ namespace FC.Bot.Characters
 			if (character.Portrait == null)
 				throw new Exception("Character has no portrait");
 
-			string portraitPath = PathUtils.Current + "/Temp/" + character.Id + ".jpg";
+			string portraitPath = $"{PathUtils.Current}/Temp/{character.Id}.jpg";
 			await FileDownloader.Download(character.Portrait, portraitPath);
 
-			Image<Rgba32> backgroundImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/CharacterCardBackground.png");
+			Image backgroundImg = Image.Load(PathUtils.Current + "/Assets/CharacterCardBackground.png");
 
 			Image<Rgba32> charImg = Image.Load<Rgba32>(portraitPath);
 			charImg.Mutate(x => x.Resize(375, 512));
@@ -41,18 +39,18 @@ namespace FC.Bot.Characters
 			// Name
 			finalImg.Mutate(x => x.DrawTextAnySize(FontStyles.CenterText, character.Name, Fonts.OptimuSemiBold, Color.White, new Rectangle(680, 70, 660, 55)));
 			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Title, Fonts.AxisRegular.CreateFont(22), Color.White, new PointF(680, 35)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.Race + " (" + character.Tribe + ")", Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(680, 110)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, $"{character.Race} ({character.Tribe})", Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(680, 110)));
 
 			// Grand Company
 			if (character.GrandCompany != null && character.GrandCompany.Company != null)
 			{
-				Image<Rgba32> gcImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/" + character.GrandCompany.Company.ID + ".png");
+				Image<Rgba32> gcImg = Image.Load<Rgba32>($"{PathUtils.Current}/Assets/GrandCompanies/{character.GrandCompany.Company.ID}.png");
 				finalImg.Mutate(x => x.DrawImage(gcImg, 1.0f));
 				gcImg.Dispose();
 
 				if (character.GrandCompany.Rank != null)
 				{
-					Image<Rgba32> rankImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/GrandCompanies/Ranks/" + character.GrandCompany.Rank.Icon);
+					Image<Rgba32> rankImg = Image.Load<Rgba32>($"{PathUtils.Current}/Assets/GrandCompanies/Ranks/{character.GrandCompany.Rank.Icon}");
 					finalImg.Mutate(x => x.DrawImage(rankImg, new Point(370, 152), 1.0f));
 					rankImg.Dispose();
 					finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, character.GrandCompany.Rank.Name, Fonts.AxisRegular.CreateFont(16), Color.White, new Point(420, 163)));
@@ -60,7 +58,7 @@ namespace FC.Bot.Characters
 			}
 
 			// Server
-			finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, character.Server + " - " + character.DataCenter, Fonts.AxisRegular.CreateFont(18), Color.White, new Point(412, 196)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.LeftText, $"{character.Server} - {character.DataCenter}", Fonts.AxisRegular.CreateFont(18), Color.White, new Point(412, 196)));
 
 			// Birthday (1st Sun of the 1st Astral Moon)
 			if (character.NameDay != null)
@@ -125,39 +123,39 @@ namespace FC.Bot.Characters
 			}
 
 			// Jobs
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Monk), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(513, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Dragoon), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(572, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Ninja), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(631, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Samurai), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(690, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Reaper), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(749, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Blackmage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(808, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Summoner), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(865, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Redmage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(925, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Bluemage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(985, 330)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Bard), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(395, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Machinist), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(454, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Dancer), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(513, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Paladin), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(572, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Warrior), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(631, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Darkknight), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(690, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Gunbreaker), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(749, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Whitemage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(808, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Scholar), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(865, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Astrologian), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(925, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Sage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(985, 406)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Botanist), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(395, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Fisher), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(454, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Miner), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(513, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Alchemist), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(572, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Armorer), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(631, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Blacksmith), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(690, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Carpenter), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(749, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Culinarian), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(808, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Goldsmith), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(865, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Leatherworker), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(925, 480)));
-			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Weaver), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(985, 480)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Monk), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(513, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Dragoon), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(572, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Ninja), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(631, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Samurai), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(690, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Reaper), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(749, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Blackmage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(808, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Summoner), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(865, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Redmage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(925, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Bluemage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(985, 335)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Bard), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(395, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Machinist), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(454, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Dancer), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(513, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Paladin), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(572, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Warrior), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(631, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Darkknight), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(690, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Gunbreaker), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(749, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Whitemage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(808, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Scholar), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(865, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Astrologian), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(925, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Sage), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(985, 411)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Botanist), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(395, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Fisher), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(454, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Miner), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(513, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Alchemist), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(572, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Armorer), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(631, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Blacksmith), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(690, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Carpenter), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(749, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Culinarian), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(808, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Goldsmith), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(865, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Leatherworker), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(925, 485)));
+			finalImg.Mutate(x => x.DrawText(FontStyles.CenterText, character.GetJobLevel(Jobs.Weaver), Fonts.AxisRegular.CreateFont(20), Color.White, new PointF(985, 485)));
 
-			// Progress
+			// Progress / Achievements
 			if (character.HasMounts)
 			{
 				string mountsStr = character.Mounts.Count + " / " + character.Mounts.Total;
@@ -198,7 +196,7 @@ namespace FC.Bot.Characters
 			}
 
 			// Save
-			string outputPath = PathUtils.Current + "/Temp/" + character.Id + "_render.png";
+			string outputPath = $"{PathUtils.Current}/Temp/{character.Id}_render.png";
 			finalImg.Save(outputPath);
 
 			charImg.Dispose();
@@ -210,7 +208,7 @@ namespace FC.Bot.Characters
 
 		private static Image<Rgba32> FetchBarImage()
 		{
-			return Image.Load<Rgba32>(PathUtils.Current + "/Assets/Bar.png");
+			return Image.Load<Rgba32>($"{PathUtils.Current}/Assets/Bar.png");
 		}
 	}
 }

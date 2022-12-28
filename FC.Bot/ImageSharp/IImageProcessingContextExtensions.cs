@@ -7,25 +7,37 @@ namespace FC.Bot.ImageSharp
 	using System;
 	using SixLabors.Fonts;
 	using SixLabors.ImageSharp;
+	using SixLabors.ImageSharp.Drawing.Processing;
 	using SixLabors.ImageSharp.Processing;
-	using SixLabors.Primitives;
 
 	public static class IImageProcessingContextExtensions
 	{
-		public static void DrawText(this IImageProcessingContext context, TextGraphicsOptions op, string? text, Font font, Color color, Rectangle bounds)
+		public static void DrawText(this IImageProcessingContext context, TextOptions op, string? text, Font font, Color color, Point bounds)
+		{
+			Rectangle rectangle = new (bounds, context.GetCurrentSize());
+			context.DrawText(op, text, font, color, rectangle);
+		}
+
+		public static void DrawText(this IImageProcessingContext context, TextOptions op, string? text, Font font, Color color, PointF bounds)
+		{
+			Rectangle rectangle = new ((Point)bounds, context.GetCurrentSize());
+			context.DrawText(op, text, font, color, rectangle);
+		}
+
+		public static void DrawText(this IImageProcessingContext context, TextOptions op, string? text, Font font, Color color, Rectangle bounds)
 		{
 			if (string.IsNullOrEmpty(text))
 				return;
 
-			op.WrapTextWidth = bounds.Width;
+			op.Font = font;
+			op.WrappingLength = bounds.Width;
 
-			RendererOptions rOp = new RendererOptions(font);
-			rOp.WrappingWidth = bounds.Width;
+			op.Origin = new Point(bounds.X, bounds.Y);
 
 			bool fits = false;
 			while (!fits)
 			{
-				SizeF size = TextMeasurer.Measure(text, rOp);
+				FontRectangle size = TextMeasurer.Measure(text, op);
 				fits = size.Height <= bounds.Height && size.Width <= bounds.Width;
 
 				if (!fits)
@@ -34,21 +46,23 @@ namespace FC.Bot.ImageSharp
 				}
 			}
 
-			context.DrawText(op, text, font, color, new Point(bounds.X, bounds.Y));
+			context.DrawText(op, text, color);
 		}
 
-		public static void DrawTextAnySize(this IImageProcessingContext context, TextGraphicsOptions op, string? text, FontFamily font, Color color, Rectangle bounds)
+		public static void DrawTextAnySize(this IImageProcessingContext context, TextOptions op, string? text, FontFamily font, Color color, Rectangle bounds)
 		{
 			if (string.IsNullOrEmpty(text))
 				return;
 
 			int fontSize = 64;
 			bool fits = false;
-			Font currentFont = font.CreateFont(fontSize);
+
+			op.Origin = new Point(bounds.X, bounds.Y);
+
 			while (!fits)
 			{
-				currentFont = font.CreateFont(fontSize);
-				SizeF size = TextMeasurer.Measure(text, new RendererOptions(currentFont));
+				op.Font = font.CreateFont(fontSize);
+				FontRectangle size = TextMeasurer.Measure(text, op);
 				fits = size.Height <= bounds.Height && size.Width <= bounds.Width;
 
 				if (!fits)
@@ -62,7 +76,7 @@ namespace FC.Bot.ImageSharp
 				}
 			}
 
-			context.DrawText(op, text, currentFont, color, new Point(bounds.X, bounds.Y));
+			context.DrawText(op, text, color);
 		}
 	}
 }
