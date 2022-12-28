@@ -230,16 +230,19 @@ namespace FC.Bot.Services
 			EmbedBuilder embed = new EmbedBuilder()
 				.WithTitle("FFXIV Timers");
 
-			// Current time for timezone
-			DateTime now = DateTime.Now;
+			// Current time
+			DateTime now = DateTime.UtcNow;
+			int weeklyResetHourUtc = 8;
+			int dailyResetHourUtc = 15;
+			int gcResetHourUtc = 20;
 
 			// Weekly Timer
 			TimeSpan weeklyReset;
 			string weeklyResetFormat = string.Empty;
 
-			if (now.DayOfWeek == DayOfWeek.Tuesday && now.Hour >= 16)
+			if (now.DayOfWeek == DayOfWeek.Tuesday && now.Hour >= weeklyResetHourUtc)
 			{
-				weeklyReset = now.Date.AddDays(7).AddHours(16) - now;
+				weeklyReset = now.Date.AddDays(7).AddHours(weeklyResetHourUtc) - now;
 			}
 			else
 			{
@@ -252,7 +255,7 @@ namespace FC.Bot.Services
 					daysUntilReset++;
 				}
 
-				weeklyReset = now.Date.AddDays(daysUntilReset).AddHours(16) - now;
+				weeklyReset = now.Date.AddDays(daysUntilReset).AddHours(weeklyResetHourUtc) - now;
 			}
 
 			// Add days if required
@@ -266,18 +269,18 @@ namespace FC.Bot.Services
 				.WithName("Weekly Reset").WithValue(weeklyResetFormat));
 
 			// Daily Timer
-			TimeSpan dailyReset = new TimeSpan(23, 0, 0) - now.TimeOfDay;
+			TimeSpan dailyReset = new TimeSpan(dailyResetHourUtc, 0, 0) - now.TimeOfDay;
 			if (dailyReset.Hours < 0 || dailyReset.Minutes < 0 || dailyReset.Seconds < 0)
-				dailyReset = new TimeSpan(1, 23, 0, 0) - now.TimeOfDay;
+				dailyReset = new TimeSpan(1, dailyResetHourUtc, 0, 0) - now.TimeOfDay;
 
 			string dailyResetFormat = $"{PadLeft(dailyReset.Hours)}:{PadLeft(dailyReset.Minutes)}:{PadLeft(dailyReset.Seconds)}";
 			embed.AddField(new EmbedFieldBuilder()
 				.WithName("Duty/Beast Tribe Daily Reset").WithValue(dailyResetFormat));
 
 			// Grand Company Timer
-			TimeSpan gcReset = new TimeSpan(4, 0, 0) - now.TimeOfDay;
+			TimeSpan gcReset = new TimeSpan(gcResetHourUtc, 0, 0) - now.TimeOfDay;
 			if (gcReset.Hours < 0 || gcReset.Minutes < 0 || gcReset.Seconds < 0)
-				gcReset = new TimeSpan(1, 4, 0, 0) - now.TimeOfDay;
+				gcReset = new TimeSpan(1, gcResetHourUtc, 0, 0) - now.TimeOfDay;
 
 			string gcResetFormat = $"{PadLeft(gcReset.Hours)}:{PadLeft(gcReset.Minutes)}:{PadLeft(gcReset.Seconds)}";
 			embed.AddField(new EmbedFieldBuilder()

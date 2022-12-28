@@ -328,9 +328,13 @@ namespace FC.Bot.Items
 								foreach (var field in embedFields)
 								{
 									// Remove reaction help text from prices field
-									var fieldValue = field.Name == "Best Market Board Prices"
-										? field.Value[..^124]
-										: field.Value;
+									var fieldValue = field.Value;
+
+									if (field.Name == "Best Market Board Prices")
+									{
+										fieldValue = fieldValue.Replace($"Use {HQEmote} to toggle HQ Only.", string.Empty);
+										fieldValue = fieldValue.Replace($"Use {GilIEmote} to toggle sorting by Unit Price/Total Price.", string.Empty);
+									}
 
 									builder.AddField(new EmbedFieldBuilder()
 										.WithName(field.Name)
