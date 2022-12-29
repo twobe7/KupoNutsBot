@@ -341,46 +341,7 @@ namespace FC.Bot.Services
 			}
 		}
 
-		////[SlashCommand("blackjack", "Play a hand of blackjack!")]
-		////////[Command("BJ", Permissions.Everyone, "!", CommandCategory.Currency, "Blackjack", showWait: false)]
-		////////[Command("Bjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
-		////////[Command("Blackjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, showWait: false)]
-		////public async Task<Task> Blackjack()
-		////{
-		////	await this.DeferAsync(ephemeral: true);
-
-		////	if (await this.ValidateLastRunTime(this.Context, CurrencyGame.Blackjack))
-		////	{
-		////		if (await this.ValidateDailyCurrencyGameAllowance(this.Context))
-		////		{
-		////			User user = await UserService.GetUser(this.Context.Guild.Id, this.Context.User.Id);
-
-		////			if (user.TotalKupoNutsCurrent >= 10)
-		////			{
-		////				user.UpdateTotalKupoNuts(-10);
-
-		////				this.UpdateLastRunTime(CurrencyGame.Blackjack, this.Context.User.Id, this.Context.Guild.Id);
-
-		////				return await new Blackjack(10).StartBlackjack(this.Context);
-		////			}
-		////			else
-		////			{
-		////				await this.RespondAsync("You must have 10 Kupo Nuts to play Blackjack, _kupo!_");
-
-		////				await Task.Delay(2000);
-
-		////				await this.DeleteOriginalResponseAsync();
-		////			}
-		////		}
-		////	}
-
-		////	return Task.CompletedTask;
-		////}
-
 		[SlashCommand("blackjack", "Play a hand of blackjack!")]
-		////[Command("BJ", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
-		////[Command("Bjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, "Blackjack", showWait: false)]
-		////[Command("Blackjack", Permissions.Everyone, "Play a hand of blackjack!", CommandCategory.Currency, showWait: false)]
 		public async Task Blackjack(uint bet = 10)
 		{
 			await this.DeferAsync();
@@ -411,37 +372,6 @@ namespace FC.Bot.Services
 			}
 		}
 
-		////private async Task<bool> ValidateLastRunTime(CommandMessage message, CurrencyGame gameType)
-		////{
-		////	// Guild id
-		////	ulong guildId = message.Guild.Id;
-
-		////	// Set variables
-		////	DateTime? guildLastRunTime = null;
-		////	bool runTimeContainsGuild = this.LastRunTimeForType(gameType).ContainsKey(guildId);
-
-		////	if (runTimeContainsGuild)
-		////		guildLastRunTime = this.LastRunTimeForType(gameType)[guildId];
-
-		////	if (runTimeContainsGuild
-		////		&& guildLastRunTime.HasValue
-		////		&& (DateTime.Now - guildLastRunTime.Value).TotalSeconds < GameCoolDownInSeconds)
-		////	{
-		////		double timeToWait = GameCoolDownInSeconds - (DateTime.Now - guildLastRunTime.Value).TotalSeconds;
-
-		////		IUserMessage response = await message.Channel.SendMessageAsync("Sorry, you need to wait another " + Math.Floor(timeToWait) + " seconds, _kupo!_");
-
-		////		await Task.Delay(2000);
-
-		////		await message.Channel.DeleteMessageAsync(message.Id);
-		////		await response.DeleteAsync();
-
-		////		return false;
-		////	}
-
-		////	return true;
-		////}
-
 		private async Task<bool> ValidateLastRunTime(IInteractionContext context, CurrencyGame gameType)
 		{
 			// Set variables
@@ -468,44 +398,6 @@ namespace FC.Bot.Services
 
 			return true;
 		}
-
-		////private async Task<bool> ValidateDailyCurrencyGameAllowance(CommandMessage message)
-		////{
-		////	// Get settings and user
-		////	LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(message.Guild.Id);
-
-		////	// No games allowed
-		////	if (settings.CurrencyGamesAllowedPerDay == 0)
-		////	{
-		////		IUserMessage response = await message.Channel.SendMessageAsync("Currency games have been disabled by Server Admin.");
-
-		////		await Task.Delay(2000);
-
-		////		await message.Channel.DeleteMessageAsync(message.Id);
-		////		await response.DeleteAsync();
-
-		////		return false;
-		////	}
-
-		////	// Get count of games played for user
-		////	if (!this.userDailyGameCount.TryGetValue(message.Author.Id, out uint gameCount))
-		////		gameCount = 0;
-
-		////	if (settings.CurrencyGamesAllowedPerDay <= 0 || gameCount >= settings.CurrencyGamesAllowedPerDay)
-		////	{
-		////		// User has reached max games allowed today
-		////		IUserMessage response = await message.Channel.SendMessageAsync("You cannot play any more games today, _kupo!_");
-
-		////		await Task.Delay(2000);
-
-		////		await message.Channel.DeleteMessageAsync(message.Id);
-		////		await response.DeleteAsync();
-
-		////		return false;
-		////	}
-
-		////	return true;
-		////}
 
 		private async Task<bool> ValidateDailyCurrencyGameAllowance(IInteractionContext context)
 		{
