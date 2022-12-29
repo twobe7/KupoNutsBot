@@ -6,21 +6,14 @@ namespace FC.Bot.Commands
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.IO;
 	using System.Linq;
 	using System.Net;
 	using System.Net.Http;
-	using System.Net.Http.Json;
 	using System.Reactive.Linq;
 	using System.Reflection;
-	using System.Text;
 	using System.Text.RegularExpressions;
-	using System.Threading;
 	using System.Threading.Tasks;
-	using AngleSharp;
 	using Discord;
-	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Bot.Services;
 
@@ -190,22 +183,28 @@ namespace FC.Bot.Commands
 			// That tiktok thing
 			if (message.Content.Contains(".tiktok.com"))
 			{
-				bool isValidUrl = Uri.TryCreate(message.Content, UriKind.Absolute, out Uri? uriResult)
-					&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-				if (isValidUrl && uriResult != null)
+				var tikTokMessage = message.Content.ReplaceLineEndings(" ").Split(" ").FirstOrDefault(x => x.Contains(".tiktok.com"));
+				if (tikTokMessage != null)
 				{
-					using var client = new HttpClient();
-					var response = await client.GetStringAsync($"https://unshorten.me/s/{uriResult.AbsoluteUri}");
+					bool isValidUrl = Uri.TryCreate(tikTokMessage, UriKind.Absolute, out Uri? uriResult)
+					&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 
-					if (response.IndexOf("?_") != -1)
+					if (isValidUrl && uriResult != null)
 					{
-						response = response[..response.IndexOf("?_")];
+						using var client = new HttpClient();
+
+						var response = await client.GetStringAsync($"https://unshorten.me/s/{uriResult.AbsoluteUri}");
+
+						if (response.IndexOf("?_") != -1)
+						{
+							response = response[..response.IndexOf("?_")];
+						}
+
+						response = response.Replace("tiktok", "vxtiktok");
+						await message.Channel.SendMessageAsync(text: response, messageReference: new MessageReference(message.Id));
+
+						return;
 					}
-
-					response = response.Replace("tiktok", "vxtiktok");
-
-					await message.Channel.SendMessageAsync(text: response, messageReference: new MessageReference(message.Id));
-					return;
 				}
 			}
 
