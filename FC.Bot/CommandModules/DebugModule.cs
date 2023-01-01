@@ -101,8 +101,10 @@ namespace FC.Bot.CommandModules
 		}
 
 		[SlashCommand("convert-to-unix-time", "Converts string to unix time")]
-		public Task<string> ToUnixTime(string? date = null, string? time = null, string? timezone = "AEST")
+		public async Task ToUnixTime(string? date = null, string? time = null, string? timezone = "AEST")
 		{
+			await this.DeferAsync();
+
 			string response;
 
 			date ??= DateTime.Now.Date.ToString("dd/MM/yyyy");
@@ -140,13 +142,14 @@ namespace FC.Bot.CommandModules
 
 							response = tt.ToUnixTimeSeconds().ToString();
 
-							return Task.FromResult($"<t:{response}:f>");
+							await this.FollowupAsync(text: $"<t:{response}:f>");
+							return;
 						}
 					}
 				}
 			}
 
-			return Task.FromResult("I'm unable to convert that.");
+			await this.FollowupAsync(text: "I'm unable to convert that.");
 		}
 
 		[RequireUserPermission(GuildPermission.Administrator)]
