@@ -211,7 +211,7 @@ namespace FC.Bot.Services
 					? string.Format("Thanks {0} but I have plenty of Kupo Nuts. You hang onto these, _kupo!_", fromUserName)
 					: string.Format("That Bot has no need for delicious Kupo Nuts!");
 
-				await this.RespondAsync(postBackMessage);
+				await this.FollowupAsync(postBackMessage);
 			}
 
 			// Get sending user information
@@ -240,7 +240,7 @@ namespace FC.Bot.Services
 				postBackMessage = string.Format("You only have {0} Kupo Nuts to give!", fromUser.TotalKupoNutsCurrent);
 			}
 
-			await this.RespondAsync(postBackMessage);
+			await this.FollowupAsync(postBackMessage);
 		}
 
 		[Command("Inventory", Permissions.Everyone, "Shows your current inventory", CommandCategory.Currency)]
@@ -362,7 +362,7 @@ namespace FC.Bot.Services
 					}
 					else
 					{
-						await this.RespondAsync($"You don't have {bet} Kupo Nuts to play Blackjack, _kupo!_");
+						await this.FollowupAsync($"You don't have {bet} Kupo Nuts to play Blackjack, _kupo!_");
 
 						await Task.Delay(2000);
 
@@ -423,7 +423,7 @@ namespace FC.Bot.Services
 			if (settings.CurrencyGamesAllowedPerDay <= 0 || gameCount >= settings.CurrencyGamesAllowedPerDay)
 			{
 				// User has reached max games allowed today
-				await context.Interaction.RespondAsync("You cannot play any more games today, _kupo!_");
+				await context.Interaction.FollowupAsync("You cannot play any more games today, _kupo!_");
 
 				await Task.Delay(2000);
 
