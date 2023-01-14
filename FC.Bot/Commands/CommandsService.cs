@@ -13,13 +13,17 @@ namespace FC.Bot.Commands
 	using System.Reflection;
 	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
+	using Amazon.Runtime.Internal.Util;
 	using Discord;
 	using Discord.WebSocket;
+	using FC.Bot.CommandModules;
 	using FC.Bot.Services;
+	using Microsoft.Extensions.DependencyInjection;
 
 	public class CommandsService : ServiceBase
 	{
 		public readonly DiscordSocketClient DiscordClient;
+		public readonly IServiceProvider ServiceProvider;
 
 		private static Dictionary<string, List<Command>> commandHandlers = new Dictionary<string, List<Command>>();
 		private static Dictionary<string, List<Command>> groupedCommandHandlers = new Dictionary<string, List<Command>>();
@@ -27,9 +31,10 @@ namespace FC.Bot.Commands
 
 		private static List<HelpCommand> helpCommands = new List<HelpCommand>();
 
-		public CommandsService(DiscordSocketClient discordClient)
+		public CommandsService(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
 		{
 			this.DiscordClient = discordClient;
+			this.ServiceProvider = serviceProvider;
 		}
 
 		public static string GetPrefix(IGuild guild)
@@ -208,6 +213,38 @@ namespace FC.Bot.Commands
 				}
 			}
 
+			//// we run from 8pm AEDT each day
+			//// we run from 0830 AEDT each day
+			//// we run from 1800 AEDT each day
+			//// we run from 12am AEDT each day
+			//// we run from 8am AEDT each day
+			//// we run from 81pm AEDT each day // to be fixed
+			var regex = new Regex("[0-9]{1,4}([ap]m)* \\w{4}");
+			if (regex.IsMatch(message.Content))
+			{
+				// Parse and replace with discord timestamp
+				var matchResult = regex.Match(message.Content).ToString();
+				var splitResult = matchResult.Split(" ");
+
+				if (splitResult.Length >= 2)
+				{
+					try
+					{
+						var debugModule = this.ServiceProvider.GetRequiredService<DebugModule>();
+						var result = debugModule.ToUnixTimeString(null, splitResult[0], splitResult[1]);
+						if (result != null)
+						{
+							// Post results back to user
+							await message.Channel.SendMessageAsync(text: result, messageReference: new MessageReference(message.Id));
+						}
+					}
+					catch (Exception ex)
+					{
+						await this.LogExceptionToDiscordChannel(message, ex);
+					}
+				}
+			}
+
 			// Ignore messages that do not start with the command character
 			if (!message.Content.StartsWith(prefix))
 				return;
@@ -378,7 +415,7 @@ namespace FC.Bot.Commands
 			await message.DeleteAsync();
 		}
 
-		private async Task LogExceptionToDiscordChannel(CommandMessage message, Exception exception)
+		private async Task LogExceptionToDiscordChannel(SocketMessage message, Exception exception)
 		{
 			// Get Settings - check if both bot server and exception channel is given
 			Settings settings = Settings.Load();
@@ -391,7 +428,7 @@ namespace FC.Bot.Commands
 					throw new Exception("Unable to access guild");
 
 				// Post message
-				string exceptionMessage = $"Server: {message.Guild.Name}\nUser: {message.Author.GetName()}\nMessage: {message.Message.Content}.\n`{exception}`";
+				string exceptionMessage = $"Server: {message.GetGuild().Name}\nUser: {message.GetAuthor().GetName()}\nMessage: {message.Content}.\n`{exception}`";
 				await kupoNutsGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
 			}
 		}

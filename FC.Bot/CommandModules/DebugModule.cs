@@ -56,9 +56,7 @@ namespace FC.Bot.CommandModules
 			await this.DeferAsync();
 
 			// Get timezones for relevant countries
-			var tzAbbr =
-				TimeZoneNames.TZNames.GetTimeZonesForCountry("au", "en-au").Keys
-					.Concat(TimeZoneNames.TZNames.GetTimeZonesForCountry("nz", "en-au").Keys);
+			var tzAbbr = this.GetTimezones();
 
 			foreach (string? tzId in tzAbbr)
 			{
@@ -105,6 +103,18 @@ namespace FC.Bot.CommandModules
 		{
 			await this.DeferAsync();
 
+			var unixTimeString = this.ToUnixTimeString(date, time, timezone);
+			if (unixTimeString != null)
+			{
+				await this.FollowupAsync(text: unixTimeString);
+				return;
+			}
+
+			await this.FollowupAsync(text: "I'm unable to convert that.");
+		}
+
+		public string? ToUnixTimeString(string? date = null, string? time = null, string? timezone = "AEST")
+		{
 			string response;
 
 			date ??= DateTime.Now.Date.ToString("dd/MM/yyyy");
@@ -112,7 +122,9 @@ namespace FC.Bot.CommandModules
 
 			if (DateTime.TryParse($"{date} {time}", out DateTime parsedDateTime))
 			{
-				ICollection<string>? tzAbbr = TimeZoneNames.TZNames.GetTimeZonesForCountry("au", "en-au").Keys;
+				timezone = timezone?.ToLower();
+
+				var tzAbbr = this.GetTimezones();
 				foreach (string? tzId in tzAbbr)
 				{
 					int offsetInHours = 0;
@@ -120,10 +132,10 @@ namespace FC.Bot.CommandModules
 					TimeZoneNames.TimeZoneValues? abbr = TimeZoneNames.TZNames.GetAbbreviationsForTimeZone(tzId, "en-au");
 
 					// Increase by 1 hour if Daylight
-					if (abbr.Daylight == timezone)
+					if (abbr.Daylight.ToLower() == timezone)
 						offsetInHours += 1;
 
-					if (abbr.Generic == timezone || abbr.Daylight == timezone || abbr.Standard == timezone)
+					if (abbr.Generic.ToLower() == timezone || abbr.Daylight.ToLower() == timezone || abbr.Standard.ToLower() == timezone)
 					{
 						DateTimeZone? dateTimeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(tzId);
 						if (dateTimeZone != null)
@@ -132,7 +144,7 @@ namespace FC.Bot.CommandModules
 
 							offsetInHours += zoned.Offset.Seconds / 60 / 60;
 
-							TimeSpan diffTS = new TimeSpan(offsetInHours, 0, 0);
+							TimeSpan diffTS = new (offsetInHours, 0, 0);
 
 							parsedDateTime = parsedDateTime.Add(-diffTS);
 
@@ -142,14 +154,13 @@ namespace FC.Bot.CommandModules
 
 							response = tt.ToUnixTimeSeconds().ToString();
 
-							await this.FollowupAsync(text: $"<t:{response}:f>");
-							return;
+							return $"<t:{response}:f>";
 						}
 					}
 				}
 			}
 
-			await this.FollowupAsync(text: "I'm unable to convert that.");
+			return null;
 		}
 
 		[RequireUserPermission(GuildPermission.Administrator)]
@@ -214,6 +225,17 @@ namespace FC.Bot.CommandModules
 #endif
 
 			await this.FollowupAsync(text: "Slash commands registered", ephemeral: true);
+		}
+
+		/// <summary>
+		/// Get Timezones for specified countries.
+		/// </summary>
+		/// <returns>IEnumerable of timezones.</returns>
+		private IEnumerable<string> GetTimezones()
+		{
+			return
+				TimeZoneNames.TZNames.GetTimeZonesForCountry("au", "en-au").Keys
+					.Concat(TimeZoneNames.TZNames.GetTimeZonesForCountry("nz", "en-au").Keys);
 		}
 	}
 }
