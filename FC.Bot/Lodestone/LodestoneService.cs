@@ -38,8 +38,8 @@ namespace FC.Bot.Lodestone
 			ScheduleService.RunOnSchedule(this.Update, 15);
 		}
 
-		[SlashCommand("Maintenance", "Gets information about the next maintenance window.")]
-		public async Task GetMaintenance(CommandMessage message)
+		[SlashCommand("maintenance", "Gets information about the next maintenance window.")]
+		public async Task GetMaintenance()
 		{
 			await this.DeferAsync();
 
