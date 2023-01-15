@@ -9,6 +9,7 @@ namespace FC.Bot.Lodestone
 	using System.Linq;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
@@ -37,10 +38,11 @@ namespace FC.Bot.Lodestone
 			ScheduleService.RunOnSchedule(this.Update, 15);
 		}
 
-		[Command("Maint", Permissions.Everyone, "Gets info about the next maintenance window.", CommandCategory.XIVData, "Maintenance")]
-		[Command("Maintenance", Permissions.Everyone, "Gets info about the next maintenance window.", CommandCategory.XIVData)]
+		[SlashCommand("Maintenance", "Gets information about the next maintenance window.")]
 		public async Task GetMaintenance(CommandMessage message)
 		{
+			await this.DeferAsync();
+
 			List<NewsItem> items = await NewsAPI.Latest(Categories.Maintenance);
 
 			Instant now = TimeUtils.Now;
@@ -69,7 +71,7 @@ namespace FC.Bot.Lodestone
 
 			if (nextMaint != null)
 			{
-				EmbedBuilder builder = new EmbedBuilder
+				EmbedBuilder builder = new ()
 				{
 					ThumbnailUrl = "http://na.lodestonenews.com/images/maintenance.png",
 					Title = nextMaint.Title,
@@ -103,11 +105,11 @@ namespace FC.Bot.Lodestone
 				builder.AddField("Ends", TimeUtils.GetDiscordTimestamp(end.GetValueOrDefault().ToUnixTimeSeconds()));
 				builder.AddField("Duration", TimeUtils.GetDurationString(end - start) ?? "Unknown");
 
-				await message.Channel.SendMessageAsync(embed: builder.Build(), messageReference: message.MessageReference);
+				await this.FollowupAsync(embed: builder.Build());
 				return;
 			}
 
-			throw new UserException("I couldn't find any maintenance.");
+			await this.FollowupAsync("I couldn't find any maintenance.");
 		}
 
 		[Command("News", Permissions.Administrators, "Updates lodestone news")]
