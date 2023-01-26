@@ -429,7 +429,7 @@ namespace FC.Bot.Commands
 
 				// Post message
 				string exceptionMessage = $"Server: {message.GetGuild().Name}\nUser: {message.GetAuthor().GetName()}\nMessage: {message.Content}.\n`{exception}`";
-				await kupoNutsGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
+				await kupoNutsGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage.Truncate(2000));
 			}
 		}
 	}

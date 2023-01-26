@@ -23,7 +23,7 @@ namespace FC.Bot.Utils
 
 				// Post message
 				string exceptionMessage = $"Server: {message.Guild.Name}\nUser: {message.Author.GetName()}\nMessage: {message.Message.Content}.\n`{exception}`";
-				await botGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
+				await botGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage.Truncate(2000));
 			}
 		}
 
@@ -41,7 +41,7 @@ namespace FC.Bot.Utils
 
 				// Post message
 				string exceptionMessage = $"Server: {guild ?? "Unknown"}\nUser: {user ?? "Unknown"}\nMessage: {messageContent}.\n`{exception}`";
-				await botGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage);
+				await botGuild.GetTextChannel(ulong.Parse(settings.BotLogExceptionsChannel)).SendMessageAsync(exceptionMessage.Truncate(2000));
 			}
 		}
 	}
