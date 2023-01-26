@@ -21,8 +21,8 @@ namespace FC.XIVData
 
 			// max - 25 suggestions at a time (API limit)
 			var response = string.IsNullOrWhiteSpace(search)
-				? ItemAutocomplete.Items.Take(25)
-				: ItemAutocomplete.Items.Where(x => x.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase)).Take(25);
+				? Items.AutocompleteItems.Take(25)
+				: Items.AutocompleteItems.Where(x => x.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase)).Take(25);
 
 			return AutocompletionResult.FromSuccess(response);
 		}

@@ -139,7 +139,7 @@ namespace FC.Bot
 				.AddSingleton<DebugModule>()
 				.AddSingleton<CurrencyRunTimes>()
 				.AddSingleton<CurrencyService>()
-				.AddSingleton<ItemAutocomplete>()
+				.AddSingleton<XIVData.Items>()
 				.AddSingleton<ItemAutocompleteHandler>()
 				;
 
@@ -286,7 +286,7 @@ namespace FC.Bot
 					////interactionService.AutocompleteCommandExecuted += this.OnAutocompleteCommandExecuted;
 
 					// Initialise the item autocomplete
-					this.serviceProvider.GetRequiredService<ItemAutocomplete>();
+					this.serviceProvider.GetRequiredService<XIVData.Items>();
 
 					Initializing = false;
 					Log.Write("Initialization complete", "Bot");

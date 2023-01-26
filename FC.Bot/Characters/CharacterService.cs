@@ -525,11 +525,11 @@ namespace FC.Bot.Characters
 			////if (response.Pagination == null)
 			////	throw new Exception("No Pagination");
 
-			if (response.Results == null)
+			if (response?.Results == null)
 			{
 				throw new Exception("No Results");
 			}
-			else if (response.Results.Count() == 0)
+			else if (!response.Results.Any())
 			{
 				throw new UserException("I couldn't find a character with that name.");
 			}

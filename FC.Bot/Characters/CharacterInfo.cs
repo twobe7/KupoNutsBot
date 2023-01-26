@@ -24,6 +24,7 @@ namespace FC.Bot.Characters
 		private FreeCompany? freeCompany;
 
 		private NetStone.Model.Parseables.Character.Gear.CharacterGear? netStoneGear;
+		private CharacterAttributes? characterAttributes;
 
 		public CharacterInfo(uint id)
 		{
@@ -146,7 +147,7 @@ namespace FC.Bot.Characters
 			if (this.xivApiCharacter == null)
 				throw new Exception("No XIVAPI character");
 
-			return this.xivApiCharacter.GetGear(this.GetNetStoneGear());
+			return this.xivApiCharacter.GetGear(this.GetNetStoneGear(), this.xivApiCharacter.ActiveClassJobIconPath);
 		}
 
 		public Embed GetAttributesEmbed()
@@ -154,7 +155,42 @@ namespace FC.Bot.Characters
 			if (this.xivApiCharacter == null)
 				throw new Exception("No XIVAPI character");
 
-			return this.xivApiCharacter.GetAttributtes();
+			EmbedBuilder builder = new ();
+
+			// Resources
+			builder.AddField("HP", this.characterAttributes.Hp, true);
+			builder.AddField(this.characterAttributes.MpGpCpParameterName, this.characterAttributes.MpGpCp, true);
+
+			// Attributes
+			builder.AddField("Strength", this.characterAttributes.Strength, true);
+			builder.AddField("Dexterity", this.characterAttributes.Dexterity, true);
+			builder.AddField("Vitality", this.characterAttributes.Vitality, true);
+			builder.AddField("Intelligence", this.characterAttributes.Intelligence, true);
+			builder.AddField("Mind", this.characterAttributes.Mind, true);
+
+			// Offensive Properties
+			builder.AddField("Critical Hit Rate", this.characterAttributes.CriticalHitRate, true);
+			builder.AddField("Determination", this.characterAttributes.Determination, true);
+			builder.AddField("Direct Hit Rate", this.characterAttributes.DirectHitRate, true);
+
+			// Defensive Prpoperties
+			builder.AddField("Defense", this.characterAttributes.Defense, true);
+			builder.AddField("Magic Defense", this.characterAttributes.MagicDefense, true);
+
+			// Physical Properties
+			builder.AddField("Attack Power", this.characterAttributes.AttackPower, true);
+			builder.AddField("Skill Speed", this.characterAttributes.SkillSpeed, true);
+
+			// Mental Properties
+			builder.AddField("Attack Magic Potency", this.characterAttributes.AttackMagicPotency, true);
+			builder.AddField("Healing Magic Potency", this.characterAttributes.HealingMagicPotency, true);
+			this.AddStatField(builder, "Spell Speed", this.characterAttributes.SpellSpeed, true);
+
+			// Role
+			this.AddStatField(builder, "Tenacity", this.characterAttributes.Tenacity, true);
+			this.AddStatField(builder, "Piety", this.characterAttributes.Piety, true);
+
+			return builder.Build();
 		}
 
 		public async Task<Embed> GetElementalLevelEmbed()
@@ -188,7 +224,7 @@ namespace FC.Bot.Characters
 			EmbedBuilder builder = new EmbedBuilder
 			{
 				Title = this.xivApiCharacter.Name,
-				Description = $"Elemental Level: {level}\nExperience: {exp.ToString("N0")}",
+				Description = $"Elemental Level: {level}\nExperience: {exp:N0}",
 			};
 
 			return builder.Build();
@@ -222,10 +258,10 @@ namespace FC.Bot.Characters
 			{
 			}
 
-			EmbedBuilder builder = new EmbedBuilder
+			EmbedBuilder builder = new ()
 			{
 				Title = this.xivApiCharacter.Name,
-				Description = $"Resistance Rank: {level}\nCurrent Mettle: {mettle.ToString("N0")}",
+				Description = $"Resistance Rank: {level}\nCurrent Mettle: {mettle:N0)}",
 			};
 
 			return builder.Build();
@@ -250,14 +286,27 @@ namespace FC.Bot.Characters
 			this.xivApiCharacter = new XIVAPICharacter(character);
 
 			this.netStoneGear = character.Gear;
+			this.characterAttributes = character.Attributes;
 
 			if (character.FreeCompany != null)
-				this.freeCompany = new FreeCompany(await client.GetFreeCompany(character.FreeCompany.Id));
+			{
+				var freeCompany = await client.GetFreeCompany(character.FreeCompany.Id);
+				if (freeCompany != null)
+					this.freeCompany = new FreeCompany(freeCompany);
+			}
 		}
 
 		private async Task UpdateFfxivCollect()
 		{
 			this.ffxivCollectCharacter = await FFXIVCollect.CharacterAPI.Get(this.Id);
+		}
+
+		private void AddStatField(EmbedBuilder builder, string name, int? value, bool inline)
+		{
+			if (value == null)
+				return;
+
+			builder.AddField(name, value, inline);
 		}
 	}
 }

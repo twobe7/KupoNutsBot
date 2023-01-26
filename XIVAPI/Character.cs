@@ -227,6 +227,9 @@ namespace XIVAPI
 
 			var classJobInfo = netChar.GetClassJobInfo().Result;
 
+			this.ActiveClassJobIconPath = netChar.ActiveClassJob;
+			this.ActiveClassJobLevel = netChar.ActiveClassJobLevel;
+
 			this.ClassJobs = new List<ClassJob>()
 			{
 				new ClassJob(Jobs.Alchemist, classJobInfo.Alchemist),
@@ -300,7 +303,9 @@ namespace XIVAPI
 			Fisher = 18,
 		}
 
-		public ClassJob? ActiveClassJob { get; set; }
+		public string ActiveClassJobIconPath { get; set; }
+		public int? ActiveClassJobLevel { get; set; }
+
 		public string Avatar { get; set; } = string.Empty;
 		public string Bio { get; set; } = string.Empty;
 		public List<ClassJob>? ClassJobs { get; set; }
