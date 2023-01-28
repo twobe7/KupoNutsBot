@@ -11,9 +11,7 @@ namespace FC.Bot.Items
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.Interactions;
-	using Discord.Rest;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using FC.XIVData;
 	using Universalis;
@@ -72,9 +70,9 @@ namespace FC.Bot.Items
 
 			if (results.Count > 1)
 			{
-				EmbedBuilder embed = new EmbedBuilder();
+				EmbedBuilder embed = new ();
 
-				StringBuilder description = new StringBuilder();
+				StringBuilder description = new ();
 				for (int i = 0; i < Math.Min(results.Count, 10); i++)
 				{
 					description.AppendLine(results[i].ID + " - " + results[i].Name);
@@ -160,7 +158,7 @@ namespace FC.Bot.Items
 
 				if (hq != null | nm != null)
 				{
-					StringBuilder builder = new StringBuilder();
+					StringBuilder builder = new ();
 					if (hq != null)
 						builder.Append(hq.ToStringEx());
 
@@ -235,20 +233,32 @@ namespace FC.Bot.Items
 
 		private async Task<Embed> GetMarketBoardEmbed(ulong itemId, DataCentre dataCentre, bool? hqOnly = null, bool lowestByUnitPrice = false)
 		{
-			Item item = await ItemAPI.Get(itemId);
+			bool canBeHq, isUntradeable;
+			EmbedBuilder embed;
+
+			if (Items.XivItemsById.TryGetValue(Convert.ToInt32(itemId), out XivItem? xivItem))
+			{
+				canBeHq = xivItem.CanBeHq;
+				isUntradeable = xivItem.IsUntradable;
+				embed = xivItem.ToMbEmbed();
+			}
+			else
+			{
+				Item item = await ItemAPI.Get(itemId);
+				canBeHq = item.CanBeHq == 1;
+				isUntradeable = item.IsUntradable == 1;
+				embed = item.ToMbEmbed();
+			}
 
 			// If item cannot be hq, ensure filter isn't hq only
-			if (hqOnly == true && item.CanBeHq != 1)
+			if (hqOnly == true && !canBeHq)
 				hqOnly = null;
 
-			string tab = Utils.Characters.Space;
-
-			EmbedBuilder embed = item.ToMbEmbed();
 			embed.Description += "\n";
 
 			embed.AddField("Data Centre", dataCentre.ToDisplayString());
 
-			if (item.IsUntradable != 1)
+			if (!isUntradeable)
 			{
 				IOrderedEnumerable<MarketAPI.ListingDisplay> listings = await MarketAPI.GetBestPriceListing(dataCentre.ToString(), itemId, hqOnly, lowestByUnitPrice);
 
@@ -259,8 +269,8 @@ namespace FC.Bot.Items
 					int worldGap;
 					string worldGapString;
 
-					// Do thing
-					StringBuilder builder = new StringBuilder();
+					// Start building pricing list
+					StringBuilder builder = new ();
 					builder.AppendLine(Utils.Characters.Space);
 
 					foreach (MarketAPI.ListingDisplay listing in listings)
@@ -272,13 +282,14 @@ namespace FC.Bot.Items
 							worldGapString += "{0}";
 
 						string line = string.Format(
-							"{5} `{1} " + worldGapString + " {2} x {3}{4}`",
-							tab,
+							"{6} {5} `{1} " + worldGapString + " {2} x {3}{4}`",
+							Utils.Characters.Space,
 							listing.WorldName,
 							listing.Quantity,
 							listing.MaxPricePerUnit,
 							listing.Quantity == 1 ? string.Empty : " (" + listing.MaxTotal + ")",
-							listing.Hq == true ? HighQualityEmote : NormalQualityEmote);
+							listing.Hq == true ? HighQualityEmote : NormalQualityEmote,
+							listing.LastUpdatedIcon);
 
 						builder.AppendLine(line);
 					}
