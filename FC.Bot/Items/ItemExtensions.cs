@@ -14,11 +14,14 @@ namespace FC.Bot.Items
 	{
 		public static EmbedBuilder ToEmbed(this Item self)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = self.Name;
-			builder.ThumbnailUrl = Icons.GetIconURL(self.Icon);
+			EmbedBuilder builder = new ()
+			{
+				Title = self.Name,
+				ThumbnailUrl = Icons.GetIconURL(self.Icon),
+				Color = Color.Teal,
+			};
 
-			StringBuilder desc = new StringBuilder();
+			StringBuilder desc = new ();
 
 			desc.Append(self.GetLevelCategoryString());
 			desc.Append(Utils.Characters.DoubleTab);
@@ -61,40 +64,35 @@ namespace FC.Bot.Items
 				builder.AddField(self.GetSpecialStatsName(), self.GetSpecialStatsString());
 
 			if (self.HasMateria())
-				builder.AddField(@"Materia", self.GetMateriaString());
+				builder.AddField("Materia", self.GetMateriaString());
 
 			if (self.HasBonuses())
 				builder.AddField("Bonuses", self.GetBonuses());
 
-			StringBuilder footerText = new StringBuilder();
-			footerText.Append("ID: ");
-			footerText.Append(self.Id.ToString());
-			footerText.Append(" - XIVAPI.com - Universalis.app");
+			StringBuilder footerText = new ();
+			footerText.Append($"ID: {self.Id} - XIVAPI.com - Universalis.app");
 
 			builder.Description = desc.ToString();
-			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = footerText.ToString();
-			builder.Color = Color.Teal;
+			builder.Footer = new EmbedFooterBuilder { Text = footerText.ToString() };
 
 			return builder;
 		}
 
 		public static EmbedBuilder ToMbEmbed(this Item self)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Title = self.Name;
-			builder.ThumbnailUrl = Icons.GetIconURL(self.Icon);
+			EmbedBuilder builder = new ()
+			{
+				Title = self.Name,
+				ThumbnailUrl = Icons.GetIconURL(self.Icon),
+				Color = Color.Teal,
+			};
 
-			StringBuilder desc = new StringBuilder();
+			StringBuilder desc = new ();
 
 			// universalis link
-			desc.Append("[Universalis](");
-			desc.Append("https://universalis.app/market/");
-			desc.Append(self.Id);
-			desc.AppendLine(") (ID: " + self.Id.ToString() + ")");
+			desc.AppendLine($"[Universalis](https://universalis.app/market/{self.Id}) (ID: {self.Id})");
 
 			builder.Description = desc.ToString();
-			builder.Color = Color.Teal;
 
 			return builder;
 		}
@@ -104,8 +102,7 @@ namespace FC.Bot.Items
 			if (self.Description == null)
 				return string.Empty;
 
-			string desc = self.Description;
-			desc = Regex.Replace(self.Description, "<.*?>", string.Empty);
+			string desc = Regex.Replace(self.Description, "<.*?>", string.Empty);
 
 			while (desc.Contains("\n\n\n"))
 				desc = desc.Replace("\n\n\n", "\n\n");
@@ -115,7 +112,7 @@ namespace FC.Bot.Items
 
 		public static string GetIconInfoString(this Item self)
 		{
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new ();
 
 			if (self.AetherialReduce != 0 || self.MaterializeType != 0)
 				builder.Append(ItemService.ConvertToMateriaEmote);

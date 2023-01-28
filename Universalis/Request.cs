@@ -18,18 +18,18 @@ namespace Universalis
 			if (!route.StartsWith('/'))
 				route = '/' + route;
 
-			string url = "https://universalis.app/api/" + route;
+			string url = $"https://universalis.app/api/v2{route}";
 
 			try
 			{
-				Log.Write("Request: " + url, @"Universalis");
+				Log.Write($"Request: {url}", "Universalis");
 
 				WebRequest req = WebRequest.Create(url);
 				WebResponse response = await req.GetResponseAsync();
 				StreamReader reader = new StreamReader(response.GetResponseStream());
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", @"Universalis");
+				Log.Write($"Response: {json.Length} characters", "Universalis");
 
 				return Serializer.Deserialize<T>(json);
 			}

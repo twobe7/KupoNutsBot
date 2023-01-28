@@ -6,7 +6,6 @@ namespace XIVAPI
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Threading.Tasks;
 
 	[Serializable]
 	public class Item : ResponseBase
