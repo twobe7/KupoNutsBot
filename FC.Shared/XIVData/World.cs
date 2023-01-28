@@ -150,7 +150,6 @@ namespace FC.XIVData
 					"Zeromus",
 				}
 			},
-
 			{
 				"Mana", new string[]
 				{
