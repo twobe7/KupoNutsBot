@@ -4,7 +4,6 @@
 
 namespace FC.XIVData
 {
-	using Discord;
 	using Newtonsoft.Json;
 
 	public class XivItem

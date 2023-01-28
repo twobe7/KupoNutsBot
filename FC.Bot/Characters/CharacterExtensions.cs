@@ -286,7 +286,7 @@ namespace FC.Bot.Characters
 			{
 				return false;
 			}
-			else if (Items.XivItems.TryGetValue(itemName, out XivItem? xivItem))
+			else if (Items.XivItemsByName.TryGetValue(itemName, out XivItem? xivItem))
 			{
 				total += xivItem.ItemLevel;
 				return true;
@@ -369,7 +369,7 @@ namespace FC.Bot.Characters
 			{
 				return false;
 			}
-			else if (Items.XivItems.TryGetValue(itemName, out XivItem? xivItem))
+			else if (Items.XivItemsByName.TryGetValue(itemName, out XivItem? xivItem))
 			{
 				iconPath = xivItem.IconFullPath;
 				return true;
@@ -397,7 +397,7 @@ namespace FC.Bot.Characters
 			{
 				return false;
 			}
-			else if (Items.XivItems.TryGetValue(itemName, out XivItem? xivItem))
+			else if (Items.XivItemsByName.TryGetValue(itemName, out XivItem? xivItem))
 			{
 				itemLevel = xivItem.ItemLevel;
 				return true;
@@ -425,7 +425,7 @@ namespace FC.Bot.Characters
 			{
 				return false;
 			}
-			else if (Items.XivItems.TryGetValue(itemName, out XivItem? xivItem))
+			else if (Items.XivItemsByName.TryGetValue(itemName, out XivItem? xivItem))
 			{
 				itemId = xivItem.Id;
 				return true;

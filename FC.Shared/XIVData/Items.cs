@@ -14,7 +14,8 @@ namespace FC.XIVData
 	public class Items
 	{
 		public static readonly List<AutocompleteResult> AutocompleteItems = new List<AutocompleteResult>();
-		public static readonly Dictionary<string, XivItem> XivItems = new Dictionary<string, XivItem>();
+		public static readonly Dictionary<string, XivItem> XivItemsByName = new Dictionary<string, XivItem>();
+		public static readonly Dictionary<int, XivItem> XivItemsById = new Dictionary<int, XivItem>();
 
 		static Items()
 		{
@@ -25,7 +26,8 @@ namespace FC.XIVData
 				var jsonList = JsonConvert.DeserializeObject<List<XivItem>>(fullListJson);
 				if (jsonList != null)
 				{
-					XivItems = jsonList.ToDictionary(x => x.Name, x => x);
+					XivItemsByName = jsonList.ToDictionary(x => x.Name, x => x);
+					XivItemsById = jsonList.ToDictionary(x => x.Id, x => x);
 				}
 			}
 

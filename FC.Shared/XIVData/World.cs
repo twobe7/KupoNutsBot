@@ -4,6 +4,7 @@
 
 namespace FC.XIVData
 {
+	using System.Collections.Generic;
 	using Discord.Interactions;
 
 	/// <summary>
@@ -31,7 +32,7 @@ namespace FC.XIVData
 	/// Enum for worlds.
 	/// </summary>
 	/// <remarks>Populated from https://github.com/xivapi/ffxiv-datamining/blob/master/csv/World.csv. </remarks>
-	public enum World
+	public enum XivWorld
 	{
 		Ravana = 21,
 		Bismarck = 22,
@@ -111,5 +112,138 @@ namespace FC.XIVData
 		Ragnarok = 97,
 		Ridill = 98,
 		Sargatanas = 99,
+	}
+
+	public class World
+	{
+		public static readonly Dictionary<string, string[]> ServerDataCentreLookup = new Dictionary<string, string[]>
+		{
+			// JP
+			{
+				"Elemental", new string[]
+				{
+					"Aegis",
+					"Atomos",
+					"Carbuncle",
+					"Garuda",
+					"Gungnir",
+					"Kujata",
+					"Ramuh",
+					"Tonberry",
+					"Typhon",
+					"Unicorn",
+				}
+			},
+			{
+				"Gaia", new string[]
+				{
+					"Alexander",
+					"Bahamut",
+					"Durandal",
+					"Fenrir",
+					"Ifrit",
+					"Ridill",
+					"Tiamat",
+					"Ultima",
+					"Valefor",
+					"Yojimbo",
+					"Zeromus",
+				}
+			},
+
+			{
+				"Mana", new string[]
+				{
+					"Anima",
+					"Asura",
+					"Belias",
+					"Chocobo",
+					"Hades",
+					"Ixion",
+					"Mandragora",
+					"Masamune",
+					"Pandaemonium",
+					"Shinryu",
+					"Titan",
+				}
+			},
+
+			// OCE
+			{
+				"Materia", new string[]
+				{
+					"Bismarck",
+					"Ravana",
+					"Sephirot",
+					"Sophia",
+					"Zurvan",
+				}
+			},
+
+			// NA
+			{
+				"Aether", new string[]
+				{
+					"Adamantoise",
+					"Cactuar",
+					"Faerie",
+					"Gilgamesh",
+					"Jenova",
+					"Midgardsormr",
+					"Sargatanas",
+					"Siren",
+				}
+			},
+			{
+				"Primal", new string[]
+				{
+					"Behemoth",
+					"Excalibur",
+					"Exodus",
+					"Famfrit",
+					"Hyperion",
+					"Lamia",
+					"Leviathan",
+					"Ultros",
+				}
+			},
+			{
+				"Crystal", new string[]
+				{
+					"Balmung",
+					"Brynhildr",
+					"Coeurl",
+					"Diabolos",
+					"Goblin",
+					"Malboro",
+					"Mateus",
+					"Zalera",
+				}
+			},
+
+			// EU
+			{
+				"Chaos", new string[]
+				{
+					"Cerberus",
+					"Louisoix",
+					"Moogle",
+					"Omega",
+					"Ragnarok",
+					"Spriggan",
+				}
+			},
+			{
+				"Light", new string[]
+				{
+					"Lich",
+					"Odin",
+					"Phoenix",
+					"Shiva",
+					"Twintania",
+					"Zodiark",
+				}
+			},
+		};
 	}
 }

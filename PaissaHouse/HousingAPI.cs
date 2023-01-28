@@ -110,7 +110,7 @@ namespace PaissaHouse
 		public static async Task<SearchResponse> Worlds(string name)
 		{
 			// Convert world name to enum for ID, no results if we cannot parse name
-			if (!Enum.TryParse(name, true, out FC.XIVData.World world))
+			if (!Enum.TryParse(name, true, out FC.XIVData.XivWorld world))
 				return new SearchResponse();
 
 			string route = "/worlds/" + (int) world;
