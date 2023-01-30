@@ -66,7 +66,10 @@ namespace FC.Bot.Items
 			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
 
 			if (results.Count <= 0)
-				throw new UserException("I couldn't find any items that match that search.");
+			{
+				await this.FollowupAsync(text: "I couldn't find any items that match that search.");
+				return;
+			}
 
 			if (results.Count > 1)
 			{
@@ -88,7 +91,10 @@ namespace FC.Bot.Items
 			ulong? id = results[0].ID;
 
 			if (id == null)
-				throw new Exception("No Id in item");
+			{
+				await this.FollowupAsync(text: "The returned item did not have an Id. Weird.");
+				return;
+			}
 
 			await this.FollowupAsync(embed: await this.GetItem((ulong)id));
 		}
@@ -107,7 +113,10 @@ namespace FC.Bot.Items
 			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
 
 			if (results.Count <= 0)
-				throw new UserException("I couldn't find any items that match that search.");
+			{
+				await this.FollowupAsync(text: "I couldn't find any items that match that search.");
+				return;
+			}
 
 			ulong? id;
 
@@ -140,7 +149,10 @@ namespace FC.Bot.Items
 			}
 
 			if (id == null)
-				throw new Exception("No Id in item");
+			{
+				await this.FollowupAsync(text: "The returned item did not have an Id. Weird.");
+				return;
+			}
 
 			await this.GetMarketBoardItem(dataCentre, id.Value);
 		}
