@@ -196,17 +196,27 @@ namespace FC.Bot.Commands
 
 					if (isValidUrl && uriResult != null)
 					{
-						using var client = new HttpClient();
-
-						var response = await client.GetStringAsync($"https://unshorten.me/s/{uriResult.AbsoluteUri}");
-
-						if (response.IndexOf("?_") != -1)
+						using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+						try
 						{
-							response = response[..response.IndexOf("?_")];
-						}
+							var response = await client.GetAsync(uriResult.AbsoluteUri);
 
-						response = response.Replace("tiktok", "vxtiktok");
-						await message.Channel.SendMessageAsync(text: response, messageReference: new MessageReference(message.Id));
+							string redirectUrl = response?.Headers.Location?.ToString() ?? string.Empty;
+							if (redirectUrl.IndexOf("?_") != -1)
+							{
+								redirectUrl = redirectUrl[..redirectUrl.IndexOf("?_")];
+							}
+
+							if (string.IsNullOrWhiteSpace(redirectUrl))
+								return;
+
+							redirectUrl = redirectUrl.Replace("tiktok", "vxtiktok");
+							await message.Channel.SendMessageAsync(text: redirectUrl, messageReference: new MessageReference(message.Id));
+						}
+						catch (Exception ex)
+						{
+							await this.LogExceptionToDiscordChannel(message, ex);
+						}
 
 						return;
 					}
