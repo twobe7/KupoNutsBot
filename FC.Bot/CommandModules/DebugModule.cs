@@ -113,7 +113,7 @@ namespace FC.Bot.CommandModules
 			await this.FollowupAsync(text: "I'm unable to convert that.");
 		}
 
-		public string? ToUnixTimeString(string? date = null, string? time = null, string? timezone = "AEST")
+		public string? ToUnixTimeString(string? date = null, string? time = null, string? timezone = "AEST", bool timeOnly = false)
 		{
 			string response;
 
@@ -154,7 +154,7 @@ namespace FC.Bot.CommandModules
 
 							response = tt.ToUnixTimeSeconds().ToString();
 
-							return $"<t:{response}:f>";
+							return timeOnly ? $"<t:{response}:t>" : $"<t:{response}:f>";
 						}
 					}
 				}

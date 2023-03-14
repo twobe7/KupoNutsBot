@@ -241,7 +241,7 @@ namespace FC.Bot.Commands
 					try
 					{
 						var debugModule = this.ServiceProvider.GetRequiredService<DebugModule>();
-						var result = debugModule.ToUnixTimeString(null, splitResult[0], splitResult[1]);
+						var result = debugModule.ToUnixTimeString(null, splitResult[0], splitResult[1], true);
 						if (result != null)
 						{
 							// Post results back to user
