@@ -82,6 +82,13 @@ namespace FC.Bot.Currency
 				EmbedBuilder builder = GetEmbedBuilder(true, true);
 				bjMessage = await ctx.Interaction.FollowupAsync(embed: builder.Build());
 
+				// Pay the user
+				User user = await UserService.GetUser(ctx.Guild.Id, ctx.User.Id);
+				int payout = activeGame.Payout();
+				Log.Write($"User ({activeGame.UserId}) won {activeGame.Payout()} nuts with a game of Black Jack", "Bot - Blackjack");
+
+				user.UpdateTotalKupoNuts(payout);
+
 				activeGame = null;
 				await Task.Delay(3000);
 			}
