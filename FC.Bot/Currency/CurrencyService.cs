@@ -372,6 +372,13 @@ namespace FC.Bot.Services
 			}
 		}
 
+		[SlashCommand("blackjack-stop", "Ends the current hand of blackjack")]
+		public async Task StopBlackjack()
+		{
+			await this.DeferAsync();
+			await new Blackjack().EndBlackjack(this.Context);
+		}
+
 		private async Task<bool> ValidateLastRunTime(IInteractionContext context, CurrencyGame gameType)
 		{
 			// Set variables

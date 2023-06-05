@@ -49,14 +49,16 @@ namespace FC.Bot.Services
 		[Obsolete]
 		public uint FFXIVCharacterId { get; set; } = 0;
 
-		public async void UpdateTotalKupoNuts(int kupoNuts, bool dailyNut = false)
+		public async void UpdateTotalKupoNuts(int kupoNuts, bool dailyNut = false, bool updateReceived = true)
 		{
-			Log.Write("User (" + this.DiscordUserId + ") gained/lost " + kupoNuts + " nuts", "Bot - UpdateTotalKupoNuts");
+			Log.Write($"User ({this.DiscordUserId}) gained/lost {kupoNuts} nuts", "Bot - UpdateTotalKupoNuts");
 
 			this.TotalKupoNutsCurrent += kupoNuts;
 			if (kupoNuts > 0)
 			{
-				this.TotalKupoNutsReceived += kupoNuts;
+				if (updateReceived)
+					this.TotalKupoNutsReceived += kupoNuts;
+
 				if (dailyNut)
 					this.LastDailyNut = DateTime.Now;
 			}

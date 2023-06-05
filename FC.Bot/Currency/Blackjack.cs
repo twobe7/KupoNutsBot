@@ -6,12 +6,9 @@ namespace FC.Bot.Currency
 {
 	using System;
 	using System.Collections.Generic;
-	using System.ComponentModel;
 	using System.Threading.Tasks;
 	using Discord;
-	using Discord.Rest;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Bot.Services;
 
 	public class Blackjack
@@ -53,6 +50,42 @@ namespace FC.Bot.Currency
 		public Blackjack(uint betAmount)
 		{
 			this.betAmount = betAmount;
+		}
+
+		public async Task EndBlackjack(IInteractionContext ctx)
+		{
+			// Get the user running command
+			var callingUser = await ctx.Guild.GetUserAsync(ctx.User.Id);
+
+			string? message;
+			if (activeGame == null)
+			{
+				// Blackjack game not running
+				message = "No Blackjack hand is currently active.";
+			}
+			else if (ctx.User.Id != activeGame.UserId && !callingUser.GuildPermissions.Administrator)
+			{
+				// Game can only be ended by an administrator or the user who started the game
+				message = "Only the player or an administrator can end the current game.";
+			}
+			else
+			{
+				// Give the player their bet back
+				if (activeGame.UserHand.Count == 2)
+				{
+					User user = await UserService.GetUser(ctx.Guild.Id, activeGame.UserId);
+					user.UpdateTotalKupoNuts(kupoNuts: Convert.ToInt32(activeGame.BetAmount), updateReceived: false);
+				}
+
+				// Remove game elements and end
+				Program.DiscordClient.ReactionAdded -= OnReactionAdded;
+				activeGame = null;
+				message = "Game ended";
+			}
+
+			await ctx.Interaction.FollowupAsync(message);
+			await Task.Delay(2000);
+			await ctx.Interaction.DeleteOriginalResponseAsync();
 		}
 
 		public async Task<Task> StartBlackjack(IInteractionContext ctx)
@@ -137,7 +170,7 @@ namespace FC.Bot.Currency
 				User user = await UserService.GetUser(guildChannel.Value.Id, reaction.UserId);
 
 				int payout = activeGame.Payout();
-				Log.Write("User (" + activeGame.UserId.ToString() + ") won " + payout.ToString() + " nuts with a game of Black Jack", "Bot - Blackjack");
+				Log.Write($"User ({activeGame.UserId}) won {payout} nuts with a game of Black Jack", "Bot - Blackjack");
 
 				user.UpdateTotalKupoNuts(payout);
 			}
