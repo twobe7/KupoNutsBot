@@ -372,7 +372,7 @@ namespace FC.Bot.Services
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
 			// Remove calling command
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -393,7 +393,7 @@ namespace FC.Bot.Services
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
 			// Remove calling command
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -438,7 +438,7 @@ namespace FC.Bot.Services
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
 			// Remove calling command
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -463,7 +463,7 @@ namespace FC.Bot.Services
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
 			// Remove calling command
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			return builder.Build();
 		}
@@ -559,7 +559,7 @@ namespace FC.Bot.Services
 		public async void QuickShoutOut(CommandMessage message)
 		{
 			// Remove calling command
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			EmbedBuilder embed = new EmbedBuilder()
 				.WithThumbnailUrl("https://cdn.discordapp.com/attachments/825936704023691284/830801754223935488/images_8.png")

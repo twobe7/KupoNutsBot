@@ -347,7 +347,7 @@ namespace FC.Bot.ContentCreator
 			// Delay then delete command and response message
 			await Task.Delay(2000);
 			await response.DeleteAsync();
-			message.DeleteMessage();
+			await message.DeleteMessage();
 		}
 
 		private async Task RemoveContentCreator(CommandMessage message, ContentCreator.Type type)
@@ -362,7 +362,7 @@ namespace FC.Bot.ContentCreator
 			// Delay then delete command and response message
 			await Task.Delay(2000);
 			await response.DeleteAsync();
-			message.DeleteMessage();
+			await message.DeleteMessage();
 		}
 
 		private async Task RemoveContentCreator(ContentCreator streamer, ContentCreator.Type type)

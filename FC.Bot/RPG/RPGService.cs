@@ -66,7 +66,7 @@ namespace FC.Bot.RPG
 			builder.Description = description.ToString();
 
 			// Remove calling command
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			return builder.Build();
 		}

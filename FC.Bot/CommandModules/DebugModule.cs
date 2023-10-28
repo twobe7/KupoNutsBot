@@ -207,9 +207,8 @@ namespace FC.Bot.CommandModules
 			if (!string.IsNullOrWhiteSpace(settings?.BotDiscordServer))
 			{
 				// Get the guild
-				SocketGuild botGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer));
-				if (botGuild == null)
-					throw new Exception("Unable to access guild");
+				SocketGuild botGuild = Program.DiscordClient.GetGuild(ulong.Parse(settings.BotDiscordServer))
+					?? throw new Exception("Unable to access guild");
 
 				try
 				{

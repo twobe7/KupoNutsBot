@@ -71,7 +71,7 @@ namespace FC.Bot.Events
 		public async Task ManualUpdate(CommandMessage message)
 		{
 			await this.Update();
-			message.DeleteMessage();
+			await message.DeleteMessage();
 		}
 
 		public async Task Update()

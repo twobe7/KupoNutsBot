@@ -4,6 +4,7 @@
 
 namespace FC.Bot.Commands
 {
+	using System.Threading.Tasks;
 	using Discord;
 	using Discord.WebSocket;
 
@@ -27,9 +28,9 @@ namespace FC.Bot.Commands
 
 		public IGuild Guild => this.Message.GetGuild();
 
-		public MessageReference MessageReference => new MessageReference(this.Message.Id);
+		public MessageReference MessageReference => new (this.Message.Id);
 
-		public async void DeleteMessage()
+		public async Task DeleteMessage()
 		{
 			await this.Message.DeleteAsync();
 		}

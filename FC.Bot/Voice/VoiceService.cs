@@ -59,7 +59,7 @@ namespace FC.Bot.Services
 			}
 
 			// Delete calling command
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			return false;
 		}
@@ -73,7 +73,7 @@ namespace FC.Bot.Services
 			await this.musicPlayer.LeaveAudio(message.Guild);
 
 			// Delete calling command
-			message.DeleteMessage();
+			await message.DeleteMessage();
 		}
 
 		[Command("Play", Permissions.Everyone, "Play a song", CommandCategory.Music, showWait: false)]
@@ -94,12 +94,12 @@ namespace FC.Bot.Services
 		}
 
 		[Command("Skip", Permissions.Everyone, "Skip the current song", CommandCategory.Music, showWait: false)]
-		public void SkipCmd(CommandMessage message)
+		public async Task SkipCmd(CommandMessage message)
 		{
 			if (this.musicPlayer == null)
 				return;
 
-			this.musicPlayer.SkipCurrentSong(message.Message, message.Guild.Id);
+			await this.musicPlayer.SkipCurrentSong(message.Message, message.Guild.Id);
 		}
 
 		[Command("Playlist", Permissions.Everyone, "Show the upcoming songs", CommandCategory.Music, showWait: false)]

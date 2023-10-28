@@ -158,7 +158,7 @@ namespace FC.Bot.Polls
 
 			await this.UpdatePoll(poll);
 
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			return true;
 		}

@@ -91,14 +91,14 @@ namespace FC.Bot.Services
 		[Command("Echo", Permissions.Administrators, "Copies given text to a new channel.", requiresQuotes: true)]
 		public async Task HandleEcho(CommandMessage message, SocketTextChannel channel, string text)
 		{
-			message.DeleteMessage();
+			await message.DeleteMessage();
 			await channel.SendMessageAsync(text);
 		}
 
 		[Command("Echo", Permissions.Administrators, "Copies given text to the same channel.")]
 		public async Task HandleEcho(CommandMessage message, string text)
 		{
-			message.DeleteMessage();
+			await message.DeleteMessage();
 			await message.Channel.SendMessageAsync(text);
 		}
 
@@ -115,7 +115,7 @@ namespace FC.Bot.Services
 		[Command("ModifyEcho", Permissions.Administrators, "Modifies a bot post.", CommandCategory.Administration, requiresQuotes: true)]
 		public async Task HandleModify(CommandMessage message, SocketTextChannel channel, ulong messageId, string text)
 		{
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			IUserMessage? botMessage = await channel.GetMessageAsync(messageId) as IUserMessage;
 
@@ -125,7 +125,7 @@ namespace FC.Bot.Services
 		[Command("ModifyEcho", Permissions.Administrators, "Modifies a bot post.", CommandCategory.Administration, requiresQuotes: true)]
 		public async Task HandleModify(CommandMessage message, ulong messageId, string text)
 		{
-			message.DeleteMessage();
+			await message.DeleteMessage();
 
 			IUserMessage? botMessage = await message.Channel.GetMessageAsync(messageId) as IUserMessage;
 

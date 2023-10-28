@@ -6,6 +6,7 @@ namespace FC.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Threading.Tasks;
 
 	[Serializable]
 	public class User : EntryBase
@@ -46,10 +47,10 @@ namespace FC.Bot.Services
 
 		public Dictionary<string, int> Inventory { get; set; } = new Dictionary<string, int>();
 
-		[Obsolete]
+		[Obsolete("Use Character.FFXIVCharacterId instead.")]
 		public uint FFXIVCharacterId { get; set; } = 0;
 
-		public async void UpdateTotalKupoNuts(int kupoNuts, bool dailyNut = false, bool updateReceived = true)
+		public async Task UpdateTotalKupoNuts(int kupoNuts, bool dailyNut = false, bool updateReceived = true, int? receivedAmount = null)
 		{
 			Log.Write($"User ({this.DiscordUserId}) gained/lost {kupoNuts} nuts", "Bot - UpdateTotalKupoNuts");
 
@@ -57,29 +58,18 @@ namespace FC.Bot.Services
 			if (kupoNuts > 0)
 			{
 				if (updateReceived)
-					this.TotalKupoNutsReceived += kupoNuts;
+					this.TotalKupoNutsReceived += receivedAmount ?? kupoNuts;
 
 				if (dailyNut)
 					this.LastDailyNut = DateTime.Now;
 			}
 
 			await UserService.SaveUser(this);
+
+			return;
 		}
 
-		public void UpdateTotalKupoNuts(uint kupoNuts, bool dailyNut = false)
-		{
-			try
-			{
-				int nuts = (int)kupoNuts;
-				this.UpdateTotalKupoNuts(nuts);
-			}
-			catch (Exception)
-			{
-				// Much nuts, wow.
-			}
-		}
-
-		public async void ClearTotalKupoNuts()
+		public async Task ClearTotalKupoNuts()
 		{
 			this.TotalKupoNutsCurrent = 0;
 			this.TotalKupoNutsReceived = 0;
@@ -87,7 +77,7 @@ namespace FC.Bot.Services
 			await UserService.SaveUser(this);
 		}
 
-		public async void UpdateInventory(string itemName, int quantity)
+		public async Task UpdateInventory(string itemName, int quantity)
 		{
 			if (this.Inventory.ContainsKey(itemName))
 			{
