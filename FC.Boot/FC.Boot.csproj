@@ -10,6 +10,7 @@
 		<NoWarn>1701;1702;SA1503;CS1591;SA1401;</NoWarn>
 		<OutputPath>..\bin\</OutputPath>
 		<Nullable>enable</Nullable>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,7 +26,7 @@
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
-		<PackageReference Include="Microsoft.NETCore.Targets" Version="3.0.0" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.NETCore.Targets" Version="3.1.0" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>
