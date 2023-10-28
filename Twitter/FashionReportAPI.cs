@@ -33,7 +33,7 @@ namespace Twitter
 				ExcludeReplies = true,
 			};
 
-			IEnumerable<TwitterStatus> statuses = service.ListTweetsOnUserTimeline(op);
+			IEnumerable<TwitterStatus> statuses = service.ListTweetsOnUserTimeline(op) ?? new List<TwitterStatus>();
 
 			foreach (TwitterStatus status in statuses)
 			{
