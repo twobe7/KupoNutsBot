@@ -14,13 +14,18 @@ namespace MusicPlayer
 	using CliWrap;
 	using Discord;
 	using Discord.Audio;
+	using FC;
 	using YoutubeExplode;
 	using YoutubeExplode.Common;
 	using YoutubeExplode.Videos.Streams;
 
 	public class MusicPlayer
 	{
-		private YoutubeClient youtube = new YoutubeClient();
+		/// <summary>
+		/// Timeout after 2 minutes
+		/// </summary>
+		private const int IdleTimeout = 120000;
+		private static readonly YoutubeClient YoutubeClient = new YoutubeClient();
 
 		public class VideoInfo
 		{
@@ -35,6 +40,9 @@ namespace MusicPlayer
 			public string Thumbnail { get; set; }
 			public string RequestedBy { get; set; }
 
+			public MemoryStream MemoryStream { get; set; }
+			public bool IsConvertingStream { get; set; } = false;
+
 			public EmbedFieldBuilder GetCurrentSongEmbed()
 			{
 				return new EmbedFieldBuilder().WithName(this.Title).WithValue(this.GetPlayInfo);
@@ -45,6 +53,7 @@ namespace MusicPlayer
 		public class AudioClient
 		{
 			public IAudioClient Client { get; set; }
+			public IMessageChannel ConnectedChannel { get; set; }
 			public AudioOutStream CurrentStream { get; set; }
 			public DateTime? StreamInactiveAt { get; set; }
 			public VideoInfo CurrentSong { get; set; }
@@ -60,6 +69,17 @@ namespace MusicPlayer
 				{
 					this.CurrentSong = this.PlayList[0];
 					this.PlayList.RemoveAt(0);
+
+					if (this.PlayList.Count > 0 && this.PlayList[0].MemoryStream == null)
+					{
+						_ = Task.Run(async () =>
+						{
+							var nextTrack = this.PlayList[0];
+							nextTrack.IsConvertingStream = true;
+							nextTrack.MemoryStream = await ConvertYoutubeInfoToMemoryStream(nextTrack.Stream, null);
+							nextTrack.IsConvertingStream = false;
+						});
+					}
 				}
 				else
 				{
@@ -90,12 +110,16 @@ namespace MusicPlayer
 			if (target.Guild.Id != guild.Id)
 				return false;
 
-			AudioClient audioClient = new AudioClient();
-			audioClient.Client = await target.ConnectAsync();
+			AudioClient audioClient = new AudioClient
+			{
+				Client = await target.ConnectAsync(),
+				ConnectedChannel = target,
+			};
 
 			if (this.connectedChannels.TryAdd(guild.Id, audioClient))
 			{
-				FC.Log.Write($"Connected to voice on {guild.Name}.", "Bot - Audio");
+				await audioClient.ConnectedChannel.SendMessageAsync(text: "Joined audio channel");
+				Log.Write($"Connected to voice on {guild.Name}.", "Bot - Audio");
 
 				// Leave audio if no music
 				_ = Task.Run(async () => await IdleStreamStop());
@@ -111,7 +135,7 @@ namespace MusicPlayer
 			if (this.connectedChannels.TryRemove(guild.Id, out AudioClient audioClient))
 			{
 				await audioClient.Client.StopAsync();
-				FC.Log.Write($"Disconnected from voice on {guild.Name}.", "Bot - Audio");
+				Log.Write($"Disconnected from voice on {guild.Name}.", "Bot - Audio");
 			}
 		}
 
@@ -126,7 +150,7 @@ namespace MusicPlayer
 			foreach (KeyValuePair<ulong, AudioClient> connected in connectedChannels)
 			{
 				await connected.Value.Client.StopAsync();
-				FC.Log.Write($"Disconnected from voice on {connected.Key}.", "Bot - Audio");
+				Log.Write($"Disconnected from voice on {connected.Key}.", "Bot - Audio");
 			}
 		}
 
@@ -144,7 +168,7 @@ namespace MusicPlayer
 				string id;
 				if (query.Contains("v=") && query.Length >= 3)
 				{
-				
+
 					if (query.Contains("&"))
 					{
 						id = Regex.Match(query, "v=(.*?)&").ToString();
@@ -156,7 +180,7 @@ namespace MusicPlayer
 						id = id.Substring(2, id.Length - 2);
 					}
 
-					YoutubeExplode.Videos.Video video = await youtube.Videos.GetAsync(id);
+					YoutubeExplode.Videos.Video video = await YoutubeClient.Videos.GetAsync(id);
 					videoInfo.Title = video.Title;
 					videoInfo.Duration = video.Duration.ToString();
 					videoInfo.Thumbnail = video.Thumbnails.GetFirst().Url;
@@ -164,7 +188,7 @@ namespace MusicPlayer
 				else
 				{
 					// Get the stream from YT via search
-					IReadOnlyList<YoutubeExplode.Search.VideoSearchResult> searchResult = await youtube.Search.GetVideosAsync(query).CollectAsync(1);
+					IReadOnlyList<YoutubeExplode.Search.VideoSearchResult> searchResult = await YoutubeClient.Search.GetVideosAsync(query).CollectAsync(1);
 					YoutubeExplode.Search.VideoSearchResult result = searchResult.GetFirst();
 
 					videoInfo.Title = result.Title;
@@ -175,7 +199,7 @@ namespace MusicPlayer
 				}
 
 				// Get the stream from YT via video id
-				StreamManifest streamManifest = await youtube.Videos.Streams.GetManifestAsync(id);
+				StreamManifest streamManifest = await YoutubeClient.Videos.Streams.GetManifestAsync(id);
 				AudioOnlyStreamInfo streamInfo = streamManifest.GetAudioOnlyStreams().GetFirst();
 
 				videoInfo.Stream = streamInfo;
@@ -185,30 +209,54 @@ namespace MusicPlayer
 				{
 					audioClient.PlayList.Add(videoInfo);
 
+					// If next track in playlist, fetch memory stream information
+					if (audioClient.PlayList.Count == 1)
+					{
+						_ = Task.Run(async () =>
+						{
+							var nextTrack = audioClient.PlayList[0];
+							nextTrack.IsConvertingStream = true;
+							audioClient.PlayList[0].MemoryStream = await ConvertYoutubeInfoToMemoryStream(videoInfo.Stream, null);
+							nextTrack.IsConvertingStream = false;
+						});
+					}
+
 					// Delete calling command
 					await message.DeleteAsync();
+
+					// Add confirm message
+					EmbedBuilder embed = new EmbedBuilder
+					{
+						Title = "Kupo Nuts FM - Added Track",
+						Fields = new List<EmbedFieldBuilder>
+						{
+							CreateEmbedField("Title", videoInfo.Title),
+							CreateEmbedField("Requested By", user.DisplayName),
+						},
+					};
+					await message.Channel.SendMessageAsync(embed: embed.Build());
 				}
 				else
 				{
 					// Play song
 					audioClient.CurrentSong = videoInfo;
-					this.StartStream(youtube, audioClient, streamInfo, message);
+					await this.StartStream(audioClient, streamInfo, message);
 				}
 			}
 		}
 
-		public void SkipCurrentSong(IMessage message, ulong guildId)
+		public async Task SkipCurrentSong(IMessage message, ulong guildId)
 		{
 			if (this.connectedChannels.TryGetValue(guildId, out AudioClient audioClient))
 			{
 				AudioOnlyStreamInfo nextSong = audioClient.GetNextSong();
 				if (nextSong != null)
 				{
-					this.StartStream(youtube, audioClient, nextSong, message);
+					await this.StartStream(audioClient, nextSong, message);
 				}
 				else
 				{
-					message.DeleteAsync();
+					await message.DeleteAsync();
 				}
 			}
 		}
@@ -266,17 +314,17 @@ namespace MusicPlayer
 			return;
 		}
 
-		private async void StartStream(YoutubeClient youtube, AudioClient audioClient, AudioOnlyStreamInfo streamInfo, IMessage? message)
+		private async Task StartStream(AudioClient audioClient, AudioOnlyStreamInfo streamInfo, IMessage? message)
 		{
-			Stream ytStream = await youtube.Videos.Streams.GetAsync(streamInfo);
+			while (audioClient.CurrentSong.IsConvertingStream)
+			{
+				await Task.Delay(2000);
+			}
 
-			// Convert yt stream
-			MemoryStream memoryStream = new MemoryStream();
-			await Cli.Wrap("ffmpeg")
-				.WithArguments(" -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 pipe:1")
-				.WithStandardInputPipe(PipeSource.FromStream(ytStream))
-				.WithStandardOutputPipe(PipeTarget.ToStream(memoryStream))
-				.ExecuteAsync();
+			if (audioClient.CurrentSong.MemoryStream == null)
+			{
+				audioClient.CurrentSong.MemoryStream = await ConvertYoutubeInfoToMemoryStream(streamInfo, message);
+			}
 
 			// Clear stream before beginning
 			if (audioClient.CurrentStream != null)
@@ -284,7 +332,7 @@ namespace MusicPlayer
 				audioClient.CurrentStream.Dispose();
 				audioClient.CurrentStream = null;
 			}
-			
+
 			AudioOutStream discord = audioClient.Client.CreatePCMStream(AudioApplication.Mixed);
 			audioClient.CurrentStream = discord;
 
@@ -292,15 +340,31 @@ namespace MusicPlayer
 			if (message != null)
 				await message.DeleteAsync();
 
+			// Add confirm message
+			EmbedBuilder embed = new EmbedBuilder
+			{
+				Title = "Kupo Nuts FM - Now Playing",
+				Fields = new List<EmbedFieldBuilder>
+				{
+					CreateEmbedField("Title", audioClient.CurrentSong.Title),
+					CreateEmbedField("Requested By", audioClient.CurrentSong.RequestedBy),
+				},
+			};
+			await audioClient.ConnectedChannel.SendMessageAsync(embed: embed.Build());
+
 			// Start playing music
-			await this.WriteStreamToVoiceChannel(audioClient, discord, memoryStream);
+			await this.WriteStreamToVoiceChannel(audioClient, discord, audioClient.CurrentSong.MemoryStream);
 		}
 
 		private async Task WriteStreamToVoiceChannel(AudioClient audioClient, AudioOutStream discord, MemoryStream memoryStream)
 		{
 			try
 			{
-				await discord.WriteAsync(memoryStream.ToArray(), 0, (int)memoryStream.Length);
+				await discord.WriteAsync(memoryStream.ToArray(), 0, (int)memoryStream.Length, System.Threading.CancellationToken.None);
+			}
+			catch (Exception ex)
+			{
+				Log.Write(ex);
 			}
 			finally
 			{
@@ -315,29 +379,80 @@ namespace MusicPlayer
 				// Play next
 				AudioOnlyStreamInfo nextSong = audioClient.GetNextSong();
 				if (nextSong != null)
-					this.StartStream(youtube, audioClient, nextSong, null);
+					await this.StartStream(audioClient, nextSong, null);
 			}
+		}
+
+		public static async Task<MemoryStream> ConvertYoutubeInfoToMemoryStream(AudioOnlyStreamInfo streamInfo, IMessage? message)
+		{
+			Stream ytStream = null;
+			try
+			{
+				ytStream = await YoutubeClient.Videos.Streams.GetAsync(streamInfo);
+			}
+			catch (Exception ex)
+			{
+				Log.Write(ex);
+			}
+
+			if (ytStream == null)
+			{
+				if (message != null)
+				{
+					await message.Channel.SendMessageAsync(text: "Unable to get stream audio", messageReference: message.Reference);
+					await message.DeleteAsync();
+				}
+				return null;
+			}
+
+			Log.Write("Converting audio: Starting", "Bot - Audio");
+
+			// Convert yt stream
+			MemoryStream memoryStream = new MemoryStream();
+			await Cli.Wrap("ffmpeg")
+				.WithArguments(" -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 pipe:1")
+				.WithStandardInputPipe(PipeSource.FromStream(ytStream))
+				.WithStandardOutputPipe(PipeTarget.ToStream(memoryStream))
+				.ExecuteAsync();
+
+			Log.Write("Converting audio: Finished", "Bot - Audio");
+
+			await ytStream.DisposeAsync();
+			return memoryStream;
 		}
 
 		private async Task<Task> IdleStreamStop()
 		{
 			while (this.connectedChannels.Count > 0)
 			{
-				await Task.Delay(30000);
+				await Task.Delay(IdleTimeout);
 
-				FC.Log.Write("Checking For Inactive Audio Clients from total of " + this.connectedChannels.Count, "Bot - Audio");
+				Log.Write("Checking For Inactive Audio Clients from total of " + this.connectedChannels.Count, "Bot - Audio");
 
 				DateTime runTime = DateTime.Now;
 				foreach (KeyValuePair<ulong, AudioClient> connectedChannel in this.connectedChannels)
 				{
 					AudioClient client = connectedChannel.Value;
-					if (client.CurrentStream == null && (!client.StreamInactiveAt.HasValue || (runTime - client.StreamInactiveAt.Value).TotalSeconds > 30))
+					if (client.CurrentStream == null && (!client.StreamInactiveAt.HasValue || (runTime - client.StreamInactiveAt.Value).TotalMilliseconds > IdleTimeout))
+					{
+						await client.ConnectedChannel.SendMessageAsync(text: $"No music queued for over {IdleTimeout / 1000} seconds. Leaving audio. Please rejoin to continue playing music.");
 						await this.LeaveAudio(connectedChannel.Key);
+					}
 				}
 			}
 
-			FC.Log.Write("All Audio Streams Closed", "Bot - Audio");
+			Log.Write("All Audio Streams Closed", "Bot - Audio");
 			return Task.CompletedTask;
+		}
+
+		private EmbedFieldBuilder CreateEmbedField(string name, string value, bool isInline = false)
+		{
+			return new EmbedFieldBuilder
+			{
+				Name = name,
+				Value = value,
+				IsInline = isInline,
+			};
 		}
 	}
 }
