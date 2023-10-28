@@ -73,8 +73,8 @@ namespace FC.Bot.Currency
 				// Give the player their bet back
 				if (activeGame.UserHand.Count == 2)
 				{
-					User user = await UserService.GetUser(ctx.Guild.Id, activeGame.UserId);
-					user.UpdateTotalKupoNuts(kupoNuts: Convert.ToInt32(activeGame.BetAmount), updateReceived: false);
+					User user = await UserService.GetUser(activeGame.GuildUser);
+					await user.UpdateTotalKupoNuts(kupoNuts: Convert.ToInt32(activeGame.BetAmount), updateReceived: false);
 				}
 
 				// Remove game elements and end
@@ -103,7 +103,8 @@ namespace FC.Bot.Currency
 			}
 
 			// New game
-			activeGame = new ActiveGame(ctx.User.Id, this.betAmount);
+			var guildUser = await ctx.Guild.GetUserAsync(ctx.User.Id);
+			activeGame = new ActiveGame(guildUser, this.betAmount);
 
 			// Hold message response
 			IUserMessage? bjMessage;
@@ -116,11 +117,11 @@ namespace FC.Bot.Currency
 				bjMessage = await ctx.Interaction.FollowupAsync(embed: builder.Build());
 
 				// Pay the user
-				User user = await UserService.GetUser(ctx.Guild.Id, ctx.User.Id);
+				User user = await UserService.GetUser(activeGame.GuildUser);
 				int payout = activeGame.Payout();
 				Log.Write($"User ({activeGame.UserId}) won {activeGame.Payout()} nuts with a game of Black Jack", "Bot - Blackjack");
 
-				user.UpdateTotalKupoNuts(payout);
+				await user.UpdateTotalKupoNuts(payout, receivedAmount: payout - (int)activeGame.BetAmount);
 
 				activeGame = null;
 				await Task.Delay(3000);
@@ -149,7 +150,7 @@ namespace FC.Bot.Currency
 			return Task.CompletedTask;
 		}
 
-		private static async void PlayDealerHand(IUserMessage message, Cacheable<IMessageChannel, ulong> guildChannel, SocketReaction reaction)
+		private static async Task PlayDealerHand(IUserMessage message, Cacheable<IMessageChannel, ulong> guildChannel, SocketReaction reaction)
 		{
 			// No active game, no handling
 			if (activeGame == null)
@@ -167,12 +168,12 @@ namespace FC.Bot.Currency
 			// Payout
 			if (activeGame.UserWon)
 			{
-				User user = await UserService.GetUser(guildChannel.Value.Id, reaction.UserId);
+				User user = await UserService.GetUser(activeGame.GuildUser);
 
 				int payout = activeGame.Payout();
 				Log.Write($"User ({activeGame.UserId}) won {payout} nuts with a game of Black Jack", "Bot - Blackjack");
 
-				user.UpdateTotalKupoNuts(payout);
+				await user.UpdateTotalKupoNuts(payout, receivedAmount: payout - (int)activeGame.BetAmount);
 			}
 
 			// Game finished - Perform last build, remove reactions, and clear active game
@@ -281,7 +282,7 @@ namespace FC.Bot.Currency
 
 					if (activeGame.UserIsStanding)
 					{
-						PlayDealerHand(message, guildChannel, reaction);
+						await PlayDealerHand(message, guildChannel, reaction);
 					}
 					else
 					{
@@ -289,7 +290,7 @@ namespace FC.Bot.Currency
 						await message.ModifyAsync(x => x.Embed = GetEmbedBuilder().Build());
 
 						if (activeGame.UserBusted || activeGame.UserHandValue == 21)
-							PlayDealerHand(message, guildChannel, reaction);
+							await PlayDealerHand(message, guildChannel, reaction);
 					}
 				}
 			}
@@ -324,9 +325,10 @@ namespace FC.Bot.Currency
 
 		public class ActiveGame
 		{
-			public ActiveGame(ulong userId, uint bet)
+			public ActiveGame(IGuildUser user, uint bet)
 			{
-				this.UserId = userId;
+				this.GuildUser = user;
+				this.UserId = user.Id;
 				this.LastInteractedWith = DateTime.Now;
 				this.BetAmount = bet;
 
@@ -336,6 +338,7 @@ namespace FC.Bot.Currency
 			}
 
 			public ulong MessageId { get; set; }
+			public IGuildUser GuildUser { get; set; }
 			public ulong UserId { get; set; }
 			public List<IEmote> DealerHand { get; set; } = new List<IEmote>();
 			public List<IEmote> UserHand { get; set; } = new List<IEmote>();

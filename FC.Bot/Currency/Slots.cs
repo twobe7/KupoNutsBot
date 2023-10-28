@@ -10,8 +10,6 @@ namespace FC.Bot.Currency
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
-	using Discord.Rest;
-	using FC.Bot.Commands;
 	using FC.Bot.Services;
 
 	public class Slots
@@ -54,7 +52,7 @@ namespace FC.Bot.Currency
 		public async Task<Task> StartSlot(IInteractionContext ctx)
 		{
 			// Initial builder information
-			EmbedBuilder builder = new EmbedBuilder
+			EmbedBuilder builder = new ()
 			{
 				Title = "Spinning",
 				Color = Color.Gold,
@@ -88,12 +86,12 @@ namespace FC.Bot.Currency
 					if (winType == WinType.Win)
 					{
 						User user = await UserService.GetUser(ctx.Guild.Id, ctx.User.Id);
-						user.UpdateTotalKupoNuts(110);
+						await user.UpdateTotalKupoNuts(CurrencyService.DefaultBetAmount * 11, receivedAmount: CurrencyService.DefaultBetAmount * 10);
 					}
 					else if (winType == WinType.Jackpot)
 					{
 						User user = await UserService.GetUser(ctx.Guild.Id, ctx.User.Id);
-						user.UpdateTotalKupoNuts(1010);
+						await user.UpdateTotalKupoNuts(CurrencyService.DefaultBetAmount * 101, receivedAmount: CurrencyService.DefaultBetAmount * 100);
 					}
 				}
 
@@ -105,7 +103,7 @@ namespace FC.Bot.Currency
 
 		private Dictionary<int, List<string>> GetSlotBoard()
 		{
-			Dictionary<int, List<string>> board = new Dictionary<int, List<string>>();
+			Dictionary<int, List<string>> board = new ();
 
 			// Get winning line
 			List<string> finalLine;
@@ -130,7 +128,7 @@ namespace FC.Bot.Currency
 			// Build rest of board
 			for (int c = 0; c < 3; c++)
 			{
-				List<string> column = new List<string>();
+				List<string> column = new ();
 
 				for (int i = 0; i < 10; i++)
 				{

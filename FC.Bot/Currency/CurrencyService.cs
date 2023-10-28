@@ -23,6 +23,8 @@ namespace FC.Bot.Services
 	[Group("currency", "Currency based commands including games")]
 	public class CurrencyService : ServiceBase
 	{
+		public const int DefaultBetAmount = 10;
+
 		public readonly DiscordSocketClient DiscordClient;
 
 		private const double GenerationChance = 0.05;
@@ -184,7 +186,7 @@ namespace FC.Bot.Services
 			int nutsReceieved = new Random().Next(10, 26);
 
 			// Save to user
-			user.UpdateTotalKupoNuts(nutsReceieved, true);
+			await user.UpdateTotalKupoNuts(nutsReceieved, true);
 
 			postBackMessage = string.Format("{0}, please enjoy these {1} Kupo Nuts! _Kupo!_", userName, nutsReceieved);
 
@@ -229,8 +231,8 @@ namespace FC.Bot.Services
 				}
 				else
 				{
-					fromUser.UpdateTotalKupoNuts(-numberOfNuts);
-					toUser.UpdateTotalKupoNuts(numberOfNuts);
+					await fromUser.UpdateTotalKupoNuts(-numberOfNuts);
+					await toUser.UpdateTotalKupoNuts(numberOfNuts);
 
 					postBackMessage = string.Format("Lucky {0}, {1} has given you {2} Kupo Nuts!", toUserName, fromUserName, numberOfNuts);
 				}
@@ -321,9 +323,9 @@ namespace FC.Bot.Services
 				if (await this.ValidateDailyCurrencyGameAllowance(this.Context))
 				{
 					User user = await UserService.GetUser(this.Context.Guild.Id, this.Context.User.Id);
-					if (user.TotalKupoNutsCurrent > 10)
+					if (user.TotalKupoNutsCurrent > DefaultBetAmount)
 					{
-						user.UpdateTotalKupoNuts(-10);
+						await user.UpdateTotalKupoNuts(-DefaultBetAmount);
 
 						this.UpdateLastRunTime(CurrencyGame.Slots, this.Context.User.Id, this.Context.Guild.Id);
 
@@ -331,7 +333,7 @@ namespace FC.Bot.Services
 					}
 					else
 					{
-						await this.FollowupAsync("You must have 10 Kupo Nuts to play the Slots, _kupo!_");
+						await this.FollowupAsync($"You must have {DefaultBetAmount} Kupo Nuts to play the Slots, _kupo!_");
 
 						await Task.Delay(2000);
 
@@ -342,7 +344,7 @@ namespace FC.Bot.Services
 		}
 
 		[SlashCommand("blackjack", "Play a hand of blackjack!")]
-		public async Task Blackjack(uint bet = 10)
+		public async Task Blackjack(uint bet = DefaultBetAmount)
 		{
 			await this.DeferAsync();
 
@@ -354,7 +356,7 @@ namespace FC.Bot.Services
 					if (user.TotalKupoNutsCurrent >= bet && bet < int.MaxValue)
 					{
 						int nutsToSubtract = Convert.ToInt32(bet) * -1;
-						user.UpdateTotalKupoNuts(nutsToSubtract);
+						await user.UpdateTotalKupoNuts(nutsToSubtract);
 
 						this.UpdateLastRunTime(CurrencyGame.Blackjack, this.Context.User.Id, this.Context.Guild.Id);
 
@@ -529,7 +531,7 @@ namespace FC.Bot.Services
 					if (user.Inventory.ContainsKey(itemToRedeem.Name))
 					{
 						// Remove item from inventory
-						user.UpdateInventory(itemToRedeem.Name, -1);
+						await user.UpdateInventory(itemToRedeem.Name, -1);
 
 						// Get the embed and duplicate
 						IEmbed? embed = message.Embeds.FirstOrDefault();
@@ -591,7 +593,7 @@ namespace FC.Bot.Services
 								Log.Write(toUser.GetName() + " Found a Kupo Nut with message: \"" + message.Content + "\"", "Bot");
 
 								User user = await UserService.GetUser(toUser);
-								user.UpdateTotalKupoNuts(1);
+								await user.UpdateTotalKupoNuts(1);
 							}
 						}
 					});

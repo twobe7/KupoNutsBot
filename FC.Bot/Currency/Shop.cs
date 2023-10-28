@@ -180,10 +180,10 @@ namespace FC.Bot.Currency
 					if (user.TotalKupoNutsCurrent >= itemToBuy?.Cost)
 					{
 						// Take payment
-						user.UpdateTotalKupoNuts(-itemToBuy.Cost);
+						await user.UpdateTotalKupoNuts(-itemToBuy.Cost);
 
 						// Add to inventory
-						user.UpdateInventory(itemToBuy.Name, 1);
+						await user.UpdateInventory(itemToBuy.Name, 1);
 
 						// Convert to success embed
 						await message.ModifyAsync(x => x.Embed = GetSuccessEmbed());
