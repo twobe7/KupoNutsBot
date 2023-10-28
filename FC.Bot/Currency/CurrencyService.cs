@@ -63,6 +63,7 @@ namespace FC.Bot.Services
 		{
 			Slots,
 			Blackjack,
+			ConnectFour,
 		}
 
 		public override async Task Initialize()
@@ -381,6 +382,47 @@ namespace FC.Bot.Services
 			await new Blackjack().EndBlackjack(this.Context);
 		}
 
+		[SlashCommand("connect-four", "Start a game of Connect 4!")]
+		public async Task ConnectFour(IGuildUser user)
+		{
+			await this.DeferAsync();
+
+			await new ConnectFour().StartGame(this.Context, user);
+			////if (await this.ValidateLastRunTime(this.Context, CurrencyGame.ConnectFour))
+			////{
+			////	if (await this.ValidateDailyCurrencyGameAllowance(this.Context))
+			////	{
+			////		User user = await UserService.GetUser(this.Context.Guild.Id, this.Context.User.Id);
+			////		if (user.TotalKupoNutsCurrent > DefaultBetAmount)
+			////		{
+			////			await user.UpdateTotalKupoNuts(-DefaultBetAmount);
+
+			////			this.UpdateLastRunTime(CurrencyGame.ConnectFour, this.Context.User.Id, this.Context.Guild.Id);
+
+			////			await new ConnectFour().StartGame(this.Context);
+			////		}
+			////		else
+			////		{
+			////			await this.FollowupAsync($"You must have {DefaultBetAmount} Kupo Nuts to play the Slots, _kupo!_");
+
+			////			await Task.Delay(2000);
+
+			////			await this.DeleteOriginalResponseAsync();
+			////		}
+			////	}
+			////}
+		}
+
+		[ComponentInteraction("connectFourResponse-*", true)]
+		public async Task ConnectFourButtonHandler()
+		{
+			if (this.Context is SocketInteractionContext ctx)
+			{
+				if (int.TryParse(ctx.SegmentMatches.FirstOrDefault()?.Value, out int column))
+					await new ConnectFour().Play(ctx, (byte)column);
+			}
+		}
+
 		private async Task<bool> ValidateLastRunTime(IInteractionContext context, CurrencyGame gameType)
 		{
 			// Set variables
@@ -550,9 +592,6 @@ namespace FC.Bot.Services
 						{
 							if (itemRoleToMention != 0)
 								await message.Channel.SendMessageAsync($"Please attend to this, <@&{itemToRedeem.Role}>", allowedMentions: AllowedMentions.All);
-
-							////mentionedRole = $"Let <@&{itemToRedeem.Role}> know about it!";
-							////IRole role = message.GetGuild().GetRole(itemRoleToMention));
 						}
 					}
 				}

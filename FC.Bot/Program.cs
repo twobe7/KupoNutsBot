@@ -246,6 +246,7 @@ namespace FC.Bot
 					client.Log += this.LogAsync;
 					client.SlashCommandExecuted += this.OnSlashCommandExecuted;
 					client.AutocompleteExecuted += this.OnClientAutoCompleteExecuted;
+					client.ButtonExecuted += this.OnClientMessageComponentExecuted;
 
 					client.Ready += () =>
 					{
@@ -282,8 +283,6 @@ namespace FC.Bot
 
 					interactionService.Log += this.LogAsync;
 					interactionService.SlashCommandExecuted += this.InteractionSlashCommandExecuted;
-					////interactionService.AutocompleteHandlerExecuted += this.OnAutocompleteHandlerExecuted;
-					////interactionService.AutocompleteCommandExecuted += this.OnAutocompleteCommandExecuted;
 
 					// Initialise the item autocomplete
 					this.serviceProvider.GetRequiredService<XIVData.Items>();
@@ -300,7 +299,7 @@ namespace FC.Bot
 
 				Log.Write("Shutting down", "Bot");
 
-				Program.DiscordClient.SlashCommandExecuted -= this.OnSlashCommandExecuted;
+				DiscordClient.SlashCommandExecuted -= this.OnSlashCommandExecuted;
 
 				if (services != null)
 				{
@@ -337,11 +336,11 @@ namespace FC.Bot
 
 		private async Task OnSlashCommandExecuted(SocketSlashCommand slashCommand)
 		{
-			if (Program.Initializing)
+			if (Initializing)
 			{
 				await slashCommand.DeferAsync(true);
 
-				while (Program.Initializing)
+				while (Initializing)
 				{
 					await Task.Delay(1000);
 				}
@@ -358,11 +357,11 @@ namespace FC.Bot
 			if (info == null)
 				return;
 
-			if (Program.Initializing)
+			if (Initializing)
 			{
 				await context.Interaction.DeferAsync(true);
 
-				while (Program.Initializing)
+				while (Initializing)
 				{
 					await Task.Delay(1000);
 				}
@@ -383,18 +382,6 @@ namespace FC.Bot
 			}
 		}
 
-		////private async Task OnAutocompleteHandlerExecuted(IAutocompleteHandler handler, IInteractionContext context, IResult result)
-		////{
-		////	await Task.Delay(1);
-		////	return;
-		////}
-
-		////private async Task OnAutocompleteCommandExecuted(AutocompleteCommandInfo info, IInteractionContext context, IResult result)
-		////{
-		////	await Task.Delay(1);
-		////	return;
-		////}
-
 		private async Task OnClientAutoCompleteExecuted(SocketAutocompleteInteraction socketAutocompleteInteraction)
 		{
 			try
@@ -407,6 +394,26 @@ namespace FC.Bot
 			catch (Exception ex)
 			{
 				await Logger.LogExceptionToDiscordChannel(ex, "Error in Autocomplete");
+			}
+
+			return;
+		}
+
+		private async Task OnClientMessageComponentExecuted(SocketMessageComponent socketMessageComponent)
+		{
+			try
+			{
+				var interactionService = this.serviceProvider.GetRequiredService<InteractionService>();
+				var ctx = new SocketInteractionContext(client, socketMessageComponent);
+
+				// This seems to be needed for the interaction to work
+				await socketMessageComponent.UpdateAsync(x => x.Content = x.Content);
+
+				await interactionService.ExecuteCommandAsync(ctx, this.serviceProvider);
+			}
+			catch (Exception ex)
+			{
+				await Logger.LogExceptionToDiscordChannel(ex, "Error in Message Component");
 			}
 
 			return;
