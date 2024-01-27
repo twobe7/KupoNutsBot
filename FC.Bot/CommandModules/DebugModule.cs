@@ -181,7 +181,7 @@ namespace FC.Bot.CommandModules
 		[SlashCommand("update-slash-commands", "Updates the Slash Commands", true)]
 		public async Task UpdateSlashCommands()
 		{
-			if (!this.Context.Interaction.HasResponded)
+			if (this.Context != null && !this.Context.Interaction.HasResponded)
 				await this.DeferAsync(ephemeral: true);
 
 			// Register Slash commands
@@ -197,6 +197,9 @@ namespace FC.Bot.CommandModules
 			try
 			{
 				await interactionService.AddModulesAsync(Assembly.GetExecutingAssembly(), this.serviceProvider);
+
+				// DebugModule has already been registered
+				await interactionService.RemoveModuleAsync(typeof(DebugModule));
 			}
 			catch (Exception ex)
 			{
@@ -223,7 +226,8 @@ namespace FC.Bot.CommandModules
 			await interactionService.RegisterCommandsGloballyAsync();
 #endif
 
-			await this.FollowupAsync(text: "Slash commands registered", ephemeral: true);
+			if (this.Context != null)
+				await this.FollowupAsync(text: "Slash commands registered", ephemeral: true);
 		}
 
 		/// <summary>

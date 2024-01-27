@@ -141,6 +141,7 @@ namespace FC.Bot
 				.AddSingleton<CurrencyService>()
 				.AddSingleton<XIVData.Items>()
 				.AddSingleton<ItemAutocompleteHandler>()
+				.AddSingleton<EnumAutoCompleteHandler<XivWorld>>()
 				;
 
 			return collection.BuildServiceProvider();
@@ -265,24 +266,17 @@ namespace FC.Bot
 
 					// Register Slash commands
 					var interactionService = this.serviceProvider.GetRequiredService<InteractionService>();
-					await interactionService.AddModuleAsync(typeof(DebugModule), this.serviceProvider);
-#if DEBUG
-					Settings settings = Settings.Load();
-					if (!string.IsNullOrWhiteSpace(settings?.BotDiscordServer))
-					{
-						// Get the guild
-						SocketGuild botGuild = client.GetGuild(ulong.Parse(settings.BotDiscordServer));
-						if (botGuild == null)
-							throw new Exception("Unable to access guild");
-
-						await interactionService.RegisterCommandsToGuildAsync(botGuild.Id);
-					}
-#else
-					await interactionService.RegisterCommandsGloballyAsync();
-#endif
-
 					interactionService.Log += this.LogAsync;
 					interactionService.SlashCommandExecuted += this.InteractionSlashCommandExecuted;
+
+#if DEBUG
+					// Register all slash commands for debug
+					await this.serviceProvider.GetRequiredService<DebugModule>().UpdateSlashCommands();
+#else
+					// Register only the DebugModule on startup
+					await interactionService.AddModuleAsync(typeof(DebugModule), this.serviceProvider);
+					await interactionService.RegisterCommandsGloballyAsync();
+#endif
 
 					// Initialise the item autocomplete
 					this.serviceProvider.GetRequiredService<XIVData.Items>();
