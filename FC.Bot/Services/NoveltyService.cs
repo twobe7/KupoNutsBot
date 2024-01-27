@@ -7,12 +7,10 @@ namespace FC.Bot.Services
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
-	using System.Runtime.InteropServices;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.Interactions;
-	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using Tenor;
@@ -61,6 +59,16 @@ namespace FC.Bot.Services
 			@"(oﾟ▽ﾟ)o",
 		};
 
+		public static readonly List<(string weather, int chance)> WeatherRates = new ()
+		{
+			("Clear Skies", 25),
+			("Fair Skies", 45),
+			("Clouds", 10),
+			("Rain", 10),
+			("Fog", 5),
+			("Showers", 5),
+		};
+
 		public readonly DiscordSocketClient DiscordClient;
 
 		public NoveltyService(DiscordSocketClient discordClient)
@@ -68,32 +76,30 @@ namespace FC.Bot.Services
 			this.DiscordClient = discordClient;
 		}
 
-		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~", CommandCategory.Novelty)]
-		public Task<Embed> Ask(string message)
+		[SlashCommand("8ball", "Ask the magic 8 ball a question. be warned, you might not like the answer")]
+		public async Task Ask(string message)
 		{
-			EmbedBuilder builder = new EmbedBuilder
+			EmbedBuilder builder = new ()
 			{
 				Title = message,
 				Description = Magic8BallAnswers.GetRandom(),
 				Color = Color.DarkBlue,
 			};
 
-			return Task.FromResult(builder.Build());
+			await this.RespondAsync(embeds: new Embed[] { builder.Build() });
 		}
 
-		[Command("8Ball", Permissions.Everyone, "Ask the magic 8 ball a question. be warned, you might not like the answer~", CommandCategory.Novelty)]
-		public Task<Embed> Ask()
+		[SlashCommand("blame", "Blames someone")]
+		public async Task Blame()
 		{
-			return this.Ask("The Magic 8 Ball");
-		}
+			await this.DeferAsync();
 
-		[Command("Blame", Permissions.Everyone, "Blames someone", CommandCategory.Novelty)]
-		public Task<string> Blame(CommandMessage message)
-		{
-			if (message.Channel is SocketGuildChannel guildChannel)
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			if (this.Context.Channel is SocketGuildChannel guildChannel)
 			{
-				List<IGuildUser> targets = new List<IGuildUser>();
-				targets.Add(message.Author);
+				List<IGuildUser> targets = new () { guildUser };
 
 				foreach (SocketGuildUser tTarget in guildChannel.Guild.Users)
 				{
@@ -103,39 +109,33 @@ namespace FC.Bot.Services
 					targets.Add(tTarget);
 				}
 
-				Random rnd = new Random();
+				Random rnd = new ();
 				int val = rnd.Next(targets.Count);
 				IGuildUser target = targets[val];
 
 				if (target.Id == this.DiscordClient.CurrentUser.Id)
-					return Task.FromResult("This is my fault. =(");
+					await this.FollowupAsync("This is my fault. =(");
 
-				return Task.FromResult("This is your fault, " + target.GetName() + ".");
+				await this.FollowupAsync("This is your fault, " + target.GetName() + ".");
 			}
 
-			return Task.FromResult("This is your fault, " + message.Author.GetName() + ".");
+			await this.FollowupAsync("This is your fault, " + guildUser.GetName() + ".");
 		}
 
-		[Command("Roll", Permissions.Everyone, "Roll the dice.", CommandCategory.Novelty)]
-		public void Roll(CommandMessage message)
-		{
-			this.Roll(message, "1d6");
-		}
-
-		[Command("Roll", Permissions.Everyone, "Roll the dice. with the given format: 1d20", CommandCategory.Novelty)]
-		public void Roll(CommandMessage message, string format)
+		[SlashCommand("roll", "Roll the dice. Format: 1d20")]
+		public async Task Roll(string format = "1d6")
 		{
 			if (format.ToLower() == "housing")
 			{
 				// Post meme message
-				message.Channel.SendMessageAsync(text: "You rolled a...0. May you have better luck next time.", messageReference: message.MessageReference);
+				await this.RespondAsync(text: "You rolled a...0. May you have better luck next time.");
 				return;
 			}
 
 			string[] parts = format.Split('d', 'D');
 
 			if (parts.Length != 2)
-				throw new UserException("Invalid dice format! dice should be `[Number of Dice]d[number of faces]` like `1d20` or `2d6`");
+				throw new UserException("Invalid dice format! Dice should be `[Number of Dice]d[number of faces]` like `1d20` or `2d6`");
 
 			if (!int.TryParse(parts[0], out int count))
 				throw new UserException("I didn't understand the dice number: \"" + parts[0] + "\", was that a number?");
@@ -150,72 +150,38 @@ namespace FC.Bot.Services
 				throw new UserException("Number of faces has to be more than 0!");
 
 			int total = 0;
-			Random rn = new Random();
+			Random rn = new ();
 			for (int i = 0; i < count; i++)
 			{
 				total += rn.Next(faces) + 1;
 			}
 
-			// Post
-			message.Channel.SendMessageAsync(text: $"You rolled: {total}", messageReference: message.MessageReference);
+			await this.RespondAsync($"You rolled: {total}");
 		}
 
-		[Command("Choose", Permissions.Everyone, "Let me choose for you", CommandCategory.Novelty)]
-		public string Choose(string optionA, string optionB)
+		[SlashCommand("choose", "Let me choose for you")]
+		public async Task Choose(string optionA, string optionB, string? optionC = null, string? optionD = null)
 		{
-			return this.DoChoose(optionA, optionB, null, null);
+			var options = new List<string>() { optionA, optionB };
+
+			if (!string.IsNullOrWhiteSpace(optionC))
+				options.Add(optionC);
+
+			if (!string.IsNullOrWhiteSpace(optionD))
+				options.Add(optionD);
+
+			int value = new Random().Next(options.Count);
+
+			await this.RespondAsync($"I choose... {options[value]}!");
 		}
 
-		[Command("Choose", Permissions.Everyone, "Let me choose for you", CommandCategory.Novelty)]
-		public string Choose(string optionA, string optionB, string optionC)
-		{
-			return this.DoChoose(optionA, optionB, optionC, null);
-		}
-
-		[Command("Choose", Permissions.Everyone, "Let me choose for you", CommandCategory.Novelty)]
-		public string Choose(string optionA, string optionB, string optionC, string optionD)
-		{
-			return this.DoChoose(optionA, optionB, optionC, optionD);
-		}
-
-		public string DoChoose(string optionA, string optionB, string? optionC, string? optionD)
-		{
-			int count = 2;
-			if (!string.IsNullOrEmpty(optionC))
-				count = 3;
-
-			if (!string.IsNullOrEmpty(optionD))
-				count = 4;
-
-			Random rn = new Random();
-			int value = rn.Next(count);
-
-			return value switch
-			{
-				0 => "I choose... " + optionA + "!",
-				1 => "I choose... " + optionB + "!",
-				2 => "I choose... " + optionC + "!",
-				3 => "I choose... " + optionD + "!",
-				_ => throw new Exception("Failed to choose a valid option"),
-			};
-		}
-
-		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.", CommandCategory.Novelty)]
-		public string Number(int max)
-		{
-			return this.Number(0, max);
-		}
-
-		[Command("Number", Permissions.Everyone, "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.", CommandCategory.Novelty)]
-		public string Number(int min, int max)
+		[SlashCommand("number", "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.")]
+		public async Task Number(int min = 0, int max = 1)
 		{
 			if (max <= min)
 				throw new UserException("Maximum must be greater than the Minimum!");
 
-			Random rn = new Random();
-			int value = rn.Next(min, max);
-
-			return value + "!";
+			await this.RespondAsync($"{new Random().Next(min, max)}!");
 		}
 
 		[SlashCommand("eorzeatime", "Gets the current Eorzean Time")]
@@ -290,20 +256,16 @@ namespace FC.Bot.Services
 			await this.RespondAsync(embed: embed.Build());
 		}
 
-		[Command("Flip", Permissions.Everyone, "Flips user", CommandCategory.Novelty)]
-		public string Flip(CommandMessage message, IGuildUser user)
+		[SlashCommand("flip-user", "Flips user")]
+		public async Task Flip(SocketGuildUser user)
 		{
-			string flipName;
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
 
-			// Trying to flip the bot
-			if (user.Id == this.DiscordClient.CurrentUser.Id)
-			{
-				flipName = message.Author.GetName();
-			}
-			else
-			{
-				flipName = user.GetName();
-			}
+			// Handle attempt to flip the bot
+			string flipName = user.Id == this.DiscordClient.CurrentUser.Id
+				? guildUser.GetName()
+				: user.GetName();
 
 			// Reverse string
 			char[] array = flipName.ToCharArray();
@@ -332,74 +294,24 @@ namespace FC.Bot.Services
 								.Replace("w", "ʍ", true, null)
 								.Replace("y", "ʎ", true, null);
 
-			if (user.Id == this.DiscordClient.CurrentUser.Id)
-			{
-				return "I don't think so!\n\n(╯°□°）╯︵ " + name;
-			}
-			else
-			{
-				return "(╯°□°）╯︵ " + name;
-			}
+			var response = user.Id == this.DiscordClient.CurrentUser.Id
+				? "I don't think so!\n\n(╯°□°）╯︵ " + name
+				: "(╯°□°）╯︵ " + name;
+
+			await this.RespondAsync(response);
 		}
 
-		[Command("Unflip", Permissions.Everyone, "Unflips user", CommandCategory.Novelty)]
-		public string Unflip(IGuildUser user)
+		[SlashCommand("unflip-user", "Unflips user")]
+		public string Unflip(SocketGuildUser user)
 		{
 			if (user.Id == this.DiscordClient.CurrentUser.Id)
-			{
 				return ":woman_gesturing_no:";
-			}
 
 			return user.GetName() + @" ノ( º _ ºノ)";
 		}
 
-		[Command("Hug", Permissions.Everyone, "Hugs a user", CommandCategory.Novelty)]
-		public async Task<Embed> Hug(CommandMessage message, IGuildUser user)
-		{
-			EmbedBuilder builder = new EmbedBuilder()
-				.WithColor(Color.DarkRed);
-
-			if (message.Author.Id == user.Id)
-			{
-				builder.Title = string.Format("{0} {1}s themselves (kinda weird, _kupo_)", message.Author.GetName(), message.Command);
-			}
-			else
-			{
-				builder.Title = string.Format("{0} {1}s {2}", message.Author.GetName(), message.Command, user.GetName());
-			}
-
-			RandomAPI.Result tenorResult = await RandomAPI.Random("anime hug");
-			builder.ImageUrl = tenorResult.GetBestUrl();
-
-			// Remove calling command
-			await message.DeleteMessage();
-
-			return builder.Build();
-		}
-
-		[Command("Spray", Permissions.Everyone, "Sprays a user", CommandCategory.Novelty)]
-		public async Task<Embed> Spray(CommandMessage message, IGuildUser user)
-		{
-			EmbedBuilder builder = new EmbedBuilder()
-			{
-				Color = Color.DarkRed,
-			};
-
-			builder.Title = message.Author.Id == user.Id
-				? string.Format("{0} {1}s themselves (kinda weird, _kupo_)", message.Author.GetName(), message.Command)
-				: string.Format("{0} {1}s {2}", message.Author.GetName(), message.Command, user.GetName());
-
-			RandomAPI.Result tenorResult = await RandomAPI.Random("spraywater");
-			builder.ImageUrl = tenorResult.GetBestUrl();
-
-			// Remove calling command
-			await message.DeleteMessage();
-
-			return builder.Build();
-		}
-
-		[Command("Sarcasm", Permissions.Everyone, "makes text SaRcAsTiC", CommandCategory.Novelty)]
-		public Task<string> Sarcasm(string text)
+		[SlashCommand("sarcasm", "makes text SaRcAsTiC")]
+		public async Task Sarcasm(string text)
 		{
 			char[] characters = new char[text.Length];
 			bool upper = true;
@@ -410,149 +322,79 @@ namespace FC.Bot.Services
 				upper = !upper;
 			}
 
-			text = new string(characters);
-			return Task.FromResult(text);
+			await this.RespondAsync(new string(characters));
 		}
 
-		[Command("Slap", Permissions.Everyone, "Slaps a user", CommandCategory.Novelty)]
-		public async Task<Embed> Slap(CommandMessage message, IGuildUser user)
+		[SlashCommand("hug", "Hugs a user")]
+		public async Task Hug(SocketGuildUser user)
 		{
-			EmbedBuilder builder = new EmbedBuilder()
-				.WithColor(Color.DarkRed);
-
-			if (user.Id == this.DiscordClient.CurrentUser.Id)
-			{
-				await message.Channel.SendMessageAsync("Nice try, _kupo!_");
-				builder.Title = "Kupo Nuts slaps " + message.Author.GetName();
-			}
-			else if (message.Author.Id == user.Id)
-			{
-				builder.Title = message.Author.GetName() + " slaps themselves";
-			}
-			else
-			{
-				builder.Title = message.Author.GetName() + " slaps " + user.GetName();
-			}
-
-			RandomAPI.Result tenorResult = await RandomAPI.Random("anime slap");
-			builder.ImageUrl = tenorResult.GetBestUrl();
-
-			// Remove calling command
-			await message.DeleteMessage();
-
-			return builder.Build();
+			await this.DeferAsync();
+			await FollowUpTenorResult(this.Context, "anime hug", user);
 		}
 
-		[Command("Pet", Permissions.Everyone, "Pet a user", CommandCategory.Novelty, "Pat")]
-		[Command("Pat", Permissions.Everyone, "Pat a user", CommandCategory.Novelty)]
-		public async Task<Embed> Pat(CommandMessage message, IGuildUser user)
+		[SlashCommand("spray", "Sprays a user")]
+		public async Task Spray(SocketGuildUser user)
 		{
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Color = Color.DarkRed;
-
-			if (message.Author.Id == user.Id)
-			{
-				builder.Title = string.Format("{0} {1}s themselves (kinda weird, _kupo_)", message.Author.GetName(), message.Command);
-			}
-			else
-			{
-				builder.Title = string.Format("{0} {1}s {2}", message.Author.GetName(), message.Command, user.GetName());
-			}
-
-			RandomAPI.Result tenorResult = await RandomAPI.Random("anime pat");
-			builder.ImageUrl = tenorResult.GetBestUrl();
-
-			// Remove calling command
-			await message.DeleteMessage();
-
-			return builder.Build();
+			await this.DeferAsync();
+			await FollowUpTenorResult(this.Context, "spraywater", user);
 		}
 
-		[Command("Pet", Permissions.Everyone, "Pet a user", CommandCategory.Novelty, "Pat")]
-		[Command("Pat", Permissions.Everyone, "Pat a user", CommandCategory.Novelty)]
-		public async Task Pat(CommandMessage message, string user)
+		[SlashCommand("slap", "Slaps a user")]
+		public async Task Slap(SocketGuildUser user)
 		{
-			// Get guild users by name
-			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
-
-			if (userToRep.Count == 1)
-			{
-				await this.Pat(message, userToRep.First());
-			}
-			else
-			{
-				RestUserMessage response = await message.Channel.SendMessageAsync("I'm sorry, I'm not sure who you mean. Try mentioning them, _kupo!_", messageReference: message.MessageReference);
-
-				// Wait, then delete both messages
-				await Task.Delay(2000);
-
-				await message.Channel.DeleteMessageAsync(response.Id);
-				await message.Channel.DeleteMessageAsync(message.Id);
-			}
-
-			return;
+			await this.DeferAsync();
+			await FollowUpTenorResult(this.Context, "anime slap", user);
 		}
 
-		[Command("Rate", Permissions.Everyone, "Rates a user", CommandCategory.Novelty)]
-		public async Task Rate(CommandMessage message)
+		[SlashCommand("pet", "Pet a user")]
+		public async Task Pat(SocketGuildUser user)
 		{
-			await this.Rate(message, message.Author);
+			await this.DeferAsync();
+			await FollowUpTenorResult(this.Context, "anime pat", user);
 		}
 
-		[Command("Rate", Permissions.Everyone, "Rates a user", CommandCategory.Novelty)]
-		public async Task Rate(CommandMessage message, IGuildUser user)
+		[SlashCommand("rate", "Rates a user")]
+		public async Task Rate(SocketGuildUser? user = null)
 		{
+			if (this.Context.User is SocketGuildUser guildUser)
+				user ??= guildUser;
+
+			if (user == null)
+				return;
+
 			int rating = GenerateRatingForToday(user, null, 11);
 
-			StringBuilder builder = new StringBuilder();
-
-			builder.AppendLine(string.Format("{0}? I'd rate you {1}/10 kupo nuts, _kupo_!", user.GetName(), rating));
-			builder.AppendLine();
+			StringBuilder builder = new StringBuilder()
+				.AppendLine($"{user.GetName()}? I'd rate you {rating}/10 kupo nuts, _kupo_!")
+				.AppendLine();
 
 			for (int i = 0; i < rating; i++)
 			{
 				builder.Append(KupoNut);
 			}
 
-			await message.Channel.SendMessageAsync(builder.ToString(), messageReference: message.MessageReference);
+			await this.RespondAsync(builder.ToString());
 		}
 
-		[Command("Ship", Permissions.Everyone, "Ships two users with a daily rating", CommandCategory.Novelty)]
-		public async Task Ship(CommandMessage message, IGuildUser user)
+		[SlashCommand("ship", "Ships two users with a daily rating")]
+		public async Task Ship(SocketGuildUser userA, SocketGuildUser? userB = null)
 		{
-			await this.Ship(message, message.Author, user);
-		}
+			if (this.Context.User is SocketGuildUser guildUser)
+				userB ??= guildUser;
 
-		[Command("Ship", Permissions.Everyone, "Ships two users with a daily rating", CommandCategory.Novelty)]
-		public async Task Ship(CommandMessage message, IGuildUser userA, IGuildUser userB)
-		{
 			int rating = GenerateRatingForToday(userA, userB, 101);
 
-			string response;
-			if (rating < 20)
+			string response = rating switch
 			{
-				response = "Oh... uhhh..";
-			}
-			else if (rating < 50)
-			{
-				response = "Hmm.. I think";
-			}
-			else if (rating < 70)
-			{
-				response = "It's obvious that";
-			}
-			else if (rating < 100)
-			{
-				response = "Pretty good..";
-			}
-			else
-			{
-				response = "Wow!";
-			}
+				< 20 => "Oh... uhhh..",
+				< 50 => "Hmm.. I think",
+				< 70 => "It's obvious that",
+				< 95 => "Pretty good..",
+				_ => "Wow!",
+			};
 
-			string responseMsg = string.Format("{0} {1} and {2} are a {3}% match", response, userA.GetName(), userB.GetName(), rating);
-
-			await message.Channel.SendMessageAsync(responseMsg, messageReference: message.MessageReference);
+			string responseMsg = $"{response} {userA.GetName()} and {userB?.GetName()} are a {rating}% match";
+			await this.RespondAsync(responseMsg);
 		}
 
 		[Command("ShoutOut", Permissions.Everyone, @"Yeah, let's give a quick shout out to Christina Applegate", CommandCategory.Novelty)]
@@ -574,26 +416,17 @@ namespace FC.Bot.Services
 		/// Returns the current weather and time of Island Sanctuary.
 		/// </summary>
 		/// <remarks>Data from https://ffxiv.pf-n.co/skywatcher.</remarks>
-		/// <param name="message">The received command message.</param>
-		[Command("ISWeather", Permissions.Everyone, "Get Island Sanctuary Weather", CommandCategory.Novelty)]
-		public async void GetIslandSantuaryWeather(CommandMessage message)
+		[SlashCommand("island-santuary-weather", "Get Island Sanctuary Weather")]
+		public async Task GetIslandSantuaryWeather()
 		{
-			var rates = new List<(string weather, int chance)>
-			{
-				("Clear Skies", 25),
-				("Fair Skies", 45),
-				("Clouds", 10),
-				("Rain", 10),
-				("Fog", 5),
-				("Showers", 5),
-			};
+			await this.DeferAsync();
 
 			var currentWeather = "Unknown";
 			var upcomingWeather = "Unknown";
 			var currentTime = GetEorzeanTime().ToString("HH:mm");
 
 			// Get Seed
-			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
+			DateTime epoch = new (1970, 1, 1, 0, 0, 0);
 			var seed = Math.Floor((DateTime.Now.ToUniversalTime() - epoch).TotalMilliseconds / 1400000);
 
 			// Hash Seed
@@ -604,7 +437,7 @@ namespace FC.Bot.Services
 
 			// Get Weather
 			var cumChance = 0;
-			foreach (var (weather, chance) in rates)
+			foreach (var (weather, chance) in WeatherRates)
 			{
 				cumChance += chance;
 				if (cumChance > hashedSeed)
@@ -621,8 +454,29 @@ namespace FC.Bot.Services
 			}
 
 			var response = $"Time: {currentTime}.\nCurrent Weather: {currentWeather}\nUpcoming Weather: {upcomingWeather}";
+			await this.FollowupAsync(response);
+		}
 
-			await message.Channel.SendMessageAsync(response, messageReference: message.MessageReference);
+		private static async Task FollowUpTenorResult(IInteractionContext ctx, string search, SocketGuildUser user)
+		{
+			if (ctx.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			EmbedBuilder builder = new EmbedBuilder()
+				.WithColor(Color.DarkRed);
+
+			if (ctx.Interaction is SocketSlashCommand slashCommand)
+			{
+				var commandName = slashCommand.Data.Options.FirstOrDefault()?.Name;
+				builder.Title = guildUser.Id == user.Id
+					? $"{guildUser.GetName()} {commandName}s themselves (kinda weird, _kupo_)"
+					: $"{guildUser.GetName()} {commandName}s {user.GetName()}";
+			}
+
+			RandomAPI.Result tenorResult = await RandomAPI.Random(search);
+			builder.ImageUrl = tenorResult.GetBestUrl();
+
+			await ctx.Interaction.FollowupAsync(embeds: new Embed[] { builder.Build() });
 		}
 
 		private static string PadLeft(int value, int numberToPad = 2)
@@ -642,7 +496,7 @@ namespace FC.Bot.Services
 		{
 			/* (1 Eorzean hour = 175 seconds) */
 
-			DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0);
+			DateTime epoch = new (1970, 1, 1, 0, 0, 0);
 			double eorzeaConstant = 20.571428571428573;
 
 			double timeSeconds = (DateTime.Now.ToUniversalTime() - epoch).TotalSeconds;
@@ -660,11 +514,10 @@ namespace FC.Bot.Services
 			decimal id2 = userB != null ? (userB.Id / 100000M) : 0;
 
 			decimal step = now + id + id2;
-
 			decimal rating = step / now;
 
 			string n = rating.ToString();
-			int num = int.Parse(n.Substring(n.Length - 2)) % mod;
+			int num = int.Parse(n[^2..]) % mod;
 
 			return num;
 		}
