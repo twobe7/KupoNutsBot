@@ -99,19 +99,8 @@ namespace FC.Bot.Services
 
 			if (this.Context.Channel is SocketGuildChannel guildChannel)
 			{
-				List<IGuildUser> targets = new () { guildUser };
-
-				foreach (SocketGuildUser tTarget in guildChannel.Guild.Users)
-				{
-					if (CommandsService.GetPermissions(tTarget) != Permissions.Administrators)
-						continue;
-
-					targets.Add(tTarget);
-				}
-
-				Random rnd = new ();
-				int val = rnd.Next(targets.Count);
-				IGuildUser target = targets[val];
+				int val = new Random().Next(guildChannel.Guild.Users.Count);
+				IGuildUser target = guildChannel.Guild.Users.ElementAt(val);
 
 				if (target.Id == this.DiscordClient.CurrentUser.Id)
 					await this.FollowupAsync("This is my fault. =(");
