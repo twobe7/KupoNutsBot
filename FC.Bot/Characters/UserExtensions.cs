@@ -6,6 +6,7 @@ namespace FC.Bot.Characters
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Linq;
 	using System.Threading.Tasks;
 	using FC.Bot.Services;
 
@@ -13,7 +14,7 @@ namespace FC.Bot.Characters
 	{
 		public static List<User.Character> GetCharacters(this User self, string characterName, string? serverName = null)
 		{
-			List<User.Character> results = new List<User.Character>();
+			List<User.Character> results = new ();
 			foreach (User.Character character in self.Characters)
 			{
 				if (character.CharacterName?.ToLower() != characterName.ToLower())
@@ -106,9 +107,9 @@ namespace FC.Bot.Characters
 			self.Characters.Remove(character);
 		}
 
-		public static void RemoveCharacter(this User self, uint characterId)
+		public static void RemoveCharacter(this User self, int characterIndex)
 		{
-			User.Character? character = self.GetCharacter(characterId);
+			User.Character? character = self.Characters.ElementAtOrDefault(characterIndex - 1);
 
 			if (character == null)
 				return;
@@ -121,8 +122,7 @@ namespace FC.Bot.Characters
 			if (self.IsVerified)
 				return true;
 
-			if (self.FFXIVCharacterVerification == null)
-				self.FFXIVCharacterVerification = Guid.NewGuid().ToString();
+			self.FFXIVCharacterVerification ??= Guid.NewGuid().ToString();
 
 			NetStone.LodestoneClient client = await NetStone.LodestoneClient.GetClientAsync();
 			NetStone.Model.Parseables.Character.LodestoneCharacter? character = await client.GetCharacter(self.FFXIVCharacterId.ToString());
@@ -142,8 +142,7 @@ namespace FC.Bot.Characters
 			if (self.IsVerified)
 				return true;
 
-			if (self.FFXIVCharacterVerification == null)
-				self.FFXIVCharacterVerification = Guid.NewGuid().ToString();
+			self.FFXIVCharacterVerification ??= Guid.NewGuid().ToString();
 
 			if ((character.Bio ?? string.Empty).Contains(self.FFXIVCharacterVerification))
 				self.IsVerified = true;

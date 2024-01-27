@@ -144,7 +144,6 @@ namespace FC.Bot.Services
 			description.AppendLine("Total Held: " + user.TotalKupoNutsReceived);
 			builder.Description = description.ToString();
 
-			// Remove calling command
 			await this.RespondAsync(embeds: new Embed[] { builder.Build() });
 		}
 

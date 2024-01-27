@@ -6,6 +6,7 @@ namespace FC.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
+	using System.ComponentModel;
 	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
@@ -77,7 +78,7 @@ namespace FC.Bot.Services
 		}
 
 		[SlashCommand("8ball", "Ask the magic 8 ball a question. be warned, you might not like the answer")]
-		public async Task Ask(string message)
+		public async Task Ask([Summary(description: "Question to ask the 8ball")]string message)
 		{
 			EmbedBuilder builder = new ()
 			{
@@ -111,8 +112,8 @@ namespace FC.Bot.Services
 			await this.FollowupAsync("This is your fault, " + guildUser.GetName() + ".");
 		}
 
-		[SlashCommand("roll", "Roll the dice. Format: 1d20")]
-		public async Task Roll(string format = "1d6")
+		[SlashCommand("roll", "Roll the dice")]
+		public async Task Roll([Summary(description: "Format 1d20")]string format = "1d6")
 		{
 			if (format.ToLower() == "housing")
 			{
@@ -291,12 +292,12 @@ namespace FC.Bot.Services
 		}
 
 		[SlashCommand("unflip-user", "Unflips user")]
-		public string Unflip(SocketGuildUser user)
+		public async Task Unflip(SocketGuildUser user)
 		{
 			if (user.Id == this.DiscordClient.CurrentUser.Id)
-				return ":woman_gesturing_no:";
+				await this.RespondAsync(":woman_gesturing_no:");
 
-			return user.GetName() + @" ノ( º _ ºノ)";
+			await this.RespondAsync($@"{user.GetName()} ノ( º _ ºノ)");
 		}
 
 		[SlashCommand("sarcasm", "makes text SaRcAsTiC")]

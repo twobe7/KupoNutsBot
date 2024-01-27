@@ -89,6 +89,7 @@ namespace FC.Bot.Characters
 		public bool HasMounts => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Mounts != null;
 		public bool HasMinions => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Minions != null;
 		public bool HasAchievements => this.ffxivCollectCharacter != null && this.ffxivCollectCharacter.Achievements != null;
+		public bool HasCollect => this.HasMounts || this.HasMinions || this.HasAchievements;
 
 		public (int Count, int Total) Mounts
 		{
@@ -236,17 +237,15 @@ namespace FC.Bot.Characters
 
 			// Get Client
 			LodestoneClient client = await LodestoneClient.GetClientAsync();
-			LodestoneCharacter? character = await client.GetCharacter(this.Id.ToString());
-
-			if (character == null)
-				throw new Exception("No character found.");
+			LodestoneCharacter character = await client.GetCharacter(this.Id.ToString())
+				?? throw new Exception("No character found.");
 
 			// Set level / mettle
 			int level = 0;
 			long mettle = 0;
 
 			// Get Resistance Rank
-			NetStone.Model.Parseables.Character.ClassJob.CharacterClassJob? classJobInfo = await character?.GetClassJobInfo();
+			NetStone.Model.Parseables.Character.ClassJob.CharacterClassJob classJobInfo = await character.GetClassJobInfo();
 
 			// Try get the Level and Mettle
 			try
