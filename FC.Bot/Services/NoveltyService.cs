@@ -156,17 +156,30 @@ namespace FC.Bot.Services
 		[SlashCommand("choose", "Let me choose for you")]
 		public async Task Choose(string optionA, string optionB, string? optionC = null, string? optionD = null)
 		{
+			var embed = new EmbedBuilder()
+				.WithFields(new EmbedFieldBuilder().WithName("Option A").WithValue(optionA))
+				.WithFields(new EmbedFieldBuilder().WithName("Option B").WithValue(optionB));
+
 			var options = new List<string>() { optionA, optionB };
 
 			if (!string.IsNullOrWhiteSpace(optionC))
+			{
 				options.Add(optionC);
+				embed.AddField(new EmbedFieldBuilder().WithName("Option C").WithValue(optionC));
+			}
 
 			if (!string.IsNullOrWhiteSpace(optionD))
+			{
 				options.Add(optionD);
+				embed.AddField(new EmbedFieldBuilder().WithName("Option D").WithValue(optionD));
+			}
 
 			int value = new Random().Next(options.Count);
 
-			await this.RespondAsync($"I choose... {options[value]}!");
+			embed.Title = $"I choose... {options[value]}!";
+			embed.Description = Utils.Characters.Space;
+
+			await this.RespondAsync(embeds: new Embed[] { embed.Build() });
 		}
 
 		[SlashCommand("number", "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.")]
