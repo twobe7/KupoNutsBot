@@ -18,6 +18,12 @@ namespace FC.Bot.Currency
 		private const byte RowsCount = 6;
 		private const byte ColumnsCount = 7;
 
+#if DEBUG
+		private const int Timeout = 1;
+#else
+		private const int Timeout = 30;
+#endif
+
 		private const string LeftDivider = "|" + Utils.Characters.DoubleSpace;
 		private const string VerticalDivider = Utils.Characters.DoubleSpace + "|" + Utils.Characters.DoubleSpace;
 		private const string HorizontalDivider = Utils.Characters.DoubleSpace + Utils.Characters.Space + "----"
@@ -118,7 +124,7 @@ namespace FC.Bot.Currency
 		private static async Task<Task> StopInactiveGame(Game game)
 		{
 			// Keep delaying until not active
-			while ((DateTime.Now - game.LastMove).TotalMinutes < 30)
+			while ((DateTime.Now - game.LastMove).TotalMinutes < Timeout)
 			{
 				// Give the user time to select move
 				await Task.Delay(10000);
@@ -207,6 +213,25 @@ namespace FC.Bot.Currency
 			public string GetBoard()
 			{
 				StringBuilder board = new ();
+
+				board.Append(Utils.Characters.DoubleSpace + Utils.Characters.DoubleSpace);
+				board.Append(new Emoji(":one:"));
+				board.Append(Utils.Characters.Tab + Utils.Characters.Space);
+				board.Append(new Emoji(":two:"));
+				board.Append(Utils.Characters.Tab + Utils.Characters.Space);
+				board.Append(new Emoji(":three:"));
+				board.Append(Utils.Characters.Tab + Utils.Characters.Space);
+				board.Append(new Emoji(":four:"));
+				board.Append(Utils.Characters.Tab + Utils.Characters.Space);
+				board.Append(new Emoji(":five:"));
+				board.Append(Utils.Characters.Tab + Utils.Characters.Space);
+				board.Append(new Emoji(":six:"));
+				board.Append(Utils.Characters.Tab + Utils.Characters.Space);
+				board.Append(new Emoji(":seven:"));
+				board.AppendLine();
+				board.AppendLine();
+
+				board.AppendLine(HorizontalDivider);
 
 				for (int i = 0; i < this.GameBoard.GetLength(0); i++)
 				{
