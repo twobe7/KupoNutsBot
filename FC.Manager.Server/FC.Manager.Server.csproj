@@ -9,6 +9,7 @@
 		<WarningsAsErrors />
 		<NoWarn>1701;1702;SA1503;CS1591;SA1401;Sa1516;</NoWarn>
 		<OutputPath>.\bin\</OutputPath>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -33,9 +34,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\FC.Bot\FC.Bot.csproj" />
-		<ProjectReference Include="..\FC.Manager.Client\FC.Manager.Client.csproj" />
-		<ProjectReference Include="..\FC.Shared\FC.Shared.csproj" />
+	  <ProjectReference Include="..\FC.Bot\FC.Bot.csproj" />
+	  <ProjectReference Include="..\FC.Manager.Client\FC.Manager.Client.csproj" />
+	  <ProjectReference Include="..\FC.Shared\FC.Shared.csproj" />
 	</ItemGroup>
 
 </Project>
