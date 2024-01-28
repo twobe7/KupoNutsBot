@@ -9,11 +9,13 @@ namespace FC.Bot.Actions
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using XIVAPI;
 
+	[Group("xiv-data", "Queries data in FFXIV")]
 	public class ActionService : ServiceBase
 	{
 		public readonly DiscordSocketClient DiscordClient;
@@ -22,47 +24,51 @@ namespace FC.Bot.Actions
 			this.DiscordClient = discordClient;
 		}
 
-		[Command("ASearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData, "ActionSearch")]
-		[Command("ActionSearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData)]
-		public async Task<Embed> GetAction(ulong itemId)
+		[SlashCommand("action-search", "Gets information on an action")]
+		[RequireAny]
+
+		public async Task GetAction(
+			[Summary("search", "Search query")]
+			string? search = null,
+			[Summary("itemId", "Item Id to lookup")]
+			ulong? itemId = null)
 		{
-			XIVAPI.Action action = await ActionAPI.Get(itemId);
+			await this.DeferAsync();
 
-			EmbedBuilder embed = action.ToEmbed();
-
-			return embed.Build();
-		}
-
-		[Command("ASearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData, "ActionSearch")]
-		[Command("ActionSearch", Permissions.Everyone, "Gets information on an action", CommandCategory.XIVData)]
-		public async Task<Embed> GetAction(string search)
-		{
-			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Action");
-
-			if (results.Count <= 0)
-				throw new UserException("I couldn't find any items that match that search.");
-
-			if (results.Count > 1)
+			if (!itemId.HasValue)
 			{
-				EmbedBuilder embed = new EmbedBuilder();
+				if (search == null)
+					throw new UserException("Something went wrong");
 
-				StringBuilder description = new StringBuilder();
-				for (int i = 0; i < Math.Min(results.Count, 10); i++)
+				List<SearchAPI.Result> results = await SearchAPI.Search(search, "Action");
+
+				if (results.Count <= 0)
 				{
-					description.AppendLine(results[i].ID + " - " + results[i].Name);
+					await this.FollowupAsync("I couldn't find any actions that match that search.");
 				}
 
-				embed.Title = results.Count + " results found";
-				embed.Description = description.ToString();
-				return embed.Build();
+				if (results.Count > 1)
+				{
+					EmbedBuilder embed = new EmbedBuilder().WithTitle($"{results.Count} results found");
+					StringBuilder description = new ();
+
+					for (int i = 0; i < Math.Min(results.Count, 10); i++)
+					{
+						description.AppendLine($"{results[i].ID} - {results[i].Name}");
+					}
+
+					embed.Description = description.ToString();
+
+					await this.FollowupAsync(embeds: new Embed[] { embed.Build() });
+					return;
+				}
+
+				itemId = results[0].ID ?? throw new Exception("No Id in item");
 			}
 
-			ulong? id = results[0].ID;
+			XIVAPI.Action action = await ActionAPI.Get(itemId.Value);
 
-			if (id == null)
-				throw new Exception("No Id in item");
-
-			return await this.GetAction(id.Value);
+			await this.FollowupAsync(embeds: new Embed[] { action.ToEmbed().Build() });
 		}
 	}
 }
