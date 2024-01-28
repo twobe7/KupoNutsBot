@@ -104,9 +104,13 @@ namespace FC.Bot.Services
 				IGuildUser target = guildChannel.Guild.Users.ElementAt(val);
 
 				if (target.Id == this.DiscordClient.CurrentUser.Id)
+				{
 					await this.FollowupAsync("This is my fault. =(");
+					return;
+				}
 
 				await this.FollowupAsync("This is your fault, " + target.GetName() + ".");
+				return;
 			}
 
 			await this.FollowupAsync("This is your fault, " + guildUser.GetName() + ".");
