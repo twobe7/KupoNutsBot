@@ -9,58 +9,62 @@ namespace FC.Bot.Mounts
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using FFXIVCollect;
 
+	[Group("xiv-data", "Queries data in FFXIV")]
 	public class MountService : ServiceBase
 	{
 		public MountService(DiscordSocketClient discordClient)
 		{
 		}
 
-		[Command("MSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData, "MountSearch")]
-		[Command("MountSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData)]
-		public async Task<Embed> GetMount(string search)
+		[SlashCommand("mount-search", "Gets information on a mount")]
+		[RequireAny]
+		public async Task GetMount(
+			[Summary("search", "Search query")]
+			string? search = null,
+			[Summary("itemId", "Item Id to lookup")]
+			ulong? itemId = null)
 		{
-			List<SearchAPI.Result> results = await SearchAPI.Search(SearchAPI.SearchType.Mounts, search);
+			await this.DeferAsync();
 
-			if (results.Count <= 0)
-				throw new UserException("I couldn't find any mounts that match that search.");
-
-			if (results.Count > 1)
+			if (!itemId.HasValue)
 			{
-				EmbedBuilder embed = new EmbedBuilder();
+				if (search == null)
+					throw new UserException("Something went wrong");
 
-				StringBuilder description = new StringBuilder();
-				for (int i = 0; i < Math.Min(results.Count, 10); i++)
+				List<SearchAPI.Result> results = await SearchAPI.Search(SearchAPI.SearchType.Mounts, search);
+
+				if (results.Count <= 0)
 				{
-					description.AppendLine(results[i].ID + " - " + results[i].Name);
+					await this.FollowupAsync("I couldn't find any mounts that match that search.");
 				}
 
-				embed.Title = results.Count + " results found";
-				embed.Description = description.ToString();
-				return embed.Build();
+				if (results.Count > 1)
+				{
+					EmbedBuilder embed = new EmbedBuilder().WithTitle($"{results.Count} results found");
+					StringBuilder description = new ();
+
+					for (int i = 0; i < Math.Min(results.Count, 10); i++)
+					{
+						description.AppendLine($"{results[i].ID} - {results[i].Name}");
+					}
+
+					embed.Description = description.ToString();
+
+					await this.FollowupAsync(embeds: new Embed[] { embed.Build() });
+					return;
+				}
+
+				itemId = results[0].ID ?? throw new Exception("No Id in mount");
 			}
 
-			ulong? id = results[0].ID;
+			MountAPI.Mount mount = await MountAPI.Get(itemId.Value);
 
-			if (id == null)
-				throw new Exception("No Id in mount");
-
-			return await this.GetMount(id.Value);
-		}
-
-		[Command("MSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData, "MountSearch")]
-		[Command("MountSearch", Permissions.Everyone, "Gets information on a mount", CommandCategory.XIVData)]
-		public async Task<Embed> GetMount(ulong itemId)
-		{
-			MountAPI.Mount mount = await MountAPI.Get(itemId);
-
-			EmbedBuilder embed = mount.ToEmbed();
-
-			return embed.Build();
+			await this.FollowupAsync(embeds: new Embed[] { mount.ToEmbed().Build() });
 		}
 	}
 }

@@ -17,6 +17,7 @@ namespace FC.Bot.Items
 	using Universalis;
 	using XIVAPI;
 
+	[Group("xiv-data", "Queries data in FFXIV")]
 	public class ItemService : ServiceBase
 	{
 		public static string AdvancedMeldingForbiddenEmote = @"<:AdvancedMeldingForbidden:817710837418426388> ";
@@ -53,7 +54,10 @@ namespace FC.Bot.Items
 		}
 
 		[SlashCommand("item-search", "Gets information on an item")]
-		public async Task GetItem([Autocomplete(typeof(ItemAutocompleteHandler))] string search)
+		public async Task GetItem(
+			[Autocomplete(typeof(ItemAutocompleteHandler))]
+			[Summary("search", "Name or Item Id")]
+			string search)
 		{
 			await this.DeferAsync();
 
@@ -99,7 +103,7 @@ namespace FC.Bot.Items
 			await this.FollowupAsync(embed: await this.GetItem((ulong)id));
 		}
 
-		[SlashCommand("marketboard", "Retrieves item listing from Universalis Marketboard")]
+		[SlashCommand("marketboard", "Retrieves item listing from Universalis Marketboard", ignoreGroupNames: true)]
 		public async Task GetMarketBoardItem(DataCentre dataCentre, [Autocomplete(typeof(ItemAutocompleteHandler))] string search)
 		{
 			await this.DeferAsync();
