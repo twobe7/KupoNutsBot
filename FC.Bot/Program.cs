@@ -114,6 +114,7 @@ namespace FC.Bot
 				.AddSingleton<CalendarService>()
 				.AddSingleton<UserService>()
 				.AddSingleton<ActionService>()
+				.AddSingleton<CensusService>()
 				.AddSingleton<CharacterService>()
 				.AddSingleton<ChannelService>()
 				.AddSingleton<ChannelOptInService>()
@@ -168,6 +169,7 @@ namespace FC.Bot
 
 				// No dependencies
 				await this.AddService<ActionService>();
+				await this.AddService<CensusService>();
 				await this.AddService<CharacterService>();
 				await this.AddService<ChannelService>();
 				await this.AddService<ChannelOptInService>();
@@ -248,6 +250,7 @@ namespace FC.Bot
 					client.SlashCommandExecuted += this.OnSlashCommandExecuted;
 					client.AutocompleteExecuted += this.OnClientAutoCompleteExecuted;
 					client.ButtonExecuted += this.OnClientMessageComponentExecuted;
+					client.ModalSubmitted += this.OnClientModalComponentExecuted;
 
 					client.Ready += () =>
 					{
@@ -343,7 +346,19 @@ namespace FC.Bot
 			var interactionService = this.serviceProvider.GetRequiredService<InteractionService>();
 			var ctx = new SocketInteractionContext(client, slashCommand);
 
-			await interactionService.ExecuteCommandAsync(ctx, this.serviceProvider);
+			var result = await interactionService.ExecuteCommandAsync(ctx, this.serviceProvider);
+			if (!result.IsSuccess)
+			{
+				var errorMessage = $"```diff\n- {result.ErrorReason}\n```";
+				if (ctx.Interaction.HasResponded)
+				{
+					await ctx.Interaction.FollowupAsync(text: errorMessage, ephemeral: true);
+				}
+				else
+				{
+					await ctx.Interaction.RespondAsync(text: errorMessage, ephemeral: true);
+				}
+			}
 		}
 
 		private async Task InteractionSlashCommandExecuted(SlashCommandInfo info, IInteractionContext context, IResult result)
@@ -402,6 +417,26 @@ namespace FC.Bot
 
 				// This seems to be needed for the interaction to work
 				await socketMessageComponent.UpdateAsync(x => x.Content = x.Content);
+
+				await interactionService.ExecuteCommandAsync(ctx, this.serviceProvider);
+			}
+			catch (Exception ex)
+			{
+				await Logger.LogExceptionToDiscordChannel(ex, "Error in Message Component");
+			}
+
+			return;
+		}
+
+		private async Task OnClientModalComponentExecuted(SocketModal modal)
+		{
+			try
+			{
+				var interactionService = this.serviceProvider.GetRequiredService<InteractionService>();
+				var ctx = new SocketInteractionContext(client, modal);
+
+				// This seems to be needed for the interaction to work
+				await modal.UpdateAsync(x => x.Content = x.Content);
 
 				await interactionService.ExecuteCommandAsync(ctx, this.serviceProvider);
 			}

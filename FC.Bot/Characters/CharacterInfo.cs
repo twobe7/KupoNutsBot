@@ -124,13 +124,16 @@ namespace FC.Bot.Characters
 			}
 		}
 
-		public async Task Update()
+		public async Task Update(bool updateCollect = false)
 		{
 			Task xivApi = Task.Run(this.UpdateXivApi);
-			Task ffxivCollect = Task.Run(this.UpdateFfxivCollect);
-
 			await xivApi;
-			await ffxivCollect;
+
+			if (updateCollect)
+			{
+				Task ffxivCollect = Task.Run(this.UpdateFfxivCollect);
+				await ffxivCollect;
+			}
 		}
 
 		public string GetJobLevel(Jobs job)

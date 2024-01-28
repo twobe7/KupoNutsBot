@@ -6,25 +6,19 @@ namespace FC.Bot.Characters
 {
 	using System;
 	using System.Collections.Generic;
-	using System.IO;
 	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
-	using FC.Bot.Utils;
 	using FC.Utils;
-	using SixLabors.ImageSharp;
-	using SixLabors.ImageSharp.PixelFormats;
-	using SixLabors.ImageSharp.Processing;
-	using XIVAPI;
+	using FC.XIVData;
+	using NetStone.Model.Parseables.Search.Character;
 
-	using FFXIVCollectCharacter = FFXIVCollect.CharacterAPI.Character;
-	using Image = SixLabors.ImageSharp.Image;
-	using XIVAPICharacter = XIVAPI.Character;
-
+	[Group("character", "FFXIV Character commands")]
 	public class CharacterService : ServiceBase
 	{
 		public readonly DiscordSocketClient DiscordClient;
@@ -38,220 +32,407 @@ namespace FC.Bot.Characters
 			await base.Initialize();
 		}
 
-		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands", CommandCategory.Character)]
-		public async Task<Embed> IAm(CommandMessage message, uint characterId)
+		[SlashCommand("iam", "Records your character for use with the 'WhoIs' and 'WhoAmI' commands")]
+		[RequireNameOrId]
+		public async Task IAm(
+			[Autocomplete(typeof(EnumAutoCompleteHandler<XivWorld>))]
+			[Summary("serverName", "Name of Character Server")]
+			string? serverName = null,
+			[Summary("characterName", "Name of Character")]
+			string? characterName = null,
+			[Summary("characterId", "Lodestone Id of Character")]
+			uint? characterId = null)
 		{
-			User user = await UserService.GetUser(message.Author);
-			CharacterInfo character = await this.GetCharacterInfo(characterId);
+			await this.DeferAsync();
 
-			return await this.RecordCharacter(user, character);
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			CharacterInfo? character = await this.GetCharacter(serverName, characterName, characterId);
+
+			User user = await UserService.GetUser(guildUser);
+			await this.FollowupAsync(embeds: new Embed[] { await this.RecordCharacter(user, character) });
 		}
 
-		[Command("IAm", Permissions.Everyone, "Records your character for use with the 'WhoIs' and 'WhoAmI' commands", CommandCategory.Character, requiresQuotes: false)]
-		public async Task<Embed> IAm(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
+		[SlashCommand("who-am-i", "Displays your linked character")]
+		public async Task WhoAmI([Summary("characterIndex", "Index of character set via `iam` command")] int? characterIndex = null)
 		{
-			User user = await UserService.GetUser(message.Author);
-			CharacterInfo character = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
+			await this.DeferAsync();
 
-			return await this.RecordCharacter(user, character);
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			User user = await UserService.GetUser(guildUser);
+			await this.PostWhoIsInteractionResponse(this.Context, user, characterIndex);
 		}
 
-		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character", CommandCategory.Character)]
-		public async Task<string> IAmNot(CommandMessage message, uint characterId)
+		[SlashCommand("i-am-not", "Removes your linked lodestone character")]
+		public async Task IAmNot([Summary("characterIndex", "Index of character set via `iam` command")] int characterIndex)
 		{
-			User user = await UserService.GetUser(message.Author);
-			user.RemoveCharacter(characterId);
+			await this.DeferAsync(ephemeral: true);
+
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			User user = await UserService.GetUser(guildUser);
+
+			var character = user.Characters.ElementAtOrDefault(characterIndex - 1);
+
+			if (character == null)
+			{
+				await this.FollowupAsync("I couldn't find a character at index: " + characterIndex);
+				return;
+			}
+
+			var components = new ComponentBuilder()
+				.WithButton(label: "Cancel", customId: "iAmNot-cancel-0")
+				.WithButton(label: "Confirm", customId: $"iAmNot-confirm-{characterIndex}");
+
+			await this.FollowupAsync(
+				embed: new EmbedBuilder().WithTitle("Unlink Character").WithDescription($"{character.CharacterName}").Build(),
+				ephemeral: true,
+				components: components.Build());
+		}
+
+		[ComponentInteraction("iAmNot-*-*", true)]
+		public async Task IAmNotButtonHandler()
+		{
+			if (this.Context is SocketInteractionContext ctx)
+			{
+				if (ctx.SegmentMatches.FirstOrDefault()?.Value == "confirm")
+				{
+					if (int.TryParse(ctx.SegmentMatches.ElementAtOrDefault(1)?.Value, out int characterIndex))
+					{
+						if (ctx.User is not IGuildUser guildUser)
+							throw new UserException("Unable to process user.");
+
+						User user = await UserService.GetUser(guildUser);
+
+						// Remove user and save
+						user.RemoveCharacter(characterIndex);
+						await UserService.SaveUser(user);
+
+						// Send update to Discord
+						await ctx.Interaction.ModifyOriginalResponseAsync(x =>
+						{
+							x.Content = "Character unlinked!";
+							x.Embed = null;
+							x.Components = null;
+						});
+
+						return;
+					}
+				}
+
+				await ctx.Interaction.ModifyOriginalResponseAsync(x =>
+				{
+					x.Content = "Character not unlinked!";
+					x.Embed = null;
+					x.Components = null;
+				});
+			}
+		}
+
+		[SlashCommand("i-am-usually", "Sets the linked lodestone character as your default")]
+		public async Task IAmUsually([Summary("characterIndex", "Index of character set via `iam` command")] int characterIndex)
+		{
+			await this.DeferAsync(ephemeral: true);
+
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			User user = await UserService.GetUser(guildUser);
+			user.SetDefaultCharacter(characterIndex);
 			await UserService.SaveUser(user);
-			return "Character unlinked!";
+
+			await this.FollowupAsync("Default character updated!", ephemeral: true);
 		}
 
-		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character", CommandCategory.Character, requiresQuotes: false)]
-		public async Task<string> IAmNot(CommandMessage message, string characterFirstName, string characterLastName)
+		[SlashCommand("who-is", "Looks up a linked character")]
+		public async Task WhoIs(
+			[Summary("user", "Name of user to search, leave empty for your character")]
+			SocketGuildUser user,
+			[Summary("characterIndex", "Index of character set via `iam` command")]
+			int? characterIndex = null)
 		{
-			User user = await UserService.GetUser(message.Author);
-			user.RemoveCharacter(this.GetCharacterFullName(characterFirstName, characterLastName));
-			await UserService.SaveUser(user);
-			return "Character unlinked!";
-		}
+			await this.DeferAsync();
 
-		[Command("IAmNot", Permissions.Everyone, "Removes your linked lodestone character", CommandCategory.Character, requiresQuotes: false)]
-		public async Task<string> IAmNot(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
-		{
-			User user = await UserService.GetUser(message.Author);
-			user.RemoveCharacter(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
-			await UserService.SaveUser(user);
-			return "Character unlinked!";
-		}
-
-		[Command("IAmUsually", Permissions.Everyone, "Sets the linked lodestone character as your default", CommandCategory.Character, requiresQuotes: false)]
-		public async Task<string> IAmUsually(CommandMessage message, string characterFirstName, string characterLastName)
-		{
-			User user = await UserService.GetUser(message.Author);
-			user.SetDefaultCharacter(this.GetCharacterFullName(characterFirstName, characterLastName));
-			await UserService.SaveUser(user);
-			return "Default character updated!";
-		}
-
-		[Command("IAmUsually", Permissions.Everyone, "Sets the linked lodestone character as your default", CommandCategory.Character, requiresQuotes: false)]
-		public async Task<string> IAmUsually(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
-		{
-			User user = await UserService.GetUser(message.Author);
-			user.SetDefaultCharacter(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
-			await UserService.SaveUser(user);
-			return "Default character updated!";
-		}
-
-		[Command("WhoAmI", Permissions.Everyone, "Displays your linked character", CommandCategory.Character)]
-		public async Task WhoAmI(CommandMessage message)
-		{
-			User user = await UserService.GetUser(message.Author);
-			await this.PostWhoIsResponse(message, user);
-		}
-
-		[Command("WhoAmI", Permissions.Everyone, "Displays your linked character", CommandCategory.Character)]
-		public async Task WhoAmI(CommandMessage message, int characterIndex)
-		{
-			User user = await UserService.GetUser(message.Author);
-			await this.PostWhoIsResponse(message, user, characterIndex);
-		}
-
-		[Command("WhoIs", Permissions.Everyone, "Looks up a linked character", CommandCategory.Character, requiresQuotes: false)]
-		public async Task WhoIs(CommandMessage message, IGuildUser user)
-		{
 			User userEntry = await UserService.GetUser(user);
-			await this.PostWhoIsResponse(message, userEntry);
+			await this.PostWhoIsInteractionResponse(this.Context, userEntry, characterIndex);
 		}
 
-		[Command("WhoIs", Permissions.Everyone, "Looks up a linked character", CommandCategory.Character, requiresQuotes: false)]
-		public async Task WhoIs(CommandMessage message, IGuildUser user, int characterIndex)
+		[SlashCommand("who-is-other", "Looks up a character profile by character and server name")]
+		[RequireNameOrId]
+		public async Task WhoIs(
+			[Autocomplete(typeof(EnumAutoCompleteHandler<XivWorld>))]
+			[Summary("serverName", "Name of Character Server")]
+			string? serverName = null,
+			[Summary("characterName", "Name of Character")]
+			string? characterName = null,
+			[Summary("characterId", "Lodestone Id of Character")]
+			uint? characterId = null)
 		{
-			User userEntry = await UserService.GetUser(user);
-			await this.PostWhoIsResponse(message, userEntry, characterIndex);
-		}
+			await this.DeferAsync();
 
-		[Command("WhoIs", Permissions.Everyone, "Looks up a character profile by character and server name", CommandCategory.Character, requiresQuotes: false)]
-		public async Task WhoIs(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
-		{
-			CharacterInfo character = await this.GetCharacterInfo(characterFirstName + " " + characterLastName, serverName);
+			CharacterInfo? character = await this.GetCharacter(serverName, characterName, characterId);
+
 			string file = await CharacterCard.Draw(character);
-			await message.Channel.SendFileAsync(file, messageReference: message.MessageReference);
+			await this.FollowupWithFileAsync(file);
 		}
 
-		[Command("WhoIs", Permissions.Everyone, "Looks up a character profile by guild username", CommandCategory.Character, requiresQuotes: false)]
-		public async Task WhoIs(CommandMessage message, string user)
+		[SlashCommand("portrait", "Shows your linked character portrait")]
+		public async Task Portrait(
+			[Summary("user", "Name of user to search, leave empty for your character")]
+			SocketGuildUser? user = null,
+			[Summary("characterIndex", "Index of character set via `iam` command")]
+			int? characterIndex = null)
 		{
-			// Get guild users by name
-			List<IGuildUser> matchedUsers = await UserService.GetUsersByNickName(message.Guild, user);
+			await this.DeferAsync();
 
-			if (matchedUsers.Count == 1)
-			{
-				User userEntry = await UserService.GetUser(matchedUsers.First());
-				await this.PostWhoIsResponse(message, userEntry);
-			}
-			else
-			{
-				Discord.Rest.RestUserMessage response = await message.Channel.SendMessageAsync("I'm sorry, I'm not sure who you mean. Try mentioning them, _kupo!_", messageReference: message.MessageReference);
+			if (this.Context.User is not SocketGuildUser guildUser)
+				throw new UserException("Unable to process user.");
 
-				// Wait, then delete both messages
-				await Task.Delay(2000);
+			user ??= guildUser;
 
-				await message.Channel.DeleteMessageAsync(response.Id);
-				await message.Channel.DeleteMessageAsync(message.Id);
-			}
+			CharacterInfo character = await this.GetCharacterInfo(user, characterIndex);
+			string file = await CharacterPortrait.Draw(character);
+
+			await this.FollowupWithFileAsync(file);
 		}
 
-		public async Task PostWhoIsResponse(CommandMessage message, User user, int? characterIndex = null)
+		[SlashCommand("portrait-other", "Looks up a character profile by character name and server name")]
+		[RequireNameOrId]
+		public async Task Portrait(
+			[Autocomplete(typeof(EnumAutoCompleteHandler<XivWorld>))]
+			[Summary("serverName", "Name of Character Server")]
+			string? serverName = null,
+			[Summary("characterName", "Name of Character")]
+			string? characterName = null,
+			[Summary("characterId", "Lodestone Id of Character")]
+			uint? characterId = null)
+		{
+			await this.DeferAsync();
+
+			CharacterInfo? character = await this.GetCharacter(serverName, characterName, characterId);
+
+			string file = await CharacterPortrait.Draw(character);
+			await this.FollowupWithFileAsync(file);
+		}
+
+		[SlashCommand("gear", "Shows the current gear and stats of a character")]
+		public async Task Gear(
+			[Summary("user", "Name of user to search, leave empty for your character")]
+			SocketGuildUser? user = null,
+			[Summary("characterIndex", "Index of character set via `iam` command")]
+			int? characterIndex = null)
+		{
+			await this.DeferAsync();
+
+			if (this.Context.User is not SocketGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			user ??= guildUser;
+
+			CharacterInfo info = await this.GetCharacterInfo(user, characterIndex);
+
+			await this.FollowupAsync(embeds: new Embed[] { info.GetGearEmbed() });
+		}
+
+		[SlashCommand("gear-other", "Shows the current gear and stats of a character")]
+		[RequireNameOrId]
+		public async Task Gear(
+			[Autocomplete(typeof(EnumAutoCompleteHandler<XivWorld>))]
+			[Summary("serverName", "Name of Character Server")]
+			string? serverName = null,
+			[Summary("characterName", "Name of Character")]
+			string? characterName = null,
+			[Summary("characterId", "Lodestone Id of Character")]
+			uint? characterId = null)
+		{
+			await this.DeferAsync();
+
+			CharacterInfo? character = await this.GetCharacter(serverName, characterName, characterId);
+
+			await this.FollowupAsync(embeds: new Embed[] { character.GetGearEmbed() });
+		}
+
+		[SlashCommand("stats", "Shows the current gear and stats of a character")]
+		public async Task Stats(
+			[Summary("user", "Name of user to search, leave empty for your character")]
+			SocketGuildUser? user = null,
+			[Summary("characterIndex", "Index of character set via `iam` command")]
+			int? characterIndex = null)
+		{
+			await this.DeferAsync();
+
+			if (this.Context.User is not SocketGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			user ??= guildUser;
+
+			CharacterInfo info = await this.GetCharacterInfo(user, characterIndex);
+
+			await this.FollowupAsync(embeds: new Embed[] { info.GetAttributesEmbed() });
+		}
+
+		[SlashCommand("stats-other", "Shows the current gear and stats of a character")]
+		[RequireNameOrId]
+		public async Task Stats(
+			[Autocomplete(typeof(EnumAutoCompleteHandler<XivWorld>))]
+			[Summary("serverName", "Name of Character Server")]
+			string? serverName = null,
+			[Summary("characterName", "Name of Character")]
+			string? characterName = null,
+			[Summary("characterId", "Lodestone Id of Character")]
+			uint? characterId = null)
+		{
+			await this.DeferAsync();
+
+			CharacterInfo? character = await this.GetCharacter(serverName, characterName, characterId);
+
+			await this.FollowupAsync(embeds: new Embed[] { character.GetAttributesEmbed() });
+		}
+
+		[SlashCommand("elemental-level", "Shows current Elemental Level of a character")]
+		public async Task ElementalLevel([Summary("characterIndex", "Index of character set via `iam` command")] int? characterIndex = null)
+		{
+			await this.DeferAsync();
+
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			CharacterInfo info = await this.GetCharacterInfo(guildUser, characterIndex);
+			await this.FollowupAsync(embeds: new Embed[] { await info.GetElementalLevelEmbed() });
+		}
+
+		[SlashCommand("resistance-rank", "Shows current Resistance Rank of a character")]
+		public async Task ResistanceRank([Summary("characterIndex", "Index of character set via `iam` command")] int? characterIndex = null)
+		{
+			await this.DeferAsync();
+
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			CharacterInfo info = await this.GetCharacterInfo(guildUser, characterIndex);
+			await this.FollowupAsync(embeds: new Embed[] { await info.GetResistanceRankEmbed() });
+		}
+
+		private async Task<CharacterInfo> GetCharacter(
+			string? serverName = null,
+			string? characterName = null,
+			uint? characterId = null,
+			bool updateCollect = false)
+		{
+			CharacterInfo? character = null;
+			if (characterId != null)
+			{
+				character = await this.UpdateAndGetCharacterInfo(characterId.Value, updateCollect);
+			}
+			else if (characterName != null && serverName != null)
+			{
+				character = await this.GetCharacterInfo(characterName, serverName, updateCollect);
+			}
+
+			if (character == null)
+				throw new UserException("Unable to get character");
+
+			return character;
+		}
+
+		private async Task PostWhoIsInteractionResponse(IInteractionContext ctx, User user, int? characterIndex = null)
 		{
 			// Special case to just load Kupo Nuts' portrait from disk.
 			if (user.DiscordUserId == this.DiscordClient.CurrentUser.Id)
 			{
-				await message.Channel.SendMessageAsync("Thats me!");
-				await message.Channel.SendFileAsync(PathUtils.Current + "/Assets/self.png");
+				await this.FollowupWithFileAsync($"{PathUtils.Current}/Assets/self.png", "Thats me!");
 				return;
 			}
 
-			User.Character? defaultCharacter = user.GetDefaultCharacter();
-			if (defaultCharacter is null)
-				throw new UserException("No characters linked! Use `IAm` to link a character");
+			User.Character? character = user.GetDefaultCharacter()
+				?? throw new UserException("No characters linked! Use `IAm` to link a character");
 
 			if (characterIndex != null)
 			{
-				try
-				{
-					defaultCharacter = user.Characters[characterIndex.Value - 1];
-				}
-				catch
-				{
-					throw new UserException("I couldn't find a character at index: " + characterIndex);
-				}
+				character = user.Characters.ElementAtOrDefault(characterIndex.Value - 1)
+					?? throw new UserException("I couldn't find a character at index: " + characterIndex);
+			}
+			else
+			{
+				// Set Character Index to 1 for default selection
+				characterIndex = 1;
 			}
 
+			// Hold all embeds to update single response message
+			List<Embed> responseEmbeds = new ();
+
 			// Default character
-			CharacterInfo defaultCharacterInfo = await this.GetCharacterInfo(defaultCharacter.FFXIVCharacterId);
-			string file = await CharacterCard.Draw(defaultCharacterInfo);
-			await message.Channel.SendFileAsync(file, messageReference: message.MessageReference);
+			CharacterInfo defaultCharacterInfo = await this.UpdateAndGetCharacterInfo(character.FFXIVCharacterId, true);
+			await this.FollowupWithFileAsync(await CharacterCard.Draw(defaultCharacterInfo));
 
 			// Get current Verification status
-			bool oldIsVerified = defaultCharacter.IsVerified;
+			bool oldIsVerified = character.IsVerified;
 
-			if (!defaultCharacter.CheckVerification(defaultCharacterInfo))
+			if (!character.CheckVerification(defaultCharacterInfo))
 			{
-				EmbedBuilder builder = new EmbedBuilder
+				EmbedBuilder builder = new ()
 				{
 					Description = "This character has not been verified.",
-					Color = Discord.Color.Gold,
+					Color = Color.Gold,
 				};
 
 				// If this is the requesting users character, give instructions on how to verify
-				if (message.Author.Id == user.DiscordUserId)
+				if (ctx.User.Id == user.DiscordUserId)
 				{
 					builder.Title = "This character has not been verified";
-					builder.Description = "To verify this character, enter the following verification code in your [lodestone profile](https://na.finalfantasyxiv.com/lodestone/my/setting/profile/): " + defaultCharacter.FFXIVCharacterVerification;
+					builder.Description =
+						"To verify this character, enter the following verification code " +
+						"in your [lodestone profile](https://na.finalfantasyxiv.com/lodestone/my/setting/profile/): " +
+						$"{character.FFXIVCharacterVerification}";
 				}
 
-				await message.Channel.SendMessageAsync(null, false, builder.Build());
+				responseEmbeds.Add(builder.Build());
+				await this.ModifyOriginalResponseAsync(x => x.Embeds = responseEmbeds.ToArray());
 			}
 
-			if (!defaultCharacterInfo.HasMinions && !defaultCharacterInfo.HasMounts && !defaultCharacterInfo.HasAchievements)
+			if (!defaultCharacterInfo.HasCollect)
 			{
-				EmbedBuilder builder = new EmbedBuilder
-				{
-					Description = "To show Minions, Mounts, and Achievements, please link your character at [FFXIV Collect](https://ffxivcollect.com/)",
-				};
-				await message.Channel.SendMessageAsync(null, false, builder.Build());
+				var builder = new EmbedBuilder()
+					.WithDescription("To show Minions, Mounts, and Achievements, please link your character at [FFXIV Collect](https://ffxivcollect.com/)");
+
+				responseEmbeds.Add(builder.Build());
+				await this.ModifyOriginalResponseAsync(x => x.Embeds = responseEmbeds.ToArray());
 			}
 
 			// While building the AKA, we can confirm if a name/server change has occured
 			// for queried character and update DB
 			// Initial value used to see if verification has been updated
-			bool hasChanges = oldIsVerified != defaultCharacter.IsVerified;
+			bool hasChanges = oldIsVerified != character.IsVerified;
 
 			// AKA
-			StringBuilder akaDescBuilder = new StringBuilder();
+			StringBuilder akaDescBuilder = new ();
 			int index = 0;
-			foreach (User.Character character in user.Characters)
+			foreach (User.Character altCharacter in user.Characters)
 			{
 				// For the queried character, check if the name/server has changed and update
-				if (character.FFXIVCharacterId == defaultCharacterInfo.Id
-					&& ((!string.IsNullOrWhiteSpace(defaultCharacterInfo.Name) && character.CharacterName != defaultCharacterInfo.Name)
-						|| (!string.IsNullOrWhiteSpace(defaultCharacterInfo.Server) && character.ServerName != defaultCharacterInfo.Server)))
+				if (altCharacter.FFXIVCharacterId == defaultCharacterInfo.Id
+					&& ((!string.IsNullOrWhiteSpace(defaultCharacterInfo.Name) && altCharacter.CharacterName != defaultCharacterInfo.Name)
+						|| (!string.IsNullOrWhiteSpace(defaultCharacterInfo.Server) && altCharacter.ServerName != defaultCharacterInfo.Server)))
 				{
 					hasChanges = true;
-					character.CharacterName = defaultCharacterInfo.Name;
-					character.ServerName = defaultCharacterInfo.Server;
+					altCharacter.CharacterName = defaultCharacterInfo.Name;
+					altCharacter.ServerName = defaultCharacterInfo.Server;
 				}
 
 				index++;
 
-				akaDescBuilder.Append(index);
-				akaDescBuilder.Append(") ");
-				akaDescBuilder.Append(character.CharacterName);
-				akaDescBuilder.Append(" (");
-				akaDescBuilder.Append(Emotes.Home.GetString());
-				akaDescBuilder.Append(character.ServerName);
-				akaDescBuilder.Append(")");
+				// Add bold text if selected character
+				var indexAndCharacterString = characterIndex == index
+					? $"**{index}) {altCharacter.CharacterName}**"
+					: $"{index}) {altCharacter.CharacterName}";
 
-				if (!character.IsVerified)
+				akaDescBuilder.Append($"{indexAndCharacterString} ({Emotes.Home.GetString()} {altCharacter.ServerName})");
+
+				if (!altCharacter.IsVerified)
 					akaDescBuilder.Append(" *(Not Verified)*");
 
 				akaDescBuilder.AppendLine();
@@ -263,184 +444,36 @@ namespace FC.Bot.Characters
 
 			if (index > 1)
 			{
-				EmbedBuilder builder = new EmbedBuilder
+				EmbedBuilder builder = new ()
 				{
 					Description = akaDescBuilder.ToString(),
 					Title = "Also known as:",
 				};
-				await message.Channel.SendMessageAsync(null, false, builder.Build());
+				responseEmbeds.Add(builder.Build());
+				await this.ModifyOriginalResponseAsync(x => x.Embeds = responseEmbeds.ToArray());
 			}
 		}
 
-		[Command("Portrait", Permissions.Everyone, "Shows your linked character portrait", CommandCategory.Character)]
-		public async Task Portrait(CommandMessage message)
+		private async Task<CharacterInfo> GetCharacterInfo(IGuildUser guildUser, int? characterIndex, bool updateCollect = false)
 		{
-			CharacterInfo character = await this.GetCharacterInfo(message.Author);
-			string file = await CharacterPortrait.Draw(character);
+			User user = await UserService.GetUser(guildUser);
+			User.Character? character = user.GetDefaultCharacter()
+				?? throw new UserException("No characters linked! Use `IAm` to link a character");
 
-			await message.Channel.SendFileAsync(file);
-		}
-
-		[Command("Portrait", Permissions.Everyone, "Shows another user's linked character portrait", CommandCategory.Character)]
-		public async Task Portrait(CommandMessage message, IGuildUser user)
-		{
-			CharacterInfo character = await this.GetCharacterInfo(user);
-			string file = await CharacterPortrait.Draw(character);
-
-			await message.Channel.SendFileAsync(file);
-		}
-
-		[Command("Portrait", Permissions.Everyone, "Looks up a character profile by character name and server name", CommandCategory.Character)]
-		public async Task Portrait(CommandMessage message, string serverName, string characterFirstName, string characterLastName)
-		{
-			CharacterInfo character = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
-			string file = await CharacterPortrait.Draw(character);
-		}
-
-		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
-		public async Task<Embed> Gear(IGuildUser user)
-		{
-			CharacterInfo info = await this.GetCharacterInfo(user);
-			return info.GetGearEmbed();
-		}
-
-		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
-		public async Task<Embed> Gear(CommandMessage message)
-		{
-			CharacterInfo info = await this.GetCharacterInfo(message.Author);
-			return info.GetGearEmbed();
-		}
-
-		[Command("Gear", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
-		public async Task<Embed> Gear(string serverName, string characterFirstName, string characterLastName)
-		{
-			CharacterInfo info = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
-			return info.GetGearEmbed();
-		}
-
-		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
-		public async Task<Embed> Stats(IGuildUser user)
-		{
-			CharacterInfo info = await this.GetCharacterInfo(user);
-			return info.GetAttributesEmbed();
-		}
-
-		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of your linked character", CommandCategory.Character)]
-		public async Task<Embed> Stats(CommandMessage message)
-		{
-			CharacterInfo info = await this.GetCharacterInfo(message.Author);
-			return info.GetAttributesEmbed();
-		}
-
-		[Command("Stats", Permissions.Everyone, "Shows the current gear and stats of a character", CommandCategory.Character)]
-		public async Task<Embed> Stats(string serverName, string characterFirstName, string characterLastName)
-		{
-			CharacterInfo info = await this.GetCharacterInfo(this.GetCharacterFullName(characterFirstName, characterLastName), serverName);
-			return info.GetAttributesEmbed();
-		}
-
-		[Command("EL", Permissions.Everyone, "Shows current Elemental Level of a character", CommandCategory.Character, commandParent: "ElementalLevel")]
-		[Command("ElementalLevel", Permissions.Everyone, "Shows current Elemental Level of a character", CommandCategory.Character)]
-		public async Task<Embed> ElementalLevel(CommandMessage message)
-		{
-			return await this.GetElementalLevel(message);
-		}
-
-		[Command("EL", Permissions.Everyone, "Shows current Elemental Level of a character", CommandCategory.Character, commandParent: "ElementalLevel")]
-		[Command("ElementalLevel", Permissions.Everyone, "Shows current Elemental Level of a character", CommandCategory.Character)]
-		public async Task<Embed> ElementalLevel(CommandMessage message, int characterIndex)
-		{
-			return await this.GetElementalLevel(message, characterIndex);
-		}
-
-		[Command("RR", Permissions.Everyone, "Shows current Resistance Rank of a character", commandParent: "ResistanceRank")]
-		[Command("ResistanceRank", Permissions.Everyone, "Shows current Resistance Rank of a character", CommandCategory.Character)]
-		public async Task<Embed> ResistanceRank(CommandMessage message)
-		{
-			return await this.GetResistanceRank(message);
-		}
-
-		[Command("RR", Permissions.Everyone, "Shows current Resistance Rank of a character", commandParent: "ResistanceRank")]
-		[Command("ResistanceRank", Permissions.Everyone, "Shows current Resistance Rank of a character", CommandCategory.Character)]
-		public async Task<Embed> ResistanceRank(CommandMessage message, int characterIndex)
-		{
-			return await this.GetResistanceRank(message, characterIndex);
-		}
-
-#if DEBUG
-		[Command("Census", Permissions.Administrators, "Perform Census")]
-#endif
-		public async void GetCharacterCensus(CommandMessage message, ulong freeCompanyId)
-		{
-			Embed embed = await this.GetFreeCompanyCensus(freeCompanyId);
-			await message.Channel.SendMessageAsync(embed: embed);
-		}
-
-		private async Task<Embed> GetElementalLevel(CommandMessage message, int? characterIndex = null)
-		{
-			User user = await UserService.GetUser(message.Author);
-			User.Character? defaultCharacter = user.GetDefaultCharacter();
-			if (defaultCharacter is null)
-				throw new UserException("No characters linked! Use `IAm` to link a character");
-
-			int index = 0;
 			if (characterIndex != null)
 			{
-				defaultCharacter = null;
-				foreach (User.Character character in user.Characters)
-				{
-					index++;
+				character = user.Characters.ElementAtOrDefault(characterIndex.Value - 1);
 
-					if (index == characterIndex)
-					{
-						defaultCharacter = character;
-					}
-				}
-
-				if (defaultCharacter is null)
-				{
+				if (character is null)
 					throw new UserException("I couldn't find a character at index: " + characterIndex);
-				}
 			}
 
-			CharacterInfo info = await this.GetCharacterInfo(defaultCharacter.FFXIVCharacterId);
-			return await info.GetElementalLevelEmbed();
-		}
-
-		private async Task<Embed> GetResistanceRank(CommandMessage message, int? characterIndex = null)
-		{
-			User user = await UserService.GetUser(message.Author);
-			User.Character? defaultCharacter = user.GetDefaultCharacter();
-			if (defaultCharacter is null)
-				throw new UserException("No characters linked! Use `IAm` to link a character");
-
-			int index = 0;
-			if (characterIndex != null)
-			{
-				defaultCharacter = null;
-				foreach (User.Character character in user.Characters)
-				{
-					index++;
-
-					if (index == characterIndex)
-					{
-						defaultCharacter = character;
-					}
-				}
-
-				if (defaultCharacter is null)
-				{
-					throw new UserException("I couldn't find a character at index: " + characterIndex);
-				}
-			}
-
-			CharacterInfo info = await this.GetCharacterInfo(defaultCharacter.FFXIVCharacterId);
-			return await info.GetResistanceRankEmbed();
+			return await this.UpdateAndGetCharacterInfo(character.FFXIVCharacterId, updateCollect);
 		}
 
 		private async Task<Embed> RecordCharacter(User user, CharacterInfo character)
 		{
-			EmbedBuilder embed = new EmbedBuilder();
+			EmbedBuilder embed = new ();
 
 			User.Character? userCharacter = user.GetCharacter(character.Id);
 
@@ -488,24 +521,45 @@ namespace FC.Bot.Characters
 				}
 				else
 				{
-					embed.Description = "To verify character ownership, please place the following verification Id in your [lodestone profile](https://na.finalfantasyxiv.com/lodestone/my/setting/profile/): `" + userCharacter.FFXIVCharacterVerification + "`";
+					embed.Description =
+						"To verify this character, enter the following verification code " +
+						"in your [lodestone profile](https://na.finalfantasyxiv.com/lodestone/my/setting/profile/): " +
+						$"{userCharacter.FFXIVCharacterVerification}";
 					return embed.Build();
 				}
 			}
 		}
 
-		private async Task<CharacterInfo> GetCharacterInfo(IGuildUser guildUser)
+		private EmbedBuilder GetMultipleCharacterResponseEmbedBuilder(IEnumerable<CharacterSearchEntry> results)
 		{
-			User user = await UserService.GetUser(guildUser);
-			User.Character? character = user.GetDefaultCharacter();
+			EmbedBuilder builder = new EmbedBuilder()
+					.WithColor(Color.Red)
+					.WithTitle($"Multiple Characters Found");
 
-			if (character is null)
-				throw new UserException("No characters linked.");
+			StringBuilder stringBuilder = new StringBuilder()
+				.AppendLine("```")
+				.AppendLine($"| **Id**{Utils.Characters.Tab}|{Utils.Characters.DoubleSpace}**Character Name**")
+				.AppendLine("| --------- | ------------------");
 
-			return await this.GetCharacterInfo(character.FFXIVCharacterId);
+			foreach (var character in results)
+			{
+				stringBuilder.Append($"| {character.Id}");
+
+				var rightPad = 10 - character.Id.ToString().Length;
+				for (var i = 0; i < rightPad; i++)
+					stringBuilder.Append(Utils.Characters.Space);
+
+				stringBuilder.AppendLine($"|{Utils.Characters.DoubleSpace}{character.Name}");
+			}
+
+			stringBuilder.AppendLine("```");
+
+			builder.Description = stringBuilder.ToString();
+
+			return builder;
 		}
 
-		private async Task<CharacterInfo> GetCharacterInfo(string characterName, string serverName)
+		private async Task<CharacterInfo> GetCharacterInfo(string characterName, string serverName, bool updateCollect = false)
 		{
 			if (!string.IsNullOrEmpty(serverName))
 			{
@@ -535,7 +589,11 @@ namespace FC.Bot.Characters
 			}
 			else if (response.Results.Count() != 1)
 			{
-				throw new UserException($"I found {response.Results.Count()} characters with that name.");
+				EmbedBuilder builder = this.GetMultipleCharacterResponseEmbedBuilder(response.Results);
+
+				await this.FollowupAsync(embeds: new Embed[] { builder.Build() });
+
+				throw new UserException($"Found {response.Results.Count()} characters with that name.");
 			}
 			else
 			{
@@ -544,14 +602,14 @@ namespace FC.Bot.Characters
 					throw new UserException($"I couldn't find a character with that name.");
 				}
 
-				return await this.GetCharacterInfo(charId);
+				return await this.UpdateAndGetCharacterInfo(charId, updateCollect);
 			}
 		}
 
-		private async Task<CharacterInfo> GetCharacterInfo(uint id)
+		private async Task<CharacterInfo> UpdateAndGetCharacterInfo(uint id, bool updateCollect = false)
 		{
-			CharacterInfo info = new CharacterInfo(id);
-			await info.Update();
+			CharacterInfo info = new (id);
+			await info.Update(updateCollect);
 			return info;
 		}
 	}

@@ -58,17 +58,15 @@ namespace FC.Bot.Characters
 			return null;
 		}
 
-		public static void SetDefaultCharacter(this User self, string characterName, string? serverName = null)
+		public static void SetDefaultCharacter(this User self, int characterIndex)
 		{
 			foreach (User.Character otherCharacter in self.Characters)
 			{
 				otherCharacter.IsDefault = false;
 			}
 
-			User.Character? character = self.GetCharacter(characterName, serverName);
-
-			if (character is null)
-				throw new Exception("I couldn't find that character, Have you linked them with `IAm`?");
+			User.Character? character = self.Characters.ElementAtOrDefault(characterIndex - 1)
+				?? throw new Exception("I couldn't find that character, Have you linked them with `IAm`?");
 
 			character.IsDefault = true;
 		}
