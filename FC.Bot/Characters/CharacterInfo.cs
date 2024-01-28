@@ -159,7 +159,8 @@ namespace FC.Bot.Characters
 			if (this.xivApiCharacter == null)
 				throw new Exception("No XIVAPI character");
 
-			EmbedBuilder builder = new ();
+			EmbedBuilder builder = new EmbedBuilder()
+				.WithTitle(this.Name);
 
 			// Resources
 			builder.AddField("HP", this.characterAttributes.Hp, true);
