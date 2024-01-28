@@ -99,7 +99,7 @@ namespace FC.Bot.ContentCreator
 			await this.RemoveContentCreator(message, ContentCreator.Type.Twitch);
 		}
 
-		[Command("ICreatorYoutube", Permissions.Everyone, "Set your youtube channel using channel Id or username", showWait: false)]
+		[Command("ICreatorYoutube", Permissions.Everyone, "Set your youtube channel using channel Id or username", CommandCategory.ContentCreators, showWait: false)]
 		public async Task SetYoutubeInformation(CommandMessage message, string identifier)
 		{
 			(string channelId, string username) = await ExploderAPI.GetChannelInformation(identifier);
