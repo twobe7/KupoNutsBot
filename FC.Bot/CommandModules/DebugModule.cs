@@ -12,7 +12,6 @@ namespace FC.Bot.CommandModules
 	using Discord;
 	using Discord.Interactions;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Bot.Utils;
 	using FC.Utils;
 	using Microsoft.Extensions.DependencyInjection;
@@ -198,8 +197,11 @@ namespace FC.Bot.CommandModules
 			{
 				await interactionService.AddModulesAsync(Assembly.GetExecutingAssembly(), this.serviceProvider);
 
+#if !DEBUG
 				// DebugModule has already been registered
 				await interactionService.RemoveModuleAsync(typeof(DebugModule));
+#endif
+
 			}
 			catch (Exception ex)
 			{
