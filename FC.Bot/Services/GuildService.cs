@@ -4,17 +4,15 @@
 
 namespace FC.Bot.Guild
 {
-	using System;
 	using System.Collections.Generic;
 	using System.Linq;
-	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Bot.Services;
-	using FC.Utils;
 
+	[Group("guild", "Shows guild related commands")]
 	public class GuildService : ServiceBase
 	{
 		public GuildService(DiscordSocketClient discordClient)
@@ -26,31 +24,14 @@ namespace FC.Bot.Guild
 			await base.Initialize();
 		}
 
-		[Command("Oldest", Permissions.Everyone, "Lists the oldest Discord members", CommandCategory.Discord)]
-		public Task<Embed> Oldest(CommandMessage message)
+		[SlashCommand("oldest", "Lists the oldest Discord members")]
+		public async Task Oldest(
+			[Summary("numberToReturn", "Number of members to display (max 15)")]
+			int numberToReturn = 1)
 		{
-			if (message.Channel is SocketGuildChannel guildChannel)
-			{
-				IEnumerable<SocketGuildUser> users = guildChannel.Guild.Users.OrderBy(x => x.JoinedAt).Take(1);
+			await this.DeferAsync();
 
-				string oldestString = string.Empty;
-				int order = 1;
-
-				foreach (SocketGuildUser user in users)
-				{
-					oldestString += string.Format("{0}. {1}\n", order, user.GetName());
-				}
-
-				return Task.FromResult(this.GetEmbed("Oldest Members", oldestString, message.Guild.IconUrl));
-			}
-
-			return Task.FromResult(this.GetEmbed("You're the oldest!", string.Empty));
-		}
-
-		[Command("Oldest", Permissions.Everyone, "Lists the oldest Discord members", CommandCategory.Discord)]
-		public Task<Embed> Oldest(CommandMessage message, int numberToReturn)
-		{
-			if (message.Channel is SocketGuildChannel guildChannel)
+			if (this.Context.Channel is SocketGuildChannel guildChannel)
 			{
 				// Put a cap on the return amount for now
 				numberToReturn = numberToReturn > 15 ? 15 : numberToReturn;
@@ -62,67 +43,50 @@ namespace FC.Bot.Guild
 
 				foreach (SocketGuildUser user in users)
 				{
-					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
+					oldestString += $"{order++}. {user.GetName()}\n";
 				}
 
-				return Task.FromResult(this.GetEmbed("Oldest Members", oldestString, message.Guild.IconUrl));
+				await this.FollowupAsync(embeds: new Embed[] { GetEmbed("Oldest Members", oldestString, this.Context.Guild.IconUrl) });
+				return;
 			}
 
-			return Task.FromResult(this.GetEmbed("You're the oldest!", string.Empty));
+			await this.FollowupAsync(embeds: new Embed[] { GetEmbed("You're the oldest!", string.Empty) });
 		}
 
-		[Command("Newest", Permissions.Everyone, "Lists the newest Discord members", CommandCategory.Discord)]
-		public Task<Embed> Newest(CommandMessage message)
+		[SlashCommand("newest", "Lists the newest Discord members")]
+		public async Task Newest(
+			[Summary("numberToReturn", "Number of members to display (max 15)")]
+			int numberToReturn = 1)
 		{
-			if (message.Channel is SocketGuildChannel guildChannel)
-			{
-				IEnumerable<SocketGuildUser> users = guildChannel.Guild.Users.OrderByDescending(x => x.JoinedAt).Take(1);
+			await this.DeferAsync();
 
-				string oldestString = string.Empty;
-				int order = 1;
-
-				foreach (SocketGuildUser user in users)
-				{
-					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
-				}
-
-				return Task.FromResult(this.GetEmbed("Newest Members", oldestString, message.Guild.IconUrl));
-			}
-
-			return Task.FromResult(this.GetEmbed("You're the youngest!", string.Empty));
-		}
-
-		[Command("Newest", Permissions.Everyone, "Lists the newest Discord members", CommandCategory.Discord)]
-		public Task<Embed> Newest(CommandMessage message, int numberToReturn)
-		{
-			if (message.Channel is SocketGuildChannel guildChannel)
+			if (this.Context.Channel is SocketGuildChannel guildChannel)
 			{
 				// Put a cap on the return amount for now
 				numberToReturn = numberToReturn > 15 ? 15 : numberToReturn;
 
 				IEnumerable<SocketGuildUser> users = guildChannel.Guild.Users.OrderByDescending(x => x.JoinedAt).Take(numberToReturn);
 
-				string oldestString = string.Empty;
+				string members = string.Empty;
 				int order = 1;
 
 				foreach (SocketGuildUser user in users)
 				{
-					oldestString += string.Format("{0}. {1}\n", order++, user.GetName());
+					members += $"{order++}. {user.GetName()}\n";
 				}
 
-				return Task.FromResult(this.GetEmbed("Newest Members", oldestString, message.Guild.IconUrl));
+				await this.FollowupAsync(embeds: new Embed[] { GetEmbed("Newest Members", members, this.Context.Guild.IconUrl) });
+				return;
 			}
 
-			return Task.FromResult(this.GetEmbed("You're the youngest!", string.Empty));
+			await this.FollowupAsync(embeds: new Embed[] { GetEmbed("You're the youngest!", string.Empty) });
 		}
 
-		private Embed GetEmbed(string title, string description, string? iconUrl = null)
+		private static Embed GetEmbed(string title, string description, string? iconUrl = null)
 		{
-			EmbedBuilder builder = new EmbedBuilder
-			{
-				Title = title,
-				Description = description,
-			};
+			EmbedBuilder builder = new EmbedBuilder()
+				.WithTitle(title)
+				.WithDescription(description);
 
 			if (!string.IsNullOrWhiteSpace(iconUrl))
 				builder.AddThumbnail(iconUrl);
