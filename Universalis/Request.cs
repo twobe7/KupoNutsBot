@@ -7,6 +7,7 @@ namespace Universalis
 	using System;
 	using System.IO;
 	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
 	using FC.Serialization;
@@ -24,19 +25,19 @@ namespace Universalis
 			{
 				Log.Write($"Request: {url}", "Universalis");
 
-				WebRequest req = WebRequest.Create(url);
-				WebResponse response = await req.GetResponseAsync();
-				StreamReader reader = new StreamReader(response.GetResponseStream());
+				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+				StreamReader reader = new StreamReader(await client.GetStreamAsync(url));
 				string json = await reader.ReadToEndAsync();
 
 				Log.Write($"Response: {json.Length} characters", "Universalis");
 
-				return Serializer.Deserialize<T>(json);
+				return Serializer.Deserialize<T>(json)
+					   ?? throw new InvalidDataException("Unable to deserialize");
 			}
 			catch (Exception ex)
 			{
 				Log.Write("Error: " + ex.Message, @"Universalis");
-				throw ex;
+				throw;
 			}
 		}
 	}

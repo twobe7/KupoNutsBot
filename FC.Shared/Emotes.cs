@@ -888,18 +888,17 @@ namespace FC
 
 		public Dictionary<string, string> GetAllEmotes()
 		{
-			Dictionary<string, string> emotes = new Dictionary<string, string>();
+			Dictionary<string, string> emotes = new ();
 
-			Emotes emoteClass = new Emotes();
+			Emotes emoteClass = new ();
 
 			FieldInfo[] fields = emoteClass.GetType().GetFields();
 			foreach (FieldInfo field in fields)
 			{
-				emotes.Add(field.Name, field.GetValue(emoteClass).ToString());
+				var value = field.GetValue(emoteClass)?.ToString();
+				if (value != null)
+					emotes.TryAdd(field.Name, value);
 			}
-			////foreach (System.Reflection.PropertyInfo prop in emoteClass.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-			////{
-			////}
 
 			return emotes;
 		}

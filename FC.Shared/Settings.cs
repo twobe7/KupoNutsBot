@@ -58,14 +58,14 @@ namespace FC
 		{
 			if (!File.Exists(Location))
 			{
-				Settings settings = new Settings();
+				Settings settings = new ();
 				settings.Save();
 				return settings;
 			}
 			else
 			{
 				string json = File.ReadAllText(Location);
-				return Serializer.Deserialize<Settings>(json);
+				return Serializer.Deserialize<Settings>(json) ?? new Settings();
 			}
 		}
 

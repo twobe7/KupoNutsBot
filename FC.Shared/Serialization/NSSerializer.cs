@@ -31,9 +31,9 @@ namespace FC.Serialization
 		{
 			try
 			{
-				T deserialised = JsonConvert.DeserializeObject<T>(json, Settings);
-				if (deserialised == null)
-					throw new NullReferenceException();
+				T deserialised = JsonConvert.DeserializeObject<T>(json, Settings)
+					?? throw new NullReferenceException();
+
 				return deserialised;
 			}
 			catch (Exception ex)

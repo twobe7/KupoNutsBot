@@ -7,6 +7,7 @@ namespace FFXIVCollect
 	using System;
 	using System.IO;
 	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
 	using FC.Serialization;
@@ -24,20 +25,19 @@ namespace FFXIVCollect
 			{
 				Log.Write("Request: " + url, "FFXIVCollect");
 
-				WebRequest req = WebRequest.Create(url);
-				req.Timeout = 5000;
-				WebResponse response = await req.GetResponseAsync();
-				StreamReader reader = new StreamReader(response.GetResponseStream());
+				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+				StreamReader reader = new (await client.GetStreamAsync(url));
 				string json = await reader.ReadToEndAsync();
 
 				Log.Write("Response: " + json.Length + " characters", "FFXIVCollect");
 
-				return Serializer.Deserialize<T>(json);
+				return Serializer.Deserialize<T>(json)
+					?? throw new InvalidDataException("Unable to deserialize");
 			}
 			catch (Exception ex)
 			{
 				Log.Write("Error: " + ex.Message, "FFXIVCollect");
-				throw ex;
+				throw;
 			}
 		}
 	}

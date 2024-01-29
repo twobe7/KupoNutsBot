@@ -27,7 +27,7 @@ namespace FC.XIVData
 				.SelectMany(x => typeof(TEnum)
 				.GetMember(x)).Where(x =>
 					!x.IsDefined(typeof(HideAttribute), true)
-					&& x.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase))
+					&& x.Name.Contains(search ?? string.Empty, StringComparison.InvariantCultureIgnoreCase))
 				.Take(25);
 
 			var choices = new List<AutocompleteResult>();

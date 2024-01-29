@@ -7,6 +7,7 @@ namespace XIVAPI
 	using System;
 	using System.IO;
 	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
 	using FC.Serialization;
@@ -41,24 +42,26 @@ namespace XIVAPI
 			{
 				Log.Write("Request: " + url, "XIVAPI");
 
-				WebRequest req = WebRequest.Create(url);
-				WebResponse response = await req.GetResponseAsync();
-				StreamReader reader = new StreamReader(response.GetResponseStream());
+				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+				var stream = await client.GetStreamAsync(url);
+				StreamReader reader = new (stream);
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "XIVAPI");
+				Log.Write($"Response: {json.Length} characters", "XIVAPI");
 
 				// dirty hack to handle GameContentLinks being sometimes an array, and sometimes an object...
 				json = json.Replace("\"GameContentLinks\":[]", "\"GameContentLinks\":null");
 
-				T result = Serializer.Deserialize<T>(json);
+				T result = Serializer.Deserialize<T>(json)
+					?? throw new InvalidDataException("Unable to deserialize");
+
 				result.Json = json;
 				return result;
 			}
 			catch (WebException webEx)
 			{
-				HttpWebResponse errorResponse = (HttpWebResponse)webEx.Response;
-				if (errorResponse.StatusCode == HttpStatusCode.NotFound)
+				HttpWebResponse? errorResponse = (HttpWebResponse?)webEx.Response;
+				if (errorResponse?.StatusCode == HttpStatusCode.NotFound)
 				{
 					return Activator.CreateInstance<T>();
 				}
@@ -68,7 +71,7 @@ namespace XIVAPI
 			catch (Exception ex)
 			{
 				Log.Write("Error: " + ex.Message, "XIVAPI");
-				throw ex;
+				throw;
 			}
 		}
 	}

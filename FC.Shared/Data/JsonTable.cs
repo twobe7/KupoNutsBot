@@ -118,17 +118,20 @@ namespace FC.Data
 			foreach (string path in files)
 			{
 				string json = File.ReadAllText(path);
-				T entry = Serializer.Deserialize<T>(json);
+				T? entry = Serializer.Deserialize<T>(json);
+
+				if (entry == null)
+					continue;
 
 				bool meetsConditions = true;
 				if (conditions != null)
 				{
 					foreach ((string propertyName, object value) in conditions)
 					{
-						PropertyInfo info = entry.GetType().GetProperty(propertyName);
-						object val = info.GetValue(entry);
+						PropertyInfo? info = entry.GetType().GetProperty(propertyName);
+						object? val = info?.GetValue(entry);
 
-						if (!val.Equals(value))
+						if (val != null && !val.Equals(value))
 						{
 							meetsConditions = false;
 							continue;

@@ -5,6 +5,7 @@ namespace Lalachievements
 	using System;
 	using System.IO;
 	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
 	using FC.Serialization;
@@ -22,9 +23,8 @@ namespace Lalachievements
 			{
 				Log.Write("Request: " + url, "FFXIVCollect");
 
-				WebRequest req = WebRequest.Create(url);
-				WebResponse response = await req.GetResponseAsync();
-				StreamReader reader = new StreamReader(response.GetResponseStream());
+				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+				StreamReader reader = new StreamReader(await client.GetStreamAsync(url));
 				string json = await reader.ReadToEndAsync();
 
 				Log.Write("Response: " + json.Length + " characters", "FFXIVCollect");
@@ -34,7 +34,7 @@ namespace Lalachievements
 			catch (Exception ex)
 			{
 				Log.Write("Error: " + ex.Message, "FFXIVCollect");
-				throw ex;
+				throw;
 			}
 		}
 	}

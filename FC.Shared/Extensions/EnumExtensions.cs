@@ -16,10 +16,10 @@ namespace System
 		public static string ToDisplayString(this Enum value)
 		{
 			Type type = value.GetType();
-			string name = Enum.GetName(type, value);
+			string? name = Enum.GetName(type, value);
 			if (name != null)
 			{
-				FieldInfo field = type.GetField(name);
+				FieldInfo? field = type.GetField(name);
 				if (field != null)
 				{
 					return Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attr
@@ -36,10 +36,10 @@ namespace System
 			List<string> list = new List<string>();
 			foreach (object value in enumType.GetEnumValues())
 			{
-				string name = Enum.GetName(enumType, value);
+				string? name = Enum.GetName(enumType, value);
 				if (name != null)
 				{
-					FieldInfo field = enumType.GetField(name);
+					FieldInfo? field = enumType.GetField(name);
 					if (field != null)
 					{
 						var displayString = Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attr

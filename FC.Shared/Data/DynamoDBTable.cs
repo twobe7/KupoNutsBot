@@ -86,7 +86,7 @@ namespace FC.Data
 
 			foreach (JsonConverter converter in Serializer.Options.Converters)
 			{
-				PropertyInfo prop = converter.GetType().GetProperty("TypeToConvert", BindingFlags.Instance | BindingFlags.NonPublic);
+				PropertyInfo? prop = converter.GetType().GetProperty("TypeToConvert", BindingFlags.Instance | BindingFlags.NonPublic);
 
 				if (prop == null)
 					throw new Exception("Failed to get target type of json converter: " + converter);
