@@ -10,6 +10,7 @@ namespace FC.Bot.Characters
 	using System.Linq;
 	using System.Text;
 	using Discord;
+	using FC.API;
 	using FC.XIVData;
 	using Google.Apis.YouTube.v3.Data;
 	using XIVAPI;
@@ -341,7 +342,7 @@ namespace FC.Bot.Characters
 		{
 			item = null;
 
-			List<SearchAPI.Result> results = SearchAPI.Search(itemName, "Item").Result;
+			List<Result> results = SearchAPI.Search(itemName, "Item").Result;
 			if (results.Any())
 			{
 				var id = results.First().ID;

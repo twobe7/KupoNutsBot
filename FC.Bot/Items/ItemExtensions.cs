@@ -6,7 +6,6 @@ namespace FC.Bot.Items
 {
 	using System.Text;
 	using System.Text.RegularExpressions;
-	using System.Web;
 	using Discord;
 	using XIVAPI;
 

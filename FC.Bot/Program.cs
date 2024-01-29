@@ -11,7 +11,6 @@ namespace FC.Bot
 	using Discord;
 	using Discord.Interactions;
 	using Discord.WebSocket;
-	using FC.Bot.Actions;
 	using FC.Bot.Characters;
 	using FC.Bot.CommandModules;
 	using FC.Bot.Commands;
@@ -113,7 +112,6 @@ namespace FC.Bot
 				.AddSingleton<Eventsv2.EventsService>()
 				.AddSingleton<CalendarService>()
 				.AddSingleton<UserService>()
-				.AddSingleton<ActionService>()
 				.AddSingleton<CensusService>()
 				.AddSingleton<CharacterService>()
 				.AddSingleton<ChannelService>()
@@ -129,7 +127,6 @@ namespace FC.Bot
 				.AddSingleton<LogService>()
 				.AddSingleton<MeService>()
 				.AddSingleton<ModerationService>()
-				.AddSingleton<MountService>()
 				.AddSingleton<NoveltyService>()
 				.AddSingleton<PollService>()
 				.AddSingleton<QuoteService>()
@@ -168,7 +165,6 @@ namespace FC.Bot
 				await this.AddService<UserService>();
 
 				// No dependencies
-				await this.AddService<ActionService>();
 				await this.AddService<CensusService>();
 				await this.AddService<CharacterService>();
 				await this.AddService<ChannelService>();
@@ -185,7 +181,6 @@ namespace FC.Bot
 				await this.AddService<LogService>();
 				await this.AddService<MeService>();
 				await this.AddService<ModerationService>();
-				await this.AddService<MountService>();
 				await this.AddService<NoveltyService>();
 				await this.AddService<PollService>();
 				await this.AddService<QuoteService>();

@@ -12,12 +12,12 @@ namespace FC.Bot.Items
 	using Discord;
 	using Discord.Interactions;
 	using Discord.WebSocket;
+	using FC.API;
 	using FC.Bot.Services;
 	using FC.XIVData;
 	using Universalis;
 	using XIVAPI;
 
-	[Group("xiv-data", "Queries data in FFXIV")]
 	public class ItemService : ServiceBase
 	{
 		public static string AdvancedMeldingForbiddenEmote = @"<:AdvancedMeldingForbidden:817710837418426388> ";
@@ -53,56 +53,6 @@ namespace FC.Bot.Items
 			this.DiscordClient = discordClient;
 		}
 
-		[SlashCommand("item-search", "Gets information on an item")]
-		public async Task GetItem(
-			[Autocomplete(typeof(ItemAutocompleteHandler))]
-			[Summary("search", "Name or Item Id")]
-			string search)
-		{
-			await this.DeferAsync();
-
-			if (ulong.TryParse(search, out ulong searchAsUlong))
-			{
-				await this.FollowupAsync(embed: await this.GetItem(searchAsUlong));
-				return;
-			}
-
-			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
-
-			if (results.Count <= 0)
-			{
-				await this.FollowupAsync(text: "I couldn't find any items that match that search.");
-				return;
-			}
-
-			if (results.Count > 1)
-			{
-				EmbedBuilder embed = new ();
-
-				StringBuilder description = new ();
-				for (int i = 0; i < Math.Min(results.Count, 10); i++)
-				{
-					description.AppendLine(results[i].ID + " - " + results[i].Name);
-				}
-
-				embed.Title = $"{results.Count} results found for \"{search}\"";
-				embed.Description = description.ToString();
-
-				await this.FollowupAsync(embed: embed.Build());
-				return;
-			}
-
-			ulong? id = results[0].ID;
-
-			if (id == null)
-			{
-				await this.FollowupAsync(text: "The returned item did not have an Id. Weird.");
-				return;
-			}
-
-			await this.FollowupAsync(embed: await this.GetItem((ulong)id));
-		}
-
 		[SlashCommand("marketboard", "Retrieves item listing from Universalis Marketboard", ignoreGroupNames: true)]
 		public async Task GetMarketBoardItem(DataCentre dataCentre, [Autocomplete(typeof(ItemAutocompleteHandler))] string search)
 		{
@@ -114,7 +64,7 @@ namespace FC.Bot.Items
 				return;
 			}
 
-			List<SearchAPI.Result> results = await SearchAPI.Search(search, "Item");
+			List<Result> results = await SearchAPI.Search(search, "Item");
 
 			if (results.Count <= 0)
 			{
@@ -124,7 +74,7 @@ namespace FC.Bot.Items
 
 			ulong? id;
 
-			SearchAPI.Result? exactMatch = results.FirstOrDefault(x => search.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
+			Result? exactMatch = results.FirstOrDefault(x => search.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
 			if (exactMatch != null)
 			{
 				id = exactMatch.ID;
@@ -159,33 +109,6 @@ namespace FC.Bot.Items
 			}
 
 			await this.GetMarketBoardItem(dataCentre, id.Value);
-		}
-
-		private async Task<Embed> GetItem(ulong itemId)
-		{
-			Item item = await ItemAPI.Get(itemId);
-
-			EmbedBuilder embed = item.ToEmbed();
-
-			if (item.IsUntradable != 1)
-			{
-				// TODO: Add default data centre here
-				(MarketAPI.History? hq, MarketAPI.History? nm) = await MarketAPI.GetBestPriceHistory("Materia", itemId);
-
-				if (hq != null | nm != null)
-				{
-					StringBuilder builder = new ();
-					if (hq != null)
-						builder.Append(hq.ToStringEx());
-
-					if (nm != null)
-						builder.Append(nm.ToStringEx());
-
-					embed.AddField("Best Market Board Prices", builder.ToString());
-				}
-			}
-
-			return embed.Build();
 		}
 
 		private async Task GetMarketBoardItem(DataCentre dataCentre, ulong itemId)
