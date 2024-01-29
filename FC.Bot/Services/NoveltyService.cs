@@ -183,7 +183,7 @@ namespace FC.Bot.Services
 		}
 
 		[SlashCommand("number", "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.")]
-		public async Task Number(int min = 0, int max = 1)
+		public async Task Number(int min = 0, int max = 2)
 		{
 			if (max <= min)
 				throw new UserException("Maximum must be greater than the Minimum!");
