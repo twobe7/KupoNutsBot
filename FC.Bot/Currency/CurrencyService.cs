@@ -245,19 +245,24 @@ namespace FC.Bot.Services
 			await this.FollowupAsync(postBackMessage);
 		}
 
-		[Command("Inventory", Permissions.Everyone, "Shows your current inventory", CommandCategory.Currency)]
-		public async Task ShowInventory(CommandMessage message)
+		[SlashCommand("inventory", "Shows your current inventory")]
+		public async Task ShowInventory()
 		{
+			await this.DeferAsync();
+
+			if (this.Context.User is not SocketGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
 			// Shop items
-			List<ShopItem> items = new List<ShopItem>();
+			List<ShopItem> items = new ();
 
-			User user = await UserService.GetUser(message.Author);
+			User user = await UserService.GetUser(guildUser);
 
-			EmbedBuilder embed = new EmbedBuilder();
-			embed.Title = message.Author.GetName() + "'s Inventory";
-			embed.Color = Color.Blue;
+			EmbedBuilder embed = new EmbedBuilder()
+				.WithTitle($"{guildUser.GetName()}'s Inventory")
+				.WithColor(Color.Blue);
 
-			StringBuilder desc = new StringBuilder();
+			StringBuilder desc = new ();
 			if (user.Inventory.Count == 0)
 			{
 				desc.AppendLine("Nothing to show here. Visit our shop, _kupo!_");
@@ -267,7 +272,7 @@ namespace FC.Bot.Services
 				// Load shop items
 				items = await ShopItemDatabase.LoadAll(new Dictionary<string, object>()
 				{
-					{ "GuildId", message.Guild.Id },
+					{ "GuildId", this.Context.Guild.Id },
 				});
 
 				// Restrict items to only held
@@ -275,30 +280,104 @@ namespace FC.Bot.Services
 
 				foreach (KeyValuePair<string, int> item in user.Inventory)
 				{
-					desc.AppendLine(item.Value + "x - " + item.Key);
+					desc.AppendLine($"{item.Value}x - {item.Key}");
 				}
 			}
 
 			desc.AppendLine(Utils.Characters.Tab);
-
 			embed.Description = desc.ToString();
 
-			string prefix = CommandsService.GetPrefix(message.Guild.Id);
-			embed.WithFooter("Use " + prefix + "shop to see items to buy. Select a reaction to redeem.");
+			embed.WithFooter("Use /shop to see items to buy. Select a reaction to redeem.");
 
-			RestUserMessage userMessage = await message.Channel.SendMessageAsync(embed: embed.Build(), messageReference: message.MessageReference);
+			// Components for using items
+			var components = new ComponentBuilder();
+			foreach (var item in items)
+			{
+				components.WithButton(emote: item.ReactionEmote, customId: $"use-inventory-{item.ReactionEmote}");
+			}
 
-			// Add reacts
-			await userMessage.AddReactionsAsync(items.Select(x => x.ReactionEmote).ToArray());
+			await this.FollowupAsync(embeds: new Embed[] { embed.Build() }, components: components.Build());
 
-			// Handle reacts
-			this.DiscordClient.ReactionAdded += this.OnReactionAddedInventory;
+			// Clear components
+			_ = Task.Run(async () => await this.StopInventoryListener(this.Context));
+		}
 
-			// Add to active windows
-			this.activeInventoryWindows.Add(userMessage.Id, DateTime.Now);
+		[ComponentInteraction("use-inventory-*", true)]
+		public async Task AddedInventory()
+		{
+			string? reaction = null;
 
-			// Clear reacts
-			_ = Task.Run(async () => await this.StopInventoryListener(userMessage));
+			if (this.Context is SocketInteractionContext ctx)
+			{
+				reaction = ctx.SegmentMatches.FirstOrDefault()?.Value;
+			}
+
+			try
+			{
+				var ctxUuser = this.Context.User;
+				var interactionUser = this.Context.Interaction.User;
+
+				// Only handle reacts from the original user, remove the reaction
+				if (ctxUuser != interactionUser)
+				{
+					await this.FollowupAsync("Can only be used by original owner", ephemeral: true);
+					return;
+				}
+
+				// Load shop items
+				List<ShopItem> items = await ShopItemDatabase.LoadAll(new Dictionary<string, object>()
+				{
+					{ "GuildId", this.Context.Guild.Id },
+					{ "Reaction", reaction ?? string.Empty },
+				});
+
+				// Get shop item
+				ShopItem? itemToRedeem = items.FirstOrDefault();
+
+				if (itemToRedeem == null)
+					return;
+
+				// Get user
+				User user = await UserService.GetUser(this.Context.Guild.Id, ctxUuser.Id);
+
+				if (user.Inventory.ContainsKey(itemToRedeem.Name))
+				{
+					// Remove item from inventory
+					await user.UpdateInventory(itemToRedeem.Name, -1);
+
+					// Get the embed and duplicate
+					var data = this.Context.Interaction.Data;
+
+					if (this.Context.Interaction is SocketMessageComponent component)
+					{
+						var message = await this.Context.Channel.GetMessageAsync(component.Message.Id);
+						var embed = message.Embeds.FirstOrDefault();
+
+						EmbedBuilder redeemEmbed = new EmbedBuilder()
+							.WithTitle(embed?.Title)
+							.WithColor(embed?.Color ?? Color.Blue)
+							.WithDescription($"{itemToRedeem.Name} redeemed, _kupo!_");
+
+						// Modify embed and remove components
+						await this.Context.Interaction.ModifyOriginalResponseAsync(x =>
+						{
+							x.Embed = redeemEmbed.Build();
+							x.Components = null;
+						});
+
+						// Get role to mention if added
+						if (ulong.TryParse(itemToRedeem.Role, out ulong itemRoleToMention))
+						{
+							if (itemRoleToMention != 0)
+								await this.Context.Interaction.FollowupAsync($"Please attend to this, <@&{itemToRedeem.Role}>", allowedMentions: AllowedMentions.All);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.Write(ex);
+			}
 		}
 
 		[Command("Shop", Permissions.Everyone, "Spend those hard earned nuts, _kupo!_", CommandCategory.Currency, showWait: false)]
@@ -487,7 +566,11 @@ namespace FC.Bot.Services
 
 		private async void UpdateLastRunTime(CurrencyGame gameType, ulong userId, ulong guildId)
 		{
-			this.LastRunTimeForType(gameType).UpdateOrAdd(guildId, DateTime.Now);
+			var runTimeDictionary = this.LastRunTimeForType(gameType);
+			if (!runTimeDictionary.ContainsKey(guildId))
+				runTimeDictionary.Add(guildId, DateTime.Now);
+			else
+				runTimeDictionary[guildId] = DateTime.Now;
 
 			// Update game count if restricted
 			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(guildId);
@@ -496,7 +579,10 @@ namespace FC.Bot.Services
 				if (!this.userDailyGameCount.TryGetValue(userId, out uint gameCount))
 					gameCount = 0;
 
-				this.userDailyGameCount.UpdateOrAdd(userId, ++gameCount);
+				if (!this.userDailyGameCount.ContainsKey(userId))
+					this.userDailyGameCount.Add(userId, ++gameCount);
+				else
+					this.userDailyGameCount[userId] = ++gameCount;
 			}
 		}
 
@@ -510,96 +596,95 @@ namespace FC.Bot.Services
 			};
 		}
 
-		private async Task<Task> StopInventoryListener(RestUserMessage message)
+		private async Task<Task> StopInventoryListener(IInteractionContext ctx)
 		{
 			// Give the user time to select item
 			await Task.Delay(20000);
 
-			// Remove Reacts
-			await message.RemoveAllReactionsAsync();
-
-			// Clear handler if no more active inventories
-			this.activeInventoryWindows.Remove(message.Id);
-			if (this.activeInventoryWindows.Count == 0)
-				this.DiscordClient.ReactionAdded -= this.OnReactionAddedInventory;
+			// Remove components
+			await ctx.Interaction.ModifyOriginalResponseAsync(x =>
+			{
+				x.Content = Utils.Characters.Space;
+				x.Components = null;
+			});
 
 			return Task.CompletedTask;
 		}
 
-		private async Task OnReactionAddedInventory(Cacheable<IUserMessage, ulong> incomingMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
-		{
-			try
-			{
-				// Don't react to your own reacts!
-				if (reaction.UserId == this.DiscordClient.CurrentUser.Id)
-					return;
+		////private async Task OnReactionAddedInventory(Cacheable<IUserMessage, ulong> incomingMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+		////{
+		////	try
+		////	{
+		////		// Don't react to your own reacts!
+		////		if (reaction.UserId == this.DiscordClient.CurrentUser.Id)
+		////			return;
 
-				// Get message and reference (so we know who the message belongs to)
-				IUserMessage message = await incomingMessage.DownloadAsync();
-				IUserMessage userMessage = message.ReferencedMessage;
+		////		// Get message and reference (so we know who the message belongs to)
+		////		IUserMessage message = await incomingMessage.DownloadAsync();
+		////		IUserMessage userMessage = message.ReferencedMessage;
 
-				// Only handle reacts from the original user, remove the reaction
-				if (userMessage.Author.Id != reaction.UserId)
-				{
-					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-					return;
-				}
+		////		// Only handle reacts from the original user, remove the reaction
+		////		if (userMessage.Author.Id != reaction.UserId)
+		////		{
+		////			await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+		////			return;
+		////		}
 
-				// Load shop items
-				List<ShopItem> items = await ShopItemDatabase.LoadAll(new Dictionary<string, object>()
-				{
-					{ "GuildId", userMessage.GetGuild().Id },
-					{ "Reaction", reaction.Emote.GetString() },
-				});
+		////		// Load shop items
+		////		List<ShopItem> items = await ShopItemDatabase.LoadAll(new Dictionary<string, object>()
+		////		{
+		////			{ "GuildId", userMessage.GetGuild().Id },
+		////			{ "Reaction", reaction.Emote.GetString() },
+		////		});
 
-				// Get shop item
-				ShopItem? itemToRedeem = items.FirstOrDefault();
+		////		// Get shop item
+		////		ShopItem? itemToRedeem = items.FirstOrDefault();
 
-				// Only handle relevant reacts
-				if (itemToRedeem == null)
-				{
-					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
-					return;
-				}
+		////		// Only handle relevant reacts
+		////		if (itemToRedeem == null)
+		////		{
+		////			await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+		////			return;
+		////		}
 
-				if (channel.Value is SocketGuildChannel guildChannel)
-				{
-					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+		////		if (channel.Value is SocketGuildChannel guildChannel)
+		////		{
+		////			await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
 
-					// Get user
-					User user = await UserService.GetUser(userMessage.GetGuild().Id, userMessage.Author.Id);
+		////			// Get user
+		////			User user = await UserService.GetUser(userMessage.GetGuild().Id, userMessage.Author.Id);
 
-					if (user.Inventory.ContainsKey(itemToRedeem.Name))
-					{
-						// Remove item from inventory
-						await user.UpdateInventory(itemToRedeem.Name, -1);
+		////			if (user.Inventory.ContainsKey(itemToRedeem.Name))
+		////			{
+		////				// Remove item from inventory
+		////				await user.UpdateInventory(itemToRedeem.Name, -1);
 
-						// Get the embed and duplicate
-						IEmbed? embed = message.Embeds.FirstOrDefault();
-						EmbedBuilder redeemEmbed = new EmbedBuilder()
-							.WithTitle(embed?.Title)
-							.WithColor(embed?.Color ?? Color.Blue)
-							.WithDescription($"{itemToRedeem.Name} redeemed, _kupo!_");
+		////				// Get the embed and duplicate
+		////				IEmbed? embed = message.Embeds.FirstOrDefault();
+		////				EmbedBuilder redeemEmbed = new EmbedBuilder()
+		////					.WithTitle(embed?.Title)
+		////					.WithColor(embed?.Color ?? Color.Blue)
+		////					.WithDescription($"{itemToRedeem.Name} redeemed, _kupo!_");
 
-						// Modify embed and remove reactions
-						await message.ModifyAsync(x => x.Embed = redeemEmbed.Build());
-						await message.RemoveAllReactionsAsync();
+		////				// Modify embed and remove reactions
+		////				await message.ModifyAsync(x => x.Embed = redeemEmbed.Build());
+		////				await message.RemoveAllReactionsAsync();
 
-						// Get role to mention if added
-						string mentionedRole = string.Empty;
-						if (ulong.TryParse(itemToRedeem.Role, out ulong itemRoleToMention))
-						{
-							if (itemRoleToMention != 0)
-								await message.Channel.SendMessageAsync($"Please attend to this, <@&{itemToRedeem.Role}>", allowedMentions: AllowedMentions.All);
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Log.Write(ex);
-			}
-		}
+		////				// Get role to mention if added
+		////				string mentionedRole = string.Empty;
+		////				if (ulong.TryParse(itemToRedeem.Role, out ulong itemRoleToMention))
+		////				{
+		////					if (itemRoleToMention != 0)
+		////						await message.Channel.SendMessageAsync($"Please attend to this, <@&{itemToRedeem.Role}>", allowedMentions: AllowedMentions.All);
+		////				}
+		////			}
+		////		}
+		////	}
+		////	catch (Exception ex)
+		////	{
+		////		Log.Write(ex);
+		////	}
+		////}
 
 		private async Task OnMessageReceived(SocketMessage message)
 		{
