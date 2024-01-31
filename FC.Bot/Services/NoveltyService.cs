@@ -100,8 +100,9 @@ namespace FC.Bot.Services
 
 			if (this.Context.Channel is SocketGuildChannel guildChannel)
 			{
-				int val = new Random().Next(guildChannel.Guild.Users.Count);
-				IGuildUser target = guildChannel.Guild.Users.ElementAt(val);
+				var users = guildChannel.Guild.Users.Where(x => x.Nickname != null);
+				int val = new Random().Next(users.Count());
+				IGuildUser target = users.ElementAt(val);
 
 				if (target.Id == this.DiscordClient.CurrentUser.Id)
 				{
