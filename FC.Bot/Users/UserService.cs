@@ -64,7 +64,7 @@ namespace FC.Bot.Services
 			if (instance == null)
 				throw new Exception("Attempt to access user service before it is initialized");
 
-			Dictionary<string, object> filters = new Dictionary<string, object>()
+			Dictionary<string, object> filters = new ()
 			{
 				{ "DiscordGuildId", guildId },
 			};
