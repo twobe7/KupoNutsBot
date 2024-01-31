@@ -10,19 +10,20 @@ namespace FC.Bot.RPG
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Bot.Characters;
-	using FC.Bot.Commands;
 	using FC.Bot.Services;
 
+	[Group("rpg", "Profile games")]
 	public class RPGService : ServiceBase
 	{
 		public readonly DiscordSocketClient DiscordClient;
 
 		private const double GenerationChance = 0.2;
 
-		private readonly List<ulong> blockedChannels = new List<ulong>()
+		private readonly List<ulong> blockedChannels = new ()
 		{
 			837682896805691473,
 			838350357074935838,
@@ -48,42 +49,42 @@ namespace FC.Bot.RPG
 			return base.Shutdown();
 		}
 
-		[Command("Level", Permissions.Everyone, "Shows your level and current xp", CommandCategory.Novelty)]
-		public async Task<Embed> ShowUserLevel(CommandMessage message)
+		[SlashCommand("level", "Shows your level and current xp")]
+		public async Task ShowUserLevel()
 		{
+			await this.DeferAsync();
+
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
 			// Get user information
-			User user = await UserService.GetUser(message.Author);
-			string userName = message.Author.GetName();
+			User user = await UserService.GetUser(guildUser);
+			string userName = guildUser.GetName();
 
-			EmbedBuilder builder = new EmbedBuilder
-			{
-				Title = userName + "'s Level",
-			};
+			EmbedBuilder builder = new EmbedBuilder()
+				.WithTitle($"{userName}'s Level");
 
-			StringBuilder description = new StringBuilder();
-			description.AppendLine("Current Level: " + user.Level);
-			description.AppendLine("Total EXP: " + user.TotalXPCurrent);
+			StringBuilder description = new StringBuilder()
+				.AppendLine("Current Level: " + user.Level)
+				.AppendLine("Total EXP: " + user.TotalXPCurrent);
 			builder.Description = description.ToString();
 
-			// Remove calling command
-			await message.DeleteMessage();
-
-			return builder.Build();
+			await this.FollowupAsync(embeds: new Embed[] { builder.Build() });
 		}
 
-		[Command("Levels", Permissions.Everyone, "Shows the level leaderboards", CommandCategory.Novelty)]
-		public async Task<Embed> ShowLevelLeaders(CommandMessage message)
+		[SlashCommand("levels", "Shows the level leaderboards")]
+		public async Task ShowLevelLeaders()
 		{
-			IGuild guild = message.Guild;
+			await this.DeferAsync();
 
-			List<User> users = await UserService.GetAllUsersForGuild(guild.Id);
+			List<User> users = await UserService.GetAllUsersForGuild(this.Context.Guild.Id);
 
 			users.Sort((User a, User b) =>
 			{
 				return -a.TotalXPCurrent.CompareTo(b.TotalXPCurrent);
 			});
 
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new ();
 
 			int count = 1;
 			foreach (User user in users)
@@ -94,42 +95,39 @@ namespace FC.Bot.RPG
 				if (user.Id == null)
 					continue;
 
-				IGuildUser discordUser = await guild.GetUserAsync(user.DiscordUserId);
+				IGuildUser discordUser = await this.Context.Guild.GetUserAsync(user.DiscordUserId);
 
 				if (discordUser == null)
 					continue;
 
-				builder.AppendLine("> " + count + ". " + discordUser.GetName());
-				builder.AppendLine("> Level: **" + user.Level + "** (" + user.TotalXPCurrent + " xp)");
+				builder.AppendLine($"> {count}. {discordUser.GetName()}");
+				builder.AppendLine($"> Level: **{user.Level}** ({user.TotalXPCurrent} xp)");
 				builder.AppendLine();
 
 				count++;
 			}
 
-			EmbedBuilder embedBuilder = new EmbedBuilder
-			{
-				Title = "Level Leaderboard",
-				Description = builder.ToString(),
-				Color = Color.Blue,
-			};
-			return embedBuilder.Build();
+			EmbedBuilder embedBuilder = new EmbedBuilder()
+				.WithTitle("Level Leaderboard")
+				.WithDescription(builder.ToString())
+				.WithColor(Color.Blue);
+
+			await this.FollowupAsync(embeds: new Embed[] { embedBuilder.Build() });
 		}
 
-		[Command("RL", Permissions.Everyone, "Shows the reputation leaderboards", CommandCategory.Novelty, "ReputationLeaderboard")]
-		[Command("RepLeaderboard", Permissions.Everyone, "Shows the reputation leaderboards", CommandCategory.Novelty, "ReputationLeaderboard")]
-		[Command("ReputationLeaderboard", Permissions.Everyone, "Shows the reputation leaderboards", CommandCategory.Novelty)]
-		public async Task<Embed> ShowRepLeaders(CommandMessage message)
+		[SlashCommand("reputation-leaderboard", "Shows the reputation leaderboards")]
+		public async Task ShowRepLeaders()
 		{
-			IGuild guild = message.Guild;
+			await this.DeferAsync();
 
-			List<User> users = await UserService.GetAllUsersForGuild(guild.Id);
+			List<User> users = await UserService.GetAllUsersForGuild(this.Context.Guild.Id);
 
 			users.Sort((User a, User b) =>
 			{
 				return -a.Reputation.CompareTo(b.Reputation);
 			});
 
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new ();
 
 			int count = 1;
 			foreach (User user in users)
@@ -140,31 +138,31 @@ namespace FC.Bot.RPG
 				if (user.Id == null)
 					continue;
 
-				IGuildUser discordUser = await guild.GetUserAsync(user.DiscordUserId);
+				IGuildUser discordUser = await this.Context.Guild.GetUserAsync(user.DiscordUserId);
 
 				if (discordUser == null)
 					continue;
 
-				builder.AppendLine("> " + count + ". " + discordUser.GetName());
-				builder.AppendLine("> Reputation: **" + user.Reputation + "**");
+				builder.AppendLine($"> {count}. {discordUser.GetName()}");
+				builder.AppendLine($"> Reputation: **{user.Reputation}**");
 				builder.AppendLine();
 
 				count++;
 			}
 
-			EmbedBuilder embedBuilder = new EmbedBuilder
-			{
-				Title = "Reputation Leaderboard",
-				Description = builder.ToString(),
-				Color = Color.Blue,
-			};
-			return embedBuilder.Build();
+			EmbedBuilder embedBuilder = new EmbedBuilder()
+				.WithTitle("Reputation Leaderboard")
+				.WithDescription(builder.ToString())
+				.WithColor(Color.Blue);
+
+			await this.FollowupAsync(embeds: new Embed[] { embedBuilder.Build() });
 		}
 
-		[Command("Rep", Permissions.Everyone, "Show someone you think they're neat.", CommandCategory.Novelty, "GiveRep")]
-		[Command("GiveRep", Permissions.Everyone, "Show someone you think they're neat.", CommandCategory.Novelty)]
-		public async Task GiveReputation(CommandMessage message, IGuildUser user)
+		[SlashCommand("give-rep", "Show someone you think they're neat.")]
+		public async Task GiveReputation(SocketGuildUser user)
 		{
+			await this.DeferAsync();
+
 			// Handle bots
 			if (user.IsBot)
 			{
@@ -173,33 +171,36 @@ namespace FC.Bot.RPG
 					? string.Format("I think you're pretty neat too, _kupo!_")
 					: string.Format("They wouldn't understand...");
 
-				await message.Channel.SendMessageAsync(botMessage, messageReference: message.MessageReference);
+				await this.FollowupAsync(botMessage);
 				return;
 			}
 
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
 			// Get leaderboard settings
-			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(message.Guild.Id);
+			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(this.Context.Guild.Id);
 
 			if (settings.ReputationAddRole == "0")
 			{
 				// Rep disabled on server
-				await message.Channel.SendMessageAsync("Rep has been disabled by Server Admin", messageReference: message.MessageReference);
+				await this.FollowupAsync("Rep has been disabled by Server Admin");
 				return;
 			}
 			else if (settings.ReputationAddRole != "1")
 			{
 				// Rep role required to add
-				if (ulong.TryParse(settings.ReputationAddRole, out ulong repRole) && !message.Author.RoleIds.Contains(repRole))
+				if (ulong.TryParse(settings.ReputationAddRole, out ulong repRole) && !guildUser.RoleIds.Contains(repRole))
 				{
 					// Rep Role required to add not assigned to user
-					await message.Channel.SendMessageAsync("You do not have permission to add Rep.", messageReference: message.MessageReference);
+					await this.FollowupAsync("You do not have permission to add Rep.");
 					return;
 				}
 			}
 
 			// Get sending user information
-			User fromUser = await UserService.GetUser(message.Author);
-			string fromUserName = message.Author.GetName();
+			User fromUser = await UserService.GetUser(guildUser);
+			string fromUserName = guildUser.GetName();
 
 			// Get receiving user information
 			User toUser = await UserService.GetUser(user);
@@ -239,68 +240,47 @@ namespace FC.Bot.RPG
 				postBackMessage = "You have already given your rep today!";
 			}
 
-			await message.Channel.SendMessageAsync(postBackMessage, messageReference: message.MessageReference);
-			return;
+			await this.FollowupAsync(postBackMessage);
 		}
 
-		[Command("Rep", Permissions.Everyone, "Show someone you think they're neat.", CommandCategory.Novelty, "GiveRep")]
-		[Command("GiveRep", Permissions.Everyone, "Show someone you think they're neat.", CommandCategory.Novelty)]
-		public async Task GiveReputationByUserString(CommandMessage message, string user)
+		[SlashCommand("remove-rep", "Removes Rep from User.")]
+		public async Task RemoveReputation(SocketGuildUser user)
 		{
-			// Get guild users by name
-			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
+			await this.DeferAsync();
 
-			if (userToRep.Count == 1)
-			{
-				await this.GiveReputation(message, userToRep.First());
-			}
-			else
-			{
-				RestUserMessage response = await message.Channel.SendMessageAsync("I'm sorry, I'm not sure who you mean. Try mentioning them, _kupo!_", messageReference: message.MessageReference);
-
-				// Wait, then delete both messages
-				await Task.Delay(2000);
-
-				await message.Channel.DeleteMessageAsync(response.Id);
-				await message.Channel.DeleteMessageAsync(message.Id);
-			}
-
-			return;
-		}
-
-		[Command("RemoveRep", Permissions.Everyone, "Removes Rep from User.", CommandCategory.Novelty)]
-		public async Task RemoveReputation(CommandMessage message, IGuildUser user)
-		{
 			// Handle bots
 			if (user.IsBot)
 			{
-				await message.Channel.SendMessageAsync("Bots cannot gain reputation.", messageReference: message.MessageReference);
+				await this.FollowupAsync("Bots cannot gain reputation.");
 				return;
 			}
 
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
 			// Get leaderboard settings
-			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(message.Guild.Id);
+			LeaderboardSettings settings = await LeaderboardSettingsService.GetSettings<LeaderboardSettings>(this.Context.Guild.Id);
 
 			if (settings.ReputationRemoveRole == "0")
 			{
 				// Rep disabled on server
-				await message.Channel.SendMessageAsync("Rep Removal has been disabled by Server Admin", messageReference: message.MessageReference);
+				await this.FollowupAsync("Rep Removal has been disabled by Server Admin");
 				return;
 			}
 			else if (settings.ReputationRemoveRole != "1")
 			{
 				// Rep role required to remove
-				if (ulong.TryParse(settings.ReputationRemoveRole, out ulong repRole) && !message.Author.RoleIds.Contains(repRole))
+				if (ulong.TryParse(settings.ReputationRemoveRole, out ulong repRole) && !guildUser.RoleIds.Contains(repRole))
 				{
 					// Rep Role required to remove not assigned to user
-					await message.Channel.SendMessageAsync("You do not have permission to remove Rep.", messageReference: message.MessageReference);
+					await this.FollowupAsync("You do not have permission to remove Rep.");
 					return;
 				}
 			}
 
 			// Get sending user information
-			User fromUser = await UserService.GetUser(message.Author);
-			string fromUserName = message.Author.GetName();
+			User fromUser = await UserService.GetUser(guildUser);
+			string fromUserName = guildUser.GetName();
 
 			// Get receiving user information
 			User toUser = await UserService.GetUser(user);
@@ -322,44 +302,23 @@ namespace FC.Bot.RPG
 				postBackMessage = $"Hey {toUserName}, {fromUserName} thinks you've done bad, _kupo!_\nYour rep is now: {toUser.Reputation}";
 			}
 
-			await message.Channel.SendMessageAsync(postBackMessage, messageReference: message.MessageReference);
-			return;
+			await this.FollowupAsync(postBackMessage);
 		}
 
-		[Command("RemoveRep", Permissions.Everyone, "Removes Rep from User.", CommandCategory.Novelty)]
-		public async Task RemoveReputationByUserString(CommandMessage message, string user)
+		[SlashCommand("profile", "View your profile.")]
+		public async Task ShowProfile()
 		{
-			// Get guild users by name
-			List<IGuildUser> userToRep = await UserService.GetUsersByNickName(message.Guild, user);
+			await this.DeferAsync();
 
-			if (userToRep.Count == 1)
-			{
-				await this.RemoveReputation(message, userToRep.First());
-			}
-			else
-			{
-				RestUserMessage response = await message.Channel.SendMessageAsync("I'm sorry, I'm not sure who you mean. Try mentioning them, _kupo!_", messageReference: message.MessageReference);
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
 
-				// Wait, then delete both messages
-				await Task.Delay(2000);
+			User user = await UserService.GetUser(guildUser);
 
-				await message.Channel.DeleteMessageAsync(response.Id);
-				await message.Channel.DeleteMessageAsync(message.Id);
-			}
-
-			return;
-		}
-
-		[Command("Profile", Permissions.Everyone, "View your profile.", CommandCategory.Novelty)]
-		public async Task<Embed> ShowProfile(CommandMessage message)
-		{
-			EmbedBuilder embed = new EmbedBuilder();
-
-			User user = await UserService.GetUser(message.Author);
-
-			embed.Title = message.Author.GetName();
-			embed.ThumbnailUrl = message.Author.GetAvatarUrl();
-			embed.Color = Color.Teal;
+			EmbedBuilder embed = new EmbedBuilder()
+				.WithTitle(guildUser.GetName())
+				.WithThumbnailUrl(guildUser.GetAvatarUrl())
+				.WithColor(Color.Teal);
 
 			// Default character
 			User.Character? defaultCharacter = user.GetDefaultCharacter();
@@ -368,38 +327,38 @@ namespace FC.Bot.RPG
 				// Character
 				EmbedFieldBuilder character = new EmbedFieldBuilder()
 					.WithName("Default Character")
-					.WithValue("**" + defaultCharacter.CharacterName + "**");
+					.WithValue($"**{defaultCharacter.CharacterName}**");
 				embed.AddField(character);
 			}
 
 			// Nuts
 			EmbedFieldBuilder nuts = new EmbedFieldBuilder()
 				.WithName("Nuts")
-				.WithValue("**" + user.TotalKupoNutsCurrent + "** (Total Held: " + user.TotalKupoNutsReceived + ")");
+				.WithValue($"**{user.TotalKupoNutsCurrent}** (Total Held: {user.TotalKupoNutsReceived})");
 			embed.AddField(nuts);
 
 			// Level
 			EmbedFieldBuilder level = new EmbedFieldBuilder()
 				.WithName("Level")
-				.WithValue("**" + user.Level + "** (Total XP: " + user.TotalXPCurrent + ")");
+				.WithValue($"**{user.Level}** (Total XP: {user.TotalXPCurrent})");
 			embed.AddField(level);
 
 			// Rep
 			EmbedFieldBuilder rep = new EmbedFieldBuilder()
 				.WithName("Reputation")
-				.WithValue("**" + user.Reputation + "**");
+				.WithValue($"**{user.Reputation}**");
 			embed.AddField(rep);
 
 			// Joined At
 			EmbedFieldBuilder joined = new EmbedFieldBuilder()
 				.WithName("Joined")
-				.WithValue(message.Author.JoinedAt?.ToString("dd MMM yy") + " (" + (DateTime.Now.Date - (message.Author?.JoinedAt?.Date ?? DateTime.Now.Date)).TotalDays + " days ago)");
+				.WithValue($"{guildUser.JoinedAt?.ToString("dd MMM yy")} ({(DateTime.Now.Date - (guildUser.JoinedAt?.Date ?? DateTime.Now.Date)).TotalDays} days ago)");
 			embed.AddField(joined);
 
-			return embed.Build();
+			await this.FollowupAsync(embeds: new Embed[] { embed.Build() });
 		}
 
-		private async void GainXP(User user, int? xpGained = null)
+		private static async void GainXP(User user, int? xpGained = null)
 		{
 			// Add gained XP provided or generate random XP
 			user.TotalXPCurrent += xpGained ?? new Random().Next(1, 5);
@@ -434,7 +393,7 @@ namespace FC.Bot.RPG
 							Log.Write(toUser.GetName() + " Gained XP with message: \"" + message.Content + "\"", "Bot");
 
 							User user = await UserService.GetUser(toUser);
-							this.GainXP(user);
+							GainXP(user);
 						}
 					}
 				});
