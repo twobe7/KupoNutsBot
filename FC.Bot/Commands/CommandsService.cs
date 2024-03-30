@@ -414,7 +414,7 @@ namespace FC.Bot.Commands
 				IUserMessage sentMessage = await message.Channel.SendMessageAsync("I'm sorry, I didn't understand that command.");
 
 				// Clear user and bot message
-				_ = this.ClearSentMessage(message.Message);
+				////_ = this.ClearSentMessage(message.Message);
 				_ = this.ClearSentMessage(sentMessage);
 			}
 		}
