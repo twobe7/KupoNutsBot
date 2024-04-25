@@ -1,0 +1,135 @@
+﻿@using FC.Manager.Web.Drawers;
+@inherits DrawerBase
+
+<style>
+	.multiselect-ul {
+		border-style: solid;
+		border-radius: 5px;
+		background-color: #3b4147;
+		overflow: auto;
+		min-height: 300px;
+		max-height: 600px;
+	}
+	.selectable-ul {
+		list-style-type: none;
+	}
+</style>
+
+<div class="form-group col-md-12 mt-5">
+	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+
+	<div class="row">
+		<div class="col-md-6">
+			<label>Not Selected</label>
+			<div class="multiselect-ul">
+				<ul class="selectable-ul">
+					@foreach (var item in NoSelected)
+					{
+						<li @onclick="@(() => Select(item))">@item.Value</li>
+					}
+				</ul>
+			</div>
+			
+		</div>
+		@*<div class="col-md-2"> class="multiple-selector"
+			<div class="multiple-selector-buttons">
+				<button type="button" @onclick="SelectAll">>></button>
+				<button type="button" @onclick="DeselectAll">@removeAllText</button>
+			</div>
+		</div>*@
+		<div class="col-md-6">
+			<label>Selected</label>
+			<div class="multiselect-ul">
+				<ul class="selectable-ul">
+					@foreach (var item in Selected)
+					{
+						<li @onclick="@(() => Deselect(item))">@item.Value</li>
+					}
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public List<KeyValuePair<string, string>> NoSelected { get; set; } = new List<KeyValuePair<string, string>>();
+
+	[Parameter]
+	public List<KeyValuePair<string, string>> Selected { get; set; } = new List<KeyValuePair<string, string>>();
+
+	public List<TimeZoneInfo> TimeZoneList { get; set; } = TimeZoneInfo.GetSystemTimeZones().ToList();
+
+	// Special case since we use an attribute for this drawer.
+	// we should consider adding a custom type for Channels.
+	public override bool CanEdit(Type type)
+	{
+		return false;
+	}
+
+	protected override Task OnInitializedAsync()
+	{
+		List<string> selected = this.GetValue<List<string>>();
+
+		foreach (TimeZoneInfo tz in TimeZoneList)
+		{
+			if (selected.Contains(tz.Id))
+			{
+				this.Selected.Add(new KeyValuePair<string, string>(tz.Id, tz.DisplayName));
+			}
+			else
+			{
+				this.NoSelected.Add(new KeyValuePair<string, string>(tz.Id, tz.DisplayName));
+			}
+
+		}
+
+		return Task.CompletedTask;
+	}
+
+	private void Select(KeyValuePair<string, string> item)
+	{
+		NoSelected.Remove(item);
+		Selected.Add(item);
+
+		this.OnChanged();
+	}
+
+	private void Deselect(KeyValuePair<string, string> item)
+	{
+		Selected.Remove(item);
+		NoSelected.Add(item);
+
+		this.OnChanged();
+	}
+
+	private void SelectAll()
+	{
+		Selected.AddRange(NoSelected);
+		NoSelected.Clear();
+
+		this.OnChanged();
+	}
+
+	private void DeselectAll()
+	{
+		NoSelected.AddRange(Selected);
+		Selected.Clear();
+
+		this.OnChanged();
+	}
+
+	protected void OnChanged()
+	{
+		List<string> selected = new List<string>();
+
+		foreach (var item in this.Selected)
+		{
+			selected.Add(item.Key);
+		}
+		
+
+		this.SetValue(selected);
+	}
+}

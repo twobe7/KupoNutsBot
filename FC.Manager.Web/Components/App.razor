@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kupo Nuts Manager</title>
+
+    <base href="/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="FC.Manager.Web.styles.css" />
+    <link rel="stylesheet" href="css/site.css" />
+    <link rel="stylesheet" href="css/custom.css" />
+    <link rel="stylesheet" href="css/blazored-modal.css" />
+    <link rel="icon" type="image/png" href="img/favicon.png" sizes="32x32">
+    <HeadOutlet />
+</head>
+
+<body style="background-color:#212529">
+    <Routes @rendermode="@InteractiveServer" />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>
+
+<style>
+    .fade {
+        transition: opacity .5s linear;
+    }
+</style>
+
+<script>
+    setTitle = (title) => { document.title = title; };
+    testLog = () => { console.log("Test Completed"); };
+</script>

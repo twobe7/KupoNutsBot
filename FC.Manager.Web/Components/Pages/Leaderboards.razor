@@ -1,0 +1,175 @@
+﻿@page "/leaderboards"
+@using FC.Manager.Web.Components.Modal
+@using FC.Manager.Web.Services
+@using FC.Utils;
+@using NodaTime;
+@using System.Globalization;
+@using RPC;
+
+@inject NavigationManager NavigationManager
+@inject GuildService guildService
+@inject LeaderboardSettingsService leaderboardSettingsService
+
+@rendermode InteractiveServer
+
+@if (this.AllUsers == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+<div class="wrapper w-75">
+
+	<div class="pt-5 d-flex justify-content-between">
+		<h3 class="text-white">Nuts</h3>
+
+		@if (RPCService.CanManageGuild)
+		{
+			<button type="button" class="btn btn-danger btn-sm mb-2" @onclick="this.ResetNuts">Reset All Nuts</button>
+		}
+	</div>
+	
+	<table class="table table-dark">
+		<thead>
+			<tr>
+				<th width="50%">Name</th>
+				<th>Nuts</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.Nuts).Take(10))
+			{
+				<tr class="table-clickable">
+					<td>@user.Name</td>
+					<td>@user.Nuts</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+	<h3 class="mt-5 text-white">Levels</h3>
+	<table class="table table-dark">
+		<thead>
+			<tr>
+				<th width="50%">Name</th>
+				<th>Total XP</th>
+				<th>Level</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.TotalXPCurrent).Take(10))
+			{
+				<tr class="table-clickable">
+					<td>@user.Name</td>
+					<td>@user.TotalXPCurrent</td>
+					<td>@user.Level</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+	<h3 class="mt-5 text-white">Reputation</h3>
+	<table class="table table-dark">
+		<thead>
+			<tr>
+				<th width="50%">Name</th>
+				<th>Reputation</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (GuildUser user in this.AllUsers.OrderByDescending(x => x.Rep).Take(10))
+			{
+				<tr class="table-clickable">
+					<td>@user.Name</td>
+					<td>@user.Rep</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+	<div class="push"></div>
+</div>
+	<div class="footer">
+		<div class="footer-content">
+			@if (RPCService.CanManageGuild)
+			{
+				<button class="btn btn-secondary" @onclick="this.OnSettings">Settings</button>
+			}
+		</div>
+	</div>
+}
+
+@code {
+
+	[CascadingParameter] IModalService ModalService { get; set; } = default!;
+
+	public List<GuildUser> AllUsers;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (!Authentication.IsAuthenticated)
+		{
+			this.NavigationManager.NavigateTo("/");
+			return;
+		}
+
+		await base.OnInitializedAsync();
+
+		this.AllUsers = await guildService.GetGuildUsers();
+	}
+
+	protected async Task ResetNuts()
+	{
+		var parameters = new ModalParameters()
+			.Add(nameof(Confirm.Message), "Are you sure you wish to reset all user's Kupo Nuts back to 0?")
+			.Add(nameof(Confirm.ConfirmText), "Reset")
+			.Add(nameof(Confirm.IsDanger), true);
+
+		var modal = ModalService.Show<Confirm>("Reset Kupo Nuts", parameters);
+		var result = await modal.Result;
+
+		if (result.Confirmed)
+		{
+			guildService.ResetGuildUserNuts(RPCService.GuildId);
+			this.AllUsers = await guildService.GetGuildUsers();
+			this.StateHasChanged();
+		}
+	}
+
+	////protected async void OnEdit(GuildUser user)
+	////{
+	////	ModalParameters parameters = new ModalParameters();
+	////	parameters.Add("User", user);
+
+	////	await Modal.Show<ShopItemEditor>("Edit Shop Item", item);
+	////	this.AllShopItems = await RPCService.Invoke<List<ShopItem>>("ShopService.GetShopItems");
+	////	this.StateHasChanged();
+	////}
+
+	////protected void OnCreateNew()
+	////{
+	////	ShopItem item = new ShopItem();
+	////	item.Id = Guid.NewGuid().ToString();
+	////	OnEdit(item);
+	////}
+
+	protected async Task OnSettings()
+	{
+		LeaderboardSettings settings = await leaderboardSettingsService.GetSettings(RPCService.GuildId);
+
+		var parameters = new ModalParameters()
+			.Add(nameof(SettingsModal.ReturnData), settings);
+
+		var modal = ModalService.Show<SettingsModal>(
+			SettingsModal.GetTitle(typeof(LeaderboardSettings)),
+			parameters,
+			new ModalOptions() { Size = ModalSize.Large });
+
+		var result = await modal.Result;
+
+		if (result.Confirmed)
+		{
+			await leaderboardSettingsService.SaveSettings(RPCService.GuildId, settings);
+		}
+	}
+}

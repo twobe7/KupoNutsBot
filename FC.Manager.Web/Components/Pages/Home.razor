@@ -1,0 +1,141 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject IJSRuntime jsRuntime
+@inject AuthenticationService authenticationService
+@inject DiscordService discordService
+@inject GuildService guildService
+@inject SettingsService settingsService
+@inject IToastService toastService
+
+@rendermode InteractiveServer
+
+@using System.Text;
+@using Blazored.Toast.Services
+@using FC.Manager.Web.RPC;
+@using FC.Manager.Web.Services
+@using Microsoft.JSInterop
+
+<div style="margin: 1rem">
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-12">
+			<label class="text-white">Welcome</label>
+		</div>
+
+		@if (!Authentication.IsAuthenticated)
+		{
+			<div class="form-group col-md-12">
+				<Button class="btn btn-light nav-link" style="width:100%" @onclick="this.OnSignIn">
+					<span class="oi oi-account-login" aria-hidden="true"></span> Sign In With Discord
+				</Button>
+			</div>
+		}
+		else if (!IsInGuild)
+		{
+			<div class="form-group col-md-12">
+				<Button class="btn btn-light nav-link" style="width:100%" @onclick="this.OnAddtoServer">
+					<span class="oi oi-plus" aria-hidden="true"></span> Add Kupo Nuts to your server
+				</Button>
+			</div>
+		}
+		else if (!RPCService.CanManageGuild)
+		{
+			<div class="form-group col-md-12"></div>
+		}
+		else
+		{
+			<div class="content-box">
+				<div class="form-group col-md-12 d-flex align-items-end justify-content-end">
+					<button id="btnSaveSettings" class="btn btn-primary" @onclick="@OnSaveSettings">Save</button>
+				</div>
+
+				@foreach (RenderFragment frag in this.SettingsFragments)
+				{
+					@frag
+					;
+				}
+			</div>
+		}
+	</div>
+</div>
+
+@code
+{
+	private GuildSettings? settings;
+
+	public bool IsInGuild
+	{
+		get;
+		set;
+	}
+
+	public List<RenderFragment> SettingsFragments { get; set; } = new List<RenderFragment>();
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+#if DEBUG
+	await jsRuntime.InvokeVoidAsync("setTitle", "Kupo Nuts - Dev");
+#else
+		await jsRuntime.InvokeVoidAsync("setTitle", "Kupo Nuts Manager");
+#endif
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.IsInGuild = false;
+
+		if (!Authentication.IsAuthenticated)
+			return;
+
+		this.IsInGuild = guildService.IsInGuild(RPCService.GuildId);
+		await base.OnInitializedAsync();
+
+		if (!IsInGuild)
+			return;
+
+		this.settings = await guildService.GetSettings(RPCService.GuildId);
+		this.SettingsFragments = Inspector.GetFragments(this.settings);
+	}
+
+	private void OnAddtoServer()
+	{
+		string clientId = authenticationService.GetDiscordKey();
+
+		if (string.IsNullOrEmpty(clientId))
+			throw new Exception("No Client Id");
+
+		StringBuilder urlBuilder = new StringBuilder()
+			.Append("https://discordapp.com/api/oauth2/authorize")
+			.Append($"?client_id={clientId}")
+			.Append("&permissions=8") // admin
+			.Append($"&redirect_uri={NavigationManager.Uri}OAuth")
+			.Append("&scope=bot");
+
+		NavigationManager.NavigateTo(urlBuilder.ToString());
+	}
+
+	private void OnSignIn()
+	{
+		string clientId = authenticationService.GetDiscordKey();
+
+		StringBuilder urlBuilder = new StringBuilder()
+			.Append("https://discordapp.com/api/oauth2/authorize")
+			.Append("?response_type=code")
+			.Append($"&client_id={clientId}")
+			.Append($"&scope={Authentication.DiscordScopes}")
+			.Append($"&redirect_uri={NavigationManager.Uri}OAuth")
+			.Append("&prompt=none");
+
+		NavigationManager.NavigateTo(urlBuilder.ToString());
+	}
+
+	private async void OnSaveSettings()
+	{
+		if (this.settings == null)
+			return;
+
+		await guildService.SetSettings(RPCService.GuildId, this.settings);
+		toastService.ShowSuccess("Settings Saved!");
+	}
+}

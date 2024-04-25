@@ -1,0 +1,168 @@
+﻿@page "/reactionrole"
+
+@using FC.Manager.Web.Components.Modal
+@using FC.ReactionRoles;
+@using FC.Utils;
+@using NodaTime;
+@using System.Globalization;
+@using RPC;
+
+@inject NavigationManager NavigationManager
+@inject GuildService guildService
+@inject EmoteService emoteService
+@inject ReactionRoleService reactionRoleService
+
+@rendermode InteractiveServer
+
+@if (this.AllReactionRoleItems == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<div class="wrapper">
+		<div class="container">
+			<div class="row pt-5">
+				<h4 class="text-light">Reaction Roles</h4>
+			</div>
+			@foreach (ReactionRoles.ReactionRole rr in this.AllReactionRoleItems)
+			{
+				<div class="row box-row-rounded">
+					<div class="col-sm-12">
+						<div class="row pt-2 pb-3">
+							<div class="col-sm-8">
+								@rr.Name
+							</div>
+							<div class="col-sm-4">
+								<button id="btnEditReactionRole" class="btn btn-primary" @onclick="() => this.OnEditRole(rr)">Edit</button>
+								<button id="btnAddReactionItem" class="btn btn-primary" @onclick="() => this.OnCreateItem(rr.Id)">Add</button>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								@{ int elementCount = 0; }
+								@foreach (ReactionRoles.ReactionRoleItem item in rr.Reactions)
+								{
+									<span class="box-item-rounded">
+										@item.RoleName
+										@(item.IsStandard ? (MarkupString)item.ReactionEmote.Name : (MarkupString)("<img src='" + item.Url + "' height='40' />"))
+										<button id="btnEditReactionItem" class="btn btn-primary" @onclick="() => this.OnEditItem(item)"><span class="oi oi-cog" aria-hidden="true"></span></button>
+										<button id="btnDeleteReactionItem" class="btn btn-danger" @onclick="() => this.OnDeleteItem(item)"><span class="oi oi-minus" aria-hidden="true"></span></button>
+									</span>
+
+									@(++elementCount % 4 == 0 ? (MarkupString)"<br/><br/>" : (MarkupString)"");
+								}
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+
+		<div class="push"></div>
+	</div>
+	<div class="footer">
+		<div class="footer-content">
+			<button class="btn btn-primary" @onclick="this.OnCreateRole">New</button>
+		</div>
+	</div>
+}
+
+@code {
+	[CascadingParameter] IModalService ModalService { get; set; } = default!;
+
+	public List<ReactionRoles.ReactionRole> AllReactionRoleItems;
+	public List<Emote> AllEmotes { get; set; } = new List<Emote>();
+	public List<Role> AllRoles { get; set; } = new List<Role>() { new Role(0, "None") };
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (!Authentication.IsAuthenticated)
+		{
+			this.NavigationManager.NavigateTo("/");
+			return;
+		}
+
+		await base.OnInitializedAsync();
+
+		this.AllReactionRoleItems = await reactionRoleService.GetReactionRoles(RPCService.GuildId);
+
+		// Get Emotes
+		this.AllEmotes.AddRange(Emotes.GetEmotes(emoteService));
+
+		// Get Roles
+		this.AllRoles.AddRange(Roles.GetRoles(guildService));
+	}
+
+	private async Task RefetchReactionRoles()
+		=> this.AllReactionRoleItems = await reactionRoleService.GetReactionRoles(RPCService.GuildId);
+
+	protected async Task OnEditRole(ReactionRoles.ReactionRole item)
+	{
+		ModalParameters parameters = new ModalParameters()
+			.Add(nameof(ReactionRoleEditor.ReactionRole), item);
+
+		var modal = ModalService.Show<ReactionRoleEditor>("Edit Reaction Role", parameters);
+		var response = await modal.Result;
+
+		if (response.Confirmed)
+		{
+			await RefetchReactionRoles();
+			this.StateHasChanged();
+		}
+	}
+
+	protected async Task OnEditItem(ReactionRoles.ReactionRoleItem item)
+	{
+		ModalParameters parameters = new ModalParameters()
+			.Add(nameof(ReactionItemEditor.Item), item)
+			.Add(nameof(ReactionItemEditor.EmoteList), this.AllEmotes)
+			.Add(nameof(ReactionItemEditor.RoleList), this.AllRoles);
+
+		var modal = ModalService.Show<ReactionItemEditor>("Edit Reaction Item", parameters);
+		var response = await modal.Result;
+
+		if (response.Confirmed)
+		{
+			await RefetchReactionRoles();
+			this.StateHasChanged();
+		}
+	}
+
+	protected void OnCreateItem(string reactionRoleId)
+	{
+		ReactionRoles.ReactionRoleItem item = new ReactionRoles.ReactionRoleItem()
+		{
+			Id = Guid.NewGuid().ToString(),
+			ReactionRoleId = reactionRoleId,
+		};
+
+		_ = OnEditItem(item);
+	}
+
+	protected void OnCreateRole()
+	{
+		ReactionRoles.ReactionRole item = new ReactionRoles.ReactionRole()
+		{
+			Id = Guid.NewGuid().ToString(),
+		};
+
+		_ = OnEditRole(item);
+	}
+
+	private async Task OnDeleteItem(ReactionRoles.ReactionRoleItem item)
+	{
+		var parameters = new ModalParameters()
+			.Add(nameof(ConfirmDelete.Content), item.ReactionName);
+
+		var modal = ModalService.Show<ConfirmDelete>("Delete Role Item", parameters);
+		var result = await modal.Result;
+
+		if (result.Confirmed)
+		{
+			await reactionRoleService.DeleteReactionItem(RPCService.GuildId, item.Id);
+			await RefetchReactionRoles();
+			this.StateHasChanged();
+		}
+	}
+}

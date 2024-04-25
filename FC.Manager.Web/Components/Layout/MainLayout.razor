@@ -1,0 +1,47 @@
+﻿@using Blazored.Modal
+@using Blazored.Modal.Services
+@using Blazored.Toast
+@using Blazored.Toast.Configuration
+@using FC.Manager.Web.Components.Pages
+@using FC.Manager.Web.Services
+
+@inject HttpClient Http
+@inject IModalService Modal
+@inherits LayoutComponentBase
+
+<BlazoredToasts />
+
+<div class="page">
+    @if (Authentication.IsAuthenticated)
+    {
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+    }
+
+    <main>
+@*         <div class="top-row px-4">
+            Created by _perse
+        </div> *@
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        RPCService.Client = this.Http;
+        ////Modal.ModalService = this.Modal;
+        await base.OnInitializedAsync();
+    }
+}

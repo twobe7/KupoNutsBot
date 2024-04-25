@@ -1,0 +1,29 @@
+﻿@using FC.Attributes;
+@using System.Reflection;
+@using FC.Manager.Web.Drawers;
+
+@inherits DrawerBase<int>
+
+<div class="form-group col-md-6">
+	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+	<input type="number" class="form-control" @bind="this.Value" min="@this.Min" max="@this.Max" />
+</div>
+
+@code {
+
+	public int Min { get; set; } = int.MinValue;
+	public int Max { get; set; } = int.MaxValue;
+
+	protected override Task OnInitializedAsync()
+	{
+		RangeAttribute range = this.Property.GetCustomAttribute<RangeAttribute>();
+
+		if (range != null)
+		{
+			this.Min = (int)range.Min;
+			this.Max = (int)range.Max;
+		}
+
+		return Task.CompletedTask;
+	}
+}

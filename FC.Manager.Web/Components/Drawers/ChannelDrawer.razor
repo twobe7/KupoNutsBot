@@ -1,0 +1,81 @@
+﻿@using FC.Manager.Web.Drawers;
+@using FC.Manager.Web.Services
+@inherits DrawerBase
+@inject GuildService guildService
+
+<div class="form-group col-md-6">
+	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+	<select class="custom-select" @bind="this.Selected">
+		@foreach (Channel channel in this.ChannelList)
+		{
+			<option value=@channel.DiscordId>@channel.Name</option>
+		}
+	</select>
+</div>
+
+@code {
+
+	private ulong selected;
+
+	public List<Channel> ChannelList { get; set; }
+
+	// Can't bind to ulongs, so keep it as a string here.
+	public string Selected
+	{
+		get
+		{
+			return this.selected.ToString();
+		}
+		set
+		{
+			this.selected = ulong.Parse(value);
+			this.OnChanged(this.selected);
+		}
+	}
+
+	// Special case since we use an attribute for this drawer.
+	// we should consider adding a custom type for Channels.
+	public override bool CanEdit(Type type)
+	{
+		return false;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.ChannelList = new List<Channel>()
+		{
+			new Channel(0, "None", FC.Channel.Types.Unknown),
+		};
+
+		this.ChannelList.AddRange(Channels.GetChannels(guildService));
+
+		Type type = this.GetValueType();
+
+		if (type == typeof(string))
+		{
+			string strVal = this.GetValue<string>();
+			this.Selected = string.IsNullOrEmpty(strVal) ? "0" : strVal;
+		}
+		else
+		{
+			ulong val = this.GetValue<ulong>();
+			this.Selected = val.ToString();
+		}
+
+		this.StateHasChanged();
+	}
+
+	protected void OnChanged(ulong value)
+	{
+		Type type = this.GetValueType();
+
+		if (type == typeof(string))
+		{
+			this.SetValue(value.ToString());
+		}
+		else
+		{
+			this.SetValue(value);
+		}
+	}
+}

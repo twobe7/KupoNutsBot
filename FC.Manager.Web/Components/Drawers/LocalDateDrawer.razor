@@ -1,0 +1,23 @@
+﻿@using NodaTime;
+@using FC.Manager.Web.Drawers;
+@inherits DrawerBase<LocalDate>
+
+<div class="form-group col-md-6">
+	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+	<input type="date" class="form-control dateTime" id="eventDate" name="eventeDate" @bind="this.Date" />
+</div>
+
+@code {
+	public DateTime Date
+	{
+		get
+		{
+			return this.Value.ToDateTimeUnspecified();
+		}
+
+		set
+		{
+			this.Value = LocalDate.FromDateTime(value);
+		}
+	}
+}

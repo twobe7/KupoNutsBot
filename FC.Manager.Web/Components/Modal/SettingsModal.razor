@@ -1,0 +1,152 @@
+﻿@using System.Reflection;
+@using FC.Attributes;
+@using System.Text.RegularExpressions;
+@using FC.Manager.Web.Drawers;
+@using FC.Manager.Web.Services;
+
+@inject GuildService guildService;
+@inject IModalService modalService;
+@inject Modal modal;
+
+@rendermode InteractiveServer
+
+<div class="form-row">
+	@foreach (RenderFragment frag in this.Fragments)
+	{
+		@frag
+		;
+	}
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-secondary" @onclick="this.OnCancel">Cancel</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+</div>
+
+
+@code {
+	[CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+	[Parameter] public object? ReturnData { get; set; }
+
+	private static readonly Channel NoneChannel = new Channel(0, "None", FC.Channel.Types.Unknown);
+
+	private async Task OnCancel() => await BlazoredModal.CancelAsync();
+	private async Task OnSave() => await BlazoredModal.CloseAsync(ModalResult.Ok(this.ReturnData));
+
+
+
+	public List<RenderFragment> Fragments { get; set; } = new List<RenderFragment>();
+	public List<Channel> ChannelList { get; set; } = new List<Channel>() { NoneChannel, };
+
+	private static Dictionary<Type, Type> drawers = new Dictionary<Type, Type>();
+	private static List<Type>? drawerTypes = null;
+
+
+	protected override void OnInitialized()
+	{
+		this.ChannelList.AddRange(Channels.GetChannels(guildService));
+		this.Fragments = GetFragments(ReturnData);
+	}
+
+	/// <summary>
+	/// Split type by capital letters
+	/// Cannot use BlazoredModal.SetTitle in OnInitialized method due
+	/// to bug in package - see https://github.com/Blazored/Modal/issues/565
+	/// </summary>
+	/// <param name="dataType"></param>
+	/// <returns></returns>
+	public static string GetTitle(Type dataType)
+		=> Regex.Replace(dataType.Name, "(\\B[A-Z])", " $1");
+
+	public static List<RenderFragment> GetFragments(object obj)
+	{
+		List<RenderFragment> fragments = new List<RenderFragment>();
+
+		Type type = obj.GetType();
+
+		foreach (PropertyInfo prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+		{
+			Type drawerType = GetDrawerType(prop);
+
+			if (drawerType == null)
+				continue;
+
+			RenderFragment content = new RenderFragment(x =>
+			{
+				x.OpenComponent(1, drawerType);
+				x.AddAttribute(0, "Property", prop);
+				x.AddAttribute(1, "Target", obj);
+				x.CloseComponent();
+			});
+
+			fragments.Add(content);
+		}
+
+		return fragments;
+	}
+
+	private static Type? GetDrawerType(PropertyInfo property)
+	{
+		// Hidden
+		if (property.GetCustomAttribute<InspectorHiddenAttribute>() != null)
+			return null;
+
+		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
+			return typeof(Drawers.ChannelDrawer);
+
+		if (property.GetCustomAttribute<InspectorRoleAttribute>() != null)
+			return typeof(Drawers.RoleDrawer);
+
+		if (property.GetCustomAttribute<InspectorTimeZoneAttribute>() != null)
+			return typeof(Drawers.TimeZoneDrawer);
+
+		if (property.GetCustomAttribute<InspectorEmoteAttribute>() != null)
+			return typeof(Drawers.EmoteDrawer);
+
+		if (property.GetCustomAttribute<InspectorCheckBoxAttribute>() != null)
+			return typeof(Drawers.CheckboxDrawer);
+
+		if (drawers.ContainsKey(property.PropertyType))
+			return drawers[property.PropertyType];
+
+		// load all drawer types
+		if (drawerTypes == null)
+		{
+			drawerTypes = new List<Type>();
+			foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				foreach (Type type in asm.GetTypes())
+				{
+					if (type.IsAbstract || type.IsInterface)
+						continue;
+
+					if (!typeof(DrawerBase).IsAssignableFrom(type))
+						continue;
+
+					drawerTypes.Add(type);
+				}
+			}
+		}
+
+		foreach (Type drawerType in drawerTypes)
+		{
+			DrawerBase drawer = (DrawerBase)Activator.CreateInstance(drawerType);
+
+			if (!drawer.CanEdit(property.PropertyType))
+				continue;
+
+			drawers.Add(property.PropertyType, drawerType);
+		}
+
+		if (drawers.ContainsKey(property.PropertyType))
+			return drawers[property.PropertyType];
+
+		////if (typeof(string).IsAssignableFrom(property.PropertyType))
+		////	return typeof(Drawers.StringDrawer);
+
+		Log.Write("No drawer for type: \"" + property.PropertyType + "\"", "Inspector");
+		return null;
+	}
+}

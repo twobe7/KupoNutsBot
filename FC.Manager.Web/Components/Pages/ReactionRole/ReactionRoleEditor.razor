@@ -1,0 +1,132 @@
+﻿@using FC.Manager.Web.Components.Modal
+@using FC.ReactionRoles;
+@using NodaTime;
+@using RPC;
+@using FC.Color; 
+
+@inject ReactionRoleService reactionRoleService
+@inject GuildService guildService
+
+@if (this.IsLoading)
+{
+	<div class="form-row mb-2">
+		Loading...
+	</div>
+}
+else
+{
+	<div class="form-row">
+		<!--  Name -->
+		<div class="form-group col-md-6">
+			<label for="itemName">Title</label>
+			<input class="form-control" id="itemName" name="itemName" @bind="this.ReactionRole.Name" />
+		</div>
+
+		<!--  Channel -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Discord Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
+				@foreach (Channel channel in this.ChannelList)
+				{
+					<option value=@channel.DiscordId>@channel.Name</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	
+	<div class="form-row">
+		<!--  Color -->
+		<div class="form-group col-md-6">
+			<label for="colorSelect">Color</label>
+			<select class="custom-select" id="colorSelect" name="colorSelect" @bind="this.Color">
+				@foreach (string color in this.ColorList)
+				{
+					<option value=@color>@color</option>
+				}
+			</select>
+		</div>
+
+		<!-- Append Message Hint -->
+		<div class="form-group col-md-6">
+			<label for="">&nbsp;</label>
+			<div class="custom-control custom-checkbox">
+				<input class="custom-control-input" type="checkbox" id="chkBoxAppendReactionHintToMessage" value="false" @bind="this.ReactionRole.AppendReactionHintToMessage" />
+				<label title="Show Reaction and Roles After Message Text" class="custom-control-label" for="chkBoxAppendReactionHintToMessage">Append Reaction Hint To Message</label>
+			</div>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Description -->
+		<div class="form-group col-md-12">
+			<label for="itemDesc">Description</label>
+			<textarea class="form-control" id="itemDesc" name="itemDesc" rows="5" @bind="this.ReactionRole.Description"></textarea>
+		</div>
+	</div>
+}
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+
+@code {
+	[CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+	[CascadingParameter] IModalService ModalService { get; set; } = default!;
+
+	[Parameter] public ReactionRoles.ReactionRole ReactionRole { get; set; }
+
+	public bool IsLoading { get; set; }
+
+	public List<Channel> ChannelList { get; set; } = new List<Channel>();
+	public List<string> ColorList { get; set; }
+
+	public ulong Channel
+	{
+		get { return this.ReactionRole.ChannelId ?? 0; }
+		set { this.ReactionRole.ChannelId = value == 0 ? (ulong?)null : value; }
+	}
+
+	public string Color
+	{
+		get { return this.ReactionRole.Color.ToString(); }
+		set { this.ReactionRole.Color = (FCColor.Colors)Enum.Parse(typeof(FCColor.Colors), value); }
+	}
+
+	protected override void OnInitialized()
+	{
+		this.IsLoading = true;
+
+		this.ChannelList.AddRange(Channels.GetChannels(guildService));
+		this.ColorList = new List<string>(typeof(FCColor.Colors).GetDisplayStrings());
+
+		this.IsLoading = false;
+	}
+
+	private async Task OnClose() => await BlazoredModal.CancelAsync();
+
+	private async Task OnSave()
+	{
+		await reactionRoleService.UpdateReactionRole(RPCService.GuildId, this.ReactionRole);
+		await BlazoredModal.CloseAsync(ModalResult.Ok());
+	}
+
+	private async Task OnDelete()
+	{
+		var parameters = new ModalParameters()
+			.Add(nameof(ConfirmDelete.Content), this.ReactionRole.Name);
+
+		var modal = ModalService.Show<ConfirmDelete>("Delete Reaction Role", parameters);
+		var result = await modal.Result;
+
+		if (result.Confirmed)
+		{
+			await reactionRoleService.DeleteReactionRole(RPCService.GuildId, this.ReactionRole.Id);
+			await BlazoredModal.CloseAsync(ModalResult.Ok());
+		}
+	}
+}

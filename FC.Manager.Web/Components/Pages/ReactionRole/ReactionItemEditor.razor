@@ -1,0 +1,150 @@
+﻿@using FC.Manager.Web.Components.Modal
+@using FC.ReactionRoles;
+@using RPC;
+
+@inject ReactionRoleService reactionRoleService
+
+@if (this.IsLoading)
+{
+	<div class="form-row mb-2">
+		Loading...
+	</div>
+}
+else
+{
+	<div class="form-row">
+		<!--  Reaction -->
+		<div class="form-group col-md-6">
+			<label>Reaction</label>
+
+			<input
+				class="mb-0"
+				style="width: 500px;"
+				placeholder="Search Emotes"
+				@bind-value="SearchTerm"
+				@bind-value:event="oninput"
+			/>
+
+			<div id="drawer" class="emoji-drawer">
+				@foreach (Emote emote in this.FilteredEmoteList)
+				{
+					string emojiClass = this.Reaction == emote.Value ? "emoji-selected" : "emoji";
+
+					<div class="@emojiClass" @onclick="() => this.SelectReaction(emote.Value)">
+						@(emote.IsStandard 
+							? (MarkupString)emote.GetName()
+							: (MarkupString)("<img src='" + emote.Url + "' height='40' />"))
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Role -->
+		<div class="form-group">
+			<label for="roleSelect">Role To Apply</label>
+			<select class="custom-select" id="roleSelect" name="roleSelect" @bind="this.Role">
+				@foreach (Role role in this.RoleList)
+				{
+					<option value=@role.DiscordId>@role.Name</option>
+				}
+			</select>
+		</div>
+	</div>
+}
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+@code {
+	[CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+	[CascadingParameter] IModalService ModalService { get; set; } = default!;
+
+	// Initialize SearchTerm to "" to prevent null's
+	string SearchTerm { get; set; } = "";
+
+	public bool IsLoading { get; set; }
+
+	[Parameter] public List<Emote> EmoteList { get; set; } = new List<Emote>();
+	public List<Emote> FilteredEmoteList => EmoteList.Where(i => i.Name.ToLower().Contains(SearchTerm.ToLower())).ToList();
+
+	[Parameter] public List<Role> RoleList { get; set; } = new List<Role>();
+	public List<Role> FilteredRoleList => RoleList.Where(i => i.Name.ToLower().Contains(SearchTerm.ToLower())).ToList();
+
+	[Parameter] public ReactionRoles.ReactionRoleItem Item { get; set; }
+
+	public string Reaction
+	{
+		get => this.Item.Reaction;
+		set
+		{
+			this.Item.Reaction = value;
+			SetReactionProperties(this.EmoteList.FirstOrDefault(x => x.Value == value));
+		}
+	}
+
+	public ulong Role
+	{
+		get => this.Item.Role ?? 0;
+		set
+		{
+			this.Item.Role = value == 0 ? (ulong?)null : value;
+			this.Item.RoleName = this.RoleList.FirstOrDefault(x => x.DiscordId == value.ToString()).Name;
+		}
+	}
+
+	protected override void OnInitialized()
+	{
+		this.IsLoading = true;
+
+		if (string.IsNullOrWhiteSpace(this.Item.Reaction))
+			SetReactionProperties(this.EmoteList.FirstOrDefault());
+
+		this.IsLoading = false;
+	}
+
+	private async Task OnClose() => await BlazoredModal.CancelAsync();
+
+	private async Task OnSave()
+	{
+		await reactionRoleService.UpdateReactionItem(
+			RPCService.GuildId,
+			this.Item,
+			this.EmoteList.FirstOrDefault(x => x.Value == this.Reaction));
+
+		await BlazoredModal.CloseAsync(ModalResult.Ok());
+	}
+
+	private async Task OnDelete()
+	{
+		var parameters = new ModalParameters()
+			.Add(nameof(ConfirmDelete.Content), this.Item.RoleName);
+
+		var modal = ModalService.Show<ConfirmDelete>("Delete Reaction Item", parameters);
+		var result = await modal.Result;
+
+		if (result.Confirmed)
+		{
+			await reactionRoleService.DeleteReactionItem(RPCService.GuildId, this.Item.Role.ToString());
+			await BlazoredModal.CloseAsync(ModalResult.Ok());
+		}
+	}
+
+	private void SetReactionProperties(Emote selectedEmote)
+	{
+		this.Item.Reaction = selectedEmote.Value;
+		this.Item.ReactionName = selectedEmote.Name;
+		this.Item.Url = selectedEmote.Url;
+		this.Item.IsStandard = selectedEmote.IsStandard;
+	}
+
+	private void SelectReaction(string value)
+	{
+		this.Reaction = value;
+	}
+}

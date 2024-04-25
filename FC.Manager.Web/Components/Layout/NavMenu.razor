@@ -1,0 +1,129 @@
+﻿@using Blazored.Modal.Services
+@* @inject IModalService Modal *@
+@inject NavigationManager NavigationManager
+@inject GuildService guildService
+
+@rendermode InteractiveServer
+
+<div id="nav-menu" class="wrapper">
+
+	<div class="form-group" style="margin: 16px 16px 0px 16px">
+		<select class="form-control" @bind="this.SelectedGuild">
+
+			@foreach (Authentication.Data.Guild guild in Authentication.Guilds)
+			{
+				@if (!guild.CanManageGuild && !guild.IsInGuild)
+					continue;
+
+				<option value=@guild.Id.ToString()>@guild.Name</option>
+			}
+		</select>
+	</div>
+
+
+	<ul class="nav flex-column">
+
+		<li class="nav-item px-3">
+			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+				<span class="oi oi-home" aria-hidden="true"></span> Home
+			</NavLink>
+		</li>
+
+		@if (IsInGuild)
+		{
+			var guild = Authentication.Guilds.FirstOrDefault(x => x.Id == RPCService.GuildId.ToString());
+			bool canManage = guild?.CanManageGuild ?? false;
+
+			if (canManage)
+			{
+				<li class="nav-item px-3">
+					<NavLink class="nav-link" href="events">
+						<span class="oi oi-bell" aria-hidden="true"></span> Events
+					</NavLink>
+				</li>
+
+				@*<li class="nav-item px-3">
+		<NavLink class="nav-link" href="eventsV2">
+		<span class="oi oi-bell" aria-hidden="true"></span> Events V2
+		</NavLink>
+		</li>*@
+
+				<li class="nav-item px-3">
+					<NavLink class="nav-link" href="shop">
+						<span class="oi oi-cart" aria-hidden="true"></span> Shop Configuration
+					</NavLink>
+				</li>
+
+				<li class="nav-item px-3">
+					<NavLink class="nav-link" href="reactionrole">
+						<span class="oi oi-people" aria-hidden="true"></span> Reaction Roles
+					</NavLink>
+				</li>
+
+				<li class="nav-item px-3">
+					<NavLink class="nav-link" href="contentcreators">
+						<span class="oi oi-video" aria-hidden="true"></span> Content Creators
+					</NavLink>
+				</li>
+			}
+
+			<li class="nav-item px-3">
+				<NavLink class="nav-link" href="leaderboards">
+					<span class="oi oi-bar-chart" aria-hidden="true"></span> Leaderboards
+				</NavLink>
+			</li>
+		}
+	</ul>
+
+
+	<div class="footer-transparent" style="height: auto; position: absolute; bottom: 0px;">
+		<div class="nav-item px-3" style="padding-bottom: 0px">
+			<div class="alert alert-dark justify-content-center">
+				Your timezone has been set to: @NodaTime.DateTimeZoneProviders.Tzdb.GetSystemDefault().ToString()
+			</div>
+		</div>
+	</div>
+</div>
+
+
+@code
+{
+	public string SelectedGuild
+	{
+		get => RPCService.GuildId.ToString();
+		set
+		{
+			RPCService.GuildId = ulong.Parse(value);
+			var guild = Authentication.Guilds.FirstOrDefault(x => x.Id == RPCService.GuildId.ToString());
+			RPCService.CanManageGuild = guild?.CanManageGuild ?? false;
+			this.UpdateGuild();
+		}
+	}
+
+	public bool IsInGuild
+	{
+		get;
+		set;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.IsInGuild = false;
+
+		if (!Authentication.IsAuthenticated)
+			return;
+
+		IsInGuild = guildService.IsInGuild(RPCService.GuildId);
+
+		await base.OnInitializedAsync();
+
+	}
+
+	private void UpdateGuild()
+	{
+		//NavigationManager.NavigateTo("/temp");
+		NavigationManager.NavigateTo("/", true);
+
+		this.StateHasChanged();
+	}
+}

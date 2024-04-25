@@ -1,0 +1,202 @@
+﻿@using FC.Color;
+@using FC.Events;
+@using FC.Manager.Web.Components.Modal
+@using FC.Manager.Web.Services
+@using NodaTime;
+@using RPC;
+
+@inject GuildService guildService
+@inject EventsService eventsService
+
+@if (this.IsLoading)
+{
+	<div class="form-row">
+		Loading
+	</div>
+}
+else
+{
+	<div class="form-row">
+		<!-- Name -->
+		<div class="form-group col-md-6">
+			<label for="eventName">Name</label>
+			<input type="text" class="form-control" id="eventName" name="eventName" placeholder="Enter event name" @bind="this.Event.Name" />
+		</div>
+
+		<!--  Notify -->
+		<div class="form-group col-md-6">
+			<label for="channelSelect">Notification</label>
+			<select class="custom-select" id="notifySelect" name="notifySelect" @bind="this.NotifyDuration">
+				@foreach (KeyValuePair<string, double> notify in this.NotifyList)
+				{
+					<option value=@notify.Value>@notify.Key</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Description -->
+		<div class="form-group col-md-12">
+			<label for="eventDesc">Description</label>
+			<textarea class="form-control" id="eventDesc" name="eventDesc" rows="5" @bind="this.Event.Description"></textarea>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Short description -->
+		<div class="form-group col-md-6">
+			<label for="eventShortDesc">Short Description</label>
+			<input type="text" class="form-control" id="eventShortDesc" name="eventShortDesc" @bind="this.Event.ShortDescription" />
+		</div>
+
+		<!-- Message -->
+		<div class="form-group col-md-6">
+			<label for="eventMessage">Message</label>
+			<input type="text" class="form-control" id="eventMessage" name="eventMessage" @bind="this.Event.Message" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Image URL -->
+		<div class="form-group col-md-12">
+			<label for="eventImage">Image URL</label>
+			<input type="text" class="form-control" id="eventImage" name="eventImage" placeholder="Enter a URL to an image" @bind="this.Event.Image" />
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Channel -->
+		<div class="form-group col-md-4">
+			<label for="channelSelect">Discord Channel</label>
+			<select class="custom-select" id="channelSelect" name="channelSelect" @bind="this.Channel">
+				@foreach (Channel channel in this.ChannelList)
+				{
+					<option value=@channel.DiscordId>@channel.Name</option>
+				}
+			</select>
+		</div>
+
+		<!--  Color -->
+		<div class="form-group col-md-4">
+			<label for="colorSelect">Color</label>
+			<select class="custom-select" id="colorSelect" name="colorSelect" @bind="this.Color">
+				@foreach (string color in this.ColorList)
+				{
+					<option value=@color>@color</option>
+				}
+			</select>
+		</div>
+
+		<!--  Status Type -->
+		<div class="form-group col-md-4">
+			<label for="statusSelect">Status Type</label>
+			<select class="custom-select" id="statusSelect" name="statusSelect" @bind="this.Status">
+				@foreach (string status in this.StatusList)
+				{
+					<option value=@status>@status</option>
+				}
+			</select>
+		</div>
+	</div>
+
+
+	@for (int i = 0; i < 8; i++)
+	{
+		IsoDayOfWeek day = (IsoDayOfWeek)i;
+		<EventRepeatEditor Event="this.Event" Day="day" />
+	}
+}
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+
+@code {
+	[CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+	[CascadingParameter] IModalService ModalService { get; set; } = default!;
+
+	[Parameter] public Event Event { get; set; } = new Event();
+
+
+	public bool IsLoading { get; set; }
+
+	public List<Channel> ChannelList { get; set; } = new List<Channel>()
+	{
+		new Channel(0, "None", FC.Channel.Types.Unknown),
+	};
+	public List<string> ColorList { get; set; }
+	public List<string> StatusList { get; set; }
+	public Dictionary<string, double> NotifyList { get; set; }
+
+
+	public double NotifyDuration
+	{
+		get => this.Event.GetNotifyDurationDouble();
+		set => this.Event.SetNotifyDuration(value);
+	}
+
+	public string Color
+	{
+		get => this.Event.Color.ToString();
+		set => this.Event.Color = (FCColor.Colors)Enum.Parse(typeof(FCColor.Colors), value);
+	}
+
+	public string Status
+	{
+		get => this.Event.StatusType.ToString();
+		set => this.Event.StatusType = (Event.Statuses)Enum.Parse(typeof(Event.Statuses), value);
+	}
+
+	public string Channel
+	{
+		get => string.IsNullOrEmpty(this.Event.ChannelId) ? "0" : this.Event.ChannelId;
+		set => this.Event.ChannelId = value == "0" ? null : value;
+	}
+
+	protected override void OnInitialized()
+	{
+		this.IsLoading = true;
+
+		this.ColorList = new List<string>(typeof(FCColor.Colors).GetDisplayStrings());
+		this.StatusList = new List<string>(typeof(Event.Statuses).GetDisplayStrings());
+
+		this.NotifyList = new Dictionary<string, double>()
+{
+			{ "Never", -1 },
+			{ "Immediately", 0},
+			{ "One Hour", 1 },
+			{ "One Day", 24 },
+		};
+
+		this.ChannelList.AddRange(Channels.GetChannels(guildService));
+		this.IsLoading = false;
+	}
+
+	private async Task OnClose() => await BlazoredModal.CancelAsync();
+
+	private async Task OnSave()
+	{
+		await eventsService.UpdateEvent(this.Event);
+		await BlazoredModal.CloseAsync(ModalResult.Ok());
+	}
+
+	private async Task OnDelete()
+	{
+		var parameters = new ModalParameters()
+			.Add(nameof(ConfirmDelete.Content), this.Event.Name);
+
+		var modal = ModalService.Show<ConfirmDelete>("Delete Event", parameters);
+		var result = await modal.Result;
+
+		if (result.Confirmed)
+		{
+			await eventsService.DeleteEvent(this.Event.Id);
+			await BlazoredModal.CloseAsync(ModalResult.Ok());
+		}
+	}
+}

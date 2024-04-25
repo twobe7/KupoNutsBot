@@ -1,0 +1,148 @@
+﻿@using FC.Shop;
+@using NodaTime;
+@using RPC;
+@using FC.Manager.Web.Services
+@using System.Reflection;
+
+@inject EmoteService emoteService
+@inject GuildService guildService
+@inject ShopService shopService
+
+@if (this.IsLoading)
+{
+	<div class="form-row">
+		Loading...
+	</div>
+}
+else
+{
+	<div class="form-row">
+		<!--  Name -->
+		<div class="form-group col-md-12">
+			<label for="itemName">Name</label>
+			<input class="form-control" id="itemName" name="itemName" @bind="this.Item.Name"></input>
+		</div>
+
+		<!--  Description -->
+		<div class="form-group col-md-12">
+			<label for="itemDesc">Description</label>
+			<textarea class="form-control" id="itemDesc" name="itemDesc" rows="5" @bind="this.Item.Description"></textarea>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!-- Cost -->
+		<div class="form-group col-md-6">
+			<label data-toggle="tooltip" data-placement="top" for="itemCost">Cost</label>
+			<input type="number" class="form-control" id="itemCost" nane="itemCost" @bind="this.Item.Cost" min="0" />
+		</div>
+
+		<!--  Reaction -->
+		<div class="form-group col-md-6">
+			<label data-toggle="tooltip" data-placement="top" title="Reaction">Emote</label>
+			<select class="custom-select" @bind="this.Reaction">
+				@foreach (Emote emote in this.EmoteList)
+				{
+					<option value=@emote.Value>@( emote.IsStandard ? emote.Url : emote.Name)</option>
+				}
+			</select>
+		</div>
+	</div>
+
+	<div class="form-row">
+		<!--  Role -->
+		<div class="form-group col-md-4">
+			<label for="roleSelect">Mention Role</label>
+			<select class="custom-select" id="roleSelect" name="roleSelect" @bind="this.Role">
+				@foreach (Role role in this.RoleList)
+				{
+					<option value=@role.DiscordId>@role.Name</option>
+				}
+			</select>
+		</div>
+	</div>
+
+}
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+
+@code {
+	[CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+	[CascadingParameter] IModalService ModalService { get; set; } = default!;
+
+	[Parameter] public ShopItem Item { get; set; }
+
+	public bool IsLoading { get; set; }
+
+	public List<Emote> EmoteList { get; set; } = new List<Emote>();
+	public List<Role> RoleList { get; set; } = new List<Role>() { new Role(0, "None") };
+
+	public string Reaction
+	{
+		get
+		{
+			////if (string.IsNullOrEmpty(this.item.Reaction))
+			////	return "0";
+
+			return this.Item.Reaction;
+		}
+
+		set { this.Item.Reaction = value;}
+	}
+
+	public string Role
+	{
+		get
+		{
+			if (string.IsNullOrEmpty(this.Item.Role))
+				return "0";
+
+			return this.Item.Role;
+		}
+
+		set
+		{
+			this.Item.Role = value == "0" ? null : value;
+			this.Item.RoleName = this.RoleList.FirstOrDefault(x => x.DiscordId == this.Item.Role).Name;
+		}
+	}
+
+	protected override void OnInitialized()
+	{
+		this.IsLoading = true;
+
+		this.EmoteList.AddRange(emoteService.GetEmotes(RPCService.GuildId));
+		this.RoleList.AddRange(Roles.GetRoles(guildService));
+
+		this.IsLoading = false;
+	}
+
+	private async Task OnClose() => await BlazoredModal.CancelAsync();
+
+	private async Task OnSave()
+	{
+		await shopService.UpdateShopItem(RPCService.GuildId, this.Item);
+		await BlazoredModal.CloseAsync(ModalResult.Ok());
+	}
+
+	private async Task OnDelete()
+	{
+		var parameters = new ModalParameters()
+			.Add(nameof(ConfirmDelete.Content), this.Item.Name);
+
+		var modal = ModalService.Show<ConfirmDelete>("Delete Shop Item", parameters);
+		var result = await modal.Result;
+
+		if (result.Confirmed)
+		{
+			await shopService.DeleteItem(RPCService.GuildId, this.Item.Id);
+			await BlazoredModal.CloseAsync(ModalResult.Ok());
+		}
+	}
+}

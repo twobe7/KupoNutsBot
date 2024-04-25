@@ -1,0 +1,57 @@
+﻿@using FC.Manager.Web.Drawers;
+@using FC.Manager.Web.Services;
+@inherits DrawerBase
+@inject EmoteService emoteService
+
+<div class="form-group col-md-6">
+	<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+	<select class="custom-select" @bind="this.Selected">
+		@foreach (Emote emote in this.EmoteList)
+		{
+			<option value=@emote.Value>@emote.Name</option>
+		}
+	</select>
+</div>
+
+@code {
+
+	private string selected;
+
+	// Can't bind to ulongs, so keep it as a string here.
+	public string Selected
+	{
+		get
+		{
+			return this.selected;
+		}
+		set
+		{
+			this.selected = value;
+			this.OnChanged(this.selected);
+		}
+	}
+
+	public List<Emote> EmoteList { get; set; }
+
+	// Special case since we use an attribute for this drawer.
+	// we should consider adding a custom type for Channels.
+	public override bool CanEdit(Type type)
+	{
+		return false;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.EmoteList = new List<Emote>();
+		this.EmoteList.AddRange(emoteService.GetEmotes(RPCService.GuildId));
+
+		this.Selected = this.GetValue<string>();
+
+		this.StateHasChanged();
+	}
+
+	protected void OnChanged(string selected)
+	{
+		this.SetValue(this.selected);
+	}
+}

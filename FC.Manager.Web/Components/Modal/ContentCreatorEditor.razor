@@ -1,0 +1,81 @@
+﻿@using FC.ContentCreator;
+@using FC.Manager.Web.Services
+@using NodaTime;
+@using RPC;
+@using System.Reflection;
+@inject ContentCreatorService contentCreatorService
+
+@if (this.IsLoading)
+{
+	<div class="form-row">
+		Loading...
+	</div>
+}
+else
+{
+	<div class="form-row">
+		<!--  Guid nickname -->
+		<div class="form-group col-md-12">
+			<label for="itemName">Name</label>
+			<input disabled class="form-control" id="creatorNickName" name="itemName" @bind="this.Creator.GuildNickName"></input>
+		</div>
+
+		@if (this.Creator.Twitch != null)
+		{
+			<!--  Twitch Name -->
+			<div class="form-group col-md-12">
+				<label for="itemDesc">Twitch Username</label>
+				<input disabled class="form-control" id="creatorTwitch" name="itemDesc" rows="5" @bind="this.Creator.Twitch.UserName"></input>
+			</div>
+		}
+
+		@if (this.Creator.Youtube != null)
+		{
+			<!--  Youtube Name -->
+			<div class="form-group col-md-12">
+				<label for="itemDesc">Youtube Username</label>
+				<input class="form-control" id="creatorYoutube" name="itemDesc" rows="5" @bind="this.Creator.Youtube.UserName"></input>
+			</div>
+		}
+		
+	</div>
+}
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-danger" @onclick="this.OnDelete">Delete</button>
+	<div class="flex-fill" />
+	@*<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>*@
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Close</button>
+</div>
+
+@code {
+	[CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+	[CascadingParameter] IModalService ModalService { get; set; } = default!;
+
+	[Parameter] public ContentCreator? Creator { get; set; }
+
+	public bool IsLoading { get; set; }
+
+	////private async void OnSave()
+	////{
+	////	await RPCService.Invoke("ContentCreatorService.UpdateContentCreator", this.creator);
+	////	this.Close();
+	////}
+
+	private async Task OnClose() => await BlazoredModal.CancelAsync();
+
+	private async Task OnDelete()
+	{
+		var parameters = new ModalParameters()
+			.Add(nameof(ConfirmDelete.Content), this.Creator.GuildNickName);
+
+		var modal = ModalService.Show<ConfirmDelete>("Delete Content Creator", parameters);
+		var result = await modal.Result;
+
+		if (result.Confirmed)
+		{
+			await contentCreatorService.DeleteContentCreator(RPCService.GuildId, this.Creator.Id);
+			await BlazoredModal.CloseAsync(ModalResult.Ok());
+		}
+	}
+}

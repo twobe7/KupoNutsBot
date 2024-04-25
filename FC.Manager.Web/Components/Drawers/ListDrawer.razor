@@ -1,0 +1,40 @@
+﻿@using FC.Manager.Web.Drawers;
+@inherits DrawerBase
+
+	<div class="form-group col-md-12">
+
+		<label data-toggle="tooltip" data-placement="top" title="@this.Tooltip">@this.Label</label>
+
+		<button class="btn btn-secondary" @onclick="this.OnRemove">-</button>
+		<button class="btn btn-secondary" @onclick="this.OnAdd">+</button>
+	</div>
+
+@code {
+	public override bool CanEdit(Type type)
+	{
+		if (!type.IsGenericType)
+			return false;
+
+		if (!typeof(System.Collections.IList).IsAssignableFrom(type))
+			return false;
+
+		Type[] genericArgs = type.GetGenericArguments();
+
+		if (genericArgs.Length != 1)
+			return false;
+
+		Type innerType = genericArgs[0];
+
+		Console.WriteLine(">> " + innerType);
+
+		return true;
+	}
+
+	protected void OnAdd()
+	{
+	}
+
+	protected void OnRemove()
+	{
+	}
+}

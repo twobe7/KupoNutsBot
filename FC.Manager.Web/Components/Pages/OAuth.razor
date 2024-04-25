@@ -1,0 +1,38 @@
+﻿@page "/OAuth/"
+
+@using Blazored.Modal
+@using Blazored.Modal.Services
+@using FC.Manager.Web.Components.Modal
+@using FC.Manager.Web.Services
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject AuthenticationService authenticationService
+@inject IModalService Modal
+
+@code
+{
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		try
+		{
+			string code = NavigationManager.GetQueryParameter("code");
+			string url = NavigationManager.GetURL();
+
+			var data = await authenticationService.AuthenticateCode(url, code);
+			Authentication.Authenticate(data);
+			NavigationManager.NavigateTo("/", true);
+		}
+		catch (Exception ex)
+		{
+			ModalParameters parameters = new ModalParameters();
+			parameters.Add("Content", ex.Message);
+			var modal = this.Modal.Show<GenericModal>("Authentication Error", parameters);
+
+			//var response = await modal.Result;
+			NavigationManager.NavigateTo("/");
+		}
+	}
+}

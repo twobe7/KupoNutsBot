@@ -1,0 +1,27 @@
+﻿
+<div class="form-row">
+	<div class="form-group col-md-12">
+		<label>@this.Message</label>
+	</div>
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="@this.ConfirmBtnClass" @onclick="this.OnDelete">@this.ConfirmText</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-secondary" @onclick="this.OnClose">Cancel</button>
+</div>
+
+
+@code {
+	[CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+	[Parameter] public string? Message { get; set; }
+	[Parameter] public string? ConfirmText { get; set; }
+	[Parameter] public bool? IsDanger { get; set; }
+
+	private string ConfirmBtnClass => IsDanger == true ? "btn btn-danger" : "btn-primary";
+
+	private async Task OnClose() => await BlazoredModal.CancelAsync();
+
+	private async Task OnDelete() => await BlazoredModal.CloseAsync(ModalResult.Ok());
+}

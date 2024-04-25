@@ -1,0 +1,161 @@
+﻿@using System.Reflection;
+@using FC.Attributes;
+@using System.Text.RegularExpressions;
+@using FC.Manager.Web.Drawers;
+@using FC.Manager.Web.Services;
+
+@inject GuildService guildService;
+@inject IModalService modalService;
+@inject Modal modal;
+
+@inherits Modal
+
+@rendermode InteractiveServer
+
+<div class="form-row">
+	@foreach (RenderFragment frag in this.Fragments)
+	{
+		@frag;
+	}
+</div>
+
+<div class="modal-footer">
+	<button type="button" class="btn btn-secondary" @onclick="this.OnCancel">Cancel</button>
+	<div class="flex-fill" />
+	<button type="button" class="btn btn-primary" @onclick="this.OnSave">Save</button>
+</div>
+
+
+@code {
+
+	public List<RenderFragment> Fragments { get; set; } = new List<RenderFragment>();
+	public List<Channel> ChannelList { get; set; }
+
+	private static Dictionary<Type, Type> drawers = new Dictionary<Type, Type>();
+	private static List<Type> drawerTypes;
+
+	public object? obj { get; set; }
+
+	public async Task<T> Inspect<T>(T obj)
+	{
+		string name = typeof(T).Name;
+		name = Regex.Replace(name, "(\\B[A-Z])", " $1");
+
+		T newObj = await modal.Show<T, Inspector>(name, obj);
+		return newObj;
+	}
+
+	public static List<RenderFragment> GetFragments(object obj)
+	{
+		List<RenderFragment> fragments = new List<RenderFragment>();
+
+		Type type = obj.GetType();
+
+		foreach (PropertyInfo prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+		{
+			Type drawerType = GetDrawerType(prop);
+
+			if (drawerType == null)
+				continue;
+
+			RenderFragment content = new RenderFragment(x =>
+			{
+				x.OpenComponent(1, drawerType);
+				x.AddAttribute(0, "Property", prop);
+				x.AddAttribute(1, "Target", obj);
+				x.CloseComponent();
+			});
+
+			fragments.Add(content);
+		}
+
+		return fragments;
+	}
+
+	private static Type GetDrawerType(PropertyInfo property)
+	{
+		// Hidden
+		if (property.GetCustomAttribute<InspectorHiddenAttribute>() != null)
+			return null;
+
+		if (property.GetCustomAttribute<InspectorChannelAttribute>() != null)
+			return typeof(Drawers.ChannelDrawer);
+
+		if (property.GetCustomAttribute<InspectorRoleAttribute>() != null)
+			return typeof(Drawers.RoleDrawer);
+
+		if (property.GetCustomAttribute<InspectorTimeZoneAttribute>() != null)
+			return typeof(Drawers.TimeZoneDrawer);
+
+		if (property.GetCustomAttribute<InspectorEmoteAttribute>() != null)
+			return typeof(Drawers.EmoteDrawer);
+
+		if (property.GetCustomAttribute<InspectorCheckBoxAttribute>() != null)
+			return typeof(Drawers.CheckboxDrawer);
+
+		if (drawers.ContainsKey(property.PropertyType))
+			return drawers[property.PropertyType];
+
+		// load all drawer types
+		if (drawerTypes == null)
+		{
+			drawerTypes = new List<Type>();
+			foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				foreach (Type type in asm.GetTypes())
+				{
+					if (type.IsAbstract || type.IsInterface)
+						continue;
+
+					if (!typeof(DrawerBase).IsAssignableFrom(type))
+						continue;
+
+					drawerTypes.Add(type);
+				}
+			}
+		}
+
+		foreach (Type drawerType in drawerTypes)
+		{
+			DrawerBase drawer = (DrawerBase)Activator.CreateInstance(drawerType);
+
+			if (!drawer.CanEdit(property.PropertyType))
+				continue;
+
+			drawers.Add(property.PropertyType, drawerType);
+		}
+
+		if (drawers.ContainsKey(property.PropertyType))
+			return drawers[property.PropertyType];
+
+		////if (typeof(string).IsAssignableFrom(property.PropertyType))
+		////	return typeof(Drawers.StringDrawer);
+
+		Log.Write("No drawer for type: \"" + property.PropertyType + "\"", "Inspector");
+		return null;
+	}
+
+	public async Task Initialize(object obj)
+	{
+		this.obj = obj;
+		Type type = obj.GetType();
+
+		this.ChannelList = new List<Channel>()
+		{
+			new Channel(0, "None", FC.Channel.Types.Unknown),
+		};
+
+		this.ChannelList.AddRange(Channels.GetChannels(guildService));
+		this.Fragments = GetFragments(obj);
+	}
+
+	private void OnCancel()
+	{
+		this.Close();
+	}
+
+	private void OnSave()
+	{
+		this.Close(this.obj);
+	}
+}
