@@ -21,11 +21,10 @@
 		{
 			ModalParameters parameters = new ModalParameters();
 			parameters.Add("Content", ex.Message);
-			this.Modal.Show<GenericModal>("Authentication Error", parameters);
-			this.Modal.OnClose += (ModalResult) =>
-			{
-				NavigationManager.NavigateTo("/");
-			};
+			var modal = this.Modal.Show<GenericModal>("Authentication Error", parameters);
+
+			var response = await modal.Result;
+			NavigationManager.NavigateTo("/");
 		}
 	}
 }

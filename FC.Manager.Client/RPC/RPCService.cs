@@ -5,12 +5,10 @@
 namespace FC.Manager.Client.RPC
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Linq;
 	using System.Net.Http;
+	using System.Net.Http.Json;
 	using System.Threading.Tasks;
 	using FC.Serialization;
-	using Microsoft.AspNetCore.Components;
 
 	public static class RPCService
 	{
@@ -37,7 +35,8 @@ namespace FC.Manager.Client.RPC
 				req.ParamData.Add(Serializer.Serialize(param[i]));
 			}
 
-			RPCResult result = await Client.PostJsonAsync<RPCResult>("RPC", req);
+			var response = await Client.PostAsJsonAsync("RPC", req);
+			var result = await response.Content.ReadFromJsonAsync<RPCResult>();
 
 			// TODO: get exception type.
 			if (!string.IsNullOrEmpty(result.Exception))
@@ -66,7 +65,8 @@ namespace FC.Manager.Client.RPC
 				req.ParamData.Add(Serializer.Serialize(param[i]));
 			}
 
-			RPCResult result = await Client.PostJsonAsync<RPCResult>("RPC", req);
+			var response = await Client.PostAsJsonAsync("RPC", req);
+			var result = await response.Content.ReadFromJsonAsync<RPCResult>();
 
 			// TODO: get exception type.
 			if (!string.IsNullOrEmpty(result.Exception))

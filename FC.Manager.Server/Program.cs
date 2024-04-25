@@ -2,78 +2,77 @@
 //
 // Licensed under the MIT license.
 
-namespace FC.Manager.Server
+namespace FC.Manager.Server;
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using FC.Manager.Server.Services;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+
+public class Program
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
-	using FC.Manager.Client.RPC;
-	using FC.Manager.Server.Services;
-	using Microsoft.AspNetCore;
-	using Microsoft.AspNetCore.Hosting;
-	using Microsoft.Extensions.Configuration;
+	private static IWebHost host;
+	private static List<ServiceBase> services = new List<ServiceBase>();
 
-	public class Program
+	public static void Main(string[] args)
 	{
-		private static IWebHost host;
-		private static List<ServiceBase> services = new List<ServiceBase>();
+		host = BuildWebHost(args);
+		host.Run();
+	}
 
-		public static void Main(string[] args)
-		{
-			host = BuildWebHost(args);
-			host.Run();
-		}
+	public static async Task Run(string[] args)
+	{
+		host = BuildWebHost(args);
+		Authentication.GenerateSecret();
 
-		public static async Task Run(string[] args)
-		{
-			host = BuildWebHost(args);
-			Authentication.GenerateSecret();
+		// Add services
+		await AddService<Services.RPCService>();
+		await AddService<DiscordService>();
 
-			// Add services
-			await AddService<Services.RPCService>();
-			await AddService<DiscordService>();
+		await AddService<AuthenticationService>();
+		await AddService<ContentCreatorService>();
+		await AddService<EmoteService>();
+		await AddService<EventsService>();
+		await AddService<EventsV2Service>();
+		await AddService<GuildService>();
+		await AddService<LeaderboardSettingsService>();
+		await AddService<ReactionRoleService>();
+		await AddService<SettingsService>();
+		await AddService<ShopService>();
 
-			await AddService<AuthenticationService>();
-			await AddService<ContentCreatorService>();
-			await AddService<EmoteService>();
-			await AddService<EventsService>();
-			await AddService<EventsV2Service>();
-			await AddService<GuildService>();
-			await AddService<LeaderboardSettingsService>();
-			await AddService<ReactionRoleService>();
-			await AddService<SettingsService>();
-			await AddService<ShopService>();
+		// finally launch the web host.
+		await host.RunAsync();
+	}
 
-			// finally launch the web host.
-			await host.RunAsync();
-		}
+	public static IWebHost BuildWebHost(string[] args)
+	{
+		ConfigurationBuilder configBuilder = new ();
+		configBuilder.AddCommandLine(args);
 
-		public static IWebHost BuildWebHost(string[] args)
-		{
-			ConfigurationBuilder configBuilder = new ConfigurationBuilder();
-			configBuilder.AddCommandLine(args);
+		IWebHostBuilder builder = WebHost.CreateDefaultBuilder(args);
+		builder.UseConfiguration(configBuilder.Build());
+		builder.UseStartup<Startup>();
+		return builder.Build();
+	}
 
-			IWebHostBuilder builder = WebHost.CreateDefaultBuilder(args);
-			builder.UseConfiguration(configBuilder.Build());
-			builder.UseStartup<Startup>();
-			return builder.Build();
-		}
+	public static async Task Exit()
+	{
+		foreach (ServiceBase service in services)
+			await service.Shutdown();
 
-		public static async Task Exit()
-		{
-			foreach (ServiceBase service in services)
-				await service.Shutdown();
+		await host.StopAsync();
+	}
 
-			await host.StopAsync();
-		}
-
-		public static Task AddService<T>()
-			where T : ServiceBase
-		{
-			Log.Write("Add Service: " + typeof(T), "WebServer");
-			T service = Activator.CreateInstance<T>();
-			services.Add(service);
-			return service.Initialize();
-		}
+	public static Task AddService<T>()
+		where T : ServiceBase
+	{
+		Log.Write("Add Service: " + typeof(T), "WebServer");
+		T service = Activator.CreateInstance<T>();
+		services.Add(service);
+		return service.Initialize();
 	}
 }

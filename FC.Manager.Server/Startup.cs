@@ -15,6 +15,8 @@ namespace FC.Manager.Server
 
 	public class Startup
 	{
+		private static readonly string[] OctetMimeType = new[] { "application/octet-stream" };
+
 		// This method gets called by the runtime. Use this method to add services to the container.
 		// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
 		public void ConfigureServices(IServiceCollection services)
@@ -22,8 +24,7 @@ namespace FC.Manager.Server
 			services.AddMvc();
 			services.AddResponseCompression(opts =>
 			{
-				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-					new[] { "application/octet-stream" });
+				opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(OctetMimeType);
 			});
 
 			// Filter out the info logs
@@ -50,14 +51,14 @@ namespace FC.Manager.Server
 			}
 
 			app.UseStaticFiles();
-			app.UseClientSideBlazorFiles<Client.Startup>();
+			app.UseBlazorFrameworkFiles();
 
 			app.UseRouting();
 
 			app.UseEndpoints(endpoints =>
 			{
 				endpoints.MapDefaultControllerRoute();
-				endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
+				////endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
 			});
 		}
 	}

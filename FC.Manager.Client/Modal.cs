@@ -14,6 +14,7 @@ namespace FC.Manager.Client
 	public class Modal : ComponentBase
 	{
 		public static IModalService ModalService;
+		public static IModalReference ModalReference;
 
 		private static object[] parameters;
 		private static object lastResult;
@@ -23,13 +24,13 @@ namespace FC.Manager.Client
 		{
 			lastResult = null;
 			parameters = param;
-			ModalService.Show<TComponent>(name);
+			ModalReference = ModalService.Show<TComponent>(name);
 
 			ModalResult result = null;
-			ModalService.OnClose += (ModalResult res) =>
-			{
-				result = res;
-			};
+			////ModalService.OnClose += (ModalResult res) =>
+			////{
+			////	result = res;
+			////};
 
 			while (result == null)
 				await Task.Delay(500);
@@ -51,13 +52,13 @@ namespace FC.Manager.Client
 			parameters = param;
 
 			ModalParameters par = new ModalParameters();
-			ModalService.Show<TComponent>(name, par);
+			ModalReference = ModalService.Show<TComponent>(name, par);
 
 			ModalResult result = null;
-			ModalService.OnClose += (ModalResult res) =>
-			{
-				result = res;
-			};
+			////ModalService.OnClose += (ModalResult res) =>
+			////{
+			////	result = res;
+			////};
 
 			while (result == null)
 			{
@@ -68,7 +69,7 @@ namespace FC.Manager.Client
 		public void Close(object result = null)
 		{
 			lastResult = result;
-			ModalService.Close(ModalResult.Cancel());
+			ModalReference.Close(ModalResult.Cancel());
 		}
 
 		protected override async Task OnInitializedAsync()
