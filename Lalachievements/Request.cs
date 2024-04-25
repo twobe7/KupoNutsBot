@@ -29,7 +29,8 @@ namespace Lalachievements
 
 				Log.Write("Response: " + json.Length + " characters", "FFXIVCollect");
 
-				return Serializer.Deserialize<T>(json);
+				return Serializer.Deserialize<T>(json)
+					?? throw new InvalidDataException("Unable to deserialize");
 			}
 			catch (Exception ex)
 			{

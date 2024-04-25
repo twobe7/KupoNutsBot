@@ -58,12 +58,12 @@ namespace Twitch
 
 			public Embed ToEmbed(uint width = 900, uint height = 600, string username = null)
 			{
-				EmbedBuilder embed = new EmbedBuilder
+				EmbedBuilder embed = new ()
 				{
 					Color = Color.DarkPurple,
 					ThumbnailUrl = "https://image.flaticon.com/icons/png/256/2111/2111668.png",
 					Title = $"Now Streaming: {username ?? this.UserName}",
-					Description = this.Title,
+					Description = this.Title[..2000],
 					ImageUrl = this.GetThumbnailUrl(width, height),
 				};
 

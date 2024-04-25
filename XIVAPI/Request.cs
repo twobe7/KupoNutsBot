@@ -66,7 +66,7 @@ namespace XIVAPI
 					return Activator.CreateInstance<T>();
 				}
 
-				throw webEx;
+				throw;
 			}
 			catch (Exception ex)
 			{

@@ -177,7 +177,7 @@ namespace PaissaHouse
 				get
 				{
 					TimeSpan lastUpdated = DateTime.Now.ToUniversalTime() - DateTimeOffset.FromUnixTimeSeconds((long)this.LastUpdatedTime);
-					return lastUpdated.ToMediumString() + " ago";
+					return lastUpdated.ToMediumString(showSeconds: false) + " ago";
 				}
 			}
 
@@ -195,7 +195,7 @@ namespace PaissaHouse
 
 			public string GetInfo()
 			{
-				System.Text.StringBuilder builder = new System.Text.StringBuilder();
+				System.Text.StringBuilder builder = new ();
 				builder.Append("• ");
 				builder.Append($"Ward: {this.WardNumberCorrected}. ");
 				builder.Append($"Plot: {this.PlotNumberCorrected}. ");

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28922.388
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XIVAPI", "XIVAPI\XIVAPI.csproj", "{4A44B667-D157-4CA4-BC2C-492AC3D7C03A}"
 EndProject
@@ -38,6 +38,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Youtube", "Youtube\Youtube.csproj", "{C6D5133D-35C7-406D-AF53-DB6CF84E3DAE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetStone", "..\NetStone\NetStone\NetStone.csproj", "{E3CDC4D5-64D8-415D-BA52-71A289EC4610}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FC.Manager.Web", "FC.Manager.Web\FC.Manager.Web.csproj", "{3D451A43-8918-4D59-8FB9-9F842DAFD4E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -117,6 +119,10 @@ Global
 		{E3CDC4D5-64D8-415D-BA52-71A289EC4610}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3CDC4D5-64D8-415D-BA52-71A289EC4610}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3CDC4D5-64D8-415D-BA52-71A289EC4610}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D451A43-8918-4D59-8FB9-9F842DAFD4E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D451A43-8918-4D59-8FB9-9F842DAFD4E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D451A43-8918-4D59-8FB9-9F842DAFD4E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D451A43-8918-4D59-8FB9-9F842DAFD4E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
