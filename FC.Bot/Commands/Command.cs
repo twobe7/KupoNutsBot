@@ -131,9 +131,9 @@ namespace FC.Bot.Commands
 					{
 						param = await this.Convert(message, arg, paramInfo.ParameterType, this.RequiresQuotes);
 					}
-					catch (UserException ex)
+					catch (UserException)
 					{
-						throw ex;
+						throw;
 					}
 					catch (Exception)
 					{
@@ -173,7 +173,7 @@ namespace FC.Bot.Commands
 			catch (TargetInvocationException ex)
 			{
 				if (ex.InnerException == null)
-					throw ex;
+					throw;
 
 				throw (Exception)ex.InnerException;
 			}

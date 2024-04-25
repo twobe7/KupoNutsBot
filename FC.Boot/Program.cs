@@ -2,86 +2,81 @@
 //
 // Licensed under the MIT license.
 
-namespace FC.Boot
+namespace FC.Boot;
+
+using System;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+public class Program
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Text;
-	using System.Threading;
-	using System.Threading.Tasks;
-	using FC.Bot;
-	using FC.Events;
-	using XIVAPI;
+	private static Task? botTask;
+	////private static Task? managerTask;
 
-	public class Program
+	private static bool Running
 	{
-		private static Task? botTask;
-		private static Task? managerTask;
-
-		private static bool Running
+		get
 		{
-			get
-			{
-				if ((botTask == null || botTask.IsCompleted) && (managerTask == null || managerTask.IsCompleted))
-					return false;
+			if (botTask == null || botTask.IsCompleted) // && (managerTask == null || managerTask.IsCompleted))
+				return false;
 
-				return true;
-			}
+			return true;
 		}
+	}
 
-		public static void Main(string[] args)
+	public static void Main(string[] args)
+	{
+		Task task = Task.Run(async () => { await MainAsync(args); });
+		task.Wait();
+	}
+
+	private static async Task MainAsync(string[] args)
+	{
+		Log.Write("Initializing... press [ESC] to shutdown", "Boot");
+
+		try
 		{
-			Task task = Task.Run(async () => { await MainAsync(args); });
-			task.Wait();
-		}
+			botTask = Bot.Program.Run(args);
+			////managerTask = Manager.Web.Run.RunApp(args);
 
-		private static async Task MainAsync(string[] args)
-		{
-			Log.Write("Initializing... press [ESC] to shutdown", "Boot");
-
-			try
+			StringBuilder input = new ();
+			while (Running)
 			{
-				botTask = Bot.Program.Run(args);
-				managerTask = Manager.Server.Program.Run(args);
+				await Task.Yield();
+				Thread.Sleep(100);
 
-				StringBuilder input = new StringBuilder();
-				while (Running)
+				ConsoleKeyInfo consoleKey = Console.ReadKey(true);
+
+				if (consoleKey.Key == ConsoleKey.Escape)
 				{
-					await Task.Yield();
-					Thread.Sleep(100);
-
-					ConsoleKeyInfo consoleKey = Console.ReadKey(true);
-
-					if (consoleKey.Key == ConsoleKey.Escape)
-					{
-						Log.Write("Shutting down...", "Boot");
-						await Bot.Program.Exit();
-						await Manager.Server.Program.Exit();
-					}
-					else if (consoleKey.Key == ConsoleKey.Enter)
-					{
-						Console.WriteLine();
-						await HandleInput(input.ToString());
-						input.Clear();
-					}
-					else
-					{
-						input.Append(consoleKey.KeyChar);
-						Console.Write(consoleKey.KeyChar);
-					}
+					Log.Write("Shutting down...", "Boot");
+					await Bot.Program.Exit();
+					////await Manager.Server.Program.Exit();
+				}
+				else if (consoleKey.Key == ConsoleKey.Enter)
+				{
+					Console.WriteLine();
+					await HandleInput(input.ToString());
+					input.Clear();
+				}
+				else
+				{
+					input.Append(consoleKey.KeyChar);
+					Console.Write(consoleKey.KeyChar);
 				}
 			}
-			catch (Exception? ex)
-			{
-				Log.Write(ex);
-			}
-
-			Log.Write("Shutdown complete", "Boot");
 		}
-
-		private static Task HandleInput(string input)
+		catch (Exception? ex)
 		{
-			return Task.CompletedTask;
+			Log.Write(ex);
 		}
+
+		Log.Write("Shutdown complete", "Boot");
+	}
+
+	private static Task HandleInput(string input)
+	{
+		return Task.CompletedTask;
 	}
 }

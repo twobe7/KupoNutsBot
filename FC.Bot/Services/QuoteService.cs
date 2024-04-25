@@ -6,21 +6,24 @@ namespace FC.Bot.Quotes
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using FC.Data;
 	using FC.Quotes;
-	using NodaTime;
+	using static FC.Events.Event;
 
+	[Group("quotes", "Record the words of others")]
 	public class QuoteService : ServiceBase
 	{
 		public readonly DiscordSocketClient DiscordClient;
 
-		private Table<Quote> quoteDb = new Table<Quote>("KupoNuts_Quotes", Quote.Version);
+		private static readonly Table<Quote> QuoteDb = new ("KupoNuts_Quotes", Quote.Version);
 
 		public QuoteService(DiscordSocketClient discordClient)
 		{
@@ -29,7 +32,8 @@ namespace FC.Bot.Quotes
 
 		public override async Task Initialize()
 		{
-			await this.quoteDb.Connect();
+			await base.Initialize();
+			await QuoteDb.Connect();
 
 			this.DiscordClient.ReactionAdded += this.OnReactionAdded;
 		}
@@ -40,111 +44,71 @@ namespace FC.Bot.Quotes
 			return base.Shutdown();
 		}
 
-		[Command("Quote", Permissions.Everyone, "Gets a random quote", CommandCategory.Quote)]
-		public async Task<Embed> GetQuote(CommandMessage message)
+		[SlashCommand("get", "Gets a quote")]
+		public async Task GetQuote(
+			[Summary("user", "Get quotes from a specific user")]
+			SocketGuildUser? user = null,
+			[Summary("id", "Get a specific quote by id")]
+			int? quoteId = null)
 		{
-			List<Quote> allQuotes = await this.quoteDb.LoadAll();
+			await this.DeferAsync();
 
-			List<Quote> quotes = new List<Quote>();
-			foreach (Quote quote in allQuotes)
+			// Base query
+			var query = new Dictionary<string, object>
 			{
-				if (quote.GuildId != message.Guild.Id)
-					continue;
+				{ "GuildId", this.Context.Guild.Id },
+			};
 
-				quotes.Add(quote);
-			}
+			// Add user if it was specified
+			if (user != null)
+				query.Add("UserId", user.Id);
+
+			if (quoteId != null)
+				query.Add("QuoteId", quoteId);
+
+			// Get all quotes for current Guild
+			List<Quote> quotes = await QuoteDb.LoadAll(query);
 
 			if (quotes.Count <= 0)
-				throw new UserException("There are no quotes yet! Try reacting to a message with a 💬!");
-
-			Random rn = new Random();
-			int index = rn.Next(quotes.Count);
-
-			return this.GetEmbed(quotes[index]);
-		}
-
-		[Command("Quote", Permissions.Everyone, "Gets a quote from yourself", CommandCategory.Quote)]
-		public async Task<Embed> GetQuote(CommandMessage message, int id)
-		{
-			return await this.GetQuote(message, message.Author, id);
-		}
-
-		[Command("Quote", Permissions.Everyone, "Gets a random quote from a user", CommandCategory.Quote)]
-		public async Task<Embed> GetQuote(CommandMessage message, IUser user)
-		{
-			List<Quote> allQuotes = await this.quoteDb.LoadAll();
-
-			List<Quote> quotes = new List<Quote>();
-			foreach (Quote quote in allQuotes)
 			{
-				if (quote.GuildId != message.Guild.Id)
-					continue;
+				string errMessage = "There are no quotes yet! Try reacting to a message with a 💬!";
+				if (user != null)
+				{
+					errMessage = "There are no quotes by that user yet!";
+				}
+				else if (quoteId != null)
+				{
+					errMessage = "I couldn't find a quote with that id!";
+				}
 
-				if (quote.UserId != user.Id)
-					continue;
-
-				quotes.Add(quote);
+				await this.FollowupAsync(errMessage);
 			}
 
-			if (quotes.Count <= 0)
-				throw new UserException("There are no quotes from that user yet! Try reacting to a message with a 💬!");
+			int index = new Random().Next(quotes.Count);
 
-			Random rn = new Random();
-			int index = rn.Next(quotes.Count);
-
-			return this.GetEmbed(quotes[index]);
+			await this.FollowupAsync(embeds: new Embed[] { this.GetEmbed(quotes[index]) });
 		}
 
-		[Command("Quote", Permissions.Everyone, "Gets a quote from a user", CommandCategory.Quote)]
-		public async Task<Embed> GetQuote(CommandMessage message, IUser user, int id)
+		[SlashCommand("list", "Lists all quotes")]
+		public async Task GetQuotes(
+			[Summary("user", "Get quotes from a specific user")]
+			SocketGuildUser? user = null,
+			int? page = null)
 		{
-			List<Quote> allQuotes = await this.quoteDb.LoadAll();
+			await this.DeferAsync();
 
-			foreach (Quote quote in allQuotes)
+			// Base query
+			var query = new Dictionary<string, object>
 			{
-				if (quote.GuildId != message.Guild.Id)
-					continue;
+				{ "GuildId", this.Context.Guild.Id },
+			};
 
-				if (quote.UserId != user.Id)
-					continue;
+			// Add user if it was specified
+			if (user != null)
+				query.Add("UserId", user.Id);
 
-				if (quote.QuoteId != id)
-					continue;
-
-				return this.GetEmbed(quote);
-			}
-
-			throw new UserException("I couldn't find a quote with that id.");
-		}
-
-		[Command("Quotes", Permissions.Everyone, "Lists all quotes from yourself", CommandCategory.Quote)]
-		public async Task<Embed> GetQuotes(CommandMessage message)
-		{
-			return await this.GetQuotes(message, message.Author);
-		}
-
-		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user", CommandCategory.Quote)]
-		public async Task<Embed> GetQuotes(CommandMessage message, IUser user)
-		{
-			return await this.GetQuotes(message, user, 1);
-		}
-
-		[Command("Quotes", Permissions.Everyone, "Lists all quotes for the given user", CommandCategory.Quote)]
-		public async Task<Embed> GetQuotes(CommandMessage message, IUser user, int page)
-		{
-			List<Quote> allQuotes = await this.quoteDb.LoadAll();
-
-			List<Quote> quotes = new List<Quote>();
-			foreach (Quote quote in allQuotes)
-			{
-				if (quote.UserId != user.Id)
-					continue;
-
-				if (quote.GuildId != message.Guild.Id)
-					continue;
-
-				quotes.Add(quote);
-			}
+			// Get all quotes for current Guild
+			List<Quote> quotes = await QuoteDb.LoadAll(query);
 
 			if (quotes.Count <= 0)
 				throw new UserException("There are no quotes from that user yet! Try reacting to a message with a 💬!");
@@ -154,75 +118,72 @@ namespace FC.Bot.Quotes
 				return x.QuoteId.CompareTo(y.QuoteId);
 			});
 
-			IGuildUser guildUser = await message.Guild.GetUserAsync(user.Id);
-
 			int numPages = (int)Math.Ceiling((double)quotes.Count / 20.0);
 
 			// start pages at 1, so there is no page 0.
-			page = Math.Max(page, 1) - 1;
-			int min = 20 * page;
-			int max = Math.Min(quotes.Count, 20 * (page + 1));
+			var pageNonNull = Math.Max(page ?? 1, 1) - 1;
+			int min = 20 * pageNonNull;
+			int max = Math.Min(quotes.Count, 20 * (pageNonNull + 1));
 
-			StringBuilder quotesList = new StringBuilder();
+			StringBuilder quotesList = new ();
 			for (int i = min; i < max; i++)
 			{
 				Quote quote = quotes[i];
-				quotesList.Append(quote.QuoteId);
-				quotesList.Append(" - ");
+				quotesList.Append($"{quote.QuoteId} - ");
 				quotesList.AppendLine(quote.Content.RemoveLineBreaks().Truncate(30));
 			}
 
 			if (numPages > 1)
 			{
 				quotesList.AppendLine();
-				quotesList.Append("Page ");
-				quotesList.Append(page + 1);
-				quotesList.Append(" of ");
-				quotesList.Append(numPages);
+				quotesList.Append($"Page {pageNonNull + 1} of {numPages}");
 			}
 
-			EmbedBuilder builder = new EmbedBuilder
+			EmbedBuilder builder = new EmbedBuilder()
+				.WithDescription(quotesList.ToString());
+
+			if (user != null)
 			{
-				Author = new EmbedAuthorBuilder
-				{
-					Name = guildUser.GetName(),
-					IconUrl = guildUser.GetAvatarUrl(),
-				},
-				Description = quotesList.ToString(),
-			};
-			return builder.Build();
+				builder.Author = new EmbedAuthorBuilder()
+					.WithName(user.GetName())
+					.WithIconUrl(user.GetAvatarUrl());
+			}
+
+			await this.FollowupAsync(embeds: new Embed[] { builder.Build() });
 		}
 
-		[Command("DeleteQuote", Permissions.Everyone, "Deletes a quote from the given user", CommandCategory.Quote)]
-		public async Task<string> DeleteQuote(CommandMessage message, IUser user, int quoteId)
+		[SlashCommand("delete", "Deletes a quote from the given user")]
+		public async Task DeleteQuote(
+			[Summary("id", "The quote Id to be deleted")]
+			int quoteId)
 		{
-			if (message.Author != user && CommandsService.GetPermissions(message.Author) != Permissions.Administrators)
-				throw new UserException("You don't have permission to do that.");
+			await this.DeferAsync();
 
-			Dictionary<string, object> filters = new Dictionary<string, object>
+			Dictionary<string, object> filters = new ()
 			{
-				{ "UserId", user.Id },
-				{ "GuildId", message.Guild.Id },
+				{ "GuildId", this.Context.Guild.Id },
 				{ "QuoteId", quoteId },
 			};
 
-			List<Quote> allQuotes = await this.quoteDb.LoadAll(filters);
+			Quote? quote = (await QuoteDb.LoadAll(filters)).FirstOrDefault();
 
-			if (allQuotes.Count <= 0)
-				throw new UserException("I couldn't find that quote from that user.");
-
-			foreach (Quote quote in allQuotes)
+			if (quote == null)
 			{
-				await this.quoteDb.Delete(quote);
+				await this.FollowupAsync("Unable to find quote by that Id!");
+				return;
 			}
 
-			return "Quote deleted!";
-		}
+			if (quote.UserId != this.Context.User.Id
+				&& this.Context.User is IGuildUser guildUser
+				&& CommandsService.GetPermissions(guildUser) != Permissions.Administrators)
+			{
+				await this.FollowupAsync("You don't have permission to do that!");
+				return;
+			}
 
-		[Command("DeleteQuote", Permissions.Everyone, "Deletes a quote from yourself", CommandCategory.Quote)]
-		public Task<string> DeleteQuote(CommandMessage message, int quoteId)
-		{
-			return this.DeleteQuote(message, message.Author, quoteId);
+			await QuoteDb.Delete(quote);
+
+			await this.FollowupAsync("Quote deleted!");
 		}
 
 		private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> messageCache, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
@@ -232,7 +193,8 @@ namespace FC.Bot.Quotes
 				if (reaction.Emote.Name != "💬")
 					return;
 
-				if (channel is Cacheable<IMessageChannel, ulong> guildChannel)
+				if (channel is Cacheable<IMessageChannel, ulong> messageChannel
+					&& reaction.Channel is IGuildChannel guildChannel)
 				{
 					IUserMessage message = await messageCache.DownloadAsync();
 					await message.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
@@ -240,15 +202,15 @@ namespace FC.Bot.Quotes
 					if (string.IsNullOrEmpty(message.Content))
 						return;
 
-					Quote quote = await this.quoteDb.LoadOrCreate(message.Author.Id + "_" + message.Id);
+					Quote quote = await QuoteDb.LoadOrCreate($"{message.Author.Id}_{message.Id}");
 					quote.Content = message.Content;
 					quote.UserId = message.Author.Id;
-					quote.GuildId = guildChannel.Value.Id;
+					quote.GuildId = guildChannel.GuildId;
 					quote.MessageLink = this.GetMessageLink(message);
 					quote.UserName = message.Author.Username;
 					quote.QuoteId = await this.GetNextQuoteId(message.GetGuild(), message.GetAuthor());
 					quote.SetDateTime(message.CreatedAt);
-					await this.quoteDb.Save(quote);
+					await QuoteDb.Save(quote);
 
 					Log.Write("Got quote: " + message.Content, "Bot");
 				}
@@ -260,34 +222,21 @@ namespace FC.Bot.Quotes
 		}
 
 		private async Task<int> GetNextQuoteId(IGuild guild, IUser user)
-		{
-			return await this.GetNextQuoteId(guild.Id, user.Id);
-		}
+		 => await this.GetNextQuoteId(guild.Id, user.Id);
 
 		private async Task<int> GetNextQuoteId(ulong guildId, ulong userId)
 		{
-			Dictionary<string, object> filters = new Dictionary<string, object>
+			Dictionary<string, object> filters = new ()
 			{
 				{ "UserId", userId },
 				{ "GuildId", guildId },
 			};
 
-			List<Quote> allQuotes = await this.quoteDb.LoadAll(filters);
+			HashSet<int> idList = (await QuoteDb.LoadAll(filters))
+				.Select(x => x.QuoteId)
+				.ToHashSet();
 
-			HashSet<int> allIds = new HashSet<int>();
-			foreach (Quote quote in allQuotes)
-			{
-				allIds.Add(quote.QuoteId);
-			}
-
-			int index = 1;
-			while (true)
-			{
-				if (!allIds.Contains(index))
-					return index;
-
-				index++;
-			}
+			return idList.Count == 0 ? 1 : idList.Max() + 1;
 		}
 
 		private Embed GetEmbed(Quote self)
@@ -295,7 +244,7 @@ namespace FC.Bot.Quotes
 			SocketGuild guild = this.DiscordClient.GetGuild(self.GuildId);
 			SocketGuildUser user = guild.GetUser(self.UserId);
 
-			EmbedBuilder builder = new EmbedBuilder
+			EmbedBuilder builder = new ()
 			{
 				Author = new EmbedAuthorBuilder
 				{
@@ -307,13 +256,14 @@ namespace FC.Bot.Quotes
 
 				Footer = new EmbedFooterBuilder
 				{
-					Text = "Id: " + self.QuoteId,
+					Text = $"Id: {self.QuoteId}",
 				},
 			};
 
 			return builder.Build();
 		}
 
-		private string GetMessageLink(IUserMessage message) => $"https://discord.com/channels/{message.GetGuild().Id}/{message.Channel.Id}/{message.Id}";
+		private string GetMessageLink(IUserMessage message)
+			=> $"https://discord.com/channels/{message.GetGuild().Id}/{message.Channel.Id}/{message.Id}";
 	}
 }

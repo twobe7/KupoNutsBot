@@ -19,8 +19,14 @@ namespace FC.XIVData
 
 		static Items()
 		{
+			// TODO: Fix this
 			// Parse full item list
-			string fullListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemsFull.json");
+			string fullListJson;
+#if !DEBUG
+			fullListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemsFull.json");			
+#else
+			fullListJson = File.ReadAllText(PathUtils.Current + "..//Assets/ItemsFull.json");
+#endif
 			if (fullListJson != null && !string.IsNullOrWhiteSpace(fullListJson))
 			{
 				var jsonList = JsonConvert.DeserializeObject<List<XivItem>>(fullListJson);
@@ -31,8 +37,14 @@ namespace FC.XIVData
 				}
 			}
 
+			// TODO: Fix this
 			// Parse condensed item list
-			string itemListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemList.json");
+			string itemListJson;
+#if !DEBUG
+			itemListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemList.json");			
+#else
+			itemListJson = File.ReadAllText(PathUtils.Current + "..//Assets/ItemList.json");
+#endif
 			if (itemListJson != null && !string.IsNullOrWhiteSpace(itemListJson))
 			{
 				var jsonList = JsonConvert.DeserializeObject<List<AutocompleteResult>>(itemListJson);

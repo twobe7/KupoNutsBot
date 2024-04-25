@@ -21,7 +21,7 @@ namespace FC.Quotes
 
 		public string GetQuoteDescription()
 		{
-			System.Text.StringBuilder desc = new System.Text.StringBuilder();
+			System.Text.StringBuilder desc = new ();
 
 			desc.AppendLine($"\"*{this.Content}*\"");
 

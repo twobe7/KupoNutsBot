@@ -22,7 +22,6 @@ namespace FC.Bot
 	using FC.Bot.Housing;
 	using FC.Bot.Items;
 	using FC.Bot.Lodestone;
-	using FC.Bot.Mounts;
 	using FC.Bot.Polls;
 	using FC.Bot.Quotes;
 	using FC.Bot.RPG;
@@ -34,7 +33,7 @@ namespace FC.Bot
 
 	public class Program
 	{
-		private static List<ServiceBase> services = new List<ServiceBase>();
+		private static readonly List<ServiceBase> Services = new ();
 		private static bool exiting = false;
 		private static DiscordSocketClient? client;
 
@@ -293,9 +292,9 @@ namespace FC.Bot
 
 				DiscordClient.SlashCommandExecuted -= this.OnSlashCommandExecuted;
 
-				if (services != null)
+				if (Services != null)
 				{
-					foreach (ServiceBase service in services)
+					foreach (ServiceBase service in Services)
 					{
 						await service.Shutdown();
 					}
@@ -317,7 +316,7 @@ namespace FC.Bot
 			T service = this.serviceProvider.GetRequiredService<T>();
 			CommandsService.BindCommands(service);
 			await service.Initialize();
-			services.Add(service);
+			Services.Add(service);
 		}
 
 		private Task LogAsync(LogMessage log)

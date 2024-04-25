@@ -42,8 +42,9 @@ namespace System
 		/// Formatted as 0d 0h 0m 0s.
 		/// </summary>
 		/// <param name="value">Value of Timespan.</param>
+		/// <param name="showSeconds">Sets whether to show Seconds, defaults to True.</param>
 		/// <returns>string.</returns>
-		public static string ToMediumString(this TimeSpan value)
+		public static string ToMediumString(this TimeSpan value, bool showSeconds = true)
 		{
 			string output = string.Empty;
 
@@ -56,7 +57,7 @@ namespace System
 			if (value.Minutes > 0)
 				output += PadValue(value.Minutes) + "m ";
 
-			if (value.Seconds > 0)
+			if (showSeconds && value.Seconds > 0)
 				output += PadValue(value.Seconds) + "s";
 
 			return output;

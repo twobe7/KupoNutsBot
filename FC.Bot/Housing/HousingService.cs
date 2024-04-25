@@ -8,11 +8,14 @@ namespace FC.Bot.Housing
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
 	using FC.Bot.Services;
+	using FC.XIVData;
 	using PaissaHouse;
 
+	[Group("housing", "View housing availability")]
 	public class HousingService : ServiceBase
 	{
 		public HousingService(DiscordSocketClient discordClient)
@@ -29,9 +32,14 @@ namespace FC.Bot.Housing
 			return base.Shutdown();
 		}
 
-		[Command("OpenPlots", Permissions.Everyone, "Check available housing plots", CommandCategory.XIVData)]
-		public async Task GetOpenPlotsForWorld(CommandMessage message, string world)
+		[SlashCommand("open-plots", "Check available housing plots")]
+		public async Task GetOpenPlotsForWorld(
+			[Autocomplete(typeof(EnumAutoCompleteHandler<XivWorld>))]
+			[Summary("serverName", "Name of Character Server")]
+			string world)
 		{
+			await this.DeferAsync();
+
 			// Get user information
 			HousingAPI.SearchResponse openPlots = await HousingAPI.Worlds(world);
 
@@ -60,9 +68,27 @@ namespace FC.Bot.Housing
 					EmbedFieldBuilder districtFieldBuilder = new EmbedFieldBuilder()
 						.WithName(district.Name);
 
+					StringBuilder stringBuilder = new ();
+
+					bool fieldLengthMaxReached = false;
+
 					// Build description
 					foreach (HousingAPI.OpenPlot plot in district.OpenPlots)
-						districtFieldBuilder.Value += plot.GetInfo() + "\n";
+					{
+						var plotInfo = plot.GetInfo();
+
+						if (stringBuilder.Length + plotInfo.Length <= EmbedFieldBuilder.MaxFieldValueLength)
+						{
+							stringBuilder.Append(plot.GetInfo() + "\n");
+						}
+						else if (!fieldLengthMaxReached)
+						{
+							stringBuilder.Append("Too many open plots to list...");
+							fieldLengthMaxReached = true;
+						}
+					}
+
+					districtFieldBuilder.Value = stringBuilder.ToString();
 
 					// Add to embed
 					builder.AddField(districtFieldBuilder);
@@ -76,7 +102,7 @@ namespace FC.Bot.Housing
 			}
 
 			// Send Embed
-			await message.Channel.SendMessageAsync(embed: builder.Build(), messageReference: message.MessageReference);
+			await this.FollowupAsync(embeds: new Embed[] { builder.Build() });
 		}
 
 		private static EmbedBuilder GetEmbed(string world)

@@ -6,7 +6,6 @@ namespace FC.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
-	using System.ComponentModel;
 	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
@@ -21,8 +20,8 @@ namespace FC.Bot.Services
 	{
 		public const string KupoNut = @"<:kupo_nut:815575569482776607>";
 
-		public static readonly List<string> Magic8BallAnswers = new ()
-		{
+		public static readonly List<string> Magic8BallAnswers =
+		[
 			"It is certain.",
 			"It is decidedly so.",
 			"Without a doubt.",
@@ -45,10 +44,10 @@ namespace FC.Bot.Services
 			"My sources say no.",
 			"Outlook not so good.",
 			"Very doubtful.",
-		};
+		];
 
-		public static readonly List<string> Hugs = new ()
-		{
+		public static readonly List<string> Hugs =
+		[
 			@"(づ｡◕‿‿◕｡)づ",
 			@"(づ￣ ³￣)づ",
 			@"(っ`▽｀)っ",
@@ -58,17 +57,17 @@ namespace FC.Bot.Services
 			@"＼(^o^)／",
 			@"(つ◉益◉)つ",
 			@"(oﾟ▽ﾟ)o",
-		};
+		];
 
-		public static readonly List<(string weather, int chance)> WeatherRates = new ()
-		{
+		public static readonly List<(string weather, int chance)> WeatherRates =
+		[
 			("Clear Skies", 25),
 			("Fair Skies", 45),
 			("Clouds", 10),
 			("Rain", 10),
 			("Fog", 5),
 			("Showers", 5),
-		};
+		];
 
 		public readonly DiscordSocketClient DiscordClient;
 

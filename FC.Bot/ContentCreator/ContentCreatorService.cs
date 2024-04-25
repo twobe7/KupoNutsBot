@@ -10,6 +10,7 @@ namespace FC.Bot.ContentCreator
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
+	using Discord.Interactions;
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
@@ -20,9 +21,10 @@ namespace FC.Bot.ContentCreator
 	using Twitch;
 	using Youtube;
 
+	[Group("content-creator", "For Streamers")]
 	public class ContentCreatorService : ServiceBase
 	{
-		public static Table<ContentCreator> ContentCreatorDatabase = new Table<ContentCreator>("KupoNuts_ContentCreator", 0);
+		public static readonly Table<ContentCreator> ContentCreatorDatabase = new ("KupoNuts_ContentCreator", 0);
 
 		public readonly DiscordSocketClient DiscordClient;
 
@@ -87,53 +89,60 @@ namespace FC.Bot.ContentCreator
 		}
 #endif
 
-		[Command("ICreatorTwitch", Permissions.Everyone, "Set your twitch stream", CommandCategory.ContentCreators, showWait: false)]
-		public async Task SetTwitchInformation(CommandMessage message, string username)
+		[SlashCommand("add-twitch", "Set your twitch stream")]
+		public async Task SetTwitchInformation(string username)
 		{
-			await this.SetContentCreator(message, username, ContentCreator.Type.Twitch);
+			await this.DeferAsync(ephemeral: true);
+			await this.SetContentCreator(username, ContentCreator.Type.Twitch);
 		}
 
-		[Command("RemoveCreatorTwitch", Permissions.Everyone, "Remove your set Twitch stream", CommandCategory.ContentCreators)]
-		public async Task RemoveTwitchInformation(CommandMessage message)
+		[SlashCommand("remove-twitch", "Remove your set Twitch stream")]
+		public async Task RemoveTwitchInformation()
 		{
-			await this.RemoveContentCreator(message, ContentCreator.Type.Twitch);
+			await this.DeferAsync(ephemeral: true);
+			await this.RemoveContentCreator(ContentCreator.Type.Twitch);
 		}
 
-		[Command("ICreatorYoutube", Permissions.Everyone, "Set your youtube channel using channel Id or username", CommandCategory.ContentCreators, showWait: false)]
-		public async Task SetYoutubeInformation(CommandMessage message, string identifier)
+		[SlashCommand("add-youtube", "Set your youtube channel using channel Id or username")]
+		public async Task SetYoutubeInformation(string identifier)
 		{
+			await this.DeferAsync(ephemeral: true);
+
 			(string channelId, string username) = await ExploderAPI.GetChannelInformation(identifier);
-			await this.SetContentCreator(message, username, ContentCreator.Type.Youtube, channelId);
+			await this.SetContentCreator(username, ContentCreator.Type.Youtube, channelId);
 		}
 
-		[Command("RemoveCreatorYoutube", Permissions.Everyone, "Remove your set Youtube information", CommandCategory.ContentCreators)]
-		public async Task RemoveYoutubeInformation(CommandMessage message)
+		[SlashCommand("remove-youtube", "Remove your set Youtube information")]
+		public async Task RemoveYoutubeInformation()
 		{
-			await this.RemoveContentCreator(message, ContentCreator.Type.Youtube);
+			await this.DeferAsync(ephemeral: true);
+			await this.RemoveContentCreator(ContentCreator.Type.Youtube);
 		}
 
-		[Command("CC", Permissions.Everyone, "View current content creators", CommandCategory.ContentCreators, "ContentCreators")]
-		[Command("ContentCreators", Permissions.Everyone, "View current content creators", CommandCategory.ContentCreators)]
-		public async Task ViewContentCreators(CommandMessage message)
+		[SlashCommand("list", "View current content creators")]
+		public async Task ViewContentCreators()
 		{
+			await this.DeferAsync();
+
 			// Load streamers
-			List<ContentCreator> streamers = await ContentCreatorDatabase.LoadAll(new Dictionary<string, object> { { "DiscordGuildId", message.Guild.Id } });
+			List<ContentCreator> streamers = await ContentCreatorDatabase.LoadAll(new Dictionary<string, object>
+			{
+				{ "DiscordGuildId", this.Context.Guild.Id },
+			});
 
 			EmbedBuilder embed = new EmbedBuilder()
 				.WithTitle("Content Creators");
 
 			// Add thumbnail
-			embed.AddThumbnail(message.Guild.IconUrl);
+			embed.AddThumbnail(this.Context.Guild.IconUrl);
 
 			if (streamers == null || streamers.Count == 0)
 			{
-				// TODO: Add YT when implemented
-				string prefix = CommandsService.GetPrefix(message.Guild.Id);
-				embed.Description = $"No streamers found!\nUsers can add themselves with {prefix}ICreatorTwitch or {prefix}ICreatorYoutube command";
+				embed.Description = "No streamers found!\nUsers can add themselves with `/add-twitch` or `/add-youtube` commands";
 			}
 			else
 			{
-				StringBuilder desc = new StringBuilder();
+				StringBuilder desc = new ();
 
 				foreach (ContentCreator streamer in streamers)
 				{
@@ -159,7 +168,7 @@ namespace FC.Bot.ContentCreator
 			}
 
 			// Send Embed
-			await message.Channel.SendMessageAsync(embed: embed.Build(), messageReference: message.MessageReference);
+			await this.FollowupAsync(embeds: new Embed[] { embed.Build() });
 		}
 
 #if DEBUG
@@ -329,40 +338,36 @@ namespace FC.Bot.ContentCreator
 			}
 		}
 
-		private async Task SetContentCreator(CommandMessage message, string identifier, ContentCreator.Type type, string? linkId = null)
+		private async Task SetContentCreator(string identifier, ContentCreator.Type type, string? linkId = null)
 		{
-			ContentCreator streamer = await ContentCreatorDatabase.LoadOrCreate(message.Author.Id.ToString());
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
 
-			streamer.DiscordGuildId = message.Guild.Id;
-			streamer.DiscordUserId = message.Author.Id;
-			streamer.GuildNickName = message.Author.GetName();
+			ContentCreator streamer = await ContentCreatorDatabase.LoadOrCreate(guildUser.Id.ToString());
+
+			streamer.DiscordGuildId = this.Context.Guild.Id;
+			streamer.DiscordUserId = guildUser.Id;
+			streamer.GuildNickName = guildUser.GetName();
 
 			streamer.SetContentInfo(identifier, type, linkId);
 
 			await ContentCreatorDatabase.Save(streamer);
 
 			// Send Embed
-			RestUserMessage response = await message.Channel.SendMessageAsync("Added Stream Info", messageReference: message.MessageReference);
-
-			// Delay then delete command and response message
-			await Task.Delay(2000);
-			await response.DeleteAsync();
-			await message.DeleteMessage();
+			await this.FollowupAsync("Added Stream Info", ephemeral: true);
 		}
 
-		private async Task RemoveContentCreator(CommandMessage message, ContentCreator.Type type)
+		private async Task RemoveContentCreator(ContentCreator.Type type)
 		{
-			ContentCreator? streamer = await ContentCreatorDatabase.Load(message.Author.Id.ToString());
+			if (this.Context.User is not IGuildUser guildUser)
+				throw new UserException("Unable to process user.");
+
+			ContentCreator? streamer = await ContentCreatorDatabase.Load(guildUser.Id.ToString());
 			if (streamer != null)
 				await this.RemoveContentCreator(streamer, type);
 
 			// Send Embed
-			RestUserMessage response = await message.Channel.SendMessageAsync("Removed Creator Info", messageReference: message.MessageReference);
-
-			// Delay then delete command and response message
-			await Task.Delay(2000);
-			await response.DeleteAsync();
-			await message.DeleteMessage();
+			await this.FollowupAsync("Removed Creator Info", ephemeral: true);
 		}
 
 		private async Task RemoveContentCreator(ContentCreator streamer, ContentCreator.Type type)
