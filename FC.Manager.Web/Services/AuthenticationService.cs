@@ -39,15 +39,27 @@ public class AuthenticationService : ServiceBase
 			{ "scope", Authentication.DiscordScopes },
 		};
 
-		HttpClient client = new ();
+		HttpClient client = new();
+
+
+		HttpResponseMessage response;
+		string responseString;
+		string userToken = string.Empty;
 
 		// Get the user token from discord
-		FormUrlEncodedContent content = new (values);
-		HttpResponseMessage response = await client.PostAsync("https://discordapp.com/api/oauth2/token", content);
-		string responseString = await response.Content.ReadAsStringAsync();
-		response.EnsureSuccessStatusCode();
-		DiscordAuthResponse discordAuthResponse = Serializer.Deserialize<DiscordAuthResponse>(responseString);
-		string userToken = discordAuthResponse.access_token;
+		try
+		{
+			FormUrlEncodedContent content = new(values);
+			response = await client.PostAsync("https://discord.com/api/oauth2/token", content);
+			responseString = await response.Content.ReadAsStringAsync();
+			response.EnsureSuccessStatusCode();
+			DiscordAuthResponse discordAuthResponse = Serializer.Deserialize<DiscordAuthResponse>(responseString);
+			userToken = discordAuthResponse.access_token;
+		}
+		catch (Exception ex)
+		{
+			Console.Write(ex.ToString());
+		}
 
 		// Now get the user info from discord
 		client.DefaultRequestHeaders.Add("Authorization", "Bearer " + userToken);
