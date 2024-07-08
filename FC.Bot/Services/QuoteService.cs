@@ -111,7 +111,10 @@ namespace FC.Bot.Quotes
 			List<Quote> quotes = await QuoteDb.LoadAll(query);
 
 			if (quotes.Count <= 0)
-				throw new UserException("There are no quotes from that user yet! Try reacting to a message with a 💬!");
+			{
+				await this.FollowupAsync("There are no quotes that match this search! Try reacting to a message with a 💬!");
+				return;
+			}
 
 			quotes.Sort((x, y) =>
 			{
@@ -121,9 +124,13 @@ namespace FC.Bot.Quotes
 			int numPages = (int)Math.Ceiling((double)quotes.Count / 20.0);
 
 			// start pages at 1, so there is no page 0.
-			var pageNonNull = Math.Max(page ?? 1, 1) - 1;
-			int min = 20 * pageNonNull;
-			int max = Math.Min(quotes.Count, 20 * (pageNonNull + 1));
+			var selectedPage = Math.Max(page ?? 1, 1) - 1;
+			int min = 20 * selectedPage;
+			int max = Math.Min(quotes.Count, 20 * (selectedPage + 1));
+
+			// Adjust min where total is less than min
+			if (quotes.Count < min)
+				min = 0;
 
 			StringBuilder quotesList = new ();
 			for (int i = min; i < max; i++)
@@ -136,7 +143,7 @@ namespace FC.Bot.Quotes
 			if (numPages > 1)
 			{
 				quotesList.AppendLine();
-				quotesList.Append($"Page {pageNonNull + 1} of {numPages}");
+				quotesList.Append($"Page {selectedPage + 1} of {numPages}");
 			}
 
 			EmbedBuilder builder = new EmbedBuilder()
