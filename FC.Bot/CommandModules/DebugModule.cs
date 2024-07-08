@@ -181,7 +181,9 @@ namespace FC.Bot.CommandModules
 		public async Task UpdateSlashCommands()
 		{
 			if (this.Context != null && !this.Context.Interaction.HasResponded)
+			{
 				await this.DeferAsync(ephemeral: true);
+			}
 
 			// Register Slash commands
 			var interactionService = this.serviceProvider.GetRequiredService<InteractionService>();

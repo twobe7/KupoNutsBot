@@ -888,9 +888,9 @@ namespace FC
 
 		public Dictionary<string, string> GetAllEmotes()
 		{
-			Dictionary<string, string> emotes = new ();
+			Dictionary<string, string> emotes = [];
 
-			Emotes emoteClass = new ();
+			Emotes emoteClass = new();
 
 			FieldInfo[] fields = emoteClass.GetType().GetFields();
 			foreach (FieldInfo field in fields)

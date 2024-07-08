@@ -32,6 +32,8 @@ namespace FC.Manager.Web
 		public static string GetURL(this NavigationManager self)
 		{
 			Uri uri = new (self.Uri);
+			
+			// TODO: Returning private IP address, should be public URL
 			return string.Format($"{uri.Scheme}{Uri.SchemeDelimiter}{uri.Authority}{uri.AbsolutePath}");
 		}
 	}

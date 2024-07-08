@@ -10,7 +10,7 @@ namespace FC.Serialization
 
 	public static class Serializer
 	{
-		public static JsonSerializerOptions Options = new ();
+		public static JsonSerializerOptions Options = new();
 
 		static Serializer()
 		{

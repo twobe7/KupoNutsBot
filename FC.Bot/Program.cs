@@ -271,6 +271,7 @@ namespace FC.Bot
 					await this.serviceProvider.GetRequiredService<DebugModule>().UpdateSlashCommands();
 #else
 					// Register only the DebugModule on startup
+					await interactionService.RemoveModuleAsync(typeof(DebugModule));
 					await interactionService.AddModuleAsync(typeof(DebugModule), this.serviceProvider);
 					await interactionService.RegisterCommandsGloballyAsync();
 #endif

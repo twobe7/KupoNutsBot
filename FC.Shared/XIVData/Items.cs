@@ -23,7 +23,7 @@ namespace FC.XIVData
 			// Parse full item list
 			string fullListJson;
 #if !DEBUG
-			fullListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemsFull.json");			
+			fullListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemsFull.json");
 #else
 			fullListJson = File.ReadAllText(PathUtils.Current + "..//Assets/ItemsFull.json");
 #endif
@@ -41,7 +41,7 @@ namespace FC.XIVData
 			// Parse condensed item list
 			string itemListJson;
 #if !DEBUG
-			itemListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemList.json");			
+			itemListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemList.json");
 #else
 			itemListJson = File.ReadAllText(PathUtils.Current + "..//Assets/ItemList.json");
 #endif

@@ -58,7 +58,7 @@ namespace FC
 		{
 			if (!File.Exists(Location))
 			{
-				Settings settings = new ();
+				Settings settings = new();
 				settings.Save();
 				return settings;
 			}

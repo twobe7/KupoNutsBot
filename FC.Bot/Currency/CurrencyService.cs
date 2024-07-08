@@ -197,7 +197,7 @@ namespace FC.Bot.Services
 		[SlashCommand("givenuts", "Share your Kupo Nuts with someone")]
 		public async Task GiveNuts(int numberOfNuts, IGuildUser user)
 		{
-			await this.DeferAsync(ephemeral: true);
+			await this.DeferAsync();
 
 			// Message for return
 			string postBackMessage;
