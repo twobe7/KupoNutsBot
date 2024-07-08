@@ -6,7 +6,6 @@ namespace XIVAPI
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Text;
 
 	[Serializable]
 	public class Character
@@ -195,17 +194,17 @@ namespace XIVAPI
 
 		public Character(NetStone.Model.Parseables.Character.LodestoneCharacter netChar)
 		{
-			this.Avatar = netChar.Avatar.ToString();
+			this.Avatar = netChar.Avatar?.ToString() ?? string.Empty;
 			this.Bio = netChar.Bio;
 			this.Server = netChar.Server;
 			this.DC = ServerDataCentreLookup.GetValueOrDefault(this.Server) ?? "Unknown";
 
 			if (netChar.FreeCompany != null)
-				this.FreeCompanyId = netChar.FreeCompany.Id;
+				this.FreeCompanyId = netChar.FreeCompany?.Id ?? string.Empty;
 
 			this.Race = new Data(name: netChar.Race);
-			this.Tribe = new Data(name: netChar.Clan);
-			this.Gender = GenderLookup.GetValueOrDefault(netChar.Gender);
+			this.Tribe = new Data(name: netChar.Tribe);
+			this.Gender = netChar.Gender;
 
 			if (netChar.GrandCompanyName != null && netChar.GrandCompanyRank != null)
 			{
@@ -218,7 +217,7 @@ namespace XIVAPI
 
 			this.Name = netChar.Name;
 			this.Nameday = netChar.Nameday;
-			this.Portrait = netChar.Portrait.ToString();
+			this.Portrait = netChar.Portrait?.ToString() ?? string.Empty;
 			this.Title = new Data(name: netChar.Title);
 
 			this.Town = new Data(name: netChar.TownName);
@@ -227,43 +226,45 @@ namespace XIVAPI
 
 			var classJobInfo = netChar.GetClassJobInfo().Result;
 
-			this.ActiveClassJobIconPath = netChar.ActiveClassJob;
+			this.ActiveClassJobIconPath = netChar.ActiveClassJobIcon;
 			this.ActiveClassJobLevel = netChar.ActiveClassJobLevel;
 
-			this.ClassJobs = new List<ClassJob>()
-			{
-				new ClassJob(Jobs.Alchemist, classJobInfo.Alchemist),
-				new ClassJob(Jobs.Armorer, classJobInfo.Armorer),
-				new ClassJob(Jobs.Astrologian, classJobInfo.Astrologian),
-				new ClassJob(Jobs.Bard, classJobInfo.Bard),
-				new ClassJob(Jobs.Blackmage, classJobInfo.BlackMage),
-				new ClassJob(Jobs.Blacksmith, classJobInfo.Blacksmith),
-				new ClassJob(Jobs.Bluemage, classJobInfo.BlueMage),
-				new ClassJob(Jobs.Botanist, classJobInfo.Botanist),
-				new ClassJob(Jobs.Carpenter, classJobInfo.Carpenter),
-				new ClassJob(Jobs.Culinarian, classJobInfo.Culinarian),
-				new ClassJob(Jobs.Dancer, classJobInfo.Dancer),
-				new ClassJob(Jobs.Darkknight, classJobInfo.DarkKnight),
-				new ClassJob(Jobs.Dragoon, classJobInfo.Dragoon),
-				new ClassJob(Jobs.Fisher, classJobInfo.Fisher),
-				new ClassJob(Jobs.Goldsmith, classJobInfo.Goldsmith),
-				new ClassJob(Jobs.Gunbreaker, classJobInfo.Gunbreaker),
-				new ClassJob(Jobs.Leatherworker, classJobInfo.Leatherworker),
-				new ClassJob(Jobs.Machinist, classJobInfo.Machinist),
-				new ClassJob(Jobs.Miner, classJobInfo.Miner),
-				new ClassJob(Jobs.Monk, classJobInfo.Monk),
-				new ClassJob(Jobs.Ninja, classJobInfo.Ninja),
-				new ClassJob(Jobs.Paladin, classJobInfo.Paladin),
-				new ClassJob(Jobs.Reaper, classJobInfo.Reaper),
-				new ClassJob(Jobs.Redmage, classJobInfo.RedMage),
-				new ClassJob(Jobs.Sage, classJobInfo.Sage),
-				new ClassJob(Jobs.Samurai, classJobInfo.Samurai),
-				new ClassJob(Jobs.Scholar, classJobInfo.Scholar),
-				new ClassJob(Jobs.Summoner, classJobInfo.Summoner),
-				new ClassJob(Jobs.Warrior, classJobInfo.Warrior),
-				new ClassJob(Jobs.Weaver, classJobInfo.Weaver),
-				new ClassJob(Jobs.Whitemage, classJobInfo.WhiteMage),
-			};
+			this.ClassJobs =
+			[
+				new ClassJob(Jobs.Alchemist, classJobInfo?.Alchemist),
+				new ClassJob(Jobs.Armorer, classJobInfo?.Armorer),
+				new ClassJob(Jobs.Astrologian, classJobInfo?.Astrologian),
+				new ClassJob(Jobs.Bard, classJobInfo?.Bard),
+				new ClassJob(Jobs.Blackmage, classJobInfo?.BlackMage),
+				new ClassJob(Jobs.Blacksmith, classJobInfo?.Blacksmith),
+				new ClassJob(Jobs.Bluemage, classJobInfo?.BlueMage),
+				new ClassJob(Jobs.Botanist, classJobInfo?.Botanist),
+				new ClassJob(Jobs.Carpenter, classJobInfo?.Carpenter),
+				new ClassJob(Jobs.Culinarian, classJobInfo?.Culinarian),
+				new ClassJob(Jobs.Dancer, classJobInfo?.Dancer),
+				new ClassJob(Jobs.Darkknight, classJobInfo?.DarkKnight),
+				new ClassJob(Jobs.Dragoon, classJobInfo?.Dragoon),
+				new ClassJob(Jobs.Fisher, classJobInfo?.Fisher),
+				new ClassJob(Jobs.Goldsmith, classJobInfo?.Goldsmith),
+				new ClassJob(Jobs.Gunbreaker, classJobInfo?.Gunbreaker),
+				new ClassJob(Jobs.Leatherworker, classJobInfo?.Leatherworker),
+				new ClassJob(Jobs.Machinist, classJobInfo?.Machinist),
+				new ClassJob(Jobs.Miner, classJobInfo?.Miner),
+				new ClassJob(Jobs.Monk, classJobInfo?.Monk),
+				new ClassJob(Jobs.Ninja, classJobInfo?.Ninja),
+				new ClassJob(Jobs.Paladin, classJobInfo?.Paladin),
+				new ClassJob(Jobs.Pictomancer, classJobInfo?.Pictomancer),
+				new ClassJob(Jobs.Reaper, classJobInfo?.Reaper),
+				new ClassJob(Jobs.Redmage, classJobInfo?.RedMage),
+				new ClassJob(Jobs.Sage, classJobInfo?.Sage),
+				new ClassJob(Jobs.Samurai, classJobInfo?.Samurai),
+				new ClassJob(Jobs.Scholar, classJobInfo?.Scholar),
+				new ClassJob(Jobs.Summoner, classJobInfo?.Summoner),
+				new ClassJob(Jobs.Viper, classJobInfo?.Viper),
+				new ClassJob(Jobs.Warrior, classJobInfo?.Warrior),
+				new ClassJob(Jobs.Weaver, classJobInfo?.Weaver),
+				new ClassJob(Jobs.Whitemage, classJobInfo?.WhiteMage),
+			];
 		}
 
 		// TODO: This enum is replicated from FC.Bot.Characters
@@ -301,6 +302,8 @@ namespace XIVAPI
 			Miner = 16,
 			Botanist = 17,
 			Fisher = 18,
+			Viper = 41,
+			Pictomancer = 42,
 		}
 
 		public string ActiveClassJobIconPath { get; set; }
@@ -314,7 +317,7 @@ namespace XIVAPI
 		public string DC { get; set; } = string.Empty;
 		public string FreeCompanyId { get; set; } = string.Empty;
 		public GearSet? GearSet { get; set; }
-		public uint Gender { get; set; }
+		public char Gender { get; set; }
 		public GrandCompany? GrandCompany { get; set; }
 		public Data? GuardianDeity { get; set; }
 		public uint ID { get; set; }

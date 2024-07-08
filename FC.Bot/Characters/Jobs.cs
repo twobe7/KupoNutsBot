@@ -37,5 +37,7 @@ namespace FC.Bot.Characters
 		Miner = 16,
 		Botanist = 17,
 		Fisher = 18,
+		Viper = 41,
+		Pictomancer = 42,
 	}
 }

@@ -344,7 +344,7 @@ namespace FC.Bot.Characters
 			// Special case to just load Kupo Nuts' portrait from disk.
 			if (user.DiscordUserId == this.DiscordClient.CurrentUser.Id)
 			{
-				await this.FollowupWithFileAsync($"{PathUtils.Current}/Assets/self.png", "Thats me!");
+				await this.FollowupWithFileAsync($"{PathUtils.Current}/Assets/self.png", text: "Thats me!");
 				return;
 			}
 
@@ -545,7 +545,7 @@ namespace FC.Bot.Characters
 			{
 				stringBuilder.Append($"| {character.Id}");
 
-				var rightPad = 10 - character.Id.ToString().Length;
+				var rightPad = 10 - character.Id?.ToString().Length;
 				for (var i = 0; i < rightPad; i++)
 					stringBuilder.Append(Utils.Characters.Space);
 

@@ -198,7 +198,7 @@ namespace FC.Bot.Characters
 			StringBuilder builder = new ();
 
 			// Get Item name with database link
-			builder.Append($"[{self.ItemName}]({self.ItemDatabaseLink.AbsoluteUri}");
+			builder.Append($"[{self.ItemName}]({self.ItemDatabaseLink?.AbsoluteUri}");
 
 			// Tooltip: Glamour if exists
 			if (!string.IsNullOrWhiteSpace(self.GlamourName))
