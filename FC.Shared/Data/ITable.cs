@@ -25,7 +25,7 @@ namespace FC.Data
 		Task<T> LoadOrCreate<T>(string key)
 			where T : EntryBase, new();
 
-		Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null)
+		Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null, int skip = 0, int? take = null)
 			where T : EntryBase, new();
 
 		Task Delete<T>(T entry)

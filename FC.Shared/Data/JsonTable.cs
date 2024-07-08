@@ -7,6 +7,7 @@ namespace FC.Data
 	using System;
 	using System.Collections.Generic;
 	using System.IO;
+	using System.Linq;
 	using System.Reflection;
 	using System.Threading.Tasks;
 	using FC.Serialization;
@@ -105,13 +106,16 @@ namespace FC.Data
 			return Task.FromResult((T?)entry);
 		}
 
-		public Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null)
+		public Task<List<T>> LoadAll<T>(
+			Dictionary<string, object>? conditions = null,
+			int skip = 0,
+			int? take = null)
 			where T : EntryBase, new()
 		{
 			if (!this.connected)
 				throw new Exception("Database not connected.");
 
-			List<T> results = new List<T>();
+			List<T> results = [];
 
 			string[] files = Directory.GetFiles(this.DirectoryPath, "*.json");
 
@@ -145,7 +149,14 @@ namespace FC.Data
 				results.Add(entry);
 			}
 
-			return Task.FromResult(results);
+			// Add skip/take filters
+			IEnumerable<T> resultFilter = results.Skip(skip);
+			if (take.HasValue)
+			{
+				resultFilter = resultFilter.Take(take.Value);
+			}
+
+			return Task.FromResult(resultFilter.ToList());
 		}
 
 		public async Task<T> LoadOrCreate<T>(string key)

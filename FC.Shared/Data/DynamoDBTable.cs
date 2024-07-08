@@ -164,7 +164,10 @@ namespace FC.Data
 			return entry;
 		}
 
-		public async Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null)
+		public async Task<List<T>> LoadAll<T>(
+			Dictionary<string, object>? conditions = null,
+			int skip = 0,
+			int? take = null)
 			where T : EntryBase, new()
 		{
 			if (this.context == null)

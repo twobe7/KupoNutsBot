@@ -56,7 +56,7 @@ namespace FC.Data
 			return this.table.Load<T>(key);
 		}
 
-		public Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null)
+		public Task<List<T>> LoadAll<T>(Dictionary<string, object>? conditions = null, int skip = 0, int? take = null)
 			where T : EntryBase, new()
 		{
 			return this.table.LoadAll<T>(conditions);
