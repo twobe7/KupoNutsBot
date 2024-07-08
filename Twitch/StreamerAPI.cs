@@ -63,7 +63,7 @@ namespace Twitch
 					Color = Color.DarkPurple,
 					ThumbnailUrl = "https://image.flaticon.com/icons/png/256/2111/2111668.png",
 					Title = $"Now Streaming: {username ?? this.UserName}",
-					Description = this.Title[..2000],
+					Description = this.Title.Length > 2000 ? this.Title[..2000] : this.Title,
 					ImageUrl = this.GetThumbnailUrl(width, height),
 				};
 
