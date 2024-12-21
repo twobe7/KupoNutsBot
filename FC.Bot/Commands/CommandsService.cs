@@ -283,7 +283,7 @@ namespace FC.Bot.Commands
 			string[] parts = Regex.Split(command, "(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
 			command = parts[0];
-			List<string> args = new ();
+			List<string> args = new();
 
 			if (parts.Length > 1)
 			{

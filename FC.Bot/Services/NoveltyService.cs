@@ -59,7 +59,7 @@ namespace FC.Bot.Services
 			@"(oﾟ▽ﾟ)o",
 		];
 
-		public static readonly List<(string weather, int chance)> WeatherRates =
+		public static readonly List<(string Weather, int Chance)> WeatherRates =
 		[
 			("Clear Skies", 25),
 			("Fair Skies", 45),
@@ -79,7 +79,7 @@ namespace FC.Bot.Services
 		[SlashCommand("8ball", "Ask the magic 8 ball a question. be warned, you might not like the answer")]
 		public async Task Ask([Summary(description: "Question to ask the 8ball")]string message)
 		{
-			EmbedBuilder builder = new ()
+			EmbedBuilder builder = new()
 			{
 				Title = message,
 				Description = Magic8BallAnswers.GetRandom(),
@@ -144,7 +144,7 @@ namespace FC.Bot.Services
 				throw new UserException("Number of faces has to be more than 0!");
 
 			int total = 0;
-			Random rn = new ();
+			Random rn = new();
 			for (int i = 0; i < count; i++)
 			{
 				total += rn.Next(faces) + 1;
@@ -433,7 +433,7 @@ namespace FC.Bot.Services
 			var currentTime = GetEorzeanTime().ToString("HH:mm");
 
 			// Get Seed
-			DateTime epoch = new (1970, 1, 1, 0, 0, 0);
+			DateTime epoch = new(1970, 1, 1, 0, 0, 0);
 			var seed = Math.Floor((DateTime.Now.ToUniversalTime() - epoch).TotalMilliseconds / 1400000);
 
 			// Hash Seed
@@ -503,7 +503,7 @@ namespace FC.Bot.Services
 		{
 			/* (1 Eorzean hour = 175 seconds) */
 
-			DateTime epoch = new (1970, 1, 1, 0, 0, 0);
+			DateTime epoch = new(1970, 1, 1, 0, 0, 0);
 			double eorzeaConstant = 20.571428571428573;
 
 			double timeSeconds = (DateTime.Now.ToUniversalTime() - epoch).TotalSeconds;

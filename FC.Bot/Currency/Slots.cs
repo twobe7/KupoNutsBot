@@ -24,10 +24,10 @@ namespace FC.Bot.Currency
 		private const string VerticalDivider = Utils.Characters.Tab + "|" + Utils.Characters.Tab;
 		private const string HorizontalDivider = "-----" + Utils.Characters.Space + Utils.Characters.Space + Utils.Characters.Space + "--------" + Utils.Characters.Space + Utils.Characters.Space + "-------";
 
-		private static readonly List<string> PossibleSlotItem = new List<string>()
-		{
+		private static readonly List<string> PossibleSlotItem =
+		[
 			KupoNut, Strawberry, Cherries, Banana, Kiwi, Lemon,
-		};
+		];
 
 		private static readonly Dictionary<int, List<string>> WinningSlotCombinations = new Dictionary<int, List<string>>()
 		{
@@ -52,7 +52,7 @@ namespace FC.Bot.Currency
 		public async Task<Task> StartSlot(IInteractionContext ctx)
 		{
 			// Initial builder information
-			EmbedBuilder builder = new ()
+			EmbedBuilder builder = new()
 			{
 				Title = "Spinning",
 				Color = Color.Gold,
@@ -103,7 +103,7 @@ namespace FC.Bot.Currency
 
 		private Dictionary<int, List<string>> GetSlotBoard()
 		{
-			Dictionary<int, List<string>> board = new ();
+			Dictionary<int, List<string>> board = [];
 
 			// Get winning line
 			List<string> finalLine;
@@ -122,13 +122,13 @@ namespace FC.Bot.Currency
 			else
 			{
 				// Lost... maybe
-				finalLine = new List<string>() { PossibleSlotItem.GetRandom(), PossibleSlotItem.GetRandom(), PossibleSlotItem.GetRandom(), };
+				finalLine = [PossibleSlotItem.GetRandom(), PossibleSlotItem.GetRandom(), PossibleSlotItem.GetRandom(),];
 			}
 
 			// Build rest of board
 			for (int c = 0; c < 3; c++)
 			{
-				List<string> column = new ();
+				List<string> column = [];
 
 				for (int i = 0; i < 10; i++)
 				{
@@ -150,7 +150,7 @@ namespace FC.Bot.Currency
 
 		private void SpinSlotGrid(EmbedBuilder builder, Dictionary<int, List<string>> board, int spin, out WinType winType)
 		{
-			StringBuilder description = new StringBuilder();
+			StringBuilder description = new();
 
 			int leftSpin = spin > 2 ? 3 : spin;
 			int middleSpin = spin > 3 ? 4 : spin;

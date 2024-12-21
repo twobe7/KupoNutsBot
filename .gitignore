@@ -3,3 +3,5 @@ bin
 obj
 *.xml
 /FindUser
+*.user
+/FC.Manager.Web/Database

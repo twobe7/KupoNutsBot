@@ -7,7 +7,6 @@ namespace FC.Manager.Web;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using FC.Manager.Web.Services;
 using FC.Serialization;
 using Microsoft.AspNetCore.Http;
@@ -138,7 +137,7 @@ public static class Authentication
 	public static string GenerateToken(Dictionary<string, string> claims)
 	{
 		IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
-		JWT.IJsonSerializer serializer = new JsonSerializer();
+		IJsonSerializer serializer = new JsonSerializer();
 		IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
 		IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
 
@@ -147,7 +146,7 @@ public static class Authentication
 
 	public static bool VerifyToken(string token, string key, string value = "true")
 	{
-        JWT.IJsonSerializer serializer = new JsonSerializer();
+        IJsonSerializer serializer = new JsonSerializer();
 		IDateTimeProvider provider = new UtcDateTimeProvider();
 		IJwtValidator validator = new JwtValidator(serializer, provider);
 		IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
@@ -162,7 +161,7 @@ public static class Authentication
 		return false;
 	}
 
-	public class JsonSerializer : JWT.IJsonSerializer
+	public class JsonSerializer : IJsonSerializer
 	{
 		public T Deserialize<T>(string json)
 		{

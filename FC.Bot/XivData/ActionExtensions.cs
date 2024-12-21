@@ -17,7 +17,7 @@ public static class ActionExtensions
 			.WithTitle(self.Name)
 			.WithThumbnailUrl(Icons.GetIconURL(self.Icon));
 
-		StringBuilder desc = new ();
+		StringBuilder desc = new();
 
 		desc.AppendLine($"**Level {self.ClassJobLevel} {self.ClassJobCategory?.Name}**");
 

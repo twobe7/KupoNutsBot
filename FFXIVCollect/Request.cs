@@ -6,7 +6,6 @@ namespace FFXIVCollect
 {
 	using System;
 	using System.IO;
-	using System.Net;
 	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
@@ -26,7 +25,7 @@ namespace FFXIVCollect
 				Log.Write("Request: " + url, "FFXIVCollect");
 
 				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-				StreamReader reader = new (await client.GetStreamAsync(url));
+				StreamReader reader = new(await client.GetStreamAsync(url));
 				string json = await reader.ReadToEndAsync();
 
 				Log.Write("Response: " + json.Length + " characters", "FFXIVCollect");

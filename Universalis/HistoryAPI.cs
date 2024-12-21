@@ -15,7 +15,7 @@ namespace Universalis
 			return await Request.Send<GetResponse>("/history/" + dataCenter + "/" + itemId);
 		}
 
-		public static async Task<(Entry?, Entry?)> GetBestPrice(string dataCenter, ulong itemId)
+		public static async Task<(Entry? BestHq, Entry? BestNm)> GetBestPrice(string dataCenter, ulong itemId)
 		{
 			GetResponse response = await Get(dataCenter, itemId);
 
@@ -58,7 +58,7 @@ namespace Universalis
 			public string? dcName;
 			public ulong? itemID;
 			public ulong? lastUploadTime;
-			public List<Entry> entries = new List<Entry>();
+			public List<Entry> entries = [];
 		}
 
 		[Serializable]

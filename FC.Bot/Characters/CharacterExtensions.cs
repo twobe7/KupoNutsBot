@@ -73,7 +73,7 @@ namespace FC.Bot.Characters
 			if (netGear == null)
 				throw new Exception("No gear set on character.");
 
-			EmbedBuilder builder = new ()
+			EmbedBuilder builder = new()
 			{
 				ImageUrl = self.Portrait,
 				Title = self.Name,
@@ -195,7 +195,7 @@ namespace FC.Bot.Characters
 			if (!self.Exists)
 				return string.Empty;
 
-			StringBuilder builder = new ();
+			StringBuilder builder = new();
 
 			// Get Item name with database link
 			builder.Append($"[{self.ItemName}]({self.ItemDatabaseLink?.AbsoluteUri}");
@@ -211,7 +211,7 @@ namespace FC.Bot.Characters
 				builder.AppendLine($"iLv: {itemLevel}");
 
 			// Build materia
-			Dictionary<string, int> materiaList = new ();
+			Dictionary<string, int> materiaList = new();
 			foreach (string materia in self.Materia)
 			{
 				if (string.IsNullOrWhiteSpace(materia))

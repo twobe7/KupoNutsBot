@@ -24,14 +24,14 @@ namespace FC.Bot.Characters
 			string portraitPath = $"{PathUtils.Current}/Temp/{character.Id}.jpg";
 			await FileDownloader.Download(character.Portrait, portraitPath);
 
-			Image backgroundImg = Image.Load(PathUtils.Current + "/Assets/CharacterCardBackground.png");
+			Image backgroundImg = Image.Load($"{PathUtils.Current}/Assets/CharacterCardBackground.png");
 
 			Image<Rgba32> charImg = Image.Load<Rgba32>(portraitPath);
 			charImg.Mutate(x => x.Resize(375, 512));
 
-			Image<Rgba32> overlayImg = Image.Load<Rgba32>(PathUtils.Current + "/Assets/CharacterCardOverlay.png");
+			Image<Rgba32> overlayImg = Image.Load<Rgba32>($"{PathUtils.Current}/Assets/CharacterCardOverlay.png");
 
-			Image<Rgba32> finalImg = new (1024, 512);
+			Image<Rgba32> finalImg = new(1024, 512);
 			finalImg.Mutate(x => x.DrawImage(backgroundImg, 1.0f));
 			finalImg.Mutate(x => x.DrawImage(charImg, 1.0f));
 			finalImg.Mutate(x => x.DrawImage(overlayImg, 1.0f));
@@ -74,7 +74,7 @@ namespace FC.Bot.Characters
 			// Birthday (1st Sun of the 1st Astral Moon)
 			if (character.NameDay != null)
 			{
-				var nameDayPath = PathUtils.Current + $"/Assets/Moons/{(character.NameDay.Contains("Astral") ? "Astral" : "Umbral")}.png";
+				var nameDayPath = $"{PathUtils.Current}/Assets/Moons/{(character.NameDay.Contains("Astral") ? "Astral" : "Umbral")}.png";
 				Image<Rgba32> moonImg = Image.Load<Rgba32>(nameDayPath);
 
 				finalImg.Mutate(x => x.DrawImage(moonImg, new Point(907, 122), 1.0f));
@@ -91,11 +91,11 @@ namespace FC.Bot.Characters
 			// Free Company
 			if (character.FreeCompany != null)
 			{
-				Image<Rgba32> crestFinal = new (128, 128);
+				Image<Rgba32> crestFinal = new(128, 128);
 				foreach (string crestPart in character.FreeCompany.Crest)
 				{
 					string name = Path.GetFileName(crestPart);
-					string crestPath = PathUtils.Current + "/Crests/" + name;
+					string crestPath = $"{PathUtils.Current}/Crests/{name}";
 
 					if (!File.Exists(crestPath))
 						await FileDownloader.Download(crestPart, crestPath);

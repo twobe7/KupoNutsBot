@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<RootNamespace>FC</RootNamespace>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<DocumentationFile>..\bin\FC.Shared.xml</DocumentationFile>
@@ -29,14 +29,14 @@
 
 	<ItemGroup>
 		<PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.101.59" />
-		<PackageReference Include="Discord.Net" Version="3.14.1" />
-		<PackageReference Include="NodaTime" Version="3.1.5" />
+		<PackageReference Include="Discord.Net" Version="3.17.0" />
+		<PackageReference Include="NodaTime" Version="3.2.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Text.Json" Version="5.0.2" />
-		<PackageReference Include="TimeZoneNames" Version="4.2.0" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0" />
+		<PackageReference Include="TimeZoneNames" Version="6.0.0" />
 	</ItemGroup>
 
 </Project>

@@ -26,7 +26,7 @@ namespace FC
 
 		public string Closes { get; set; } = string.Empty;
 
-		public List<Option> Options { get; set; } = new List<Option>();
+		public List<Option> Options { get; set; } = [];
 
 		[DynamoDBIgnore] // Ignore when using DynamoDB
 		[System.Text.Json.Serialization.JsonIgnore] // Ignore when using Json DB
@@ -73,7 +73,7 @@ namespace FC
 
 			public string Text { get; set; } = string.Empty;
 
-			public List<ulong> Votes { get; set; } = new List<ulong>();
+			public List<ulong> Votes { get; set; } = [];
 		}
 	}
 }

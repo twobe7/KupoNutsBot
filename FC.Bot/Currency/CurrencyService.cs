@@ -30,16 +30,16 @@ namespace FC.Bot.Services
 		private const double GenerationChance = 0.05;
 		private const int GameCoolDownInSeconds = 30;
 
-		private static readonly Table<ShopItem> ShopItemDatabase = new ("KupoNuts_ShopItems", 0);
+		private static readonly Table<ShopItem> ShopItemDatabase = new("KupoNuts_ShopItems", 0);
 
 		// TODO: Move into Guild Settings - allow user to provide list of channels to be blocked
-		private readonly List<ulong> blockedChannels = new ()
-		{
+		private readonly List<ulong> blockedChannels =
+		[
 			837682896805691473,
 			838350357074935838,
 			838350425593479208,
 			838350518853566474,
-		};
+		];
 
 		// Run times
 		private readonly Dictionary<ulong, DateTime?> slotsLastRunTime;
@@ -97,7 +97,7 @@ namespace FC.Bot.Services
 				return -a.TotalKupoNutsCurrent.CompareTo(b.TotalKupoNutsCurrent);
 			});
 
-			StringBuilder builder = new ();
+			StringBuilder builder = new();
 
 			int count = 1;
 			foreach (User user in users)
@@ -120,7 +120,7 @@ namespace FC.Bot.Services
 				count++;
 			}
 
-			EmbedBuilder embedBuilder = new ()
+			EmbedBuilder embedBuilder = new()
 			{
 				Title = "Kupo Nut Leaderboard",
 				Description = builder.ToString(),
@@ -137,14 +137,14 @@ namespace FC.Bot.Services
 			User user = await UserService.GetUser(guildUser);
 			string userName = guildUser.GetName();
 
-			EmbedBuilder builder = new () { Title = userName + "'s Kupo Nut Stash!" };
+			EmbedBuilder builder = new() { Title = userName + "'s Kupo Nut Stash!" };
 
-			StringBuilder description = new StringBuilder();
+			StringBuilder description = new();
 			description.AppendLine("Current Total: " + user.TotalKupoNutsCurrent);
 			description.AppendLine("Total Held: " + user.TotalKupoNutsReceived);
 			builder.Description = description.ToString();
 
-			await this.RespondAsync(embeds: new Embed[] { builder.Build() });
+			await this.RespondAsync(embeds: [builder.Build()]);
 		}
 
 		[SlashCommand("dailynuts", "Get your daily nut")]
@@ -254,7 +254,7 @@ namespace FC.Bot.Services
 				throw new UserException("Unable to process user.");
 
 			// Shop items
-			List<ShopItem> items = new ();
+			List<ShopItem> items = [];
 
 			User user = await UserService.GetUser(guildUser);
 
@@ -262,7 +262,7 @@ namespace FC.Bot.Services
 				.WithTitle($"{guildUser.GetName()}'s Inventory")
 				.WithColor(Color.Blue);
 
-			StringBuilder desc = new ();
+			StringBuilder desc = new();
 			if (user.Inventory.Count == 0)
 			{
 				desc.AppendLine("Nothing to show here. Visit our shop, _kupo!_");
@@ -296,7 +296,7 @@ namespace FC.Bot.Services
 				components.WithButton(emote: item.ReactionEmote, customId: $"use-inventory-{item.ReactionEmote}");
 			}
 
-			await this.FollowupAsync(embeds: new Embed[] { embed.Build() }, components: components.Build());
+			await this.FollowupAsync(embeds: [embed.Build()], components: components.Build());
 
 			// Clear components
 			_ = Task.Run(async () => await this.StopInventoryListener(this.Context));

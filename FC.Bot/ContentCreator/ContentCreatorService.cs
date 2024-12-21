@@ -22,16 +22,11 @@ namespace FC.Bot.ContentCreator
 	using Youtube;
 
 	[Group("content-creator", "For Streamers")]
-	public class ContentCreatorService : ServiceBase
+	public class ContentCreatorService(DiscordSocketClient discordClient) : ServiceBase
 	{
-		public static readonly Table<ContentCreator> ContentCreatorDatabase = new ("KupoNuts_ContentCreator", 0);
+		public static readonly Table<ContentCreator> ContentCreatorDatabase = new("KupoNuts_ContentCreator", 0);
 
-		public readonly DiscordSocketClient DiscordClient;
-
-		public ContentCreatorService(DiscordSocketClient discordClient)
-		{
-			this.DiscordClient = discordClient;
-		}
+		public readonly DiscordSocketClient DiscordClient = discordClient;
 
 		public override async Task Initialize()
 		{
@@ -142,7 +137,7 @@ namespace FC.Bot.ContentCreator
 			}
 			else
 			{
-				StringBuilder desc = new ();
+				StringBuilder desc = new();
 
 				foreach (ContentCreator streamer in streamers)
 				{

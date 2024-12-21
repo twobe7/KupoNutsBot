@@ -7,6 +7,7 @@ namespace FC
 	using System;
 	using System.IO;
 	using FC.Serialization;
+	using FC.Utils;
 
 	[Serializable]
 	public class Settings
@@ -56,7 +57,7 @@ namespace FC
 
 		public static Settings Load()
 		{
-			if (!File.Exists(Location))
+			if (!File.Exists($"{PathUtils.Current}/{Location}"))
 			{
 				Settings settings = new();
 				settings.Save();
@@ -64,7 +65,7 @@ namespace FC
 			}
 			else
 			{
-				string json = File.ReadAllText(Location);
+				string json = File.ReadAllText($"{PathUtils.Current}/{Location}");
 				return Serializer.Deserialize<Settings>(json) ?? new Settings();
 			}
 		}
@@ -72,7 +73,7 @@ namespace FC
 		public void Save()
 		{
 			string json = Serializer.Serialize(this);
-			File.WriteAllText(Location, json);
+			File.WriteAllText($"{PathUtils.Current}/{Location}", json);
 		}
 	}
 }

@@ -13,16 +13,16 @@ namespace FC.Bot.Currency
 
 	public class Blackjack
 	{
-		private static readonly List<IEmote> Reactions = new ()
-		{
+		private static readonly List<IEmote> Reactions =
+		[
 			Emote.Parse("<:hit:838773536235061275>"),
 			Emote.Parse("<:stand:838773499349827664>"),
-		};
+		];
 
 		private static readonly IEmote FaceDown = new Emoji("🟦");
 
-		private static readonly List<IEmote> Deck = new ()
-		{
+		private static readonly List<IEmote> Deck =
+		[
 			new Emoji(@"🇦"),
 			new Emoji(":two:"),
 			new Emoji(":three:"),
@@ -36,7 +36,7 @@ namespace FC.Bot.Currency
 			new Emoji("🇯"),
 			new Emoji("🇶"),
 			new Emoji("🇰"),
-		};
+		];
 
 		private static ActiveGame? activeGame;
 
@@ -185,7 +185,7 @@ namespace FC.Bot.Currency
 		private static EmbedBuilder GetEmbedBuilder(bool revealDealerHand = false, bool finalBuild = false)
 		{
 			// Initial builder information
-			EmbedBuilder builder = new EmbedBuilder
+			EmbedBuilder builder = new()
 			{
 				Title = "Blackjack",
 				Color = Color.Gold,

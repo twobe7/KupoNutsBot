@@ -4,10 +4,10 @@
 
 namespace Discord.Interactions;
 
-using Discord.WebSocket;
 using System;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
+using Discord.WebSocket;
 
 /// <summary>
 /// Requires the user invoking the command to have a specified permission.

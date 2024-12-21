@@ -10,7 +10,6 @@ namespace FC.Bot.Housing
 	using Discord;
 	using Discord.Interactions;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using FC.XIVData;
 	using PaissaHouse;
@@ -68,7 +67,7 @@ namespace FC.Bot.Housing
 					EmbedFieldBuilder districtFieldBuilder = new EmbedFieldBuilder()
 						.WithName(district.Name);
 
-					StringBuilder stringBuilder = new ();
+					StringBuilder stringBuilder = new();
 
 					bool fieldLengthMaxReached = false;
 
@@ -102,7 +101,7 @@ namespace FC.Bot.Housing
 			}
 
 			// Send Embed
-			await this.FollowupAsync(embeds: new Embed[] { builder.Build() });
+			await this.FollowupAsync(embeds: [builder.Build()]);
 		}
 
 		private static EmbedBuilder GetEmbed(string world)

@@ -39,14 +39,11 @@ namespace FC.Bot.Items
 
 		public readonly DiscordSocketClient DiscordClient;
 
-		private static readonly List<IEmote> MBEmotes = new List<IEmote>()
-		{
-			HQEmote, GilIEmote,
-		};
+		private static readonly List<IEmote> MBEmotes = [HQEmote, GilIEmote];
 
 		private static Task? activeMBWindowTask;
 
-		private static Dictionary<ulong, ActiveMBWindow> activeMBEmbeds = new Dictionary<ulong, ActiveMBWindow>();
+		private static Dictionary<ulong, ActiveMBWindow> activeMBEmbeds = [];
 
 		public ItemService(DiscordSocketClient discordClient)
 		{
@@ -81,9 +78,9 @@ namespace FC.Bot.Items
 			}
 			else if (results.Count > 1)
 			{
-				EmbedBuilder embed = new ();
+				EmbedBuilder embed = new();
 
-				StringBuilder description = new ();
+				StringBuilder description = new();
 				for (int i = 0; i < Math.Min(results.Count, 10); i++)
 				{
 					description.AppendLine(results[i].ID + " - " + results[i].Name);
@@ -117,7 +114,7 @@ namespace FC.Bot.Items
 
 			var mbEmbedMessage = await this.FollowupAsync(embed: embed);
 
-			await mbEmbedMessage.AddReactionsAsync(MBEmotes.ToArray());
+			await mbEmbedMessage.AddReactionsAsync([.. MBEmotes]);
 
 			// Add to window list
 			activeMBEmbeds.Add(mbEmbedMessage.Id, new ActiveMBWindow(this.Context.User.Id, itemId, dataCentre, null, false));
@@ -209,7 +206,7 @@ namespace FC.Bot.Items
 					string worldGapString;
 
 					// Start building pricing list
-					StringBuilder builder = new ();
+					StringBuilder builder = new();
 					builder.AppendLine(Utils.Characters.Space);
 
 					foreach (MarketAPI.ListingDisplay listing in listings)
@@ -226,7 +223,7 @@ namespace FC.Bot.Items
 							listing.WorldName,
 							listing.Quantity,
 							listing.MaxPricePerUnit,
-							listing.Quantity == 1 ? string.Empty : " (" + listing.MaxTotal + ")",
+							listing.Quantity == 1 ? string.Empty : $" ({listing.MaxTotal})",
 							listing.Hq == true ? HighQualityEmote : NormalQualityEmote,
 							listing.LastUpdatedIcon);
 

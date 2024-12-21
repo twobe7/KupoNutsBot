@@ -205,7 +205,7 @@ namespace FC.Bot.Commands
 				return;
 			}
 
-			Stopwatch sw = new ();
+			Stopwatch sw = new();
 			sw.Start();
 
 			// if we take too long, post the think message.

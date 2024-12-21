@@ -6,7 +6,6 @@ namespace FC.Bot.Services
 {
 	using System;
 	using System.Collections.Generic;
-	using System.IO;
 	using System.Linq;
 	using System.Reflection;
 	using System.Text;
@@ -15,7 +14,6 @@ namespace FC.Bot.Services
 	using Discord;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
-	using FC.Utils;
 	using NodaTime;
 
 	public class HelpService : ServiceBase
@@ -214,8 +212,8 @@ namespace FC.Bot.Services
 			helpCommands = helpCommands.Skip(startIndex * PageSize).Take(PageSize);
 
 			// Start Embed
-			EmbedBuilder embed = new ();
-			StringBuilder builder = new ();
+			EmbedBuilder embed = new();
+			StringBuilder builder = new();
 
 			// Category name
 			embed.Title = helpCommands.First().CommandCategory.ToDisplayString() + " Commands";

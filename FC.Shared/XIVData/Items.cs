@@ -13,20 +13,14 @@ namespace FC.XIVData
 
 	public class Items
 	{
-		public static readonly List<AutocompleteResult> AutocompleteItems = new List<AutocompleteResult>();
-		public static readonly Dictionary<string, XivItem> XivItemsByName = new Dictionary<string, XivItem>();
-		public static readonly Dictionary<int, XivItem> XivItemsById = new Dictionary<int, XivItem>();
+		public static readonly List<AutocompleteResult> AutocompleteItems = [];
+		public static readonly Dictionary<string, XivItem> XivItemsByName = [];
+		public static readonly Dictionary<int, XivItem> XivItemsById = [];
 
 		static Items()
 		{
-			// TODO: Fix this
 			// Parse full item list
-			string fullListJson;
-#if !DEBUG
-			fullListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemsFull.json");
-#else
-			fullListJson = File.ReadAllText(PathUtils.Current + "..//Assets/ItemsFull.json");
-#endif
+			string fullListJson = File.ReadAllText($"{PathUtils.Current}/Assets/ItemsFull.json");
 			if (fullListJson != null && !string.IsNullOrWhiteSpace(fullListJson))
 			{
 				var jsonList = JsonConvert.DeserializeObject<List<XivItem>>(fullListJson);
@@ -37,14 +31,8 @@ namespace FC.XIVData
 				}
 			}
 
-			// TODO: Fix this
 			// Parse condensed item list
-			string itemListJson;
-#if !DEBUG
-			itemListJson = File.ReadAllText(PathUtils.Current + "/Assets/ItemList.json");
-#else
-			itemListJson = File.ReadAllText(PathUtils.Current + "..//Assets/ItemList.json");
-#endif
+			string itemListJson = File.ReadAllText($"{PathUtils.Current}/Assets/ItemList.json");
 			if (itemListJson != null && !string.IsNullOrWhiteSpace(itemListJson))
 			{
 				var jsonList = JsonConvert.DeserializeObject<List<AutocompleteResult>>(itemListJson);

@@ -5,20 +5,16 @@
 namespace FC.Bot.Polls
 {
 	using System;
-	using System.Collections.Generic;
 	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
-	using Discord.Commands;
 	using Discord.Rest;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Utils;
-	using NodaTime;
 
 	public static class PollExtensions
 	{
-		public static async Task<bool> IsValid(this Poll self)
+		public static async Task<bool> IsValid(this FC.Poll self)
 		{
 			// Poll is invalid if channel cannot be found
 			if (Program.DiscordClient.GetChannel(self.ChannelId) is not SocketTextChannel channel)
@@ -38,7 +34,7 @@ namespace FC.Bot.Polls
 			return true;
 		}
 
-		public static async Task Close(this Poll self)
+		public static async Task Close(this FC.Poll self)
 		{
 			Log.Write("Closing poll: \"" + self.Comment + "\" (" + self.Id + ")", "Bot");
 
@@ -51,14 +47,14 @@ namespace FC.Bot.Polls
 			self.ClosesInstant = TimeUtils.Now;
 		}
 
-		public static Task<Embed> ToEmbed(this Poll self)
+		public static Task<Embed> ToEmbed(this FC.Poll self)
 		{
 			if (Program.DiscordClient.GetChannel(self.ChannelId) is not SocketTextChannel channel)
 				throw new Exception("Poll channel: " + self.ChannelId + " missing");
 
 			int totalVotes = self.CountTotalVotes();
 
-			StringBuilder description = new StringBuilder();
+			StringBuilder description = new();
 
 			description.AppendLine(self.Comment);
 			description.AppendLine();
@@ -75,7 +71,7 @@ namespace FC.Bot.Polls
 
 			for (int i = 0; i < self.Options.Count; i++)
 			{
-				Poll.Option op = self.Options[i];
+				FC.Poll.Option op = self.Options[i];
 
 				description.Append(PollService.ListEmotes[i]);
 				description.Append(" - _");
@@ -107,7 +103,7 @@ namespace FC.Bot.Polls
 				}
 			}
 
-			StringBuilder title = new StringBuilder();
+			StringBuilder title = new();
 			SocketGuildUser? author = channel.GetUser(self.Author);
 
 			/*if (author != null && CommandsService.GetPermissions(author) == Permissions.Administrators)
@@ -139,7 +135,7 @@ namespace FC.Bot.Polls
 			return Task.FromResult(builder.Build());
 		}
 
-		public static async Task UpdateMessage(this Poll self)
+		public static async Task UpdateMessage(this FC.Poll self)
 		{
 			Log.Write("Updating poll: \"" + self.Comment + "\" (" + self.Id + ")", "Bot");
 
@@ -171,9 +167,9 @@ namespace FC.Bot.Polls
 			}
 		}
 
-		public static void Vote(this Poll self, ulong userId, int optionIndex)
+		public static void Vote(this FC.Poll self, ulong userId, int optionIndex)
 		{
-			foreach (Poll.Option op in self.Options)
+			foreach (FC.Poll.Option op in self.Options)
 			{
 				op.Votes.Remove(userId);
 			}

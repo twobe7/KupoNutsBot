@@ -1,20 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+	<TargetFramework>net9.0</TargetFramework>
+	<Nullable>enable</Nullable>
+	<ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazored.Modal" Version="7.3.1" />
-    <PackageReference Include="Blazored.Toast" Version="4.2.1" />
-    <PackageReference Include="JWT" Version="10.1.1" />
+	<PackageReference Include="Blazored.Modal" Version="7.3.1" />
+	<PackageReference Include="Blazored.Toast" Version="4.2.1" />
+	<PackageReference Include="Discord.Net" Version="3.17.0" />
+	<PackageReference Include="JWT" Version="11.0.0" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FC.Bot\FC.Bot.csproj" />
-    <ProjectReference Include="..\FC.Shared\FC.Shared.csproj" />
+	<ProjectReference Include="..\FC.Bot\FC.Bot.csproj" />
+	<ProjectReference Include="..\FC.Shared\FC.Shared.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+		<None Include="Settings.json">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
 </Project>

@@ -4,24 +4,20 @@
 
 namespace FC.Bot.Characters;
 
-using Discord;
-using Discord.WebSocket;
-using FC.Bot.Commands;
-using FC.Bot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
+using Discord.WebSocket;
+using FC.Bot.Commands;
+using FC.Bot.Services;
 using XIVAPI;
 
-public class CensusService : ServiceBase
+public class CensusService(DiscordSocketClient discordClient) : ServiceBase
 {
-	public readonly DiscordSocketClient DiscordClient;
-	public CensusService(DiscordSocketClient discordClient)
-	{
-		this.DiscordClient = discordClient;
-	}
+	public readonly DiscordSocketClient DiscordClient = discordClient;
 
 	public override async Task Initialize()
 	{
@@ -39,7 +35,7 @@ public class CensusService : ServiceBase
 
 	private async Task<Embed> GetFreeCompanyCensus(ulong freeCompanyId)
 	{
-		EmbedBuilder embed = new ()
+		EmbedBuilder embed = new()
 		{
 			Title = "Free Company Census",
 		};
@@ -50,8 +46,8 @@ public class CensusService : ServiceBase
 			return embed.WithDescription("No members found").Build();
 
 		// Census variables
-		List<CensusData> data = new ();
-		DateTime startTime = new (1970, 1, 1);
+		List<CensusData> data = [];
+		DateTime startTime = new(1970, 1, 1);
 		DateTime activeThreshold = DateTime.Now.Date.AddMonths(-3);
 
 		// Loop members
@@ -64,7 +60,7 @@ public class CensusService : ServiceBase
 
 			FreeCompanyAPI.Character character = responseCharacter.Character;
 
-			CensusData entry = new ()
+			CensusData entry = new()
 			{
 				// Race
 				Race = ((CharacterInfo.Races)character.Race).ToDisplayString(),
@@ -91,7 +87,7 @@ public class CensusService : ServiceBase
 		embed.AddField("Total Members", data.Count, true);
 
 		// Race ranking
-		StringBuilder raceRanking = new ();
+		StringBuilder raceRanking = new();
 		foreach (IGrouping<string, CensusData> raceGroup in data.GroupBy(x => x.Race))
 		{
 			// Tribes
@@ -106,7 +102,7 @@ public class CensusService : ServiceBase
 		embed.AddField("Race", raceRanking);
 
 		// Gender ranking
-		StringBuilder genderRanking = new ();
+		StringBuilder genderRanking = new();
 		foreach (IGrouping<uint, CensusData> genderGroup in data.GroupBy(x => x.Gender))
 		{
 			string gender = genderGroup.Key == 1 ? "Male" : "Female";
@@ -122,7 +118,7 @@ public class CensusService : ServiceBase
 		embed.AddField("Active Members", activeData.Count, true);
 
 		// Race ranking
-		StringBuilder activeRaceRanking = new ();
+		StringBuilder activeRaceRanking = new();
 		foreach (IGrouping<string, CensusData> raceGroup in activeData.GroupBy(x => x.Race))
 		{
 			// Tribes
@@ -137,7 +133,7 @@ public class CensusService : ServiceBase
 		embed.AddField("Active Race", activeRaceRanking);
 
 		// Gender ranking
-		StringBuilder activeGenderRanking = new ();
+		StringBuilder activeGenderRanking = new();
 		foreach (IGrouping<uint, CensusData> genderGroup in activeData.GroupBy(x => x.Gender))
 		{
 			string gender = genderGroup.Key == 1 ? "Male" : "Female";

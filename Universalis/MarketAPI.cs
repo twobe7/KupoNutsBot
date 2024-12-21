@@ -21,7 +21,7 @@ namespace Universalis
 		{
 			GetResponse response = await Get(dataCenter, itemId);
 
-			List<History> results = new List<History>();
+			List<History> results = [];
 
 			foreach (IGrouping<string?, History> worldGroup in response.RecentHistory.GroupBy(x => x.WorldName))
 			{
@@ -70,7 +70,7 @@ namespace Universalis
 			return results.OrderBy(x => x.PricePerUnit);
 		}
 
-		public static async Task<(History?, History?)> GetBestPriceHistory(string dataCenter, ulong itemId)
+		public static async Task<(History? BestHq, History? BestNm)> GetBestPriceHistory(string dataCenter, ulong itemId)
 		{
 			GetResponse response = await Get(dataCenter, itemId);
 
@@ -108,9 +108,9 @@ namespace Universalis
 
 		public static async Task<IOrderedEnumerable<ListingDisplay>> GetBestPriceListing(string dataCenter, ulong itemId, bool? hqOnly, bool lowestByUnitPrice)
 		{
-			Dictionary<string, ulong> worldLastUpdated = new Dictionary<string, ulong>();
-			List<Listing> dataCentreListings = new List<Listing>();
-			List<ListingDisplay> results = new List<ListingDisplay>();
+			Dictionary<string, ulong> worldLastUpdated = [];
+			List<Listing> dataCentreListings = [];
+			List<ListingDisplay> results = [];
 
 			if (World.ServerDataCentreLookup.TryGetValue(dataCenter, out var dataCentreWorlds))
 			{
@@ -196,8 +196,8 @@ namespace Universalis
 			/// Gets or sets the last upload time for this endpoint, in milliseconds since the UNIX epoch.
 			/// </summary>
 			public ulong? LastUploadTime { get; set; }
-			public List<Listing> Listings { get; set; } = new List<Listing>();
-			public List<History> RecentHistory { get; set; } = new List<History>();
+			public List<Listing> Listings { get; set; } = [];
+			public List<History> RecentHistory { get; set; } = [];
 		}
 
 		[Serializable]

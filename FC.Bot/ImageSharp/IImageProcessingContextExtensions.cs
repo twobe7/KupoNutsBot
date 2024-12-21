@@ -14,13 +14,13 @@ namespace FC.Bot.ImageSharp
 	{
 		public static void DrawText(this IImageProcessingContext context, TextOptions op, string? text, Font font, Color color, Point bounds)
 		{
-			Rectangle rectangle = new (bounds, context.GetCurrentSize());
+			Rectangle rectangle = new(bounds, context.GetCurrentSize());
 			context.DrawText(op, text, font, color, rectangle);
 		}
 
 		public static void DrawText(this IImageProcessingContext context, TextOptions op, string? text, Font font, Color color, PointF bounds)
 		{
-			Rectangle rectangle = new ((Point)bounds, context.GetCurrentSize());
+			Rectangle rectangle = new((Point)bounds, context.GetCurrentSize());
 			context.DrawText(op, text, font, color, rectangle);
 		}
 

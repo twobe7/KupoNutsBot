@@ -25,7 +25,7 @@ public static class SearchAPI
 
 	public static async Task<List<Result>> Search(string name, string type)
 	{
-		List<Result> results = new ();
+		List<Result> results = [];
 
 		string route = "/search?string=" + name;
 

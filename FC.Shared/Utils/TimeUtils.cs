@@ -387,17 +387,17 @@ namespace FC.Utils
 			TimeZoneValues abbr = TZNames.GetAbbreviationsForTimeZone(tz.Id, "en-au");
 
 			// Handling for things without abbreviations
-			switch (abbr.Standard)
+			/*switch (abbr.Standard)
 			{
 				case "Japan Standard Time":
 					abbr.Standard = "JST";
 					break;
 				default:
 					break;
-			}
+			}*/
 
 			// Check if daylight savings applies
-			return tz.IsDaylightSavingTime(timeZoneTime) ? abbr.Daylight : abbr.Standard;
+			return (tz.IsDaylightSavingTime(timeZoneTime) ? abbr.Daylight : abbr.Standard) ?? string.Empty;
 		}
 	}
 }

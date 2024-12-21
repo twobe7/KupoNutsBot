@@ -40,7 +40,7 @@ public class Program
 			botTask = Bot.Program.Run(args);
 			////managerTask = Manager.Web.Run.RunApp(args);
 
-			StringBuilder input = new ();
+			StringBuilder input = new();
 			while (Running)
 			{
 				await Task.Yield();

@@ -23,7 +23,7 @@ namespace FC.Bot.Quotes
 	{
 		public readonly DiscordSocketClient DiscordClient;
 
-		private static readonly Table<Quote> QuoteDb = new ("KupoNuts_Quotes", Quote.Version);
+		private static readonly Table<Quote> QuoteDb = new("KupoNuts_Quotes", Quote.Version);
 
 		public QuoteService(DiscordSocketClient discordClient)
 		{
@@ -132,7 +132,7 @@ namespace FC.Bot.Quotes
 			if (quotes.Count < min)
 				min = 0;
 
-			StringBuilder quotesList = new ();
+			StringBuilder quotesList = new();
 			for (int i = min; i < max; i++)
 			{
 				Quote quote = quotes[i];
@@ -166,7 +166,7 @@ namespace FC.Bot.Quotes
 		{
 			await this.DeferAsync();
 
-			Dictionary<string, object> filters = new ()
+			Dictionary<string, object> filters = new()
 			{
 				{ "GuildId", this.Context.Guild.Id },
 				{ "QuoteId", quoteId },
@@ -233,7 +233,7 @@ namespace FC.Bot.Quotes
 
 		private async Task<int> GetNextQuoteId(ulong guildId, ulong userId)
 		{
-			Dictionary<string, object> filters = new ()
+			Dictionary<string, object> filters = new()
 			{
 				{ "UserId", userId },
 				{ "GuildId", guildId },
@@ -251,7 +251,7 @@ namespace FC.Bot.Quotes
 			SocketGuild guild = this.DiscordClient.GetGuild(self.GuildId);
 			SocketGuildUser user = guild.GetUser(self.UserId);
 
-			EmbedBuilder builder = new ()
+			EmbedBuilder builder = new()
 			{
 				Author = new EmbedAuthorBuilder
 				{

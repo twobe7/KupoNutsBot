@@ -57,7 +57,7 @@ public class XivDataService : ServiceBase
 			if (results.Count > 1)
 			{
 				EmbedBuilder embed = new EmbedBuilder().WithTitle($"{results.Count} results found");
-				StringBuilder description = new ();
+				StringBuilder description = new();
 
 				for (int i = 0; i < Math.Min(results.Count, 10); i++)
 				{
@@ -102,9 +102,9 @@ public class XivDataService : ServiceBase
 
 		if (results.Count > 1)
 		{
-			EmbedBuilder embed = new ();
+			EmbedBuilder embed = new();
 
-			StringBuilder description = new ();
+			StringBuilder description = new();
 			for (int i = 0; i < Math.Min(results.Count, 10); i++)
 			{
 				description.AppendLine(results[i].ID + " - " + results[i].Name);
@@ -153,7 +153,7 @@ public class XivDataService : ServiceBase
 			if (results.Count > 1)
 			{
 				EmbedBuilder embed = new EmbedBuilder().WithTitle($"{results.Count} results found");
-				StringBuilder description = new ();
+				StringBuilder description = new();
 
 				for (int i = 0; i < Math.Min(results.Count, 10); i++)
 				{
@@ -187,7 +187,7 @@ public class XivDataService : ServiceBase
 
 			if (hq != null | nm != null)
 			{
-				StringBuilder builder = new ();
+				StringBuilder builder = new();
 				if (hq != null)
 					builder.Append(hq.ToStringEx());
 

@@ -33,7 +33,7 @@ namespace FC.Bot
 
 	public class Program
 	{
-		private static readonly List<ServiceBase> Services = new ();
+		private static readonly List<ServiceBase> Services = [];
 		private static bool exiting = false;
 		private static DiscordSocketClient? client;
 
@@ -69,7 +69,7 @@ namespace FC.Bot
 
 		public static Task Run(string[] args)
 		{
-			Program prog = new ();
+			Program prog = new();
 			return prog.DoRun();
 		}
 

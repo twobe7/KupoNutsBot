@@ -44,7 +44,7 @@ namespace XIVAPI
 
 				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
 				var stream = await client.GetStreamAsync(url);
-				StreamReader reader = new (stream);
+				StreamReader reader = new(stream);
 				string json = await reader.ReadToEndAsync();
 
 				Log.Write($"Response: {json.Length} characters", "XIVAPI");
@@ -70,7 +70,7 @@ namespace XIVAPI
 			}
 			catch (Exception ex)
 			{
-				Log.Write("Error: " + ex.Message, "XIVAPI");
+				Log.Write($"Error: {ex.Message}", "XIVAPI");
 				throw;
 			}
 		}

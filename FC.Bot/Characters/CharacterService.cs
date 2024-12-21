@@ -12,20 +12,15 @@ namespace FC.Bot.Characters
 	using Discord;
 	using Discord.Interactions;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Bot.Services;
 	using FC.Utils;
 	using FC.XIVData;
 	using NetStone.Model.Parseables.Search.Character;
 
 	[Group("character", "FFXIV Character commands")]
-	public class CharacterService : ServiceBase
+	public class CharacterService(DiscordSocketClient discordClient) : ServiceBase
 	{
-		public readonly DiscordSocketClient DiscordClient;
-		public CharacterService(DiscordSocketClient discordClient)
-		{
-			this.DiscordClient = discordClient;
-		}
+		public readonly DiscordSocketClient DiscordClient = discordClient;
 
 		public override async Task Initialize()
 		{
@@ -51,7 +46,7 @@ namespace FC.Bot.Characters
 			CharacterInfo? character = await this.GetCharacter(serverName, characterName, characterId);
 
 			User user = await UserService.GetUser(guildUser);
-			await this.FollowupAsync(embeds: new Embed[] { await this.RecordCharacter(user, character) });
+			await this.FollowupAsync(embeds: [await this.RecordCharacter(user, character)]);
 		}
 
 		[SlashCommand("who-am-i", "Displays your linked character")]
@@ -235,7 +230,7 @@ namespace FC.Bot.Characters
 
 			CharacterInfo info = await this.GetCharacterInfo(user, characterIndex);
 
-			await this.FollowupAsync(embeds: new Embed[] { info.GetGearEmbed() });
+			await this.FollowupAsync(embeds: [info.GetGearEmbed()]);
 		}
 
 		[SlashCommand("gear-other", "Shows the current gear and stats of a character")]
@@ -253,7 +248,7 @@ namespace FC.Bot.Characters
 
 			CharacterInfo? character = await this.GetCharacter(serverName, characterName, characterId);
 
-			await this.FollowupAsync(embeds: new Embed[] { character.GetGearEmbed() });
+			await this.FollowupAsync(embeds: [character.GetGearEmbed()]);
 		}
 
 		[SlashCommand("stats", "Shows the current gear and stats of a character")]
@@ -272,7 +267,7 @@ namespace FC.Bot.Characters
 
 			CharacterInfo info = await this.GetCharacterInfo(user, characterIndex);
 
-			await this.FollowupAsync(embeds: new Embed[] { info.GetAttributesEmbed() });
+			await this.FollowupAsync(embeds: [info.GetAttributesEmbed()]);
 		}
 
 		[SlashCommand("stats-other", "Shows the current gear and stats of a character")]
@@ -302,7 +297,7 @@ namespace FC.Bot.Characters
 				throw new UserException("Unable to process user.");
 
 			CharacterInfo info = await this.GetCharacterInfo(guildUser, characterIndex);
-			await this.FollowupAsync(embeds: new Embed[] { await info.GetElementalLevelEmbed() });
+			await this.FollowupAsync(embeds: [await info.GetElementalLevelEmbed()]);
 		}
 
 		[SlashCommand("resistance-rank", "Shows current Resistance Rank of a character")]
@@ -314,7 +309,7 @@ namespace FC.Bot.Characters
 				throw new UserException("Unable to process user.");
 
 			CharacterInfo info = await this.GetCharacterInfo(guildUser, characterIndex);
-			await this.FollowupAsync(embeds: new Embed[] { await info.GetResistanceRankEmbed() });
+			await this.FollowupAsync(embeds: [await info.GetResistanceRankEmbed()]);
 		}
 
 		private async Task<CharacterInfo> GetCharacter(
@@ -348,8 +343,13 @@ namespace FC.Bot.Characters
 				return;
 			}
 
-			User.Character? character = user.GetDefaultCharacter()
-				?? throw new UserException("No characters linked! Use `IAm` to link a character");
+			User.Character? character = user.GetDefaultCharacter();
+
+			if (character == null)
+			{
+				await this.FollowupAsync("No characters linked! Use `IAm` to link a character");
+				return;
+			}
 
 			if (characterIndex != null)
 			{
@@ -363,7 +363,7 @@ namespace FC.Bot.Characters
 			}
 
 			// Hold all embeds to update single response message
-			List<Embed> responseEmbeds = new ();
+			List<Embed> responseEmbeds = [];
 
 			// Default character
 			CharacterInfo defaultCharacterInfo = await this.UpdateAndGetCharacterInfo(character.FFXIVCharacterId, true);
@@ -374,7 +374,7 @@ namespace FC.Bot.Characters
 
 			if (!character.CheckVerification(defaultCharacterInfo))
 			{
-				EmbedBuilder builder = new ()
+				EmbedBuilder builder = new()
 				{
 					Description = "This character has not been verified.",
 					Color = Color.Gold,
@@ -409,7 +409,7 @@ namespace FC.Bot.Characters
 			bool hasChanges = oldIsVerified != character.IsVerified;
 
 			// AKA
-			StringBuilder akaDescBuilder = new ();
+			StringBuilder akaDescBuilder = new();
 			int index = 0;
 			foreach (User.Character altCharacter in user.Characters)
 			{
@@ -444,7 +444,7 @@ namespace FC.Bot.Characters
 
 			if (index > 1)
 			{
-				EmbedBuilder builder = new ()
+				EmbedBuilder builder = new()
 				{
 					Description = akaDescBuilder.ToString(),
 					Title = "Also known as:",
@@ -473,7 +473,7 @@ namespace FC.Bot.Characters
 
 		private async Task<Embed> RecordCharacter(User user, CharacterInfo character)
 		{
-			EmbedBuilder embed = new ();
+			EmbedBuilder embed = new();
 
 			User.Character? userCharacter = user.GetCharacter(character.Id);
 
@@ -591,7 +591,7 @@ namespace FC.Bot.Characters
 			{
 				EmbedBuilder builder = this.GetMultipleCharacterResponseEmbedBuilder(response.Results);
 
-				await this.FollowupAsync(embeds: new Embed[] { builder.Build() });
+				await this.FollowupAsync(embeds: [builder.Build()]);
 
 				throw new UserException($"Found {response.Results.Count()} characters with that name.");
 			}
@@ -608,7 +608,7 @@ namespace FC.Bot.Characters
 
 		private async Task<CharacterInfo> UpdateAndGetCharacterInfo(uint id, bool updateCollect = false)
 		{
-			CharacterInfo info = new (id);
+			CharacterInfo info = new(id);
 			await info.Update(updateCollect);
 			return info;
 		}

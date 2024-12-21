@@ -13,14 +13,14 @@ namespace FC.Bot.Items
 	{
 		public static EmbedBuilder ToEmbed(this Item self)
 		{
-			EmbedBuilder builder = new ()
+			EmbedBuilder builder = new()
 			{
 				Title = self.Name,
 				ThumbnailUrl = Icons.GetIconURL(self.Icon),
 				Color = Color.Teal,
 			};
 
-			StringBuilder desc = new ();
+			StringBuilder desc = new();
 
 			desc.Append(self.GetLevelCategoryString());
 			desc.Append(Utils.Characters.DoubleTab);
@@ -68,7 +68,7 @@ namespace FC.Bot.Items
 			if (self.HasBonuses())
 				builder.AddField("Bonuses", self.GetBonuses());
 
-			StringBuilder footerText = new ();
+			StringBuilder footerText = new();
 			footerText.Append($"ID: {self.Id} - XIVAPI.com - Universalis.app");
 
 			builder.Description = desc.ToString();
@@ -79,14 +79,14 @@ namespace FC.Bot.Items
 
 		public static EmbedBuilder ToMbEmbed(this Item self)
 		{
-			EmbedBuilder builder = new ()
+			EmbedBuilder builder = new()
 			{
 				Title = self.Name,
 				ThumbnailUrl = Icons.GetIconURL(self.Icon),
 				Color = Color.Teal,
 			};
 
-			StringBuilder desc = new ();
+			StringBuilder desc = new();
 
 			// universalis link
 			desc.AppendLine($"[Universalis](https://universalis.app/market/{self.Id}) (ID: {self.Id})");
@@ -111,7 +111,7 @@ namespace FC.Bot.Items
 
 		public static string GetIconInfoString(this Item self)
 		{
-			StringBuilder builder = new ();
+			StringBuilder builder = new();
 
 			if (self.AetherialReduce != 0 || self.MaterializeType != 0)
 				builder.Append(ItemService.ConvertToMateriaEmote);
@@ -157,7 +157,7 @@ namespace FC.Bot.Items
 			else
 			{
 				builder.Append(@"Lv. ");
-				builder.Append(self.LevelEquip.ToString());
+				builder.Append(self.LevelEquip);
 			}
 
 			return builder.ToString();
@@ -168,7 +168,7 @@ namespace FC.Bot.Items
 			if (self.LevelItem == 1)
 				return string.Empty;
 
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new();
 			builder.Append("iLv. ");
 			builder.Append(self.LevelItem.ToString());
 
@@ -190,7 +190,7 @@ namespace FC.Bot.Items
 
 		public static string GetMainStatsString(this Item self)
 		{
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new();
 
 			bool indent = false;
 			if (self.DamageMag != 0)

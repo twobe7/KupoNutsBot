@@ -192,7 +192,7 @@ namespace FC.Bot.Characters
 				}.Build();
 			}
 
-			EmbedBuilder builder = new ()
+			EmbedBuilder builder = new()
 			{
 				Title = this.xivApiCharacter?.Name,
 				Description = $"Elemental Level: {classJobInfo.Eureka.Level}\nExperience: {classJobInfo.Eureka.ExpCurrent:N0}",
@@ -221,7 +221,7 @@ namespace FC.Bot.Characters
 				}.Build();
 			}
 
-			EmbedBuilder builder = new ()
+			EmbedBuilder builder = new()
 			{
 				Title = this.xivApiCharacter?.Name,
 				Description = $"Resistance Rank: {classJobInfo.Bozja.Level}\nCurrent Mettle: {classJobInfo.Bozja.ExpCurrent:N0}",

@@ -6,21 +6,19 @@ namespace FC.Bot.Polls
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
-	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
+	using FC.Bot.Polls;
 	using FC.Bot.Services;
 	using FC.Data;
 	using FC.Utils;
 	using NodaTime;
 
-	public class PollService : ServiceBase
+	public class PollService(DiscordSocketClient discordClient) : ServiceBase
 	{
-		public static readonly List<string> ListEmotes = new List<string>()
-		{
+		public static readonly List<string> ListEmotes = [
 			"🇦",
 			"🇧",
 			"🇨",
@@ -28,18 +26,13 @@ namespace FC.Bot.Polls
 			"🇪",
 			"🇫",
 			"🇬",
-		};
+		];
 
-		public readonly DiscordSocketClient DiscordClient;
+		public readonly DiscordSocketClient DiscordClient = discordClient;
 
-		private Dictionary<ulong, string> pollLookup = new Dictionary<ulong, string>();
+		private Dictionary<ulong, string> pollLookup = [];
 
-		private Table<Poll> pollDatabase = new Table<Poll>("KupoNuts_Polls", 2);
-
-		public PollService(DiscordSocketClient discordClient)
-		{
-			this.DiscordClient = discordClient;
-		}
+		private Table<FC.Poll> pollDatabase = new("KupoNuts_Polls", 2);
 
 		public override async Task Initialize()
 		{
@@ -60,50 +53,47 @@ namespace FC.Bot.Polls
 		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b)
 		{
-			return await this.SendPoll(message, duration, comment, new List<string>() { a, b });
+			return await this.SendPoll(message, duration, comment, [a, b]);
 		}
 
 		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c)
 		{
-			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c });
+			return await this.SendPoll(message, duration, comment, [a, b, c]);
 		}
 
 		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d)
 		{
-			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d });
+			return await this.SendPoll(message, duration, comment, [a, b, c, d]);
 		}
 
 		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e)
 		{
-			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e });
+			return await this.SendPoll(message, duration, comment, [a, b, c, d, e]);
 		}
 
 		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e, string f)
 		{
-			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e, f });
+			return await this.SendPoll(message, duration, comment, [a, b, c, d, e, f]);
 		}
 
 		[Command("Poll", Permissions.Everyone, "Creates a poll", requiresQuotes: true)]
 		public async Task<bool> HandlePoll(CommandMessage message, Duration duration, string comment, string a, string b, string c, string d, string e, string f, string g)
 		{
-			return await this.SendPoll(message, duration, comment, new List<string>() { a, b, c, d, e, f, g });
+			return await this.SendPoll(message, duration, comment, [a, b, c, d, e, f, g]);
 		}
 
 		[Command("ClosePoll", Permissions.Everyone, "Immediately closes a poll. Only the poll author or administrators can do this.")]
 		public async Task ClosePoll(CommandMessage message, ulong messageId)
 		{
-			if (!this.pollLookup.ContainsKey(messageId))
+			if (!this.pollLookup.TryGetValue(messageId, out string? pollId))
 				throw new UserException("I couldn't find that poll");
 
-			string pollId = this.pollLookup[messageId];
-			Poll? poll = await this.pollDatabase.Load(pollId);
-
-			if (poll == null)
-				throw new Exception("Poll missing from database: \"" + pollId + "\"");
+			FC.Poll? poll = await this.pollDatabase.Load(pollId)
+				?? throw new Exception("Poll missing from database: \"" + pollId + "\"");
 
 			if (CommandsService.GetPermissions(message.Author) == Permissions.Everyone)
 			{
@@ -122,8 +112,8 @@ namespace FC.Bot.Polls
 		[Command("Polls", Permissions.Administrators, "Updates all active polls")]
 		public async Task UpdatePolls()
 		{
-			List<Poll> polls = await this.pollDatabase.LoadAll();
-			foreach (Poll poll in polls)
+			List<FC.Poll> polls = await this.pollDatabase.LoadAll();
+			foreach (FC.Poll poll in polls)
 			{
 				bool valid = await poll.IsValid();
 				if (!valid)
@@ -142,7 +132,7 @@ namespace FC.Bot.Polls
 			if (duration < Duration.FromMinutes(1))
 				throw new UserException("Polls must run for at least 1 minute");
 
-			Poll poll = new Poll
+			FC.Poll poll = new()
 			{
 				Id = Guid.NewGuid().ToString(),
 				Author = message.Author.Id,
@@ -154,7 +144,7 @@ namespace FC.Bot.Polls
 			await this.pollDatabase.Save(poll);
 
 			foreach (string op in options)
-				poll.Options.Add(new Poll.Option(op));
+				poll.Options.Add(new FC.Poll.Option(op));
 
 			await this.UpdatePoll(poll);
 
@@ -163,7 +153,7 @@ namespace FC.Bot.Polls
 			return true;
 		}
 
-		private void WatchPoll(Poll poll)
+		private void WatchPoll(FC.Poll poll)
 		{
 			if (poll.Options == null)
 				return;
@@ -174,7 +164,7 @@ namespace FC.Bot.Polls
 			this.pollLookup.Add(poll.MessageId, poll.Id);
 		}
 
-		private async Task UpdatePoll(Poll poll)
+		private async Task UpdatePoll(FC.Poll poll)
 		{
 			if (poll.Closed())
 			{
@@ -210,9 +200,8 @@ namespace FC.Bot.Polls
 				if (optionIndex < 0)
 					return;
 
-				Poll? poll = await this.pollDatabase.Load(pollId);
-				if (poll == null)
-					throw new Exception("Missing poll from database: \"" + pollId + "\"");
+				FC.Poll? poll = await this.pollDatabase.Load(pollId)
+					?? throw new Exception("Missing poll from database: \"" + pollId + "\"");
 
 				if (!poll.Closed())
 				{

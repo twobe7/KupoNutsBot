@@ -20,15 +20,15 @@ namespace FC.Bot.CommandModules
 	[Group("debug", "Commands relating to the usage of the bot")]
 	public class DebugModule : InteractionModuleBase
 	{
-		private static readonly List<string> GoodBotResponses = new ()
-		{
+		private static readonly List<string> GoodBotResponses =
+		[
 			"Thanks!",
 			"Thanks, you're a good human!",
 			"Sure, I guess...",
 			@"yaay!",
 			"I try so hard!",
 			"It's nice to get some recognition around here.",
-		};
+		];
 
 		private readonly IServiceProvider serviceProvider;
 
@@ -131,10 +131,10 @@ namespace FC.Bot.CommandModules
 					TimeZoneNames.TimeZoneValues? abbr = TimeZoneNames.TZNames.GetAbbreviationsForTimeZone(tzId, "en-au");
 
 					// Increase by 1 hour if Daylight
-					if (abbr.Daylight.ToLower() == timezone)
+					if (abbr?.Daylight?.ToLower() == timezone)
 						offsetInHours += 1;
 
-					if (abbr.Generic.ToLower() == timezone || abbr.Daylight.ToLower() == timezone || abbr.Standard.ToLower() == timezone)
+					if (abbr?.Generic?.ToLower() == timezone || abbr?.Daylight?.ToLower() == timezone || abbr?.Standard?.ToLower() == timezone)
 					{
 						DateTimeZone? dateTimeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(tzId);
 						if (dateTimeZone != null)
@@ -143,7 +143,7 @@ namespace FC.Bot.CommandModules
 
 							offsetInHours += zoned.Offset.Seconds / 60 / 60;
 
-							TimeSpan diffTS = new (offsetInHours, 0, 0);
+							TimeSpan diffTS = new(offsetInHours, 0, 0);
 
 							parsedDateTime = parsedDateTime.Add(-diffTS);
 

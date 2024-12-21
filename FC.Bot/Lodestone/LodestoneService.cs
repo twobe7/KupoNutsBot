@@ -71,7 +71,7 @@ namespace FC.Bot.Lodestone
 
 			if (nextMaint != null)
 			{
-				EmbedBuilder builder = new ()
+				EmbedBuilder builder = new()
 				{
 					ThumbnailUrl = "http://na.lodestonenews.com/images/maintenance.png",
 					Title = nextMaint.Title,

@@ -4,10 +4,8 @@
 
 namespace FC.Utils
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Runtime.InteropServices;
-	using System.Text;
+	using System.IO;
+	using System.Reflection;
 
 	public static class PathUtils
 	{
@@ -15,6 +13,9 @@ namespace FC.Utils
 		{
 			get
 			{
+#if DEBUG
+				return $"{Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location)}";
+#else
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 					return "./FCChanBot/bin/";
 
@@ -22,6 +23,7 @@ namespace FC.Utils
 					return "./";
 
 				throw new PlatformNotSupportedException();
+#endif
 			}
 		}
 	}

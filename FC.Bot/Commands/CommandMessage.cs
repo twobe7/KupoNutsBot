@@ -28,7 +28,7 @@ namespace FC.Bot.Commands
 
 		public IGuild Guild => this.Message.GetGuild();
 
-		public MessageReference MessageReference => new (this.Message.Id);
+		public MessageReference MessageReference => new(this.Message.Id);
 
 		public async Task DeleteMessage()
 		{

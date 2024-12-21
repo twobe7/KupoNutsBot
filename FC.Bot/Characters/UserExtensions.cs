@@ -14,7 +14,7 @@ namespace FC.Bot.Characters
 	{
 		public static List<User.Character> GetCharacters(this User self, string characterName, string? serverName = null)
 		{
-			List<User.Character> results = new ();
+			List<User.Character> results = [];
 			foreach (User.Character character in self.Characters)
 			{
 				if (character.CharacterName?.ToLower() != characterName.ToLower())

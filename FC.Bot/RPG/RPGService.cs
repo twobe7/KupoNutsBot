@@ -17,24 +17,19 @@ namespace FC.Bot.RPG
 	using FC.Bot.Services;
 
 	[Group("rpg", "Profile games")]
-	public class RPGService : ServiceBase
+	public class RPGService(DiscordSocketClient discordClient) : ServiceBase
 	{
-		public readonly DiscordSocketClient DiscordClient;
+		public readonly DiscordSocketClient DiscordClient = discordClient;
 
 		private const double GenerationChance = 0.2;
 
-		private readonly List<ulong> blockedChannels = new ()
-		{
+		private readonly List<ulong> blockedChannels =
+		[
 			837682896805691473,
 			838350357074935838,
 			838350425593479208,
 			838350518853566474,
-		};
-
-		public RPGService(DiscordSocketClient discordClient)
-		{
-			this.DiscordClient = discordClient;
-		}
+		];
 
 		public override async Task Initialize()
 		{
@@ -69,7 +64,7 @@ namespace FC.Bot.RPG
 				.AppendLine("Total EXP: " + user.TotalXPCurrent);
 			builder.Description = description.ToString();
 
-			await this.FollowupAsync(embeds: new Embed[] { builder.Build() });
+			await this.FollowupAsync(embeds: [builder.Build()]);
 		}
 
 		[SlashCommand("levels", "Shows the level leaderboards")]
@@ -84,7 +79,7 @@ namespace FC.Bot.RPG
 				return -a.TotalXPCurrent.CompareTo(b.TotalXPCurrent);
 			});
 
-			StringBuilder builder = new ();
+			StringBuilder builder = new();
 
 			int count = 1;
 			foreach (User user in users)
@@ -127,7 +122,7 @@ namespace FC.Bot.RPG
 				return -a.Reputation.CompareTo(b.Reputation);
 			});
 
-			StringBuilder builder = new ();
+			StringBuilder builder = new();
 
 			int count = 1;
 			foreach (User user in users)

@@ -52,7 +52,7 @@ namespace FC.Bot.Currency
 			var newGame = new Game(ctx, challenger);
 			if (activeGames == null)
 			{
-				activeGames = new List<Game> { newGame };
+				activeGames = [newGame];
 			}
 			else
 			{
@@ -212,7 +212,7 @@ namespace FC.Bot.Currency
 
 			public string GetBoard()
 			{
-				StringBuilder board = new ();
+				StringBuilder board = new();
 
 				board.Append(Utils.Characters.DoubleSpace + Utils.Characters.DoubleSpace);
 				board.Append(new Emoji(":one:"));

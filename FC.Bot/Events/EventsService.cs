@@ -6,13 +6,11 @@ namespace FC.Bot.Events
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Text;
 	using System.Threading.Tasks;
 	using Discord;
 	using Discord.Rest;
 	using Discord.WebSocket;
 	using FC.Bot.Commands;
-	using FC.Bot.Events;
 	using FC.Bot.Services;
 	using FC.Data;
 	using FC.Events;
@@ -25,7 +23,7 @@ namespace FC.Bot.Events
 		public readonly DiscordSocketClient DiscordClient;
 
 		private static EventsService? instance;
-		private Dictionary<string, string> messageEventLookup = new Dictionary<string, string>();
+		private Dictionary<string, string> messageEventLookup = [];
 
 		public EventsService(DiscordSocketClient discordClient)
 		{
@@ -43,7 +41,7 @@ namespace FC.Bot.Events
 			}
 		}
 
-		public static (string display, int index) GetStatus(IEmote emote)
+		public static (string Display, int Index) GetStatus(IEmote emote)
 		{
 			// Attending
 			if (Emotes.IsEmote(emote, Emotes.Maybe))
@@ -136,8 +134,7 @@ namespace FC.Bot.Events
 
 				if (this.ShouldNotify(evt))
 				{
-					if (evt.Notify == null)
-						evt.Notify = new Event.Instance();
+					evt.Notify ??= new Event.Instance();
 
 					this.Watch(evt);
 
@@ -215,8 +212,10 @@ namespace FC.Bot.Events
 
 				if (attendee == null)
 				{
-					attendee = new Event.Instance.Attendee();
-					attendee.UserId = reaction.UserId.ToString();
+					attendee = new()
+					{
+						UserId = reaction.UserId.ToString(),
+					};
 					evt.Notify.Attendees.Add(attendee);
 					await EventsDatabase.Save(evt);
 				}
