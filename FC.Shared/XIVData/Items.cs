@@ -7,9 +7,10 @@ namespace FC.XIVData
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Linq;
+	using System.Text.Json;
 	using Discord;
+	using FC.Serialization;
 	using FC.Utils;
-	using Newtonsoft.Json;
 
 	public class Items
 	{
@@ -19,11 +20,19 @@ namespace FC.XIVData
 
 		static Items()
 		{
+			// Handle numbers as strings
+			JsonSerializerOptions serializerOptions = new()
+			{
+				NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
+			};
+			serializerOptions.Converters.Add(new BoolConvertor());
+			serializerOptions.Converters.Add(new ObjectConvertor());
+
 			// Parse full item list
 			string fullListJson = File.ReadAllText($"{PathUtils.Current}/Assets/ItemsFull.json");
 			if (fullListJson != null && !string.IsNullOrWhiteSpace(fullListJson))
 			{
-				var jsonList = JsonConvert.DeserializeObject<List<XivItem>>(fullListJson);
+				var jsonList = JsonSerializer.Deserialize<List<XivItem>>(fullListJson, serializerOptions);
 				if (jsonList != null)
 				{
 					XivItemsByName = jsonList.ToDictionary(x => x.Name, x => x);
@@ -35,7 +44,7 @@ namespace FC.XIVData
 			string itemListJson = File.ReadAllText($"{PathUtils.Current}/Assets/ItemList.json");
 			if (itemListJson != null && !string.IsNullOrWhiteSpace(itemListJson))
 			{
-				var jsonList = JsonConvert.DeserializeObject<List<AutocompleteResult>>(itemListJson);
+				var jsonList = JsonSerializer.Deserialize<List<AutocompleteResult>>(itemListJson, serializerOptions);
 				if (jsonList != null)
 				{
 					AutocompleteItems.AddRange(jsonList);

@@ -12,8 +12,25 @@ public class BoolConvertor : JsonConverter<bool>
 {
 	public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
-		ushort number = reader.GetUInt16();
-		return number == 1;
+		switch (reader.TokenType)
+		{
+			case JsonTokenType.True:
+				return true;
+			case JsonTokenType.False:
+				return false;
+			case JsonTokenType.String:
+				return reader.GetString()?.ToLower() switch
+				{
+					"true" => true,
+					"false" => false,
+					_ => throw new JsonException(),
+				};
+			case JsonTokenType.Number:
+				ushort number = reader.GetUInt16();
+				return number == 1;
+			default:
+				throw new JsonException();
+		}
 	}
 
 	public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)

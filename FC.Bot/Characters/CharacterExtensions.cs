@@ -12,9 +12,7 @@ namespace FC.Bot.Characters
 	using Discord;
 	using FC.API;
 	using FC.XIVData;
-	using Google.Apis.YouTube.v3.Data;
 	using XIVAPI;
-	using static System.Net.WebRequestMethods;
 	using XIVAPICharacter = XIVAPI.Character;
 
 	public static class CharacterExtensions
@@ -343,7 +341,7 @@ namespace FC.Bot.Characters
 			item = null;
 
 			List<Result> results = SearchAPI.Search(itemName, "Item").Result;
-			if (results.Any())
+			if (results.Count != 0)
 			{
 				var id = results.First().ID;
 				if (id != null)

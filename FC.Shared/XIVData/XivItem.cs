@@ -4,7 +4,7 @@
 
 namespace FC.XIVData
 {
-	using Newtonsoft.Json;
+	using System.Text.Json.Serialization;
 
 	public class XivItem
 	{
@@ -13,9 +13,9 @@ namespace FC.XIVData
 		public string Plural { get; set; } = string.Empty;
 		public string Description { get; set; } = string.Empty;
 		public string Name { get; set; } = string.Empty;
-		public string Icon { get; set; } = string.Empty;
+		public int Icon { get; set; }
 
-		[JsonProperty("Level{Item}")]
+		[JsonPropertyName("Level{Item}")]
 		public int ItemLevel { get; set; }
 		public int Rarity { get; set; }
 		public int ItemUICategory { get; set; }
@@ -25,9 +25,9 @@ namespace FC.XIVData
 		public bool IsUntradable { get; set; }
 		public bool IsIndisposable { get; set; }
 
-		[JsonProperty("Price{Mid}")]
+		[JsonPropertyName("Price{Mid}")]
 		public int PriceMid { get; set; }
-		[JsonProperty("Price{Low}")]
+		[JsonPropertyName("Price{Low}")]
 		public int PriceLow { get; set; }
 		public bool CanBeHq { get; set; }
 		public bool IsDyeable { get; set; }
@@ -35,19 +35,19 @@ namespace FC.XIVData
 
 		public int ItemAction { get; set; }
 
-		[JsonProperty("CastTime<s>")]
+		[JsonPropertyName("CastTime<s>")]
 		public int CastTime { get; set; }
 
-		[JsonProperty("Cooldown<s>")]
+		[JsonPropertyName("Cooldown<s>")]
 		public int Cooldown { get; set; }
 
-		[JsonProperty("ClassJob{Repair}")]
+		[JsonPropertyName("ClassJob{Repair}")]
 		public int RepairClassJob { get; set; }
 
-		[JsonProperty("Item{Repair}")]
+		[JsonPropertyName("Item{Repair}")]
 		public int ItemRepair { get; set; }
 
-		[JsonProperty("Item{Glamour}")]
+		[JsonPropertyName("Item{Glamour}")]
 		public int ItemGlamour { get; set; }
 
 		public int Desynth { get; set; }
@@ -55,100 +55,100 @@ namespace FC.XIVData
 		public bool AlwaysCollectable { get; set; }
 		public int AetherialReduce { get; set; }
 
-		[JsonProperty("Level{Equip}")]
+		[JsonPropertyName("Level{Equip}")]
 		public int EquipLevel { get; set; }
 
 		public int ClassJobCategory { get; set; }
 		public int BaseParamModifier { get; set; }
 
-		[JsonProperty("ClassJob{Use}")]
+		[JsonPropertyName("ClassJob{Use}")]
 		public int ClassJobUse { get; set; }
 
-		[JsonProperty("Damage{Phys}")]
+		[JsonPropertyName("Damage{Phys}")]
 		public int DamagePhysical { get; set; }
 
-		[JsonProperty("Damage{Mag}")]
+		[JsonPropertyName("Damage{Mag}")]
 		public int DamageMagical { get; set; }
 
-		[JsonProperty("Delay<ms>")]
+		[JsonPropertyName("Delay<ms>")]
 		public int Delay { get; set; }
 		public int BlockRate { get; set; }
 		public int Block { get; set; }
 
-		[JsonProperty("Defense{Phys}")]
+		[JsonPropertyName("Defense{Phys}")]
 		public int DefensePhysical { get; set; }
-		[JsonProperty("Defense{Mag}")]
+		[JsonPropertyName("Defense{Mag}")]
 		public int DefenseMagical { get; set; }
 
-		[JsonProperty("BaseParam[0]")]
+		[JsonPropertyName("BaseParam[0]")]
 		public int BaseParam0 { get; set; }
 
-		[JsonProperty("BaseParamValue[0]")]
+		[JsonPropertyName("BaseParamValue[0]")]
 		public int BaseParamValue0 { get; set; }
 
-		[JsonProperty("BaseParam[1]")]
+		[JsonPropertyName("BaseParam[1]")]
 		public int BaseParam1 { get; set; }
 
-		[JsonProperty("BaseParamValue[1]")]
+		[JsonPropertyName("BaseParamValue[1]")]
 		public int BaseParamValue1 { get; set; }
 
-		[JsonProperty("BaseParam[2]")]
+		[JsonPropertyName("BaseParam[2]")]
 		public int BaseParam2 { get; set; }
 
-		[JsonProperty("BaseParamValue[2]")]
+		[JsonPropertyName("BaseParamValue[2]")]
 		public int BaseParamValue2 { get; set; }
 
-		[JsonProperty("BaseParam[3]")]
+		[JsonPropertyName("BaseParam[3]")]
 		public int BaseParam3 { get; set; }
 
-		[JsonProperty("BaseParamValue[3]")]
+		[JsonPropertyName("BaseParamValue[3]")]
 		public int BaseParamValue3 { get; set; }
 
-		[JsonProperty("BaseParam[4]")]
+		[JsonPropertyName("BaseParam[4]")]
 		public int BaseParam4 { get; set; }
 
-		[JsonProperty("BaseParamValue[4]")]
+		[JsonPropertyName("BaseParamValue[4]")]
 		public int BaseParamValue4 { get; set; }
 
-		[JsonProperty("BaseParam[5]")]
+		[JsonPropertyName("BaseParam[5]")]
 		public int BaseParam5 { get; set; }
 
-		[JsonProperty("BaseParamValue[5]")]
+		[JsonPropertyName("BaseParamValue[5]")]
 		public int BaseParamValue5 { get; set; }
 
 		public int ItemSpecialBonus { get; set; }
 
-		[JsonProperty("ItemSpecialBonus{Param}")]
+		[JsonPropertyName("ItemSpecialBonus{Param}")]
 		public int ItemSpecialBonusParam { get; set; }
 
-		[JsonProperty("BaseParam{Special}[0]")]
+		[JsonPropertyName("BaseParam{Special}[0]")]
 		public int BaseParamSpecial0 { get; set; }
-		[JsonProperty("BaseParamValue{Special}[0]")]
+		[JsonPropertyName("BaseParamValue{Special}[0]")]
 		public int BaseParamValueSpecial0 { get; set; }
 
-		[JsonProperty("BaseParam{Special}[1]")]
+		[JsonPropertyName("BaseParam{Special}[1]")]
 		public int BaseParamSpecial1 { get; set; }
-		[JsonProperty("BaseParamValue{Special}[1]")]
+		[JsonPropertyName("BaseParamValue{Special}[1]")]
 		public int BaseParamValueSpecial1 { get; set; }
 
-		[JsonProperty("BaseParam{Special}[2]")]
+		[JsonPropertyName("BaseParam{Special}[2]")]
 		public int BaseParamSpecial2 { get; set; }
-		[JsonProperty("BaseParamValue{Special}[2]")]
+		[JsonPropertyName("BaseParamValue{Special}[2]")]
 		public int BaseParamValueSpecial2 { get; set; }
 
-		[JsonProperty("BaseParam{Special}[3]")]
+		[JsonPropertyName("BaseParam{Special}[3]")]
 		public int BaseParamSpecial3 { get; set; }
-		[JsonProperty("BaseParamValue{Special}[3]")]
+		[JsonPropertyName("BaseParamValue{Special}[3]")]
 		public int BaseParamValueSpecial3 { get; set; }
 
-		[JsonProperty("BaseParam{Special}[4]")]
+		[JsonPropertyName("BaseParam{Special}[4]")]
 		public int BaseParamSpecial4 { get; set; }
-		[JsonProperty("BaseParamValue{Special}[4]")]
+		[JsonPropertyName("BaseParamValue{Special}[4]")]
 		public int BaseParamValueSpecial4 { get; set; }
 
-		[JsonProperty("BaseParam{Special}[5]")]
+		[JsonPropertyName("BaseParam{Special}[5]")]
 		public int BaseParamSpecial5 { get; set; }
-		[JsonProperty("BaseParamValue{Special}[5]")]
+		[JsonPropertyName("BaseParamValue{Special}[5]")]
 		public int BaseParamValueSpecial5 { get; set; }
 
 		public int MaterializeType { get; set; }
@@ -160,8 +160,9 @@ namespace FC.XIVData
 
 		public int SubStatCategory { get; set; }
 
-		public string IconBasePath => $"0{this.Icon[..2]}000";
-		public string IconPadded => this.Icon.PadLeft(6, '0');
+		public string IconString => this.Icon.ToString();
+		public string IconBasePath => $"0{this.IconString[..2]}000";
+		public string IconPadded => this.IconString.PadLeft(6, '0');
 		public string IconFullPath => $"https://xivapi.com/i/{this.IconBasePath}/{this.IconPadded}.png";
 	}
 }
