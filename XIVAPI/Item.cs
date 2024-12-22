@@ -6,6 +6,7 @@ namespace XIVAPI
 {
 	using System;
 	using System.Collections.Generic;
+	using FC.API;
 
 	[Serializable]
 	public class Item : ResponseBase

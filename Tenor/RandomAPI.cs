@@ -4,6 +4,7 @@
 
 namespace Tenor
 {
+	using FC.API;
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;

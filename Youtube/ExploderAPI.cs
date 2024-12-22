@@ -14,7 +14,7 @@ namespace Youtube
 	{
 		public static async Task<(string channelId, string username)> GetChannelInformation(string identifier)
 		{
-			YoutubeClient youtube = new YoutubeClient();
+			YoutubeClient youtube = new();
 
 			try
 			{
@@ -40,7 +40,7 @@ namespace Youtube
 
 		public static async Task<Video> GetLatestVideo(string channelId)
 		{
-			YoutubeClient youtube = new YoutubeClient();
+			YoutubeClient youtube = new();
 
 			try
 			{
@@ -64,7 +64,7 @@ namespace Youtube
 
 		public static async Task<Video> GetVideoInformation(string videoId)
 		{
-			YoutubeClient youtube = new YoutubeClient();
+			YoutubeClient youtube = new();
 
 			try
 			{
@@ -122,7 +122,7 @@ namespace Youtube
 			public Embed ToEmbed(uint width = 400, uint height = 250)
 			{
 				// Build embed
-				EmbedBuilder embed = new EmbedBuilder
+				EmbedBuilder embed = new()
 				{
 					ThumbnailUrl = "https://image.flaticon.com/icons/png/512/1384/1384060.png",
 					Title = this.Title,
@@ -142,7 +142,7 @@ namespace Youtube
 			public Embed ToLiveEmbed(uint width = 400, uint height = 250)
 			{
 				// Build embed
-				EmbedBuilder embed = new EmbedBuilder
+				EmbedBuilder embed = new()
 				{
 					ThumbnailUrl = "https://image.flaticon.com/icons/png/512/1384/1384060.png",
 					Title = this.Title,
@@ -163,7 +163,7 @@ namespace Youtube
 			{
 				int idx = ThumbnailUrl.IndexOf(".jpg");
 				if (idx != -1)
-					return ThumbnailUrl.Substring(0, idx + 4);
+					return ThumbnailUrl[..(idx + 4)];
 
 				return ThumbnailUrl;
 			}

@@ -4,11 +4,8 @@
 
 namespace PaissaHouse
 {
-	using System;
-
-	public class ResponseBase
+	public class ResponseBase : FC.API.ResponseBase
 	{
-		public string? Json;
 		public bool IsError => !string.IsNullOrEmpty(this.ErrorMessage);
 		public string? ErrorMessage;
 	}

@@ -7,6 +7,7 @@ namespace XIVAPI
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using FC.API;
 
 	public static class CharacterAPI
 	{
@@ -32,13 +33,13 @@ namespace XIVAPI
 		/// There is currently no way to change the amount of results back returned.It will always be 50 per page with a maximum of 20 pages.This is due to how Lodestone works.</param>
 		public static async Task<SearchResponse> Search(string name, string? server = null, int page = 0)
 		{
-			string route = "/character/search?name=" + name;
+			string route = $"/character/search?name={name}";
 
 			if (!string.IsNullOrEmpty(server))
-				route += "&server=" + server.ToLower();
+				route += $"&server={server.ToLower()}";
 
 			if (page != 0)
-				route += "&page=" + page;
+				route += $"&page={page}";
 
 			return await Request.Send<SearchResponse>(route);
 		}
@@ -68,7 +69,7 @@ namespace XIVAPI
 			if (FlagsUtils.IsSet(dataFlags, CharacterData.ClassJobs))
 				data += "CJ,";
 
-			return await Request.Send<GetResponse>("/character/" + id + "?data=" + data + "&extended=true&columns=" + columns);
+			return await Request.Send<GetResponse>($"/character/{id}?data={data}&extended=true&columns={columns}");
 		}
 
 		[Serializable]
@@ -104,7 +105,7 @@ namespace XIVAPI
 
 			public override string? ToString()
 			{
-				return "Member: " + this.Name + " (" + this.ID + ")";
+				return $"Member: {this.Name} ({this.ID})";
 			}
 		}
 	}

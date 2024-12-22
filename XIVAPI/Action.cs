@@ -6,6 +6,7 @@ namespace XIVAPI
 {
 	using System;
 	using System.Text.Json.Serialization;
+	using FC.API;
 	using FC.Serialization;
 
 	[Serializable]

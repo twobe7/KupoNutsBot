@@ -7,6 +7,7 @@ namespace XIVAPI
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using FC.API;
 
 	public static class FreeCompanyAPI
 	{

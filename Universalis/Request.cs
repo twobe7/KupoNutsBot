@@ -6,7 +6,6 @@ namespace Universalis
 {
 	using System;
 	using System.IO;
-	using System.Net;
 	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
@@ -26,13 +25,13 @@ namespace Universalis
 				Log.Write($"Request: {url}", "Universalis");
 
 				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-				StreamReader reader = new StreamReader(await client.GetStreamAsync(url));
+				StreamReader reader = new(await client.GetStreamAsync(url));
 				string json = await reader.ReadToEndAsync();
 
 				Log.Write($"Response: {json.Length} characters", "Universalis");
 
 				return Serializer.Deserialize<T>(json)
-					   ?? throw new InvalidDataException("Unable to deserialize");
+					?? throw new InvalidDataException("Unable to deserialize");
 			}
 			catch (Exception ex)
 			{
