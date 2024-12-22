@@ -4,10 +4,10 @@
 
 namespace Youtube
 {
-	using Discord;
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using FC.API;
 
 	public class YoutubeAPI
 	{

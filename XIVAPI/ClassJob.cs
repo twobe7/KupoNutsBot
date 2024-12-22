@@ -14,7 +14,7 @@ namespace XIVAPI
 		{
 		}
 
-		public ClassJob(Character.Jobs job, ClassJobEntry classJob)
+		public ClassJob(Character.Jobs job, ClassJobEntry? classJob)
 		{
 			this.Name = job.ToDisplayString();
 			this.Job = new Class(job);

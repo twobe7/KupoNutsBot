@@ -13,13 +13,10 @@ namespace XIVAPI
 	{
 		public static async Task<Recipe> Get(ulong id)
 		{
-			string route = "/recipe/" + id;
-
-			return await Request.Send<Recipe>(route);
+			return await Request.Send<Recipe>($"/recipe/{id}");
 		}
 
 		[Serializable]
-
 		public class Recipe : ResponseBase
 		{
 			public int AmountIngredient0 { get; set; } = 0;

@@ -7,50 +7,39 @@ namespace PaissaHouse
 	using System;
 	using System.IO;
 	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
 	using FC.Serialization;
 
 	internal static class Request
 	{
-		////private static string? key;
-
-		////private static string? Key
-		////{
-		////	get
-		////	{
-		////		if (string.IsNullOrEmpty(key))
-		////			key = Settings.Load().TenorKey;
-
-		////		return key;
-		////	}
-		////}
-
 		internal static async Task<T> Send<T>(string route)
 			where T : ResponseBase
 		{
 			if (!route.StartsWith('/'))
 				route = '/' + route;
 
-			string url = "https://paissadb.zhu.codes" + route;
+			string url = $"https://paissadb.zhu.codes{route}";
 
 			try
 			{
-				Log.Write("Request: " + url, "Paissa House");
+				Log.Write($"Request: {url}", "Paissa House");
 
-				WebRequest req = WebRequest.Create(url);
-				WebResponse response = await req.GetResponseAsync();
-				StreamReader reader = new StreamReader(response.GetResponseStream());
+				using HttpClient client = new();
+				using var stream = await client.GetStreamAsync(url);
+				using StreamReader reader = new(stream);
+
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Paissa House");
+				Log.Write($"Response: {json.Length} characters", "Paissa House");
 
-				T result = NSSerializer.Deserialize<T>(json);
-				result.Json = json;
+				// Data is returned in snake case format
+				T result = Serializer.DeserializeResponse<T>(json, Serializer.SnakeCaseOptions);
 
 				try
 				{
-					DisabledResponse disabledResponse = NSSerializer.Deserialize<DisabledResponse>(json);
+					DisabledResponse disabledResponse = Serializer.Deserialize<DisabledResponse>(json, Serializer.SnakeCaseOptions);
 					if (disabledResponse != null && result != null)
 						result.ErrorMessage = disabledResponse.Message;
 				}
@@ -67,12 +56,12 @@ namespace PaissaHouse
 					return Activator.CreateInstance<T>();
 				}
 
-				throw webEx;
+				throw;
 			}
 			catch (Exception ex)
 			{
-				Log.Write("Error: " + ex.Message, "Paissa House");
-				throw ex;
+				Log.Write($"Error: {ex.Message}", "Paissa House");
+				throw;
 			}
 		}
 

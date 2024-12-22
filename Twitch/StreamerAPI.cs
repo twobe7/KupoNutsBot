@@ -5,6 +5,7 @@
 namespace Twitch
 {
 	using Discord;
+	using FC.API;
 	using System;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Twitch
 
 		public class Stream
 		{
-			public string? Id;
+			public string? Id { get; set; }
 			public string? UserId { get; set; }
 			public string? UserLogin { get; set; }
 			public string? UserName { get; set; }
@@ -63,7 +64,7 @@ namespace Twitch
 					Color = Color.DarkPurple,
 					ThumbnailUrl = "https://image.flaticon.com/icons/png/256/2111/2111668.png",
 					Title = $"Now Streaming: {username ?? this.UserName}",
-					Description = this.Title.Length > 2000 ? this.Title[..2000] : this.Title,
+					Description = this.Title.Truncate(Math.Min(this.Title.Length, EmbedBuilder.MaxDescriptionLength)),
 					ImageUrl = this.GetThumbnailUrl(width, height),
 				};
 

@@ -7,16 +7,16 @@ namespace Youtube
 	using System;
 	using System.IO;
 	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
+	using FC.API;
 	using FC.Serialization;
-	using Google.Apis.YouTube.v3;
 
 	internal static class Request
 	{
 		private static readonly string youtubeLiveLinkText = @"<link rel=""canonical"" href=""https://www.youtube.com/watch?v=";
 		private static string? key;
-		////private static string? secret;
 
 		private static string? Key
 		{
@@ -29,17 +29,6 @@ namespace Youtube
 			}
 		}
 
-		////private static string? Secret
-		////{
-		////	get
-		////	{
-		////		if (string.IsNullOrEmpty(secret))
-		////			secret = Settings.Load().TwitchSecret;
-
-		////		return secret;
-		////	}
-		////}
-
 		internal static async Task<string> GetLiveVideoId(string channelId)
 		{
 			string videoId = null;
@@ -47,29 +36,28 @@ namespace Youtube
 
 			try
 			{
-				Log.Write("Request: " + url, "Youtube");
+				Log.Write($"Request: {url}", "Youtube");
 
-				WebRequest req = WebRequest.Create(url);
+				using HttpClient client = new();
+				using var stream = await client.GetStreamAsync(url);
+				using StreamReader reader = new(stream);
 
-				WebResponse response = await req.GetResponseAsync();
-
-				using StreamReader reader = new StreamReader(response.GetResponseStream());
 				string html = await reader.ReadToEndAsync();
 
 				int linkIndexStart = html.IndexOf(youtubeLiveLinkText);
 				if (linkIndexStart != -1)
 				{
-					int linkIndexEnd = html.IndexOf(">", linkIndexStart + 1) - 1;
+					int linkIndexEnd = html.IndexOf('>', linkIndexStart + 1) - 1;
 					videoId = html[(linkIndexStart + youtubeLiveLinkText.Length)..linkIndexEnd];
 				}
 
-				Log.Write("Response: " + html.Length + " characters", "Youtube");
+				Log.Write($"Response: {html.Length} characters", "Youtube");
 
 				return videoId;
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
-				throw ex;
+				throw;
 			}
 		}
 
@@ -97,21 +85,17 @@ namespace Youtube
 
 				Log.Write("Request: " + url, "Twitch");
 
-				WebRequest req = WebRequest.Create(url);
+				using HttpClient client = new();
+				client.DefaultRequestHeaders.Add("Client-ID", Key);
+				////client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
 
-				req.Headers.Add("Client-ID", Key);
-				////req.Headers.Add("Authorization", $"Bearer {token.AccessToken}");
-
-				WebResponse response = await req.GetResponseAsync();
-
-				using StreamReader reader = new StreamReader(response.GetResponseStream());
+				using var stream = await client.GetStreamAsync(url);
+				using StreamReader reader = new(stream);
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Twitch");
+				Log.Write($"Response: {json.Length} characters", "Twitch");
 
-				T result = NSSerializer.Deserialize<T>(json);
-				result.Json = json;
-				return result;
+				return Serializer.DeserializeResponse<T>(json, Serializer.SnakeCaseOptions);
 			}
 			catch (WebException webEx)
 			{
@@ -121,12 +105,12 @@ namespace Youtube
 					return Activator.CreateInstance<T>();
 				}
 
-				throw webEx;
+				throw;
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				////Log.Write("Error: " + ex.Message, "Twitch");
-				throw ex;
+				throw;
 			}
 		}
 
@@ -143,22 +127,17 @@ namespace Youtube
 
 			try
 			{
-				Log.Write("Request: " + url, "Youtube API");
+				Log.Write($"Request: {url}", "Youtube API");
 
-				WebRequest req = WebRequest.Create(url);
+				using HttpClient client = new();
+				client.DefaultRequestHeaders.Add("Client-ID", Key);
 
-				req.Headers.Add("Client-ID", Key);
-				////req.Headers.Add("Authorization", $"Bearer {token.AccessToken}");
-
-				WebResponse response = await req.GetResponseAsync();
-
-				using StreamReader reader = new StreamReader(response.GetResponseStream());
+				using StreamReader reader = new(await client.GetStreamAsync(url));
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Youtube API");
+				Log.Write($"Response: {json.Length} characters", "Youtube API");
 
-				T result = Serializer.Deserialize<T>(json);
-				result.Json = json;
+				T result = Serializer.DeserializeResponse<T>(json);
 				return result;
 			}
 			catch (WebException webEx)
@@ -169,51 +148,13 @@ namespace Youtube
 					return Activator.CreateInstance<T>();
 				}
 
-				throw webEx;
+				throw;
 			}
 			catch (Exception ex)
 			{
-				////Log.Write("Error: " + ex.Message, "Youtube API");
-				throw ex;
+				Log.Write($"Error: {ex.Message}", "Youtube API");
+				throw;
 			}
 		}
-
-		////private static async Task<OAuthToken> GetOAuth()
-		////{
-		////	string url = $"https://id.twitch.tv/oauth2/token?client_id={Key}&client_secret={Secret}&grant_type=client_credentials&scope=";
-
-		////	try
-		////	{
-		////		Log.Write("Request: " + url, "Twitch");
-
-		////		WebRequest req = WebRequest.Create(url);
-		////		req.Method = "POST";
-
-		////		WebResponse response = await req.GetResponseAsync();
-
-		////		using StreamReader reader = new StreamReader(response.GetResponseStream());
-		////		string json = await reader.ReadToEndAsync();
-
-		////		Log.Write("Response: " + json.Length + " characters", "Twitch");
-
-		////		OAuthToken result = NSSerializer.Deserialize<OAuthToken>(json);
-		////		return result;
-		////	}
-		////	catch (WebException webEx)
-		////	{
-		////		HttpWebResponse errorResponse = (HttpWebResponse)webEx.Response;
-		////		if (errorResponse.StatusCode == HttpStatusCode.NotFound)
-		////		{
-		////			return Activator.CreateInstance<OAuthToken>();
-		////		}
-
-		////		throw webEx;
-		////	}
-		////	catch (Exception ex)
-		////	{
-		////		////Log.Write("Error: " + ex.Message, "Twitch");
-		////		throw ex;
-		////	}
-		////}
 	}
 }

@@ -14,27 +14,27 @@ namespace Lalachievements
 	{
 		internal static async Task<T> Send<T>(string route)
 		{
-			if (!route.StartsWith("/"))
+			if (!route.StartsWith('/'))
 				route = '/' + route;
 
-			string url = "https://lalachievements.com/api/" + route;
+			string url = $"https://lalachievements.com/api{route}";
 
 			try
 			{
-				Log.Write("Request: " + url, "FFXIVCollect");
+				Log.Write($"Request: {url}", "FFXIVCollect");
 
 				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-				StreamReader reader = new StreamReader(await client.GetStreamAsync(url));
+				StreamReader reader = new(await client.GetStreamAsync(url));
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "FFXIVCollect");
+				Log.Write($"Response: {json.Length} characters", "FFXIVCollect");
 
 				return Serializer.Deserialize<T>(json)
 					?? throw new InvalidDataException("Unable to deserialize");
 			}
 			catch (Exception ex)
 			{
-				Log.Write("Error: " + ex.Message, "FFXIVCollect");
+				Log.Write($"Error: {ex.Message}", "FFXIVCollect");
 				throw;
 			}
 		}

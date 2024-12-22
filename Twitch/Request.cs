@@ -5,10 +5,13 @@
 namespace Twitch
 {
 	using System;
+	using System.Collections.Generic;
 	using System.IO;
 	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
+	using FC.API;
 	using FC.Serialization;
 
 	internal static class Request
@@ -42,7 +45,7 @@ namespace Twitch
 		internal static async Task<T> Send<T>(string username)
 			where T : ResponseBase
 		{
-			string url = $"https://api.twitch.tv/helix/streams?user_login={username}"; // "&key=" + Key;
+			string url = $"https://api.twitch.tv/helix/streams?user_login={username}";
 
 			try
 			{
@@ -52,28 +55,25 @@ namespace Twitch
 					token = await GetOAuth();
 				}
 				// TODO: There may also be a refresh endpoint rather than just auth again
-				else if (token.Expired)
+				else if (token.Expired) 
 				{
 					token = await GetOAuth();
 				}
 
-				Log.Write("Request: " + url, "Twitch");
+				Log.Write($"Request: {url}", "Twitch");
 
-				WebRequest req = WebRequest.Create(url);
+				using HttpClient client = new();
+				client.DefaultRequestHeaders.Add("Client-ID", Key);
+				client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.AccessToken}");
 
-				req.Headers.Add("Client-ID", Key);
-				req.Headers.Add("Authorization", $"Bearer {token.AccessToken}");
+				using var stream = await client.GetStreamAsync(url);
+				using StreamReader reader = new(stream);
 
-				WebResponse response = await req.GetResponseAsync();
-
-				using StreamReader reader = new StreamReader(response.GetResponseStream());
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Twitch");
+				Log.Write($"Response: {json.Length} characters", "Twitch");
 
-				T result = NSSerializer.Deserialize<T>(json);
-				result.Json = json;
-				return result;
+				return Serializer.DeserializeResponse<T>(json, Serializer.SnakeCaseOptions);
 			}
 			catch (WebException webEx)
 			{
@@ -83,34 +83,40 @@ namespace Twitch
 					return Activator.CreateInstance<T>();
 				}
 
-				throw webEx;
+				throw;
 			}
 			catch (Exception ex)
 			{
-				////Log.Write("Error: " + ex.Message, "Twitch");
-				throw ex;
+				Log.Write($"Error: {ex.Message}", "Twitch");
+				throw;
 			}
 		}
 
 		private static async Task<OAuthToken> GetOAuth()
 		{
-			string url = $"https://id.twitch.tv/oauth2/token?client_id={Key}&client_secret={Secret}&grant_type=client_credentials&scope=";
+			string url = $"https://id.twitch.tv/oauth2/token";
 
 			try
 			{
-				Log.Write("Request: " + url, "Twitch");
+				Log.Write($"Request: {url}", "Twitch");
 
-				WebRequest req = WebRequest.Create(url);
-				req.Method = "POST";
+				Dictionary<string, string> values = new()
+				{
+					{ "client_id", Key },
+					{ "client_secret", Secret },
+					{ "grant_type", "client_credentials" },
+					{ "scope", string.Empty },
+				};
 
-				WebResponse response = await req.GetResponseAsync();
+				using HttpClient client = new();
+				var response = await client.PostAsync(url, new FormUrlEncodedContent(values));
 
-				using StreamReader reader = new StreamReader(response.GetResponseStream());
+				using StreamReader reader = new (response.Content.ReadAsStream());
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Twitch");
+				Log.Write($"Response: {json.Length} characters", "Twitch");
 
-				OAuthToken result = NSSerializer.Deserialize<OAuthToken>(json);
+				OAuthToken result = Serializer.Deserialize<OAuthToken>(json, Serializer.SnakeCaseOptions);
 				return result;
 			}
 			catch (WebException webEx)
@@ -121,34 +127,34 @@ namespace Twitch
 					return Activator.CreateInstance<OAuthToken>();
 				}
 
-				throw webEx;
+				throw;
 			}
 			catch (Exception ex)
 			{
-				////Log.Write("Error: " + ex.Message, "Twitch");
-				throw ex;
+				Log.Write($"Error: {ex.Message}", "Twitch");
+				throw;
 			}
 		}
 
 		private static async Task<OAuthValidateToken> ValidateOAuth()
 		{
-			string url = $"https://id.twitch.tv/oauth2/validate";
+			string url = "https://id.twitch.tv/oauth2/validate";
 
 			try
 			{
-				Log.Write("Request: " + url, "Twitch");
+				Log.Write($"Request: {url}", "Twitch");
 
-				WebRequest req = WebRequest.Create(url);
-				req.Headers.Add("Authorization", $"OAuth {token.AccessToken}");
+				using HttpClient client = new();
+				client.DefaultRequestHeaders.Add("Authorization", $"OAuth {token.AccessToken}");
 
-				WebResponse response = await req.GetResponseAsync();
+				using var stream = await client.GetStreamAsync(url);
+				using StreamReader reader = new(stream);
 
-				using StreamReader reader = new StreamReader(response.GetResponseStream());
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Twitch");
+				Log.Write($"Response: {json.Length} characters", "Twitch");
 
-				OAuthValidateToken result = NSSerializer.Deserialize<OAuthValidateToken>(json);
+				OAuthValidateToken result = Serializer.Deserialize<OAuthValidateToken>(json, Serializer.SnakeCaseOptions);
 				return result;
 			}
 			catch (WebException webEx)
@@ -159,12 +165,12 @@ namespace Twitch
 					return Activator.CreateInstance<OAuthValidateToken>();
 				}
 
-				throw webEx;
+				throw;
 			}
 			catch (Exception ex)
 			{
-				////Log.Write("Error: " + ex.Message, "Twitch");
-				throw ex;
+				Log.Write($"Error: {ex.Message}", "Twitch");
+				throw;
 			}
 		}
 	}

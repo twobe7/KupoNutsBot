@@ -10,6 +10,7 @@ namespace XIVAPI
 	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
+	using FC.API;
 	using FC.Serialization;
 
 	internal static class Request
@@ -36,11 +37,11 @@ namespace XIVAPI
 			if (!route.Contains('?'))
 				route += '?';
 
-			string url = "https://xivapi.com" + route + "&private_key=" + Key;
+			string url = $"https://xivapi.com{route}&private_key={Key}";
 
 			try
 			{
-				Log.Write("Request: " + url, "XIVAPI");
+				Log.Write($"Request: {url}", "XIVAPI");
 
 				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
 				var stream = await client.GetStreamAsync(url);
@@ -52,10 +53,9 @@ namespace XIVAPI
 				// dirty hack to handle GameContentLinks being sometimes an array, and sometimes an object...
 				json = json.Replace("\"GameContentLinks\":[]", "\"GameContentLinks\":null");
 
-				T result = Serializer.Deserialize<T>(json)
+				T result = Serializer.DeserializeResponse<T>(json)
 					?? throw new InvalidDataException("Unable to deserialize");
 
-				result.Json = json;
 				return result;
 			}
 			catch (WebException webEx)

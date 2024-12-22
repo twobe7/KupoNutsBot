@@ -7,8 +7,10 @@ namespace Tenor
 	using System;
 	using System.IO;
 	using System.Net;
+	using System.Net.Http;
 	using System.Threading.Tasks;
 	using FC;
+	using FC.API;
 	using FC.Serialization;
 
 	internal static class Request
@@ -35,22 +37,21 @@ namespace Tenor
 			if (!route.Contains('?'))
 				route += '?';
 
-			string url = "https://g.tenor.com/v1" + route + "&key=" + Key;
+			string url = $"https://g.tenor.com/v1{route}&key={Key}";
 
 			try
 			{
-				Log.Write("Request: " + url, "Tenor");
+				Log.Write($"Request: {url}", "Tenor");
 
-				WebRequest req = WebRequest.Create(url);
-				WebResponse response = await req.GetResponseAsync();
-				StreamReader reader = new StreamReader(response.GetResponseStream());
+				using HttpClient client = new();
+				using var stream = await client.GetStreamAsync(url);
+				using StreamReader reader = new(stream);
+
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Tenor");
+				Log.Write($"Response: {json.Length} characters", "Tenor");
 
-				T result = Serializer.Deserialize<T>(json);
-				result.Json = json;
-				return result;
+				return Serializer.DeserializeResponse<T>(json);
 			}
 			catch (WebException webEx)
 			{
@@ -60,12 +61,12 @@ namespace Tenor
 					return Activator.CreateInstance<T>();
 				}
 
-				throw webEx;
+				throw;
 			}
 			catch (Exception ex)
 			{
-				Log.Write("Error: " + ex.Message, "Tenor");
-				throw ex;
+				Log.Write($"Error: {ex.Message}", "Tenor");
+				throw;
 			}
 		}
 	}

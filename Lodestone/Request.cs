@@ -19,24 +19,24 @@ namespace Lodestone
 			if (!route.StartsWith('/'))
 				route = '/' + route;
 
-			string url = "https://lodestonenews.com" + route;
+			string url = $"https://lodestonenews.com{route}";
 
 			try
 			{
-				Log.Write("Request: " + url, "Lodestone");
+				Log.Write($"Request: {url}", "Lodestone");
 
 				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-				StreamReader reader = new StreamReader(await client.GetStreamAsync(url));
+				StreamReader reader = new(await client.GetStreamAsync(url));
 				string json = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + json.Length + " characters", "Lodestone");
+				Log.Write($"Response: {json.Length} characters", "Lodestone");
 
 				return Serializer.Deserialize<T>(json)
-					   ?? throw new InvalidDataException("Unable to deserialize");
+					?? throw new InvalidDataException("Unable to deserialize");
 			}
 			catch (Exception ex)
 			{
-				Log.Write("Error: " + ex.Message, "Lodestone");
+				Log.Write($"Error: {ex.Message}", "Lodestone");
 				throw;
 			}
 		}
@@ -45,17 +45,17 @@ namespace Lodestone
 		{
 			try
 			{
-				Log.Write("Detail: " + url, "Lodestone");
+				Log.Write($"Detail: {url}", "Lodestone");
 
 				using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-				StreamReader reader = new StreamReader(await client.GetStreamAsync(url));
+				StreamReader reader = new(await client.GetStreamAsync(url));
 				string html = await reader.ReadToEndAsync();
 
-				Log.Write("Response: " + html.Length + " characters", "Lodestone");
+				Log.Write($"Response: {html.Length} characters", "Lodestone");
 
 				int startIndex = html.IndexOf("news__detail__wrapper") + 23;
 				int endIndex = html.IndexOf("</div>", startIndex);
-				string detail = html.Substring(startIndex, endIndex - startIndex);
+				string detail = html[startIndex..endIndex];
 
 				detail = detail.Replace("<br>", string.Empty);
 
@@ -63,7 +63,7 @@ namespace Lodestone
 			}
 			catch (Exception ex)
 			{
-				Log.Write("Error: " + ex.Message, "Lodestone");
+				Log.Write($"Error: {ex.Message}", "Lodestone");
 				throw;
 			}
 		}

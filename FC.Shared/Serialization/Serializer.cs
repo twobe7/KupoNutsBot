@@ -10,12 +10,21 @@ namespace FC.Serialization
 
 	public static class Serializer
 	{
-		public static JsonSerializerOptions Options = new();
+		public static JsonSerializerOptions Options = new()
+		{
+			WriteIndented = true,
+			PropertyNameCaseInsensitive = true,
+		};
+
+		public static JsonSerializerOptions SnakeCaseOptions = new()
+		{
+			WriteIndented = true,
+			PropertyNameCaseInsensitive = true,
+			PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+		};
 
 		static Serializer()
 		{
-			Options.WriteIndented = true;
-			Options.PropertyNameCaseInsensitive = true;
 			Options.Converters.Add(new DateTimeZoneConverter());
 			Options.Converters.Add(new LocalDateConverter());
 			Options.Converters.Add(new DurationConverter());
@@ -31,11 +40,31 @@ namespace FC.Serialization
 			return JsonSerializer.Serialize(obj, Options);
 		}
 
-		public static T? Deserialize<T>(string json)
+		public static T? Deserialize<T>(string json, JsonSerializerOptions? options = null)
 		{
 			try
 			{
-				return JsonSerializer.Deserialize<T>(json, Options);
+				options ??= Options;
+				return JsonSerializer.Deserialize<T>(json, options);
+			}
+			catch (Exception ex)
+			{
+				throw new Exception("Unable to deserialize JSON: \"" + json + "\" to type: \"" + typeof(T) + "\"", ex);
+			}
+		}
+
+		public static T? DeserializeResponse<T>(string json, JsonSerializerOptions? options = null)
+			where T : API.ResponseBase
+		{
+			try
+			{
+				options ??= Options;
+				T? result = JsonSerializer.Deserialize<T>(json, options);
+
+				if (result != null)
+					result.Json = json;
+
+				return result;
 			}
 			catch (Exception ex)
 			{
