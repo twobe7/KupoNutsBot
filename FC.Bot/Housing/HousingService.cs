@@ -4,6 +4,7 @@
 
 namespace FC.Bot.Housing
 {
+	using System;
 	using System.Linq;
 	using System.Text;
 	using System.Threading.Tasks;
@@ -45,15 +46,6 @@ namespace FC.Bot.Housing
 			// Build embed
 			EmbedBuilder builder = GetEmbed(openPlots.Name ?? "Unable to find World");
 
-			// TODO: Update for Empyreum - Can be removed once plots have been taken
-			HousingAPI.District? empyreumDistrict = openPlots.Districts.FirstOrDefault(x => x.Name == "Empyreum");
-			uint empyreumOpenPlots = empyreumDistrict?.NumOpenPlots ?? 0;
-			if (empyreumDistrict != null && empyreumOpenPlots > 30)
-			{
-				empyreumDistrict.NumOpenPlots = 0;
-				openPlots.NumOpenPlots -= empyreumOpenPlots;
-			}
-
 			if (openPlots.IsError)
 			{
 				builder.Title = "Open Plots - Error Occurred";
@@ -74,20 +66,24 @@ namespace FC.Bot.Housing
 					// Build description
 					foreach (HousingAPI.OpenPlot plot in district.OpenPlots)
 					{
-						var plotInfo = plot.GetInfo();
+						// Stop processing plots if field limit has been reached
+						if (fieldLengthMaxReached)
+							break;
+
+						var plotInfo = $"{plot.GetInfo()}\n";
 
 						if (stringBuilder.Length + plotInfo.Length <= EmbedFieldBuilder.MaxFieldValueLength)
 						{
-							stringBuilder.Append(plot.GetInfo() + "\n");
+							stringBuilder.Append(plotInfo);
 						}
 						else if (!fieldLengthMaxReached)
 						{
-							stringBuilder.Append("Too many open plots to list...");
+							stringBuilder.Append("And more...");
 							fieldLengthMaxReached = true;
 						}
 					}
 
-					districtFieldBuilder.Value = stringBuilder.ToString();
+					districtFieldBuilder.Value = stringBuilder.ToString(0, Math.Min(stringBuilder.Length, EmbedFieldBuilder.MaxFieldValueLength));
 
 					// Add to embed
 					builder.AddField(districtFieldBuilder);

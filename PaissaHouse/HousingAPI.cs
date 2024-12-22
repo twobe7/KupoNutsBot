@@ -31,7 +31,7 @@ namespace PaissaHouse
 		/// <summary>
 		/// Housing grades for The Goblet
 		/// </summary>
-		private static readonly Dictionary<uint, uint> TheGobletGrades = new Dictionary<uint, uint>
+		private static readonly Dictionary<uint, uint> TheGobletGrades = new()
 		{
 			{ 1, 1 }, { 2, 4 }, { 3, 3 }, { 4, 2 }, { 5, 4 },
 			{ 6, 4 }, { 7, 4 }, { 8, 3 }, { 9, 5 }, { 10, 5 },
@@ -44,7 +44,7 @@ namespace PaissaHouse
 		/// <summary>
 		/// Housing grades for The Lavender Beds
 		/// </summary>
-		private static readonly Dictionary<uint, uint> TheLavenderBedsGrades = new Dictionary<uint, uint>
+		private static readonly Dictionary<uint, uint> TheLavenderBedsGrades = new()
 		{
 			{ 1, 3 }, { 2, 5 }, { 3, 2 }, { 4, 5 }, { 5, 5 },
 			{ 6, 5 }, { 7, 4 }, { 8, 3 }, { 9, 2 }, { 10, 2 },
@@ -57,7 +57,7 @@ namespace PaissaHouse
 		/// <summary>
 		/// Housing grades for The Mist
 		/// </summary>
-		private static readonly Dictionary<uint, uint> MistGrades = new Dictionary<uint, uint>
+		private static readonly Dictionary<uint, uint> MistGrades = new()
 		{
 			{ 1, 2 }, { 2, 2 }, { 3, 4 }, { 4, 1 }, { 5, 1 },
 			{ 6, 1 }, { 7, 5 }, { 8, 1 }, { 9, 3 }, { 10, 3 },
@@ -70,7 +70,7 @@ namespace PaissaHouse
 		/// <summary>
 		/// Housing grades for Shirogane
 		/// </summary>
-		private static readonly Dictionary<uint, uint> ShiroganeGrades = new Dictionary<uint, uint>
+		private static readonly Dictionary<uint, uint> ShiroganeGrades = new()
 		{
 			{ 1, 1 }, { 2, 2 }, { 3, 1 }, { 4, 2 }, { 5, 3 },
 			{ 6, 2 }, { 7, 4 }, { 8, 1 }, { 9, 2 }, { 10, 4 },
@@ -150,7 +150,7 @@ namespace PaissaHouse
 			public uint WardNumber { get; set; }
 			public uint PlotNumber { get; set; }
 			public uint Size { get; set; }
-			public ulong LastSeenPrice { get; set; }
+			public ulong Price { get; set; }
 			public float LastUpdatedTime { get; set; }
 			public float EstTimeOpenMin { get; set; }
 			public float EstTimeOpenMax { get; set; }
@@ -159,25 +159,19 @@ namespace PaissaHouse
 			/// <summary>
 			/// Ward Number is 0-indexed for reasons
 			/// </summary>
-			private uint WardNumberCorrected
-			{
-				get { return this.WardNumber + 1; }
-			}
+			private uint WardNumberCorrected => this.WardNumber + 1;
 
 			/// <summary>
 			/// Plot Number is 0-indexed for reasons
 			/// </summary>
-			private uint PlotNumberCorrected
-			{
-				get { return this.PlotNumber + 1; }
-			}
+			private uint PlotNumberCorrected => this.PlotNumber + 1;
 
 			private string TimeSinceLastUpdated
 			{
 				get
 				{
-					TimeSpan lastUpdated = DateTime.Now.ToUniversalTime() - DateTimeOffset.FromUnixTimeSeconds((long)this.LastUpdatedTime);
-					return lastUpdated.ToMediumString(showSeconds: false) + " ago";
+					var span = DateTime.Now.ToUniversalTime() - DateTimeOffset.FromUnixTimeSeconds((long)this.LastUpdatedTime);
+					return $"{span.ToMediumString(showSeconds: false)} ago";
 				}
 			}
 
@@ -185,13 +179,7 @@ namespace PaissaHouse
 
 			private uint Grade => GetPlotGrade(this.District, this.PlotNumberCorrected);
 
-			private string KnownPriceMillions
-			{
-				get
-				{
-					return (this.LastSeenPrice / 1000000M).ToString("N3") + "m";
-				}
-			}
+			private string KnownPriceMillions => $"{(this.Price / 1000000M):N3}m";
 
 			public string GetInfo()
 			{
@@ -202,7 +190,6 @@ namespace PaissaHouse
 				builder.Append($"Grade: {this.Grade}. ");
 				builder.Append($"Size: {((SizeEnum)this.Size).ToDisplayString()}. ");
 				builder.Append($"Price: **{this.KnownPriceMillions}**. ");
-				////builder.Append($"Last Updated: {this.LastUpdatedTime.ToString("dd/MM HH:ss")}. ");
 				builder.Append($"Last Updated: {this.TimeSinceLastUpdated}.");
 
 				return builder.ToString();
