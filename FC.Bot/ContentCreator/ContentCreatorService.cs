@@ -163,7 +163,7 @@ namespace FC.Bot.ContentCreator
 			}
 
 			// Send Embed
-			await this.FollowupAsync(embeds: new Embed[] { embed.Build() });
+			await this.FollowupAsync(embeds: [embed.Build()]);
 		}
 
 #if DEBUG

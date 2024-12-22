@@ -62,7 +62,7 @@ namespace FC.Bot.Currency
 			// Send starting board
 			await ctx.Interaction.FollowupAsync(
 				text: newGame.GetPostMessage(),
-				embeds: new Embed[] { newGame.GetEmbed() },
+				embeds: [newGame.GetEmbed()],
 				components: newGame.GetComponents());
 
 			// Stop game
@@ -293,24 +293,25 @@ namespace FC.Bot.Currency
 						return winningPiece;
 				}
 
-				var diagonals = new[]
-				{
+				Piece[][] diagonals =
+				[
+
 					// negative slope
-					new[] { this.GameBoard[2, 0], this.GameBoard[3, 1], this.GameBoard[4, 2], this.GameBoard[5, 3] },
-					new[] { this.GameBoard[1, 0], this.GameBoard[2, 1], this.GameBoard[3, 2], this.GameBoard[4, 3], this.GameBoard[5, 4] },
-					new[] { this.GameBoard[0, 0], this.GameBoard[1, 1], this.GameBoard[2, 2], this.GameBoard[3, 3], this.GameBoard[4, 4], this.GameBoard[5, 5] },
-					new[] { this.GameBoard[0, 1], this.GameBoard[1, 2], this.GameBoard[2, 3], this.GameBoard[3, 4], this.GameBoard[4, 5], this.GameBoard[5, 6] },
-					new[] { this.GameBoard[0, 2], this.GameBoard[1, 3], this.GameBoard[2, 4], this.GameBoard[3, 5], this.GameBoard[4, 6] },
-					new[] { this.GameBoard[0, 3], this.GameBoard[1, 4], this.GameBoard[2, 5], this.GameBoard[3, 6] },
+					[this.GameBoard[2, 0], this.GameBoard[3, 1], this.GameBoard[4, 2], this.GameBoard[5, 3]],
+					[this.GameBoard[1, 0], this.GameBoard[2, 1], this.GameBoard[3, 2], this.GameBoard[4, 3], this.GameBoard[5, 4]],
+					[this.GameBoard[0, 0], this.GameBoard[1, 1], this.GameBoard[2, 2], this.GameBoard[3, 3], this.GameBoard[4, 4], this.GameBoard[5, 5]],
+					[this.GameBoard[0, 1], this.GameBoard[1, 2], this.GameBoard[2, 3], this.GameBoard[3, 4], this.GameBoard[4, 5], this.GameBoard[5, 6]],
+					[this.GameBoard[0, 2], this.GameBoard[1, 3], this.GameBoard[2, 4], this.GameBoard[3, 5], this.GameBoard[4, 6]],
+					[this.GameBoard[0, 3], this.GameBoard[1, 4], this.GameBoard[2, 5], this.GameBoard[3, 6]],
 
 					// positive slope
-					new[] { this.GameBoard[3, 0], this.GameBoard[2, 1], this.GameBoard[1, 2], this.GameBoard[0, 3] },
-					new[] { this.GameBoard[4, 0], this.GameBoard[3, 1], this.GameBoard[2, 2], this.GameBoard[1, 3], this.GameBoard[0, 4] },
-					new[] { this.GameBoard[5, 0], this.GameBoard[4, 1], this.GameBoard[3, 2], this.GameBoard[2, 3], this.GameBoard[1, 4], this.GameBoard[0, 5] },
-					new[] { this.GameBoard[5, 1], this.GameBoard[4, 2], this.GameBoard[3, 3], this.GameBoard[2, 4], this.GameBoard[1, 5], this.GameBoard[0, 6] },
-					new[] { this.GameBoard[5, 2], this.GameBoard[4, 3], this.GameBoard[3, 4], this.GameBoard[2, 5], this.GameBoard[1, 6] },
-					new[] { this.GameBoard[5, 3], this.GameBoard[4, 4], this.GameBoard[3, 5], this.GameBoard[2, 6] },
-				};
+					[this.GameBoard[3, 0], this.GameBoard[2, 1], this.GameBoard[1, 2], this.GameBoard[0, 3]],
+					[this.GameBoard[4, 0], this.GameBoard[3, 1], this.GameBoard[2, 2], this.GameBoard[1, 3], this.GameBoard[0, 4]],
+					[this.GameBoard[5, 0], this.GameBoard[4, 1], this.GameBoard[3, 2], this.GameBoard[2, 3], this.GameBoard[1, 4], this.GameBoard[0, 5]],
+					[this.GameBoard[5, 1], this.GameBoard[4, 2], this.GameBoard[3, 3], this.GameBoard[2, 4], this.GameBoard[1, 5], this.GameBoard[0, 6]],
+					[this.GameBoard[5, 2], this.GameBoard[4, 3], this.GameBoard[3, 4], this.GameBoard[2, 5], this.GameBoard[1, 6]],
+					[this.GameBoard[5, 3], this.GameBoard[4, 4], this.GameBoard[3, 5], this.GameBoard[2, 6]],
+				];
 
 				foreach (var diagonal in diagonals)
 				{

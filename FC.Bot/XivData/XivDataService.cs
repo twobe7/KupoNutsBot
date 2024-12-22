@@ -66,7 +66,7 @@ public class XivDataService : ServiceBase
 
 				embed.Description = description.ToString();
 
-				await this.FollowupAsync(embeds: new Embed[] { embed.Build() });
+				await this.FollowupAsync(embeds: [embed.Build()]);
 				return;
 			}
 
@@ -75,7 +75,7 @@ public class XivDataService : ServiceBase
 
 		XIVAPI.Action action = await ActionAPI.Get(itemId.Value);
 
-		await this.FollowupAsync(embeds: new Embed[] { action.ToEmbed().Build() });
+		await this.FollowupAsync(embeds: [action.ToEmbed().Build()]);
 	}
 
 	[SlashCommand("item-search", "Gets information on an item")]
@@ -162,7 +162,7 @@ public class XivDataService : ServiceBase
 
 				embed.Description = description.ToString();
 
-				await this.FollowupAsync(embeds: new Embed[] { embed.Build() });
+				await this.FollowupAsync(embeds: [embed.Build()]);
 				return;
 			}
 
@@ -171,7 +171,7 @@ public class XivDataService : ServiceBase
 
 		MountAPI.Mount mount = await MountAPI.Get(itemId.Value);
 
-		await this.FollowupAsync(embeds: new Embed[] { mount.ToEmbed().Build() });
+		await this.FollowupAsync(embeds: [mount.ToEmbed().Build()]);
 	}
 
 	private static async Task<Embed> GetItem(ulong itemId)

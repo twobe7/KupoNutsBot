@@ -107,7 +107,7 @@ namespace FC.Bot.RPG
 				.WithDescription(builder.ToString())
 				.WithColor(Color.Blue);
 
-			await this.FollowupAsync(embeds: new Embed[] { embedBuilder.Build() });
+			await this.FollowupAsync(embeds: [embedBuilder.Build()]);
 		}
 
 		[SlashCommand("reputation-leaderboard", "Shows the reputation leaderboards")]
@@ -150,7 +150,7 @@ namespace FC.Bot.RPG
 				.WithDescription(builder.ToString())
 				.WithColor(Color.Blue);
 
-			await this.FollowupAsync(embeds: new Embed[] { embedBuilder.Build() });
+			await this.FollowupAsync(embeds: [embedBuilder.Build()]);
 		}
 
 		[SlashCommand("give-rep", "Show someone you think they're neat.")]
@@ -350,7 +350,7 @@ namespace FC.Bot.RPG
 				.WithValue($"{guildUser.JoinedAt?.ToString("dd MMM yy")} ({(DateTime.Now.Date - (guildUser.JoinedAt?.Date ?? DateTime.Now.Date)).TotalDays} days ago)");
 			embed.AddField(joined);
 
-			await this.FollowupAsync(embeds: new Embed[] { embed.Build() });
+			await this.FollowupAsync(embeds: [embed.Build()]);
 		}
 
 		private static async void GainXP(User user, int? xpGained = null)

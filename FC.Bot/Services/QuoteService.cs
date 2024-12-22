@@ -86,7 +86,7 @@ namespace FC.Bot.Quotes
 
 			int index = new Random().Next(quotes.Count);
 
-			await this.FollowupAsync(embeds: new Embed[] { this.GetEmbed(quotes[index]) });
+			await this.FollowupAsync(embeds: [this.GetEmbed(quotes[index])]);
 		}
 
 		[SlashCommand("list", "Lists all quotes")]
@@ -156,7 +156,7 @@ namespace FC.Bot.Quotes
 					.WithIconUrl(user.GetAvatarUrl());
 			}
 
-			await this.FollowupAsync(embeds: new Embed[] { builder.Build() });
+			await this.FollowupAsync(embeds: [builder.Build()]);
 		}
 
 		[SlashCommand("delete", "Deletes a quote from the given user")]

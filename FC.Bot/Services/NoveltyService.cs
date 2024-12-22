@@ -86,7 +86,7 @@ namespace FC.Bot.Services
 				Color = Color.DarkBlue,
 			};
 
-			await this.RespondAsync(embeds: new Embed[] { builder.Build() });
+			await this.RespondAsync(embeds: [builder.Build()]);
 		}
 
 		[SlashCommand("blame", "Blames someone")]
@@ -179,7 +179,7 @@ namespace FC.Bot.Services
 			embed.Title = $"I choose... {options[value]}!";
 			embed.Description = Utils.Characters.Space;
 
-			await this.RespondAsync(embeds: new Embed[] { embed.Build() });
+			await this.RespondAsync(embeds: [embed.Build()]);
 		}
 
 		[SlashCommand("number", "Displays a random number between the given minimum (inclusive) and maximum (exclusive) values.")]
@@ -483,7 +483,7 @@ namespace FC.Bot.Services
 			RandomAPI.Result tenorResult = await RandomAPI.Random(search);
 			builder.ImageUrl = tenorResult.GetBestUrl();
 
-			await ctx.Interaction.FollowupAsync(embeds: new Embed[] { builder.Build() });
+			await ctx.Interaction.FollowupAsync(embeds: [builder.Build()]);
 		}
 
 		private static string PadLeft(int value, int numberToPad = 2)

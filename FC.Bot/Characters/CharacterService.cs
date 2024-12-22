@@ -285,7 +285,7 @@ namespace FC.Bot.Characters
 
 			CharacterInfo? character = await this.GetCharacter(serverName, characterName, characterId);
 
-			await this.FollowupAsync(embeds: new Embed[] { character.GetAttributesEmbed() });
+			await this.FollowupAsync(embeds: [character.GetAttributesEmbed()]);
 		}
 
 		[SlashCommand("elemental-level", "Shows current Elemental Level of a character")]

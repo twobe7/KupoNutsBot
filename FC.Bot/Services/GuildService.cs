@@ -46,11 +46,11 @@ namespace FC.Bot.Guild
 					oldestString += $"{order++}. {user.GetName()}\n";
 				}
 
-				await this.FollowupAsync(embeds: new Embed[] { GetEmbed("Oldest Members", oldestString, this.Context.Guild.IconUrl) });
+				await this.FollowupAsync(embeds: [GetEmbed("Oldest Members", oldestString, this.Context.Guild.IconUrl)]);
 				return;
 			}
 
-			await this.FollowupAsync(embeds: new Embed[] { GetEmbed("You're the oldest!", string.Empty) });
+			await this.FollowupAsync(embeds: [GetEmbed("You're the oldest!", string.Empty)]);
 		}
 
 		[SlashCommand("newest", "Lists the newest Discord members")]
@@ -75,11 +75,11 @@ namespace FC.Bot.Guild
 					members += $"{order++}. {user.GetName()}\n";
 				}
 
-				await this.FollowupAsync(embeds: new Embed[] { GetEmbed("Newest Members", members, this.Context.Guild.IconUrl) });
+				await this.FollowupAsync(embeds: [GetEmbed("Newest Members", members, this.Context.Guild.IconUrl)]);
 				return;
 			}
 
-			await this.FollowupAsync(embeds: new Embed[] { GetEmbed("You're the youngest!", string.Empty) });
+			await this.FollowupAsync(embeds: [GetEmbed("You're the youngest!", string.Empty)]);
 		}
 
 		private static Embed GetEmbed(string title, string description, string? iconUrl = null)
