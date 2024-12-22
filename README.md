@@ -1,12 +1,12 @@
 # FCChan Discord bot
 
 ## Requirements
- * .NET Core 3.1
- * Visual Studio 2019 or equivalent.
+ * .NET 9.0
+ * Visual Studio 2022 version 17.12 or higher.
 
 ## Getting Started
 * Open `FCBot.sln`.
-* Build and Run `FC.boot` to launch the bot.
+* Build and Run `FC.Manager.Web` to launch the bot.
 * Navigate to `http://localhost:5000` in the web browser of your choice to access the mangement interface.
 * Select "Settings" from the navigation bar on the left.
 * Enter the necessary keys:
