@@ -4,9 +4,7 @@
 
 namespace FC.Data
 {
-	using System;
 	using System.Collections.Generic;
-	using System.Text;
 	using System.Threading.Tasks;
 
 	public class Table<T>
@@ -49,9 +47,9 @@ namespace FC.Data
 			return this.table.Load<T>(key);
 		}
 
-		public Task<List<T>> LoadAll(Dictionary<string, object>? conditions = null)
+		public Task<List<T>> LoadAll(Dictionary<string, object>? conditions = null, int skip = 0, int? take = null)
 		{
-			return this.table.LoadAll<T>(conditions);
+			return this.table.LoadAll<T>(conditions, skip, take);
 		}
 
 		public Task<T> LoadOrCreate(string key)

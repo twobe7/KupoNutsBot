@@ -61,7 +61,7 @@ namespace FC.Bot.Services
 			}
 			else
 			{
-				throw new Exception("User is not a guild user: " + user);
+				throw new Exception($"User is not a guild user: {user}");
 			}
 		}
 
@@ -73,7 +73,7 @@ namespace FC.Bot.Services
 			}
 			else
 			{
-				throw new Exception("User is not a guild user: " + user);
+				throw new Exception($"User is not a guild user: {user}");
 			}
 		}
 
@@ -85,11 +85,11 @@ namespace FC.Bot.Services
 			}
 			else
 			{
-				throw new Exception("User is not a guild user: " + user);
+				throw new Exception($"User is not a guild user: {user}");
 			}
 		}
 
-		private async Task PostMessage(IGuild guild, IGuildUser user, Color color, string message)
+		private async Task PostMessage(SocketGuild guild, IGuildUser user, Color color, string message)
 		{
 			SocketTextChannel? channel = await GetChannel(guild.Id);
 
@@ -100,22 +100,24 @@ namespace FC.Bot.Services
 			if (user.GuildId != channel.Guild.Id)
 				return;
 
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.Color = color;
-			builder.Title = user.Username + " " + message + " " + user.Guild.Name;
-			builder.Timestamp = DateTimeOffset.Now;
-			builder.ThumbnailUrl = user.GetAvatarUrl();
+			EmbedBuilder builder = new()
+			{
+				Color = color,
+				Title = $"{user.Username} {message} {user.Guild.Name}",
+				Timestamp = DateTimeOffset.Now,
+				ThumbnailUrl = user.GetAvatarUrl(),
+			};
 
 			if (user is SocketGuildUser guildUser)
 			{
-				builder.Title = guildUser.Nickname + " (" + user.Username + ") " + message;
+				builder.Title = $"{guildUser.Nickname} ({user.Username}) {message}";
 				builder.AddField("Joined", TimeUtils.GetDateString(guildUser.JoinedAt), true);
 			}
 
 			builder.AddField("Created", TimeUtils.GetDateString(user.CreatedAt), true);
 
-			builder.Footer = new EmbedFooterBuilder();
-			builder.Footer.Text = "ID: " + user.Id;
+			builder.Footer = new EmbedFooterBuilder()
+				.WithText($"ID: {user.Id}");
 
 			await channel.SendMessageAsync(null, false, builder.Build());
 		}

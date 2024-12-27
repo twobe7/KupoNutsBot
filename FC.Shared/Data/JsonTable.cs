@@ -28,7 +28,7 @@ namespace FC.Data
 		{
 			get
 			{
-				return "Database/" + this.Name + "_" + this.Version + "/";
+				return $"Database/{this.Name}_{this.Version}/";
 			}
 		}
 
@@ -47,8 +47,7 @@ namespace FC.Data
 			if (!this.connected)
 				throw new Exception("Database not connected.");
 
-			if (id == null)
-				id = Guid.NewGuid().ToString();
+			id ??= Guid.NewGuid().ToString();
 
 			T entry = Activator.CreateInstance<T>();
 			entry.Id = id;
@@ -165,9 +164,8 @@ namespace FC.Data
 			if (!this.connected)
 				throw new Exception("Database not connected.");
 
-			T? result = await this.Load<T>(key);
-			if (result == null)
-				result = await this.CreateEntry<T>(key);
+			T? result = await this.Load<T>(key)
+				?? await this.CreateEntry<T>(key);
 
 			return result;
 		}
@@ -201,7 +199,7 @@ namespace FC.Data
 				key = key.Replace(c, '-');
 			}
 
-			return this.DirectoryPath + key + ".json";
+			return $"{this.DirectoryPath}{key}.json";
 		}
 	}
 }

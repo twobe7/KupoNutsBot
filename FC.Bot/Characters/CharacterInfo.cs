@@ -188,7 +188,7 @@ namespace FC.Bot.Characters
 				return new EmbedBuilder()
 				{
 					Title = this.xivApiCharacter?.Name,
-					Description = $"No Eureka level found!",
+					Description = "No Eureka level found!",
 				}.Build();
 			}
 
@@ -217,14 +217,14 @@ namespace FC.Bot.Characters
 				return new EmbedBuilder()
 				{
 					Title = this.xivApiCharacter?.Name,
-					Description = $"No Eureka level found!",
+					Description = "No Eureka level found!",
 				}.Build();
 			}
 
 			EmbedBuilder builder = new()
 			{
 				Title = this.xivApiCharacter?.Name,
-				Description = $"Resistance Rank: {classJobInfo.Bozja.Level}\nCurrent Mettle: {classJobInfo.Bozja.ExpCurrent:N0}",
+				Description = $"Resistance Rank: {classJobInfo.Bozja.Level}\nCurrent Mettle: {classJobInfo.Bozja.MettleCurrent:N0}",
 			};
 
 			return builder.Build();

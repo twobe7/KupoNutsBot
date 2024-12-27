@@ -4,8 +4,13 @@
 
 namespace FC.Utils
 {
+#if DEBUG
 	using System.IO;
 	using System.Reflection;
+#else
+	using System;
+	using System.Runtime.InteropServices;
+#endif
 
 	public static class PathUtils
 	{

@@ -25,20 +25,15 @@ namespace MusicPlayer
 		/// Timeout after 2 minutes
 		/// </summary>
 		private const int IdleTimeout = 120000;
-		private static readonly YoutubeClient YoutubeClient = new YoutubeClient();
+		private static readonly YoutubeClient YoutubeClient = new();
 
-		public class VideoInfo
+		public class VideoInfo(string requestor)
 		{
-			public VideoInfo(string requestor)
-			{
-				this.RequestedBy = requestor;
-			}
-
 			public string Title { get; set; }
 			public string Duration { get; set; }
 			public AudioOnlyStreamInfo Stream { get; set; }
 			public string Thumbnail { get; set; }
-			public string RequestedBy { get; set; }
+			public string RequestedBy { get; set; } = requestor;
 
 			public MemoryStream MemoryStream { get; set; }
 			public bool IsConvertingStream { get; set; } = false;
@@ -110,7 +105,7 @@ namespace MusicPlayer
 			if (target.Guild.Id != guild.Id)
 				return false;
 
-			AudioClient audioClient = new AudioClient
+			AudioClient audioClient = new()
 			{
 				Client = await target.ConnectAsync(),
 				ConnectedChannel = target,
@@ -162,22 +157,22 @@ namespace MusicPlayer
 
 			if (this.connectedChannels.TryGetValue(user.GuildId, out AudioClient audioClient))
 			{
-				VideoInfo videoInfo = new VideoInfo(user.GetName());
+				VideoInfo videoInfo = new(user.GetName());
 
 				// Try to parse the url given to return just the video id
 				string id;
 				if (query.Contains("v=") && query.Length >= 3)
 				{
 
-					if (query.Contains("&"))
+					if (query.Contains('&'))
 					{
 						id = Regex.Match(query, "v=(.*?)&").ToString();
-						id = id.Substring(2, id.Length - 3);
+						id = id[2..^1];
 					}
 					else
 					{
 						id = Regex.Match(query, "v=(.*?)$").ToString();
-						id = id.Substring(2, id.Length - 2);
+						id = id[2..];
 					}
 
 					YoutubeExplode.Videos.Video video = await YoutubeClient.Videos.GetAsync(id);
@@ -225,14 +220,14 @@ namespace MusicPlayer
 					await message.DeleteAsync();
 
 					// Add confirm message
-					EmbedBuilder embed = new EmbedBuilder
+					EmbedBuilder embed = new()
 					{
 						Title = "Kupo Nuts FM - Added Track",
-						Fields = new List<EmbedFieldBuilder>
-						{
+						Fields =
+						[
 							CreateEmbedField("Title", videoInfo.Title),
 							CreateEmbedField("Requested By", user.DisplayName),
-						},
+						],
 					};
 					await message.Channel.SendMessageAsync(embed: embed.Build());
 				}
@@ -279,7 +274,7 @@ namespace MusicPlayer
 					string upNextDescription = string.Empty;
 					foreach (VideoInfo video in audioClient.PlayList.Take(5))
 					{
-						upNextDescription += "• " + video.Title + Environment.NewLine;
+						upNextDescription += $"• {video.Title}{Environment.NewLine}";
 					}
 
 					embed.AddField(new EmbedFieldBuilder()
@@ -288,7 +283,7 @@ namespace MusicPlayer
 						Value = upNextDescription,
 					});
 
-					embed.WithFooter(new EmbedFooterBuilder { Text = "Total songs in queue: " + audioClient.PlayList.Count });
+					embed.WithFooter(new EmbedFooterBuilder { Text = $"Total songs in queue: {audioClient.PlayList.Count}" });
 				}
 				else if (audioClient.CurrentSong == null)
 				{
@@ -341,14 +336,14 @@ namespace MusicPlayer
 				await message.DeleteAsync();
 
 			// Add confirm message
-			EmbedBuilder embed = new EmbedBuilder
+			EmbedBuilder embed = new()
 			{
 				Title = "Kupo Nuts FM - Now Playing",
-				Fields = new List<EmbedFieldBuilder>
-				{
+				Fields =
+				[
 					CreateEmbedField("Title", audioClient.CurrentSong.Title),
 					CreateEmbedField("Requested By", audioClient.CurrentSong.RequestedBy),
-				},
+				],
 			};
 			await audioClient.ConnectedChannel.SendMessageAsync(embed: embed.Build());
 
@@ -408,7 +403,7 @@ namespace MusicPlayer
 			Log.Write("Converting audio: Starting", "Bot - Audio");
 
 			// Convert yt stream
-			MemoryStream memoryStream = new MemoryStream();
+			MemoryStream memoryStream = new();
 			await Cli.Wrap("ffmpeg")
 				.WithArguments(" -hide_banner -loglevel panic -i pipe:0 -ac 2 -f s16le -ar 48000 pipe:1")
 				.WithStandardInputPipe(PipeSource.FromStream(ytStream))
@@ -423,11 +418,11 @@ namespace MusicPlayer
 
 		private async Task<Task> IdleStreamStop()
 		{
-			while (this.connectedChannels.Count > 0)
+			while (!connectedChannels.IsEmpty)
 			{
 				await Task.Delay(IdleTimeout);
 
-				Log.Write("Checking For Inactive Audio Clients from total of " + this.connectedChannels.Count, "Bot - Audio");
+				Log.Write($"Checking For Inactive Audio Clients from total of {this.connectedChannels.Count}", "Bot - Audio");
 
 				DateTime runTime = DateTime.Now;
 				foreach (KeyValuePair<ulong, AudioClient> connectedChannel in this.connectedChannels)

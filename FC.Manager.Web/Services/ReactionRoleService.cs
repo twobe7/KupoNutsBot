@@ -14,9 +14,9 @@ namespace FC.Manager.Web.Services
 
 	public class ReactionRoleService : ServiceBase
 	{
-		private readonly Table<ReactionRoleHeader> reactionRoleHeaderDb = new Table<ReactionRoleHeader>("KupoNuts_ReactionRoleHeader", 0);
-		private readonly Table<ReactionRole> reactionRoleDb = new Table<ReactionRole>("KupoNuts_ReactionRole", 0);
-		private readonly Table<ReactionRoleItem> reactionRoleItemDb = new Table<ReactionRoleItem>("KupoNuts_ReactionRoleItem", 0);
+		private readonly Table<ReactionRoleHeader> reactionRoleHeaderDb = new("KupoNuts_ReactionRoleHeader", 0);
+		private readonly Table<ReactionRole> reactionRoleDb = new("KupoNuts_ReactionRole", 0);
+		private readonly Table<ReactionRoleItem> reactionRoleItemDb = new ("KupoNuts_ReactionRoleItem", 0);
 
 		public override async Task Initialize()
 		{
@@ -28,7 +28,7 @@ namespace FC.Manager.Web.Services
 		[GuildRpc]
 		public async Task<List<ReactionRole>> GetReactionRoles(ulong guildId)
 		{
-			Dictionary<string, object> search = new Dictionary<string, object>
+			Dictionary<string, object> search = new()
 			{
 				{ "GuildId", guildId },
 			};
@@ -44,7 +44,7 @@ namespace FC.Manager.Web.Services
 				});
 			}
 
-			return items.OrderBy(x => x.Name).ToList();
+			return [.. items.OrderBy(x => x.Name)];
 		}
 
 		[GuildRpc]

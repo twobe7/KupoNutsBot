@@ -64,7 +64,7 @@ namespace FC.Bot.Events.Services
 
 		private string GetEventString(Event evt, int daysTill, Instant occurrence)
 		{
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new();
 			builder.Append(Utils.Characters.Tab);
 
 			if (evt.Notify != null)
@@ -78,16 +78,13 @@ namespace FC.Bot.Events.Services
 
 			if (!string.IsNullOrEmpty(evt.ShortDescription))
 			{
-				builder.Append(" - *");
-				builder.Append(evt.ShortDescription);
-				builder.Append("*");
+				builder.Append($" - *{evt.ShortDescription}*");
 			}
 
 			// Today
 			if (daysTill == 0)
 			{
-				builder.Append(" - ");
-				builder.Append(evt.GetWhenString());
+				builder.Append($" - {evt.GetWhenString()}");
 			}
 
 			/*else
@@ -104,18 +101,20 @@ namespace FC.Bot.Events.Services
 		{
 			SocketTextChannel channel = (SocketTextChannel)this.DiscordClient.GetChannel(channelId);
 
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new();
 			/*builder.Append("**");
 			builder.Append(header);
 			builder.AppendLine("**");
 			builder.AppendLine();*/
 
-			Dictionary<int, List<(Event, Instant)>> eventSchedule = new Dictionary<int, List<(Event, Instant)>>();
+			Dictionary<int, List<(Event, Instant)>> eventSchedule = [];
 
 			DateTimeZone zone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
 
-			Dictionary<string, object> filters = new Dictionary<string, object>();
-			filters.Add("ServerIdStr", guildId.ToString());
+			Dictionary<string, object> filters = new()
+			{
+				{ "ServerIdStr", guildId.ToString() },
+			};
 
 			List<Event> events = await EventsService.EventsDatabase.LoadAll(filters);
 			foreach (Event evt in events)
@@ -128,7 +127,7 @@ namespace FC.Bot.Events.Services
 					int days = TimeUtils.GetDaysTill(instant, zone);
 
 					if (!eventSchedule.ContainsKey(days))
-						eventSchedule.Add(days, new List<(Event, Instant)>());
+						eventSchedule.Add(days, []);
 
 					eventSchedule[days].Add((evt, instant));
 				}
@@ -142,9 +141,7 @@ namespace FC.Bot.Events.Services
 
 				List<(Event, Instant)> eventsDay = eventSchedule[i];
 
-				builder.Append("__");
-				builder.Append(TimeUtils.GetDayName(i));
-				builder.AppendLine("__");
+				builder.AppendLine($"__{TimeUtils.GetDayName(i)}__");
 
 				foreach ((Event evt, Instant occurance) in eventsDay)
 				{
@@ -158,10 +155,12 @@ namespace FC.Bot.Events.Services
 			if (count == 0)
 				builder.AppendLine("None");
 
-			EmbedBuilder embedBuilder = new EmbedBuilder();
-			embedBuilder.Title = header;
-			embedBuilder.Description = builder.ToString();
-			embedBuilder.Color = Color.Blue;
+			EmbedBuilder embedBuilder = new()
+			{
+				Title = header,
+				Description = builder.ToString(),
+				Color = Color.Blue,
+			};
 
 			RestUserMessage? message = null;
 

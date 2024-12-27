@@ -43,19 +43,21 @@ namespace FC.Data
 
 		public async Task<bool> Exists()
 		{
-			CredentialProfileOptions options = new CredentialProfileOptions();
+			CredentialProfileOptions options = new();
 
 			Settings settings = Settings.Load();
 			options.AccessKey = settings.DBKey;
 			options.SecretKey = settings.DBSecret;
 
-			CredentialProfile profile = new CredentialProfile("Default", options);
-			profile.Region = RegionEndpoint.APSoutheast2;
+			CredentialProfile profile = new("Default", options)
+			{
+				Region = RegionEndpoint.APSoutheast2,
+			};
 
-			SharedCredentialsFile sharedFile = new SharedCredentialsFile();
+			SharedCredentialsFile sharedFile = new();
 			sharedFile.RegisterProfile(profile);
 
-			AmazonDynamoDBConfig dbConfig = new AmazonDynamoDBConfig();
+			AmazonDynamoDBConfig dbConfig = new();
 			this.client = new AmazonDynamoDBClient(dbConfig);
 
 			ListTablesResponse listTablesResponse = await this.client.ListTablesAsync();
@@ -64,19 +66,21 @@ namespace FC.Data
 
 		public async Task Connect()
 		{
-			CredentialProfileOptions options = new CredentialProfileOptions();
+			CredentialProfileOptions options = new();
 
 			Settings settings = Settings.Load();
 			options.AccessKey = settings.DBKey;
 			options.SecretKey = settings.DBSecret;
 
-			CredentialProfile profile = new CredentialProfile("Default", options);
-			profile.Region = RegionEndpoint.APSoutheast2;
+			CredentialProfile profile = new("Default", options)
+			{
+				Region = RegionEndpoint.APSoutheast2,
+			};
 
-			SharedCredentialsFile sharedFile = new SharedCredentialsFile();
+			SharedCredentialsFile sharedFile = new();
 			sharedFile.RegisterProfile(profile);
 
-			AmazonDynamoDBConfig dbConfig = new AmazonDynamoDBConfig();
+			AmazonDynamoDBConfig dbConfig = new();
 
 			this.client = new AmazonDynamoDBClient(dbConfig);
 
@@ -86,15 +90,11 @@ namespace FC.Data
 
 			foreach (JsonConverter converter in Serializer.Options.Converters)
 			{
-				PropertyInfo? prop = converter.GetType().GetProperty("TypeToConvert", BindingFlags.Instance | BindingFlags.NonPublic);
+				PropertyInfo? prop = converter.GetType().GetProperty("TypeToConvert", BindingFlags.Instance | BindingFlags.NonPublic)
+					?? throw new Exception($"Failed to get target type of json converter: {converter}");
 
-				if (prop == null)
-					throw new Exception("Failed to get target type of json converter: " + converter);
-
-				Type? targetType = prop.GetValue(converter) as Type;
-
-				if (targetType == null)
-					throw new Exception("Failed to get target type of json converter: " + converter);
+				Type? targetType = prop.GetValue(converter) as Type
+					?? throw new Exception($"Failed to get target type of json converter: {converter}");
 
 				this.context.ConverterCache.Add(targetType, new JsonProperty(targetType));
 			}
@@ -108,18 +108,18 @@ namespace FC.Data
 				throw new Exception("Unable to connect to database: " + ex.Message, ex);
 			}
 
-			this.operationConfig = new DynamoDBOperationConfig();
-			this.operationConfig.OverrideTableName = this.InternalName;
+			this.operationConfig = new()
+			{
+				OverrideTableName = this.InternalName,
+			};
 		}
 
 		public async Task<T> CreateEntry<T>(string? id = null)
 			where T : EntryBase, new()
 		{
-			if (id == null)
-				id = await this.GetNewID<T>();
+			id ??= await this.GetNewID<T>();
 
-			T t = new T();
-			t.Id = id;
+			T t = new() { Id = id };
 
 			return t;
 		}
@@ -130,7 +130,7 @@ namespace FC.Data
 			if (this.context == null)
 				throw new Exception("Database is not connected");
 
-			bool valid = false;
+			bool valid;
 			string guid;
 
 			do
@@ -156,10 +156,8 @@ namespace FC.Data
 		public async Task<T> LoadOrCreate<T>(string key)
 			where T : EntryBase, new()
 		{
-			T? entry = await this.Load<T>(key);
-
-			if (entry is null)
-				entry = await this.CreateEntry<T>(key);
+			T? entry = await this.Load<T>(key)
+				?? await this.CreateEntry<T>(key);
 
 			return entry;
 		}
@@ -237,17 +235,17 @@ namespace FC.Data
 			if (listTablesResponse.TableNames.Contains(this.InternalName))
 				return;
 
-			CreateTableRequest request = new CreateTableRequest
+			CreateTableRequest request = new()
 			{
 				TableName = this.InternalName,
-				AttributeDefinitions = new List<AttributeDefinition>()
-				{
+				AttributeDefinitions =
+				[
 					new AttributeDefinition("Id", ScalarAttributeType.S),
-				},
-				KeySchema = new List<KeySchemaElement>()
-				{
+				],
+				KeySchema =
+				[
 					new KeySchemaElement("Id", KeyType.HASH),
-				},
+				],
 				ProvisionedThroughput = new ProvisionedThroughput(1, 1),
 			};
 
@@ -262,19 +260,12 @@ namespace FC.Data
 			}
 		}
 
-		public class JsonProperty : IPropertyConverter
+		public class JsonProperty(Type type) : IPropertyConverter
 		{
-			private readonly Type type;
-
-			public JsonProperty(Type type)
-			{
-				this.type = type;
-			}
-
 			public object? FromEntry(DynamoDBEntry entry)
 			{
 				string json = entry.AsString();
-				return Serializer.Deserialize(json, this.type);
+				return Serializer.Deserialize(json, type);
 			}
 
 			public DynamoDBEntry ToEntry(object value)

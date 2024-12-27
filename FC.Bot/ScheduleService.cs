@@ -14,7 +14,7 @@ namespace FC.Bot
 	{
 		private const int UpdateDelayMinutes = 5;
 
-		private static List<Schedule> schedules = new List<Schedule>();
+		private static List<Schedule> schedules = [];
 		private Task? scheduleTask;
 
 		public ScheduleService(DiscordSocketClient discordClient)
@@ -29,7 +29,7 @@ namespace FC.Bot
 			if (minutesDelay > 60)
 				throw new Exception("Scheduled task must be on a delay less than 60 minutes");
 
-			Schedule schedule = new Schedule(method, minutesDelay);
+			Schedule schedule = new(method, minutesDelay);
 			schedules.Add(schedule);
 		}
 
@@ -49,7 +49,7 @@ namespace FC.Bot
 				while (delay < 0)
 					delay += UpdateDelayMinutes;
 
-				Log.Write("Wait " + delay + " minutes", "Scheduler");
+				Log.Write($"Wait {delay} minutes", "Scheduler");
 				await Task.Delay(new TimeSpan(0, delay, 0));
 
 				Log.Write("Tick Begin", "Scheduler");
@@ -80,11 +80,11 @@ namespace FC.Bot
 			{
 				if (schedule.Delay % minutes == 0)
 				{
-					Log.Write("Skip " + schedule, "Scheduler");
+					Log.Write($"Skip {schedule}", "Scheduler");
 					continue;
 				}
 
-				Log.Write("Run " + schedule, "Scheduler");
+				Log.Write($"Run {schedule}", "Scheduler");
 
 				// TODO: Only invoke schedules that should be on this tick.
 				// for now we are updating every one, since they almost all want 15 minutes anyway...
@@ -92,16 +92,10 @@ namespace FC.Bot
 			}
 		}
 
-		public class Schedule
+		public class Schedule(Func<Task> method, int delay)
 		{
-			public readonly int Delay;
-			public readonly Func<Task> Method;
-
-			public Schedule(Func<Task> method, int delay)
-			{
-				this.Method = method;
-				this.Delay = delay;
-			}
+			public readonly int Delay = delay;
+			public readonly Func<Task> Method = method;
 
 			public async Task Invoke(int depth = 0)
 			{
@@ -130,7 +124,7 @@ namespace FC.Bot
 
 			public override string ToString()
 			{
-				return this.Method.Target?.GetType() + "." + this.Method.Method.Name;
+				return $"{this.Method.Target?.GetType()}.{this.Method.Method.Name}";
 			}
 		}
 	}
