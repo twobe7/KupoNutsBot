@@ -4,79 +4,70 @@
 
 namespace FC.Bot.Services
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Text;
+	using System.Linq;
 	using System.Threading.Tasks;
-	using Discord;
+	using Discord.Interactions;
 	using Discord.WebSocket;
-	using FC.Bot.Commands;
 	using FC.Data;
 	using Twitter;
 
-	public class FashionReportService : ServiceBase
+	[Group("fashion-report", "For Streamers")]
+	public class FashionReportService(DiscordSocketClient discordClient) : ServiceBase
 	{
-		public readonly DiscordSocketClient DiscordClient;
+		public readonly DiscordSocketClient DiscordClient = discordClient;
 
-		private Table<FashionReportEntry> db = new Table<FashionReportEntry>("KupoNuts_FashionReport", 0);
-
-		public FashionReportService(DiscordSocketClient discordClient)
-		{
-			this.DiscordClient = discordClient;
-		}
+		private static readonly Table<FashionReportEntry> FashionReportDatabase = new("KupoNuts_FashionReport", 0);
 
 		public override async Task Initialize()
 		{
 			await base.Initialize();
 
-			await this.db.Connect();
+			await FashionReportDatabase.Connect();
 
 			await this.Update();
 			ScheduleService.RunOnSchedule(this.Update, 60);
 		}
 
-		[Command("FashionReport", Permissions.Everyone, "Gets the latest Fashion Report post", CommandCategory.News)]
-		[Command("fr", Permissions.Everyone, "Gets the latest Fashion Report post", CommandCategory.News, "FashionReport")]
-		public async Task GetFashionReport(CommandMessage message)
+		[SlashCommand("latest", "Get the latest fashion report post by KaiyokoStar")]
+		public async Task GetFashionReport()
 		{
-			List<FashionReportEntry> reports = await FashionReportAPI.Get();
-			reports.Sort((a, b) =>
-			{
-				return a.Time.CompareTo(b.Time);
-			});
+			await this.DeferAsync();
 
-			foreach (FashionReportEntry entry in reports)
-			{
-				if (entry.Id == null)
-					continue;
+			var fashionReportEntry = await FashionReportDatabase.LoadAll(null);
+			var latest = fashionReportEntry.OrderByDescending(x => x.Time).FirstOrDefault();
 
-				await message.Channel.SendMessageAsync(embed: this.GetEmbed(entry), messageReference: message.MessageReference);
+			if (latest != null)
+			{
+				await this.FollowupAsync(embeds: [latest.GetEmbed()]);
 				return;
 			}
 
-			throw new UserException("I couldn't find any Fashion Report posts.");
+			await this.FollowupAsync("I couldn't find any Fashion Report posts.");
 		}
 
 		private async Task Update()
 		{
-			List<FashionReportEntry> reports = await FashionReportAPI.Get();
-			foreach (FashionReportEntry entry in reports)
-			{
-				if (entry.Id == null)
-					continue;
+			var fashionReportEntry = await FashionReportDatabase.LoadAll(null);
+			var latest = fashionReportEntry.OrderByDescending(x => x.Time).FirstOrDefault();
 
-				FashionReportEntry? saved = await this.db.Load(entry.Id);
-				if (saved == null)
-				{
-					await this.Post(entry);
-					await this.db.Save(entry);
-				}
+			var lastPostId = latest?.Id;
+
+			FashionReportEntry? entry = await FashionReportAPI.GetLatest(lastPostId);
+
+			if (entry == null)
+				return;
+
+			FashionReportEntry? saved = await FashionReportDatabase.Load(entry.Id);
+			if (saved == null)
+			{
+				await this.Post(entry);
+				await FashionReportDatabase.Save(entry);
 			}
 		}
 
 		private async Task Post(FashionReportEntry entry)
 		{
-			Log.Write("Posting Fashion Report: " + entry.Content, "Bot");
+			Log.Write($"Posting Fashion Report: {entry.Content}", "Bot");
 
 			foreach (SocketGuild guild in this.DiscordClient.Guilds)
 			{
@@ -91,30 +82,8 @@ namespace FC.Bot.Services
 				if (channel == null)
 					continue;
 
-				await channel.SendMessageAsync(null, false, this.GetEmbed(entry));
+				await channel.SendMessageAsync(null, false, entry.GetEmbed());
 			}
-		}
-
-		private Embed GetEmbed(FashionReportEntry entry)
-		{
-			EmbedBuilder builder = new EmbedBuilder
-			{
-				Author = new EmbedAuthorBuilder
-				{
-					IconUrl = entry.AuthorImageUrl,
-					Name = entry.Author,
-				},
-				ImageUrl = entry.ImageUrl,
-				Description = entry.Content,
-				Color = Color.Magenta,
-				////Timestamp = entry.Time,
-				Footer = new EmbedFooterBuilder
-				{
-					IconUrl = "https://image.flaticon.com/icons/png/512/733/733579.png",
-					Text = $"@{entry.Author} - Posted {(DateTime.Now - entry.Time).ToMediumString()} ago",
-				},
-			};
-			return builder.Build();
 		}
 	}
 }

@@ -37,11 +37,9 @@ namespace FC
 		public string? TenorKey { get; set; }
 
 		public string? TwitterConsumerKey { get; set; }
-
 		public string? TwitterConsumerSecret { get; set; }
-
+		public string? TwitterBearerToken { get; set; }
 		public string? TwitterToken { get; set; }
-
 		public string? TwitterTokenSecret { get; set; }
 
 		public string? XIVAPIKey { get; set; }

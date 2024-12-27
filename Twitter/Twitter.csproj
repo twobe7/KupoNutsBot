@@ -29,7 +29,6 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="TweetSharp-Unofficial-DotNetStandard" Version="2.3.1.9" />
 	</ItemGroup>
 
 	<ItemGroup>

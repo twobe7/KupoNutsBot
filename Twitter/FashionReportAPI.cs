@@ -4,71 +4,123 @@
 
 namespace Twitter
 {
+	using System;
 	using System.Collections.Generic;
+	using System.IO;
+	using System.Linq;
+	using System.Net;
+	using System.Net.Http;
+	using System.Text.Json;
 	using System.Threading.Tasks;
 	using FC;
-	using TweetSharp;
+	using FC.Serialization;
 
 	public static class FashionReportAPI
 	{
-		public static Task<List<FashionReportEntry>> Get()
+		private const string TwitterApiUsersUri = "https://api.twitter.com/2/users";
+		private const string KaiyokoStarId = "4826718276";
+		private const string TweetsUri = $"{TwitterApiUsersUri}/{KaiyokoStarId}/tweets";
+
+		public static async Task<FashionReportEntry?> GetLatest(string? sinceId = null)
 		{
 			Settings settings = Settings.Load();
 
-			List<FashionReportEntry> results = new List<FashionReportEntry>();
+			if (settings.TwitterBearerToken == null)
+				return null;
 
-			if (settings.TwitterConsumerKey == null || settings.TwitterConsumerSecret == null || settings.TwitterToken == null || settings.TwitterTokenSecret == null)
-				return Task.FromResult(results);
+			// Create query
+			var query = $"{TweetsUri}?start_time={DateTime.Now.Date.AddDays(-8).ToUniversalTime():yyyy-MM-ddTHH:mm:ss.fffZ}";
+			if (sinceId != null)
+				query += $"&since_id={sinceId}";
 
-			TwitterService service = new TwitterService(settings.TwitterConsumerKey, settings.TwitterConsumerSecret);
-			service.AuthenticateWith(settings.TwitterToken, settings.TwitterTokenSecret);
+			query += "&exclude=retweets,replies";
+			query += "&tweet.fields=created_at";
+			query += "&expansions=author_id,attachments.media_keys";
+			query += "&user.fields=username,profile_image_url";
+			query += "&media.fields=url";
 
-			if (service == null)
-				return Task.FromResult(results);
+			using HttpClient client = new();
+			client.DefaultRequestHeaders.Add("Authorization", $"Bearer {settings.TwitterBearerToken}");
 
-			ListTweetsOnUserTimelineOptions op = new ListTweetsOnUserTimelineOptions
+			try
 			{
-				ScreenName = "@KaiyokoStar",
-				IncludeRts = true,
-				ExcludeReplies = true,
-			};
+				var stream = await client.GetStreamAsync(query);
+				using StreamReader reader = new(stream);
+				string json = await reader.ReadToEndAsync();
 
-			IEnumerable<TwitterStatus> statuses = service.ListTweetsOnUserTimeline(op) ?? new List<TwitterStatus>();
+				Log.Write($"Response: {json.Length} characters", "Twitter");
 
-			foreach (TwitterStatus status in statuses)
-			{
-				if (status.Text == null)
-					continue;
+				var response = JsonSerializer.Deserialize<Response>(json, Serializer.SnakeCaseOptions);
+				var data = response?.Data;
 
-				if (!status.Text.Contains("Fashion Report Week"))
-					continue;
-
-				if (!status.Text.Contains("Full Details"))
-					continue;
-
-				FashionReportEntry entry = GetBaseEntry(status.RetweetedStatus ?? status);
-
-				if (status.Entities != null && status.Entities.Media != null && status.Entities.Media.Count > 0)
+				if (data != null)
 				{
-					entry.ImageUrl = status.Entities.Media[0].MediaUrl;
+					var user = response?.Includes.Users.FirstOrDefault();
+
+					foreach (var result in data)
+					{
+						if (!result.Content.Contains("Fashion Report Week", StringComparison.InvariantCultureIgnoreCase))
+							continue;
+
+						if (!result.Content.Contains("Full Details", StringComparison.InvariantCultureIgnoreCase))
+							continue;
+
+						// Update with Includes data
+						if (user != null)
+						{
+							result.Author = user.Username;
+							result.AuthorImageUrl = user.ProfileImageUrl;
+						}
+
+						result.ImageUrl = response?.Includes.Media.FirstOrDefault(x => x.MediaKey == result.Attachments?.MediaKeys.FirstOrDefault())?.Url
+							?? string.Empty;
+
+						return result;
+					}
 				}
 
-				results.Add(entry);
+				return null;
 			}
+			catch (HttpRequestException httpRequestException)
+			{
+				if (httpRequestException.StatusCode == HttpStatusCode.TooManyRequests)
+				{
+					Log.Write($"Too many requests", "Twitter");
+					return null;
+				}
 
-			return Task.FromResult(results);
+				throw;
+			}
+			catch (Exception ex)
+			{
+				Log.Write($"Error: {ex.Message}", "Twitter");
+				return null;
+			}
 		}
 
-		private static FashionReportEntry GetBaseEntry(TwitterStatus status)
+		private class Response
 		{
-			return new FashionReportEntry
-			{
-				Id = status.IdStr,
-				Time = status.CreatedDate,
-				Content = status.Text,
-				Author = status.Author.ScreenName,
-				AuthorImageUrl = status.Author.ProfileImageUrl,
-			};
+			public required List<FashionReportEntry> Data { get; set; }
+			public required ResponseIncludes Includes { get; set; }
+		}
+
+		private class ResponseIncludes
+		{
+			public required List<ResponseUser> Users { get; set; }
+			public required List<ResponseMedia> Media { get; set; }
+		}
+
+		private class ResponseMedia
+		{
+			public required string MediaKey { get; set; }
+			public string? Url { get; set; }
+		}
+
+		private class ResponseUser
+		{
+			public required string ProfileImageUrl { get; set; }
+			public required string Username { get; set; }
+			public required string Name { get; set; }
 		}
 	}
 }
